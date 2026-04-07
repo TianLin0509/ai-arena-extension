@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "AI Arena",
+  "version": "1.0.0",
+  "description": "Claude × Gemini × ChatGPT — 一键提问 & 多轮辩论",
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "activeTab",
+    "system.display",
+    "storage",
+    "windows",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.deepseek.com/*",
+    "https://www.doubao.com/*",
+    "https://tongyi.aliyun.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["inject-images.js", "content-claude.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": ["inject-images.js", "content-gemini.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["inject-images.js", "content-chatgpt.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://chat.deepseek.com/*"],
+      "js": ["inject-images.js", "content-deepseek.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.doubao.com/*"],
+      "js": ["inject-images.js", "content-doubao.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://tongyi.aliyun.com/*"],
+      "js": ["inject-images.js", "content-qwen.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "AI Arena"
+  }
+}

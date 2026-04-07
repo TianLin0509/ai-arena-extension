@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div class="header">
+    <h1>AI Arena</h1>
+    <span class="version">v5.0</span>
+  </div>
+
+  <!-- 参与者（融合：预设 + 添加 + 在线列表） -->
+  <div class="section">
+    <div class="section-title">
+      <span>参与者 (<span id="participant-count">0</span>)</span>
+      <span id="round-badge" class="round-badge" style="display:none"></span>
+    </div>
+    <div class="preset-group">
+      <button class="btn-preset" data-preset="trio">三巨头</button>
+      <button class="btn-preset" data-preset="global">中外对决</button>
+      <button class="btn-preset" data-preset="deep">深度对抗</button>
+      <button class="btn-preset" data-preset="all">全员集结</button>
+    </div>
+    <div class="add-group">
+      <button class="btn-add claude" data-service="claude">+ Claude</button>
+      <button class="btn-add gemini" data-service="gemini">+ Gemini</button>
+      <button class="btn-add chatgpt" data-service="chatgpt">+ GPT</button>
+    </div>
+    <div class="add-group" style="margin-top: 4px;">
+      <button class="btn-add deepseek" data-service="deepseek">+ DeepSeek</button>
+      <button class="btn-add doubao" data-service="doubao">+ 豆包</button>
+      <button class="btn-add qwen" data-service="qwen">+ 千问</button>
+    </div>
+    <div id="participant-list" class="participant-list">
+      <div class="empty-hint">选择预设或手动添加参与者</div>
+    </div>
+    <button class="btn btn-secondary" id="btn-open-all" style="width:100%;margin-top:8px">打开全部</button>
+  </div>
+
+  <!-- 同时提问（含模板库） -->
+  <div class="section broadcast-area">
+    <div class="section-title">同时提问</div>
+    <details class="custom-details" id="template-section">
+      <summary class="custom-summary">Prompt 模板库</summary>
+      <div class="template-list" id="template-list"></div>
+      <details class="custom-details" style="margin-top:8px">
+        <summary class="custom-summary">+ 新建模板</summary>
+        <input id="tpl-name" class="tpl-input" placeholder="模板名称（如：代码审查）">
+        <textarea id="tpl-content" class="custom-textarea" placeholder="模板内容，用 {{问题}} 作为占位符&#10;例如：请审查以下代码，关注性能和安全性：&#10;{{问题}}"></textarea>
+        <button class="btn btn-tiny" id="btn-save-tpl" style="margin-top:6px">保存模板</button>
+      </details>
+    </details>
+    <div id="broadcast-input" class="broadcast-editor" contenteditable="true"
+         data-placeholder="输入问题，可直接粘贴图片&#10;Ctrl+Enter 发送"></div>
+    <div id="image-previews" class="image-previews"></div>
+    <div class="broadcast-actions">
+      <label class="btn btn-tiny btn-upload" title="添加文件">
+        📎 文件
+        <input type="file" id="file-input" multiple hidden>
+      </label>
+      <button class="btn btn-tiny" id="btn-optimize" title="AI优化Prompt">✨ 优化</button>
+      <button class="btn btn-primary" id="btn-send" style="flex:1">发送给全部</button>
+    </div>
+  </div>
+
+  <!-- 辩论（简化：仅开始按钮 + 可选引导） -->
+  <div class="section">
+    <div class="section-title">辩论</div>
+    <div class="debate-mode-toggle">
+      <button class="mode-btn active" data-mode="free">⚔️ 自由辩论</button>
+      <button class="mode-btn" data-mode="collab">🤝 群策群力</button>
+    </div>
+    <div id="debate-wizard" class="debate-wizard">① 先发送问题 → ② 等待回答完成 → ③ 点击辩论</div>
+    <details class="custom-details">
+      <summary class="custom-summary">引导注入（可选）</summary>
+      <textarea id="guidance-input" class="custom-textarea"
+                placeholder="引导辩论方向，如：请重点讨论性能问题"></textarea>
+    </details>
+    <label class="concise-toggle">
+      <input type="checkbox" id="concise-mode"> <span>简洁模式</span>（限制 AI 输出长度，要点式回答）
+    </label>
+    <button class="btn btn-debate" id="btn-debate">开始辩论</button>
+  </div>
+
+  <!-- 上下文提炼 -->
+  <div class="section">
+    <div class="section-title">上下文提炼</div>
+    <div class="fork-desc">提炼当前所在 AI 页面的对话上下文，复制后粘贴到任意新对话窗口继续。</div>
+    <button class="btn btn-primary" id="btn-ctx-fork" style="margin-top:8px;width:100%">📋 提炼当前页面并复制</button>
+    <div id="ctx-fork-preview" class="ctx-fork-preview" style="display:none"></div>
+  </div>
+
+  <!-- 辩论总结 -->
+  <div class="section">
+    <div class="section-title">辩论总结</div>
+    <div class="summary-row">
+      <select id="judge-select" class="select-input">
+        <option value="">选择裁判...</option>
+      </select>
+      <button class="btn btn-summary" id="btn-summary">输出总结</button>
+    </div>
+    <details class="custom-details">
+      <summary class="custom-summary">自定义指令（可选）</summary>
+      <textarea id="custom-instruction" class="custom-textarea"
+                placeholder="例如：请用表格对比各方观点"></textarea>
+      <div class="preset-row">
+        <select id="preset-select" class="select-input select-small">
+          <option value="">常用指令...</option>
+          <option value="table">用表格对比</option>
+          <option value="tech">技术可行性分析</option>
+          <option value="invest">投资角度分析</option>
+          <option value="academic">学术论证评价</option>
+          <option value="action">行动清单</option>
+        </select>
+        <button class="btn btn-tiny" id="btn-save-preset">保存</button>
+      </div>
+    </details>
+    <div class="consensus-legend">
+      <span>🟢 全员共识</span><span>🟡 多数认同</span><span>🔴 争议</span><span>💡 独家洞察</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <button class="btn btn-secondary" id="btn-reset" style="flex:1">🔄 重置会话</button>
+      <button class="btn btn-secondary" id="btn-hard-reset" style="flex:1;color:#ef4444;border-color:#fca5a5">⚡ 彻底重置</button>
+    </div>
+  </div>
+
+  <!-- 状态日志 -->
+  <div class="section">
+    <div class="section-title">状态日志</div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="footer">
+    <div class="shortcuts-hint">快捷键: Ctrl+Enter 发送 | Ctrl+Shift+D 辩论</div>
+    by 立花道雪 | AI Arena v5.0
+  </div>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
