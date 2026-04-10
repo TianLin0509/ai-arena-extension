@@ -135,6 +135,7 @@ function renderParticipants() {
       const resp = await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id });
       if (resp?.ok && resp.text) {
         if (p) { p._pollStatus = "ready"; p._textLength = resp.text.length; }
+        trackChars(resp.text.length);
         addLog(`${p?.name || id} 回复已提取 (${resp.text.length}字)`, "success");
         renderParticipants();
         // 检查是否所有人都 ready 了
@@ -272,6 +273,7 @@ function schedulePollTick() {
                 p._pollStatus = "ready";
                 chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
                   if (resp?.ok) {
+                    if (resp.text) trackChars(resp.text.length);
                     addLog(`${p.name} 回复已自动提取`, "success");
                     // 刷新 StateMachine 数据以更新 ✓/✗ 状态
                     chrome.runtime.sendMessage({ type: "getState" }).then(state => {
@@ -477,6 +479,7 @@ async function doBroadcast() {
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
   if (hasFiles) attachInfo.push(`${pendingFiles.length}个文件`);
   addLog("广播: " + text.slice(0, 50) + (text.length > 50 ? "..." : "") + (attachInfo.length ? ` (+${attachInfo.join(", ")})` : ""));
+  trackConversation();
 
   try {
     const r = await chrome.runtime.sendMessage({ type: "broadcast", text, images: hasImages ? pendingImages : undefined });
@@ -525,6 +528,7 @@ btnDebate.addEventListener("click", async () => {
   renderParticipants();
   const guidance = guidanceInput?.value?.trim() || "";
   addLog(`第${nextRound}轮辩论${guidance ? " (引导: " + guidance.slice(0, 30) + ")" : ""}`, "info");
+  trackDebateRound();
   try {
     const concise = $("#concise-mode")?.checked || false;
     const r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise });
@@ -608,6 +612,37 @@ $("#btn-hard-reset").addEventListener("click", async () => {
   addLog("已彻底重置，所有状态已清除", "success");
 });
 
+
+// ── 累计统计（永久存储，不受重置影响） ──
+const STATS_KEY = "arena_lifetime_stats";
+let lifetimeStats = { conversations: 0, debates: 0, totalChars: 0 };
+
+async function loadStats() {
+  const data = await chrome.storage.local.get(STATS_KEY);
+  if (data[STATS_KEY]) lifetimeStats = data[STATS_KEY];
+  renderStats();
+}
+
+function saveStats() {
+  chrome.storage.local.set({ [STATS_KEY]: lifetimeStats });
+  renderStats();
+}
+
+function renderStats() {
+  const fmt = n => n >= 10000 ? (n / 10000).toFixed(1) + '万' : n.toLocaleString();
+  $("#stat-conversations").textContent = lifetimeStats.conversations;
+  $("#stat-debates").textContent = lifetimeStats.debates;
+  $("#stat-tokens").textContent = fmt(lifetimeStats.totalChars);
+}
+
+// 广播时 +1 对话
+function trackConversation() { lifetimeStats.conversations++; saveStats(); }
+// 辩论时 +1 轮
+function trackDebateRound() { lifetimeStats.debates++; saveStats(); }
+// 读取回复时累加字数
+function trackChars(charCount) { lifetimeStats.totalChars += charCount; saveStats(); }
+
+loadStats();
 
 // ── 通知权限 ──
 if ("Notification" in window) Notification.requestPermission();

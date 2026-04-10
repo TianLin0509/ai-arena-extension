@@ -163,6 +163,12 @@ body {
 .log .entry.error { color: #dc2626; }
 .log .entry.info { color: #2563eb; }
 
+/* ── 累计统计 ── */
+.stats-grid { display: flex; gap: 8px; }
+.stat-item { flex: 1; text-align: center; background: #f9fafb; border-radius: 8px; padding: 8px 4px; border: 1px solid #f0f0f0; }
+.stat-val { display: block; font-size: 18px; font-weight: 700; color: #6366f1; font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 10px; color: #999; }
+
 /* ── Footer ── */
 .shortcuts-hint { font-size: 10px; color: #ccc; margin-bottom: 4px; }
 .footer { font-size: 11px; color: #ddd; text-align: center; margin-top: auto; padding-top: 6px; }
