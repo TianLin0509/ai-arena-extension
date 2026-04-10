@@ -140,6 +140,13 @@ async function addParticipant(service) {
   StateMachine.addParticipant(id, service, tabId, `${info.name}-${count}`);
   notifyStatus(`已添加 ${info.name}-${count}`);
   StateMachine._broadcastStateUpdate();
+
+  // 并列模式下自动排列窗口
+  if (windowMode === "tiled") {
+    // 等页面稍微加载后再排列
+    setTimeout(() => arrangeWindows().catch(() => {}), 500);
+  }
+
   return { ok: true, participants: StateMachine.getFullState().participants };
 }
 
@@ -428,28 +435,25 @@ async function arrangeWindows() {
   const availW = screenW - sidePanelWidth;
   const perW = Math.floor(availW / n);
 
-  // 排列每个参与者窗口
+  // 排列每个参与者窗口（依次 focused:true 确保拉到前台）
   for (let i = 0; i < n; i++) {
     const tab = await chrome.tabs.get(parts[i].tabId).catch(() => null);
     if (!tab) continue;
     const winId = tab.windowId;
+    const isLast = i === n - 1;
     await chrome.windows.update(winId, {
       left: primary.workArea.left + i * perW,
       top: primary.workArea.top,
-      width: perW,
+      width: isLast ? perW + sidePanelWidth : perW,
       height: screenH,
-      state: "normal"
+      state: "normal",
+      focused: true // 依次聚焦，确保每个窗口都在前台层
     });
   }
 
-  // 最右侧的窗口略宽（加上侧边栏宽度），并打开侧边栏
+  // 最右侧窗口打开侧边栏
   const lastTab = await chrome.tabs.get(parts[n - 1].tabId).catch(() => null);
   if (lastTab) {
-    await chrome.windows.update(lastTab.windowId, {
-      left: primary.workArea.left + (n - 1) * perW,
-      width: perW + sidePanelWidth,
-      focused: true
-    });
     await chrome.sidePanel.open({ windowId: lastTab.windowId }).catch(() => {});
   }
 
