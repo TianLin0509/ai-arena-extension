@@ -14,6 +14,8 @@ function queryBySelectors(action, options = {}) {
     const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
     if (options.all ? el.length > 0 : el) return el;
   }
+  // streaming 检测不走启发式：没匹配到 = 不在生成中（正确结果）
+  if (action === "streaming") return null;
   const heuristic = getHeuristicElement(action, options);
   if (heuristic) return heuristic;
   chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {});

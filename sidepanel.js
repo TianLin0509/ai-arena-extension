@@ -11,6 +11,7 @@ const customInstruction = $("#custom-instruction"), presetSelect = $("#preset-se
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
 const confirmPanel = $("#confirm-panel"), confirmCards = $("#confirm-cards");
 const btnConfirmReady = $("#btn-confirm-ready"), btnConfirmWait = $("#btn-confirm-wait");
+const btnManualReady = $("#btn-manual-ready");
 const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
@@ -227,6 +228,15 @@ btnConfirmWait.addEventListener("click", async () => {
   hideConfirmPanel();
   startStreamingPoll();
   addLog("继续等待所有 AI 回复...", "info");
+});
+
+// ── 手动确认按钮（轮询卡住时的逃生口） ──
+btnManualReady.addEventListener("click", async () => {
+  stopStreamingPoll();
+  addLog("手动确认回复完成，正在读取...", "info");
+  await readAllResponses();
+  showConfirmPanel();
+  btnManualReady.style.display = "none";
 });
 
 // ── 流式轮询（带确认门控） ──
@@ -709,6 +719,8 @@ function updateWizard(state) {
     summary: "① ✅ → ② ✅ → ③ ✅ → 📝 总结中...",
   };
   wizardEl.innerHTML = steps[state] || steps.idle;
+  // awaiting_responses 时显示手动确认按钮（防止轮询卡住时用户无法操作）
+  btnManualReady.style.display = (state === "awaiting_responses") ? "" : "none";
 }
 
 // ── 通知权限 ──
