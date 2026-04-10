@@ -129,7 +129,7 @@ const StateMachine = {
     const p = this.getParticipant(id);
     if (!p || p.state !== ParticipantState.RESPONSE_READY || !p.response) return false;
     const text = p.response.trim();
-    if (text.length < 50) return true;
+    if (text.length < 10) return true;
     if (text.endsWith("...") || text.endsWith("…")) return true;
     return false;
   },

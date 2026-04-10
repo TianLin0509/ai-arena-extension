@@ -150,15 +150,8 @@ async function injectAndSend(text) {
 }
 
 async function readLatestResponse() {
-  // 等待流式输出完成，最多 90 秒
-  for (let i = 0; i < 90; i++) {
-    if (isStreaming()) {
-      await sleep(1000);
-    } else {
-      break;
-    }
-  }
-  await sleep(800);
+  // v6: streaming 检测已由 sidepanel 轮询负责，此处仅短暂等待 DOM 稳定
+  await sleep(500);
 
   // 多策略读取最后一条 AI 回答
   const text = getLastAssistantText();

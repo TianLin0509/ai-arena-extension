@@ -133,16 +133,8 @@ function isThinkingOrStreaming() {
 }
 
 async function readLatestResponse() {
-  // 等待生成完成（检查 loading / thinking 指示器）
-  for (let i = 0; i < 90; i++) {
-    if (isThinkingOrStreaming()) {
-      await sleep(1000);
-    } else {
-      break;
-    }
-  }
-  // Gemini 流式结束后还有 Markdown 渲染延迟
-  await sleep(1000);
+  // v6: streaming 检测已由 sidepanel 轮询负责，此处仅短暂等待 DOM 稳定
+  await sleep(800);
 
   // 优先使用 SelectorManager 配置的选择器
   const responses = queryBySelectors("response", { all: true });

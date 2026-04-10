@@ -233,10 +233,14 @@ btnConfirmWait.addEventListener("click", async () => {
 // ── 手动确认按钮（轮询卡住时的逃生口） ──
 btnManualReady.addEventListener("click", async () => {
   stopStreamingPoll();
+  btnManualReady.disabled = true;
+  btnManualReady.textContent = "⏳ 正在读取回复...";
   addLog("手动确认回复完成，正在读取...", "info");
   await readAllResponses();
   showConfirmPanel();
   btnManualReady.style.display = "none";
+  btnManualReady.disabled = false;
+  btnManualReady.textContent = "✋ AI 都回答完了？点此手动确认";
 });
 
 // ── 流式轮询（带确认门控） ──

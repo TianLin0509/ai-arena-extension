@@ -151,11 +151,8 @@ async function injectAndSend(text) {
 }
 
 async function readLatestResponse() {
-  for (let i = 0; i < 90; i++) {
-    if (isStreaming()) await sleep(1000);
-    else break;
-  }
-  await sleep(800);
+  // v6: streaming 检测已由 sidepanel 轮询负责，此处仅短暂等待 DOM 稳定
+  await sleep(500);
 
   const responses = queryBySelectors("response", { all: true });
   if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
