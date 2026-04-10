@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "claude": {
+    "input": ["div.ProseMirror[contenteditable='true']"],
+    "response": ["[data-testid='chat-message-content']", ".font-claude-message"],
+    "streaming": ["[data-is-streaming='true']", "button[aria-label='Stop Response']"]
+  },
+  "chatgpt": {
+    "input": ["#prompt-textarea"],
+    "response": ["[data-message-author-role='assistant']"],
+    "streaming": ["button[aria-label='Stop generating']", "[data-testid='stop-button']"]
+  },
+  "gemini": {
+    "input": [".ql-editor[contenteditable='true']"],
+    "response": [".model-response-text .markdown"],
+    "streaming": ["button[aria-label='Stop response']", "model-response .loading-indicator"]
+  },
+  "deepseek": {
+    "input": ["#chat-input", "textarea"],
+    "response": [".ds-markdown"],
+    "streaming": [".ds-loading", "button[aria-label='Stop generating']"]
+  },
+  "doubao": {
+    "input": ["[contenteditable='true']"],
+    "response": ["[class*='assistant'] [class*='content']"],
+    "streaming": ["button[class*='stop']", "[class*='generating']"]
+  },
+  "qwen": {
+    "input": ["[contenteditable='true']"],
+    "response": ["[class*='assistant'] [class*='content']", "[class*='answer-content']"],
+    "streaming": ["button[class*='stop']", "[class*='generating']"]
+  }
+}
