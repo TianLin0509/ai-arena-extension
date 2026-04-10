@@ -292,7 +292,7 @@ const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 2;
 const POLL_INITIAL_DELAY = 2000;
-const POLL_INTERVAL = 500; // 统一 0.5 秒轮询，实时字数刷新
+const POLL_INTERVAL = 250; // 0.25 秒轮询，字数实时刷新更流畅
 let lastPromptLength = 0; // 用于动态计算无标记超时
 
 // 根据 prompt 长度动态计算无标记超时（短问题60秒，长问题更久）
