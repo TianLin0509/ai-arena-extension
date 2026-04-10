@@ -12,6 +12,7 @@ const SERVICES = {
 
 const MAX_PARTICIPANTS = 3;
 const _removingTabs = new Set();
+let windowMode = "tab"; // "tab" | "tiled"
 
 // ── 初始化 ──
 const initPromise = StateMachine.init();
@@ -82,6 +83,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
+        case "setWindowMode":     windowMode = msg.mode; sendResponse({ ok: true }); break;
+        case "arrangeWindows":    sendResponse(await arrangeWindows()); break;
 
         // ── 手动操作 ──
         case "sendToOne":
@@ -121,9 +124,20 @@ async function addParticipant(service) {
   if (!info) return { ok: false };
   const count = StateMachine.participants.filter(p => p.service === service).length + 1;
   const id = `p${StateMachine.nextId++}`;
-  const currentWindow = await chrome.windows.getCurrent();
-  const tab = await chrome.tabs.create({ url: info.url, windowId: currentWindow.id, active: false });
-  StateMachine.addParticipant(id, service, tab.id, `${info.name}-${count}`);
+
+  let tabId;
+  if (windowMode === "tiled") {
+    // 并列模式：每个 AI 开独立窗口
+    const win = await chrome.windows.create({ url: info.url, state: "normal", focused: false });
+    tabId = win.tabs[0].id;
+  } else {
+    // Tab 模式：同一窗口的不同标签页
+    const currentWindow = await chrome.windows.getCurrent();
+    const tab = await chrome.tabs.create({ url: info.url, windowId: currentWindow.id, active: false });
+    tabId = tab.id;
+  }
+
+  StateMachine.addParticipant(id, service, tabId, `${info.name}-${count}`);
   notifyStatus(`已添加 ${info.name}-${count}`);
   StateMachine._broadcastStateUpdate();
   return { ok: true, participants: StateMachine.getFullState().participants };
@@ -396,6 +410,50 @@ function exportSession() {
     md += `---\n\n`;
   }
   return { ok: true, markdown: md };
+}
+
+// ── 并列模式：排列窗口 ──
+async function arrangeWindows() {
+  if (windowMode !== "tiled") return { ok: false, error: "非并列模式" };
+  const parts = StateMachine.participants.filter(p => p.tabId);
+  if (parts.length === 0) return { ok: false, error: "无参与者" };
+
+  // 获取屏幕尺寸
+  const displays = await chrome.system.display.getInfo();
+  const primary = displays[0];
+  const { width: screenW, height: screenH } = primary.workArea;
+
+  const n = parts.length;
+  const sidePanelWidth = 420; // 侧边栏宽度估算
+  const availW = screenW - sidePanelWidth;
+  const perW = Math.floor(availW / n);
+
+  // 排列每个参与者窗口
+  for (let i = 0; i < n; i++) {
+    const tab = await chrome.tabs.get(parts[i].tabId).catch(() => null);
+    if (!tab) continue;
+    const winId = tab.windowId;
+    await chrome.windows.update(winId, {
+      left: primary.workArea.left + i * perW,
+      top: primary.workArea.top,
+      width: perW,
+      height: screenH,
+      state: "normal"
+    });
+  }
+
+  // 最右侧的窗口略宽（加上侧边栏宽度），并打开侧边栏
+  const lastTab = await chrome.tabs.get(parts[n - 1].tabId).catch(() => null);
+  if (lastTab) {
+    await chrome.windows.update(lastTab.windowId, {
+      left: primary.workArea.left + (n - 1) * perW,
+      width: perW + sidePanelWidth,
+      focused: true
+    });
+    await chrome.sidePanel.open({ windowId: lastTab.windowId }).catch(() => {});
+  }
+
+  return { ok: true };
 }
 
 // ── 工具函数 ──

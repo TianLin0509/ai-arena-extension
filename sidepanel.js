@@ -369,6 +369,22 @@ setInterval(async () => {
   } catch {}
 }, 5000);
 
+// ── 窗口模式切换 ──
+$$(".mode-opt").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    $$(".mode-opt").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const mode = btn.dataset.mode;
+    await chrome.runtime.sendMessage({ type: "setWindowMode", mode });
+    addLog(`切换到${mode === "tiled" ? "并列" : "Tab"}模式`, "info");
+    // 并列模式下自动排列已有窗口
+    if (mode === "tiled" && participants.length > 0) {
+      const r = await chrome.runtime.sendMessage({ type: "arrangeWindows" });
+      if (r?.ok) addLog("窗口已排列", "success");
+    }
+  });
+});
+
 // ── 添加参与者 ──
 $$(".btn-add").forEach(b => b.addEventListener("click", async () => {
   if (participants.length >= 3) { addLog("最多 3 个参与者", "error"); return; }
