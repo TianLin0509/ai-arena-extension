@@ -376,8 +376,8 @@ function schedulePollTick() {
           return;
         }
       }
-      // 递归调度下一次轮询（自适应频率）
-      schedulePollTick();
+      // 递归调度下一次轮询（仅在未被 stop 时）
+      if (streamingPollTimer !== null) schedulePollTick();
     }, pollCurrentInterval);
 }
 
