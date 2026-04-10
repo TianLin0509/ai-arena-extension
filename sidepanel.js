@@ -263,11 +263,23 @@ function schedulePollTick() {
 
           const p = participants.find(p => p.id === id);
           if (p) {
-            p._textLength = v.textLength; // 实时字数
+            p._textLength = v.textLength;
             if (lengthChanged) {
               p._pollStatus = "streaming";
             } else if (v.hasDone) {
-              p._pollStatus = "ready";
+              // 刚变为 ready → 立即读取该参与者的回复
+              if (p._pollStatus !== "ready") {
+                p._pollStatus = "ready";
+                chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
+                  if (resp?.ok) {
+                    addLog(`${p.name} 回复已自动提取`, "success");
+                    // 刷新 StateMachine 数据以更新 ✓/✗ 状态
+                    chrome.runtime.sendMessage({ type: "getState" }).then(state => {
+                      if (state) { mergeParticipants(state.participants); renderParticipants(); }
+                    });
+                  }
+                }).catch(() => {});
+              }
             } else if (v.hasStart) {
               p._pollStatus = "streaming";
             } else {
