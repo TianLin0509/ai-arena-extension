@@ -430,14 +430,16 @@ async function arrangeWindows() {
   const primary = displays[0];
   const { width: screenW, height: screenH } = primary.workArea;
 
-  const n = parts.length;
-  const sidePanelWidth = 420; // 侧边栏宽度估算
+  // 反转顺序：第一个添加的参与者放最右边（带侧边栏）
+  const ordered = [...parts].reverse();
+  const n = ordered.length;
+  const sidePanelWidth = 420;
   const availW = screenW - sidePanelWidth;
   const perW = Math.floor(availW / n);
 
   // 排列每个参与者窗口（依次 focused:true 确保拉到前台）
   for (let i = 0; i < n; i++) {
-    const tab = await chrome.tabs.get(parts[i].tabId).catch(() => null);
+    const tab = await chrome.tabs.get(ordered[i].tabId).catch(() => null);
     if (!tab) continue;
     const winId = tab.windowId;
     const isLast = i === n - 1;
@@ -451,8 +453,8 @@ async function arrangeWindows() {
     });
   }
 
-  // 最右侧窗口打开侧边栏
-  const lastTab = await chrome.tabs.get(parts[n - 1].tabId).catch(() => null);
+  // 最右侧窗口（第一个添加的参与者）打开侧边栏
+  const lastTab = await chrome.tabs.get(ordered[n - 1].tabId).catch(() => null);
   if (lastTab) {
     await chrome.sidePanel.open({ windowId: lastTab.windowId }).catch(() => {});
   }
