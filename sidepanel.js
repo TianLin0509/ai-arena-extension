@@ -10,7 +10,6 @@ const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRet
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
 const confirmPanel = $("#confirm-panel"), confirmCards = $("#confirm-cards");
 const btnConfirmReady = $("#btn-confirm-ready"), btnConfirmWait = $("#btn-confirm-wait");
-const btnManualReady = $("#btn-manual-ready");
 const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
@@ -88,12 +87,22 @@ function renderParticipants() {
         </div>`;
       }
 
+      // 实时字数显示
+      const charCount = p._textLength || 0;
+      const charDisplay = charCount > 0 ? `<span class="p-chars">${charCount}字</span>` : '';
+
+      // 手动提取按钮（生成中/等待中时可用，替代全局手动确认）
+      const canExtract = pState === "streaming" || pState === "waiting" || pState === "idle";
+      const extractBtn = canExtract && !gateActions ? `<button class="p-btn p-extract" data-id="${p.id}" title="手动提取回复">📥</button>` : '';
+
       return `<div class="participant-item ${p.service}">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
         ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : `<span class="p-status-text">${sc === "offline" ? "离线" : ""}</span>`}
+        ${charDisplay}
         ${gateActions}
-        ${!gateActions ? (sc === "offline" ? '' : `<button class="p-btn p-focus" data-id="${p.id}">👁</button>`) : ''}
+        ${extractBtn}
+        ${!gateActions && !extractBtn ? (sc === "offline" ? '' : `<button class="p-btn p-focus" data-id="${p.id}">👁</button>`) : ''}
         <button class="p-btn p-remove" data-id="${p.id}">✕</button>
       </div>`;
     }).join("");
@@ -101,6 +110,24 @@ function renderParticipants() {
     // 事件绑定
     listEl.querySelectorAll(".p-focus").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "focusTab", id: b.dataset.id })));
     listEl.querySelectorAll(".p-remove").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "removeParticipant", id: b.dataset.id })));
+    // 手动提取按钮
+    listEl.querySelectorAll(".p-extract").forEach(b => b.addEventListener("click", async () => {
+      const id = b.dataset.id;
+      const p = participants.find(p => p.id === id);
+      b.textContent = "⏳"; b.disabled = true;
+      addLog(`手动提取 ${p?.name || id} 的回复...`, "info");
+      const resp = await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id });
+      if (resp?.ok && resp.text) {
+        if (p) { p._pollStatus = "ready"; p._textLength = resp.text.length; }
+        addLog(`${p?.name || id} 回复已提取 (${resp.text.length}字)`, "success");
+        renderParticipants();
+        // 检查是否所有人都 ready 了
+        checkAllReadyAndConfirm();
+      } else {
+        addLog(`提取失败: ${resp?.error || '未读取到内容'}`, "error");
+        b.textContent = "📥"; b.disabled = false;
+      }
+    }));
 
     // 门控1 按钮
     listEl.querySelectorAll(".p-gate-btn").forEach(btn => {
@@ -231,6 +258,16 @@ $("#btn-paste-confirm").addEventListener("click", async () => {
   showConfirmPanel();
 });
 
+// 检查是否所有参与者都 ready，如果是则自动弹确认面板
+function checkAllReadyAndConfirm() {
+  const allReady = participants.length > 0 && participants.every(p => p._pollStatus === "ready");
+  if (allReady) {
+    stopStreamingPoll();
+    showConfirmPanel();
+    addLog("所有 AI 回复已就绪", "success");
+  }
+}
+
 // ── 确认面板按钮 ──
 btnConfirmReady.addEventListener("click", () => {
   flowState = "debating";
@@ -246,19 +283,6 @@ btnConfirmWait.addEventListener("click", () => {
   addLog("继续等待所有 AI 回复...", "info");
 });
 
-// ── 手动确认按钮（轮询卡住时的逃生口） ──
-btnManualReady.addEventListener("click", async () => {
-  stopStreamingPoll();
-  btnManualReady.disabled = true;
-  btnManualReady.textContent = "⏳ 正在读取回复...";
-  addLog("手动确认回复完成，正在读取...", "info");
-  await readAllResponses();
-  showConfirmPanel();
-  btnManualReady.style.display = "none";
-  btnManualReady.disabled = false;
-  btnManualReady.textContent = "✋ AI 都回答完了？点此手动确认";
-});
-
 // ── 标记驱动轮询（纯标记+字符数，无CSS选择器） ──
 let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
 let pollDelayTimer = null;
@@ -268,10 +292,7 @@ const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 2;
 const POLL_INITIAL_DELAY = 2000;
-const POLL_INTERVAL_SLOW = 1500;
-const POLL_INTERVAL_FAST = 500;
-let pollCurrentInterval = POLL_INTERVAL_SLOW;
-let anyStartDetected = false;
+const POLL_INTERVAL = 500; // 统一 0.5 秒轮询，实时字数刷新
 let lastPromptLength = 0; // 用于动态计算无标记超时
 
 // 根据 prompt 长度动态计算无标记超时（短问题60秒，长问题更久）
@@ -286,8 +307,6 @@ function startStreamingPoll(promptLength) {
   pollErrorCount = 0;
   pollReadyCount = 0;
   prevLengths = {};
-  pollCurrentInterval = POLL_INTERVAL_SLOW;
-  anyStartDetected = false;
   pollNoMarkerReported = false;
   if (promptLength) lastPromptLength = promptLength;
   pollDelayTimer = setTimeout(() => {
@@ -318,28 +337,23 @@ function schedulePollTick() {
 
           const p = participants.find(p => p.id === id);
           if (p) {
+            p._textLength = v.textLength; // 实时字数
             if (lengthChanged) {
-              p._pollStatus = "streaming"; // 字符增长 = 一票否决完成
+              p._pollStatus = "streaming";
             } else if (v.hasDone) {
-              p._pollStatus = "ready"; // DONE 标记 + 字符稳定
+              p._pollStatus = "ready";
             } else if (v.hasStart) {
-              p._pollStatus = "streaming"; // START 出现但无 DONE
+              p._pollStatus = "streaming";
             } else {
-              p._pollStatus = "waiting"; // 尚无标记
+              p._pollStatus = "waiting";
             }
           }
           if (p?._pollStatus !== "ready") allDone = false;
         }
         renderParticipants();
 
-        // 检测到 START → 切换快速轮询
+        // 动态超时：长时间无标记 → 提示异常
         const hasAnyStart = Object.values(s).some(v => v.hasStart);
-        if (hasAnyStart && !anyStartDetected) {
-          anyStartDetected = true;
-          pollCurrentInterval = POLL_INTERVAL_FAST;
-        }
-
-        // 动态超时：长时间无标记 → 提示异常（不降级到选择器）
         const noMarkerTimeout = getNoMarkerTimeout();
         if (!hasAnyStart && Date.now() - pollStartTime > noMarkerTimeout && !pollNoMarkerReported) {
           pollNoMarkerReported = true;
@@ -368,7 +382,7 @@ function schedulePollTick() {
         }
       }
       if (streamingPollTimer !== null) schedulePollTick();
-    }, pollCurrentInterval);
+    }, POLL_INTERVAL);
 }
 
 function stopStreamingPoll() {
@@ -650,7 +664,6 @@ function updateWizard(state) {
   };
   wizardEl.innerHTML = steps[state] || steps.idle;
   // awaiting_responses 时显示手动确认按钮（防止轮询卡住时用户无法操作）
-  btnManualReady.style.display = (state === "awaiting_responses") ? "" : "none";
 }
 
 // ── 通知权限 ──
