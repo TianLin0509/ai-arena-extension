@@ -1,6 +1,57 @@
 // AI Arena — Content Script for tongyi.aliyun.com (通义千问)
 const SITE = "qwen";
 
+// 选择器配置（启动时从 background 获取）
+let selectors = null;
+chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
+  if (resp) selectors = resp;
+});
+
+// 按优先级尝试选择器数组，返回第一个匹配的元素
+function queryBySelectors(action, options = {}) {
+  const sels = selectors?.[action] || [];
+  for (const sel of sels) {
+    const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
+    if (options.all ? el.length > 0 : el) return el;
+  }
+  const heuristic = getHeuristicElement(action, options);
+  if (heuristic) return heuristic;
+  chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {});
+  return options.all ? [] : null;
+}
+
+function getHeuristicElement(action, options = {}) {
+  if (action === "input") {
+    const editables = [...document.querySelectorAll('[contenteditable="true"], textarea')];
+    if (editables.length > 0) {
+      return editables.reduce((best, el) => {
+        const rect = el.getBoundingClientRect();
+        const bestRect = best.getBoundingClientRect();
+        return (rect.width * rect.height > bestRect.width * bestRect.height) ? el : best;
+      });
+    }
+    return null;
+  }
+  if (action === "response") {
+    const blocks = document.querySelectorAll('div, article, section');
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const text = blocks[i].innerText?.trim();
+      if (text && text.length > 100 && blocks[i].getBoundingClientRect().height > 50) {
+        return options.all ? [blocks[i]] : blocks[i];
+      }
+    }
+    return options.all ? [] : null;
+  }
+  if (action === "streaming") {
+    return document.querySelector('button[aria-label*="Stop"], button[aria-label*="stop"], button[aria-label*="Cancel"]');
+  }
+  if (action === "sendButton") {
+    const btns = [...document.querySelectorAll("button")];
+    return btns.filter(b => b.getBoundingClientRect().bottom > window.innerHeight - 150 && b.querySelector("svg")).pop() || null;
+  }
+  return options.all ? [] : null;
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") { sendResponse({ ready: true }); return false; }
@@ -8,16 +59,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "readResponse") { readLatestResponse().then(r => sendResponse({ site: SITE, text: r })).catch(e => sendResponse({ site: SITE, text: "", error: e.message })); return true; }
     if (msg.action === "injectImages") { handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message })); return true; }
     if (msg.action === "checkStreaming") {
-      const streaming = !!(
-        document.querySelector('button[class*="stop"]') ||
-        document.querySelector('[class*="generating"]')
-      );
-      sendResponse({ site: SITE, streaming });
+      sendResponse({ site: SITE, streaming: isStreaming() });
       return false;
     }
     if (msg.action === "readFullConversation") { sendResponse({ site: SITE, turns: readFullConversation() }); return false; }
   } catch (e) { sendResponse({ site: SITE, status: "error", error: e.message }); return false; }
 });
+
+function isStreaming() {
+  return !!queryBySelectors("streaming");
+}
 
 async function robustInject(el, text) {
   el.focus();
@@ -50,20 +101,14 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
-    const el =
-      document.querySelector('[contenteditable="true"]') ||
-      document.querySelector('textarea') ||
-      document.querySelector('#chat-input');
+    const el = queryBySelectors("input");
     if (!el) return { site: SITE, status: "error", error: "未找到输入框" };
 
     await robustInject(el, text);
 
     for (let attempt = 0; attempt < 8; attempt++) {
       await sleep(400);
-      const btn =
-        document.querySelector('button[class*="send"]') ||
-        document.querySelector('button[class*="submit"]') ||
-        findSendButton();
+      const btn = findSendButton();
       if (btn && !btn.disabled) { btn.click(); return { site: SITE, status: "sent" }; }
     }
 
@@ -76,14 +121,14 @@ async function injectAndSend(text) {
 
 async function readLatestResponse() {
   for (let i = 0; i < 60; i++) {
-    if (document.querySelector('[class*="loading"]') || document.querySelector('[class*="generating"]')) {
+    if (isStreaming()) {
       await sleep(1000);
     } else break;
   }
   await sleep(500);
 
-  const msgs = document.querySelectorAll('[class*="assistant"] [class*="content"], [class*="answer-content"], [class*="markdown"]');
-  if (msgs.length > 0) return msgs[msgs.length - 1].innerText.trim();
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
   return "";
 }
 
@@ -100,8 +145,7 @@ function readFullConversation() {
 }
 
 function findSendButton() {
-  const btns = [...document.querySelectorAll("button")];
-  return btns.filter(b => b.getBoundingClientRect().bottom > window.innerHeight - 150 && b.querySelector("svg")).pop() || null;
+  return queryBySelectors("sendButton");
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

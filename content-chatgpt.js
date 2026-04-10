@@ -1,6 +1,57 @@
 // AI Arena — Content Script for chatgpt.com
 const SITE = "chatgpt";
 
+// 选择器配置（启动时从 background 获取）
+let selectors = null;
+chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
+  if (resp) selectors = resp;
+});
+
+// 按优先级尝试选择器数组，返回第一个匹配的元素
+function queryBySelectors(action, options = {}) {
+  const sels = selectors?.[action] || [];
+  for (const sel of sels) {
+    const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
+    if (options.all ? el.length > 0 : el) return el;
+  }
+  const heuristic = getHeuristicElement(action, options);
+  if (heuristic) return heuristic;
+  chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {});
+  return options.all ? [] : null;
+}
+
+function getHeuristicElement(action, options = {}) {
+  if (action === "input") {
+    const editables = [...document.querySelectorAll('[contenteditable="true"], textarea')];
+    if (editables.length > 0) {
+      return editables.reduce((best, el) => {
+        const rect = el.getBoundingClientRect();
+        const bestRect = best.getBoundingClientRect();
+        return (rect.width * rect.height > bestRect.width * bestRect.height) ? el : best;
+      });
+    }
+    return null;
+  }
+  if (action === "response") {
+    const blocks = document.querySelectorAll('div, article, section');
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const text = blocks[i].innerText?.trim();
+      if (text && text.length > 100 && blocks[i].getBoundingClientRect().height > 50) {
+        return options.all ? [blocks[i]] : blocks[i];
+      }
+    }
+    return options.all ? [] : null;
+  }
+  if (action === "streaming") {
+    return document.querySelector('button[aria-label*="Stop"], button[aria-label*="stop"], button[aria-label*="Cancel"]');
+  }
+  if (action === "sendButton") {
+    const btns = [...document.querySelectorAll("button")];
+    return btns.filter(b => b.getBoundingClientRect().bottom > window.innerHeight - 150 && b.querySelector("svg")).pop() || null;
+  }
+  return options.all ? [] : null;
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") {
@@ -34,11 +85,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 function isStreaming() {
-  return !!(
-    document.querySelector('button[aria-label="Stop generating"]') ||
-    document.querySelector('button[aria-label="Stop streaming"]') ||
-    document.querySelector('[data-testid="stop-button"]')
-  );
+  return !!queryBySelectors("streaming");
 }
 
 async function robustInject(el, text) {
@@ -82,10 +129,7 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
-    const el =
-      document.querySelector("#prompt-textarea") ||
-      document.querySelector("textarea") ||
-      document.querySelector("[contenteditable='true']");
+    const el = queryBySelectors("input");
     if (!el) return { site: SITE, status: "error", error: "未找到输入框" };
 
     await robustInject(el, text);
@@ -111,8 +155,8 @@ async function readLatestResponse() {
   }
   await sleep(800);
 
-  const messages = document.querySelectorAll('[data-message-author-role="assistant"]');
-  if (messages.length > 0) return messages[messages.length - 1].innerText.trim();
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
 
   const markdownBlocks = document.querySelectorAll(".markdown.prose");
   if (markdownBlocks.length > 0) return markdownBlocks[markdownBlocks.length - 1].innerText.trim();
@@ -135,19 +179,7 @@ function readFullConversation() {
 }
 
 function findSendButton() {
-  return (
-    document.querySelector('[data-testid="send-button"]') ||
-    document.querySelector('button[aria-label="Send prompt"]') ||
-    document.querySelector('button[aria-label="Send"]') ||
-    (() => {
-      const buttons = document.querySelectorAll("button");
-      for (const btn of buttons) {
-        const rect = btn.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight - 150 && btn.querySelector("svg")) return btn;
-      }
-      return null;
-    })()
-  );
+  return queryBySelectors("sendButton");
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

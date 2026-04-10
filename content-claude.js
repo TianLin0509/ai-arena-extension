@@ -1,6 +1,57 @@
 // AI Arena — Content Script for claude.ai
 const SITE = "claude";
 
+// 选择器配置（启动时从 background 获取）
+let selectors = null;
+chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
+  if (resp) selectors = resp;
+});
+
+// 按优先级尝试选择器数组，返回第一个匹配的元素
+function queryBySelectors(action, options = {}) {
+  const sels = selectors?.[action] || [];
+  for (const sel of sels) {
+    const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
+    if (options.all ? el.length > 0 : el) return el;
+  }
+  const heuristic = getHeuristicElement(action, options);
+  if (heuristic) return heuristic;
+  chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {});
+  return options.all ? [] : null;
+}
+
+function getHeuristicElement(action, options = {}) {
+  if (action === "input") {
+    const editables = [...document.querySelectorAll('[contenteditable="true"], textarea')];
+    if (editables.length > 0) {
+      return editables.reduce((best, el) => {
+        const rect = el.getBoundingClientRect();
+        const bestRect = best.getBoundingClientRect();
+        return (rect.width * rect.height > bestRect.width * bestRect.height) ? el : best;
+      });
+    }
+    return null;
+  }
+  if (action === "response") {
+    const blocks = document.querySelectorAll('div, article, section');
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const text = blocks[i].innerText?.trim();
+      if (text && text.length > 100 && blocks[i].getBoundingClientRect().height > 50) {
+        return options.all ? [blocks[i]] : blocks[i];
+      }
+    }
+    return options.all ? [] : null;
+  }
+  if (action === "streaming") {
+    return document.querySelector('button[aria-label*="Stop"], button[aria-label*="stop"], button[aria-label*="Cancel"]');
+  }
+  if (action === "sendButton") {
+    const btns = [...document.querySelectorAll("button")];
+    return btns.filter(b => b.getBoundingClientRect().bottom > window.innerHeight - 150 && b.querySelector("svg")).pop() || null;
+  }
+  return options.all ? [] : null;
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") {
@@ -35,13 +86,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 function isStreaming() {
-  return !!(
-    document.querySelector('[data-is-streaming="true"]') ||
-    document.querySelector('.font-claude-message [data-is-streaming="true"]') ||
-    document.querySelector('[class*="streaming"]') ||
-    document.querySelector('button[aria-label="Stop Response"]') ||
-    document.querySelector('button[aria-label="Stop response"]')
-  );
+  return !!queryBySelectors("streaming");
 }
 
 // 健壮注入：优先模拟粘贴 → execCommand → innerHTML 兜底
@@ -79,10 +124,7 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
-    const el =
-      document.querySelector("div.ProseMirror[contenteditable='true']") ||
-      document.querySelector(".ProseMirror[contenteditable]") ||
-      document.querySelector("[contenteditable='true']");
+    const el = queryBySelectors("input");
     if (!el) return { site: SITE, status: "error", error: "未找到输入框" };
 
     await robustInject(el, text);
@@ -122,6 +164,10 @@ async function readLatestResponse() {
 }
 
 function getLastAssistantText() {
+  // 优先使用 SelectorManager 配置的选择器
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
+
   // 策略 1: data-testid（旧版）
   const testIdMsgs = document.querySelectorAll("[data-testid='chat-message-content']");
   if (testIdMsgs.length > 0) return testIdMsgs[testIdMsgs.length - 1].innerText.trim();
@@ -193,23 +239,7 @@ function readFullConversation() {
 }
 
 function findSendButton() {
-  // 优先级：aria-label > data-testid > form 内按钮 > 底部按钮
-  return (
-    document.querySelector('button[aria-label="Send Message"]') ||
-    document.querySelector('button[aria-label="Send message"]') ||
-    document.querySelector('button[data-testid="send-button"]') ||
-    (() => {
-      const buttons = document.querySelectorAll("button");
-      for (const btn of buttons) {
-        if (btn.querySelector('svg') && btn.closest("form")) return btn;
-      }
-      const allBtns = [...buttons];
-      return allBtns.filter(b =>
-        b.querySelector("svg") &&
-        b.getBoundingClientRect().bottom > window.innerHeight - 200
-      ).pop() || null;
-    })()
-  );
+  return queryBySelectors("sendButton");
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
