@@ -15,6 +15,16 @@ const btnManualReady = $("#btn-manual-ready");
 const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
+
+function mergeParticipants(remote) {
+  if (!remote) return;
+  const localMap = {};
+  for (const p of participants) localMap[p.id] = p;
+  participants = remote.map(rp => {
+    const local = localMap[rp.id];
+    return { ...rp, _pollStatus: local?._pollStatus || null };
+  });
+}
 let currentPasteParticipantId = null;
 let injectResults = {}; // { participantId: "ok" | "failed" }
 
@@ -219,7 +229,7 @@ $("#btn-paste-confirm").addEventListener("click", async () => {
   closePasteModal();
   // 刷新确认面板
   const state = await chrome.runtime.sendMessage({ type: "getState" });
-  if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+  if (state) { mergeParticipants(state.participants); debateSession = state.debateSession; flowState = state.flowState; }
   showConfirmPanel();
 });
 
@@ -418,7 +428,7 @@ async function readAllResponses() {
   }
   // 刷新状态
   const state = await chrome.runtime.sendMessage({ type: "getState" });
-  if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+  if (state) { mergeParticipants(state.participants); debateSession = state.debateSession; flowState = state.flowState; }
   renderParticipants();
 }
 
@@ -426,7 +436,7 @@ async function readAllResponses() {
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "status") addLog(msg.message);
   if (msg.type === "stateUpdate") {
-    participants = msg.participants;
+    mergeParticipants(msg.participants);
     debateSession = msg.debateSession || {};
     flowState = msg.flowState || "idle";
     renderParticipants();
@@ -445,7 +455,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 (async () => {
   try {
     const r = await chrome.runtime.sendMessage({ type: "getState" });
-    if (r) { participants = r.participants; debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); updateWizard(flowState); }
+    if (r) { mergeParticipants(r.participants); debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); updateWizard(flowState); }
   } catch {}
   try {
     const s = await chrome.storage.local.get(["customPresets", "lastCustomInstruction"]);
@@ -459,7 +469,7 @@ setInterval(async () => {
   try {
     const r = await chrome.runtime.sendMessage({ type: "getState" });
     if (r) {
-      participants = r.participants; debateSession = r.debateSession || {};
+      mergeParticipants(r.participants); debateSession = r.debateSession || {};
       flowState = r.flowState || "idle";
       if (!streamingPollTimer) renderParticipants();
     }
@@ -569,7 +579,7 @@ async function doBroadcast() {
     renderFilePreviews();
     // 刷新状态
     const state = await chrome.runtime.sendMessage({ type: "getState" });
-    if (state) { participants = state.participants; flowState = state.flowState; }
+    if (state) { mergeParticipants(state.participants); flowState = state.flowState; }
     renderParticipants();
     // 如果自动进入了 awaiting，开始轮询
     if (flowState === "awaiting_responses") {
@@ -606,7 +616,7 @@ btnDebate.addEventListener("click", async () => {
       addLog(`第${nextRound}轮已发送`, "success");
       // 刷新状态
       const state = await chrome.runtime.sendMessage({ type: "getState" });
-      if (state) { participants = state.participants; flowState = state.flowState; }
+      if (state) { mergeParticipants(state.participants); flowState = state.flowState; }
       renderParticipants();
       if (flowState === "awaiting_responses") startStreamingPoll();
       if (guidance && guidanceInput) guidanceInput.value = "";

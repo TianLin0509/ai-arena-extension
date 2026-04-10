@@ -281,6 +281,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
 // ── 辩论总结 ──
 
 async function handleSummary(judgeId, customInstruction = "") {
+  nextMarkerRound();
   if (StateMachine.participants.length < 2) { notifyStatus("至少需要 2 个参与者"); return { ok: false }; }
   const judge = StateMachine.getParticipant(judgeId);
   if (!judge?.tabId) { notifyStatus("裁判未打开"); return { ok: false }; }
@@ -421,9 +422,9 @@ async function readOneResponse(participantId) {
     const r = await sendMessageWithTimeout(p.tabId, { action: "readResponse" }, 30000);
     const text = r?.text || "";
     if (text) {
-      StateMachine.setParticipantResponse(p.id, text);
+      StateMachine.setParticipantResponse(p.id, stripMarkers(text));
     }
-    return { ok: true, text };
+    return { ok: true, text: stripMarkers(text) };
   } catch (e) {
     return { ok: false, text: "", error: e.message };
   }

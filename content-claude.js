@@ -81,7 +81,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const text = getLastResponseText();
       const startMarker = msg.startMarker || "ARENA_START";
       const doneMarker = msg.doneMarker || "ARENA_DONE";
-      const tail = text.slice(-50);
+      const tail = text.trimEnd().slice(-200);
       sendResponse({
         site: SITE,
         hasStart: text.includes(startMarker),

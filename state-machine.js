@@ -16,14 +16,16 @@ const StateMachine = {
   participants: [],     // { id, service, tabId, name, response, responsePreview, manualResponse }
   nextId: 1,
   debateSession: { originalQuestion: "", rounds: [], summaryText: "" },
+  markerRound: 0,
 
   // ── 初始化（从 storage 恢复） ──
   async init() {
-    const data = await chrome.storage.local.get(["sm_flowState", "sm_participants", "sm_nextId", "sm_debateSession"]);
+    const data = await chrome.storage.local.get(["sm_flowState", "sm_participants", "sm_nextId", "sm_debateSession", "sm_markerRound"]);
     if (data.sm_flowState) this.flowState = data.sm_flowState;
     if (data.sm_participants) this.participants = data.sm_participants;
     if (data.sm_nextId) this.nextId = data.sm_nextId;
     if (data.sm_debateSession) this.debateSession = data.sm_debateSession;
+    if (data.sm_markerRound) this.markerRound = data.sm_markerRound;
   },
 
   save() {
@@ -31,7 +33,8 @@ const StateMachine = {
       sm_flowState: this.flowState,
       sm_participants: this.participants,
       sm_nextId: this.nextId,
-      sm_debateSession: this.debateSession
+      sm_debateSession: this.debateSession,
+      sm_markerRound: this.markerRound
     });
   },
 
@@ -87,6 +90,7 @@ const StateMachine = {
   resetSession() {
     this.debateSession = { originalQuestion: "", rounds: [], summaryText: "" };
     this.flowState = FlowState.IDLE;
+    this.markerRound = 0;
     this.participants.forEach(p => {
       p.response = null;
       p.responsePreview = null;
@@ -100,6 +104,7 @@ const StateMachine = {
     this.nextId = 1;
     this.debateSession = { originalQuestion: "", rounds: [], summaryText: "" };
     this.flowState = FlowState.IDLE;
+    this.markerRound = 0;
     this.save();
   },
 

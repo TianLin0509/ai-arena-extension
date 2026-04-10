@@ -1,11 +1,9 @@
 // debate-engine.js — 辩论轮次编排、prompt 组装
 
 // ── 标记协议（每轮唯一，防止跨轮污染） ──
-let _markerRound = 0;
-
-function nextMarkerRound() { return ++_markerRound; }
-function currentStartMarker() { return `ARENA_START_R${_markerRound}`; }
-function currentDoneMarker() { return `ARENA_DONE_R${_markerRound}`; }
+function nextMarkerRound() { StateMachine.markerRound++; StateMachine.save(); return StateMachine.markerRound; }
+function currentStartMarker() { return `ARENA_START_R${StateMachine.markerRound}`; }
+function currentDoneMarker() { return `ARENA_DONE_R${StateMachine.markerRound}`; }
 function buildMarkerInstruction() {
   return `\n（请在回答的最开头输出 ${currentStartMarker()}，最末尾输出 ${currentDoneMarker()} 作为标记，不要解释这些标记）`;
 }
