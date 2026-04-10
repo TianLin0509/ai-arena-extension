@@ -92,13 +92,23 @@
     <div class="log" id="log"></div>
   </div>
 
-  <!-- 累计统计 -->
+  <!-- 统计 -->
   <div class="section stats-section">
-    <div class="section-title">累计统计</div>
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-item"><span class="stat-val" id="stat-conversations">0</span><span class="stat-label">对话</span></div>
-      <div class="stat-item"><span class="stat-val" id="stat-debates">0</span><span class="stat-label">辩论轮</span></div>
-      <div class="stat-item"><span class="stat-val" id="stat-tokens">0</span><span class="stat-label">总字数</span></div>
+    <div class="section-title">
+      <div class="stats-tabs">
+        <button class="stats-tab active" data-tab="session">本次</button>
+        <button class="stats-tab" data-tab="lifetime">历史累计</button>
+      </div>
+    </div>
+    <div class="stats-grid" id="stats-session">
+      <div class="stat-item"><span class="stat-val" id="stat-s-conversations">0</span><span class="stat-label">对话</span></div>
+      <div class="stat-item"><span class="stat-val" id="stat-s-debates">0</span><span class="stat-label">辩论轮</span></div>
+      <div class="stat-item"><span class="stat-val" id="stat-s-tokens">0</span><span class="stat-label">Token</span></div>
+    </div>
+    <div class="stats-grid" id="stats-lifetime" style="display:none">
+      <div class="stat-item"><span class="stat-val" id="stat-l-conversations">0</span><span class="stat-label">对话</span></div>
+      <div class="stat-item"><span class="stat-val" id="stat-l-debates">0</span><span class="stat-label">辩论轮</span></div>
+      <div class="stat-item"><span class="stat-val" id="stat-l-tokens">0</span><span class="stat-label">Token</span></div>
     </div>
   </div>
 

@@ -479,7 +479,7 @@ async function doBroadcast() {
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
   if (hasFiles) attachInfo.push(`${pendingFiles.length}个文件`);
   addLog("广播: " + text.slice(0, 50) + (text.length > 50 ? "..." : "") + (attachInfo.length ? ` (+${attachInfo.join(", ")})` : ""));
-  trackConversation();
+  trackConversation(participants.length);
 
   try {
     const r = await chrome.runtime.sendMessage({ type: "broadcast", text, images: hasImages ? pendingImages : undefined });
@@ -613,9 +613,14 @@ $("#btn-hard-reset").addEventListener("click", async () => {
 });
 
 
-// ── 累计统计（永久存储，不受重置影响） ──
+// ── 统计（本次 + 历史累计） ──
 const STATS_KEY = "arena_lifetime_stats";
 let lifetimeStats = { conversations: 0, debates: 0, totalChars: 0 };
+let sessionStats = { conversations: 0, debates: 0, totalChars: 0 };
+
+// 字数→Token 估算（中文~1.5 token/字，英文~1.3 token/word，取 1.4 均值）
+function charsToTokens(chars) { return Math.round(chars * 1.4); }
+function fmtTokens(tokens) { return tokens >= 10000 ? (tokens / 10000).toFixed(1) + '万' : tokens.toLocaleString(); }
 
 async function loadStats() {
   const data = await chrome.storage.local.get(STATS_KEY);
@@ -629,18 +634,45 @@ function saveStats() {
 }
 
 function renderStats() {
-  const fmt = n => n >= 10000 ? (n / 10000).toFixed(1) + '万' : n.toLocaleString();
-  $("#stat-conversations").textContent = lifetimeStats.conversations;
-  $("#stat-debates").textContent = lifetimeStats.debates;
-  $("#stat-tokens").textContent = fmt(lifetimeStats.totalChars);
+  // 本次
+  $("#stat-s-conversations").textContent = sessionStats.conversations;
+  $("#stat-s-debates").textContent = sessionStats.debates;
+  $("#stat-s-tokens").textContent = fmtTokens(charsToTokens(sessionStats.totalChars));
+  // 历史累计
+  $("#stat-l-conversations").textContent = lifetimeStats.conversations;
+  $("#stat-l-debates").textContent = lifetimeStats.debates;
+  $("#stat-l-tokens").textContent = fmtTokens(charsToTokens(lifetimeStats.totalChars));
 }
 
-// 广播时 +1 对话
-function trackConversation() { lifetimeStats.conversations++; saveStats(); }
-// 辩论时 +1 轮
-function trackDebateRound() { lifetimeStats.debates++; saveStats(); }
-// 读取回复时累加字数
-function trackChars(charCount) { lifetimeStats.totalChars += charCount; saveStats(); }
+// 广播：对话次数 = 参与者数量（每个AI算一次对话）
+function trackConversation(participantCount) {
+  sessionStats.conversations += participantCount;
+  lifetimeStats.conversations += participantCount;
+  saveStats();
+}
+// 辩论：+1 轮（与参与者数无关）
+function trackDebateRound() {
+  sessionStats.debates++;
+  lifetimeStats.debates++;
+  saveStats();
+}
+// 回复字数累加
+function trackChars(charCount) {
+  sessionStats.totalChars += charCount;
+  lifetimeStats.totalChars += charCount;
+  saveStats();
+}
+
+// Tab 切换
+$$(".stats-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$(".stats-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const isSession = btn.dataset.tab === "session";
+    $("#stats-session").style.display = isSession ? "" : "none";
+    $("#stats-lifetime").style.display = isSession ? "none" : "";
+  });
+});
 
 loadStats();
 
