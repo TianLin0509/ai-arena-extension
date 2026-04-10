@@ -66,6 +66,9 @@ body {
 .participant-item .p-status-text { font-size: 10px; color: #bbb; }
 .participant-item .p-btn { background: transparent; border: none; color: #ccc; cursor: pointer; font-size: 13px; padding: 0 3px; }
 .participant-item .p-btn:hover { color: #666; }
+.participant-item .p-action-btn { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px; color: #555; cursor: pointer; font-size: 9px; padding: 1px 4px; white-space: nowrap; }
+.participant-item .p-action-btn:hover { background: #e8e9ed; }
+.participant-item .p-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .participant-item .p-btn.p-remove:hover { color: #ef4444; }
 
 /* ── 广播 ── */

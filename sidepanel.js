@@ -91,8 +91,8 @@ function renderParticipants() {
 
       // 手动操作按钮
       const actionBtns = !gateActions ? [
-        `<button class="p-btn p-send" data-id="${p.id}" title="手动发送提问">📤</button>`,
-        `<button class="p-btn p-extract" data-id="${p.id}" title="手动提取回复">📥</button>`
+        `<button class="p-action-btn p-send" data-id="${p.id}" title="重新发送提问给该AI">🔄发送</button>`,
+        `<button class="p-action-btn p-extract" data-id="${p.id}" title="手动提取该AI的回复">📋提取</button>`
       ].join('') : '';
 
       return `<div class="participant-item ${p.service}">
@@ -124,7 +124,7 @@ function renderParticipants() {
       } else {
         addLog(`发送失败: ${resp?.error || '未知错误'}`, "error");
       }
-      b.textContent = "📤"; b.disabled = false;
+      b.textContent = "🔄发送"; b.disabled = false;
     }));
     // 手动提取按钮
     listEl.querySelectorAll(".p-extract").forEach(b => b.addEventListener("click", async () => {
@@ -141,7 +141,7 @@ function renderParticipants() {
         checkAllReadyAndConfirm();
       } else {
         addLog(`提取失败: ${resp?.error || '未读取到内容'}`, "error");
-        b.textContent = "📥"; b.disabled = false;
+        b.textContent = "📋提取"; b.disabled = false;
       }
     }));
 
