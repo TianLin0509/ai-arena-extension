@@ -1,12 +1,12 @@
 // debate-engine.js — 辩论轮次编排、prompt 组装
 
 // ── 标记协议 ──
-const MARKER_START = "⚡ARENA_START⚡";
-const MARKER_DONE = "⚡ARENA_DONE⚡";
+const MARKER_START = "ARENA_START";
+const MARKER_DONE = "ARENA_DONE";
 const MARKER_INSTRUCTION = `\n（请在回答的最开头输出 ${MARKER_START}，最末尾输出 ${MARKER_DONE} 作为标记，不要解释这些标记）`;
 
 function stripMarkers(text) {
-  return text.replace(/⚡ARENA_START⚡/g, '').replace(/⚡ARENA_DONE⚡/g, '').trim();
+  return text.replace(/ARENA_START/g, '').replace(/ARENA_DONE/g, '').trim();
 }
 
 const DEBATE_STYLES = {

@@ -7,11 +7,11 @@ chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
   if (resp) selectors = resp;
 });
 
-const MARKER_START = "⚡ARENA_START⚡";
-const MARKER_DONE = "⚡ARENA_DONE⚡";
+const MARKER_START = "ARENA_START";
+const MARKER_DONE = "ARENA_DONE";
 
 function stripMarkers(text) {
-  return text.replace(/⚡ARENA_START⚡/g, '').replace(/⚡ARENA_DONE⚡/g, '').trim();
+  return text.replace(/ARENA_START/g, '').replace(/ARENA_DONE/g, '').trim();
 }
 
 // 按优先级尝试选择器数组，返回第一个匹配的元素
