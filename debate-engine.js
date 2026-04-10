@@ -97,25 +97,4 @@ ${allText}
     return prompt + buildMarkerInstruction();
   },
 
-  buildContextForkPrompt(history) {
-    return `请将以下对话历史压缩成一段简洁的"上下文接力摘要"，供我粘贴到新的对话窗口继续讨论。
-
-要求：
-1. 保留所有关键结论、决策、代码片段、专有名词
-2. 去掉寒暄、重复、废话
-3. 输出格式：先一句话说明"我们在讨论什么"，再用要点列出关键信息，最后一句"请在此基础上继续"
-4. 总长度控制在 500 字以内
-5. 只输出摘要本身，不要加任何解释
-
-对话历史如下：
-
-${history.trim()}`;
-  },
-
-  buildOptimizePrompt(text) {
-    return `请优化以下 prompt，使其更清晰、更具体、更能引导出高质量回答。只输出优化后的 prompt，不需要解释：
-
-原始 prompt：
-${text}`;
-  }
 };

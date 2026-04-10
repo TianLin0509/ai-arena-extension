@@ -48,7 +48,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "broadcast":         sendResponse(await handleBroadcast(msg.text, msg.images)); break;
         case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise)); break;
         case "summary":           sendResponse(await handleSummary(msg.judgeId, msg.customInstruction)); break;
-        case "checkAllStreaming":  sendResponse(await checkAllStreaming()); break;
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
@@ -276,21 +275,6 @@ async function handleSummary(judgeId, customInstruction = "") {
     notifyStatus(`总结已发送给 ${judge.name}`);
     return { ok: true };
   } catch (e) { notifyStatus(`总结失败: ${e.message}`); return { ok: false }; }
-}
-
-// ── 流式状态检查 ──
-
-async function checkAllStreaming() {
-  const statuses = {};
-  await Promise.all(StateMachine.participants.map(async (p) => {
-    if (!p.tabId) { statuses[p.id] = { name: p.name, status: "offline" }; return; }
-    try {
-      const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkStreaming" });
-      const status = r.streaming ? "streaming" : "ready";
-      statuses[p.id] = { name: p.name, status };
-    } catch { statuses[p.id] = { name: p.name, status: "offline" }; }
-  }));
-  return statuses;
 }
 
 // ── 标记驱动的完成检测 ──

@@ -259,31 +259,37 @@ btnManualReady.addEventListener("click", async () => {
   btnManualReady.textContent = "✋ AI 都回答完了？点此手动确认";
 });
 
-// ── 标记驱动轮询 ──
+// ── 标记驱动轮询（纯标记+字符数，无CSS选择器） ──
 let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
 let pollDelayTimer = null;
-let prevLengths = {}; // { participantId: number } 上一次文本长度
-let stableTimestamps = {}; // { participantId: number } 文本停止增长的时间戳
-const INTERRUPT_TIMEOUT = 15000; // START 出现后文本稳定 15 秒无 DONE → 疑似中断
-const POLL_MAX_DURATION = 10 * 60 * 1000; // 10 分钟超时
+let prevLengths = {}; // { participantId: number }
+let pollNoMarkerReported = false; // 无标记异常只报一次
+const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
-const POLL_READY_THRESHOLD = 2; // 连续 2 次稳定+标记 = 完成（3 秒）
-const POLL_INITIAL_DELAY = 2000; // 初始等待 2 秒
-const POLL_INTERVAL_SLOW = 1500; // 等待阶段 1.5 秒
-const POLL_INTERVAL_FAST = 500; // 生成中阶段 0.5 秒（检测到 START 后加速）
-const POLL_FALLBACK_TIMEOUT = 60000; // 60 秒无标记降级到选择器
+const POLL_READY_THRESHOLD = 2;
+const POLL_INITIAL_DELAY = 2000;
+const POLL_INTERVAL_SLOW = 1500;
+const POLL_INTERVAL_FAST = 500;
 let pollCurrentInterval = POLL_INTERVAL_SLOW;
 let anyStartDetected = false;
+let lastPromptLength = 0; // 用于动态计算无标记超时
 
-function startStreamingPoll() {
+// 根据 prompt 长度动态计算无标记超时（短问题60秒，长问题更久）
+function getNoMarkerTimeout() {
+  // 基础60秒 + 每100字符加5秒，上限300秒
+  return Math.min(60000 + Math.floor(lastPromptLength / 100) * 5000, 300000);
+}
+
+function startStreamingPoll(promptLength) {
   stopStreamingPoll();
   pollStartTime = Date.now();
   pollErrorCount = 0;
   pollReadyCount = 0;
   prevLengths = {};
-  stableTimestamps = {};
   pollCurrentInterval = POLL_INTERVAL_SLOW;
   anyStartDetected = false;
+  pollNoMarkerReported = false;
+  if (promptLength) lastPromptLength = promptLength;
   pollDelayTimer = setTimeout(() => {
     pollDelayTimer = null;
     schedulePollTick();
@@ -310,48 +316,35 @@ function schedulePollTick() {
           const lengthChanged = v.textLength !== prevLen;
           prevLengths[id] = v.textLength;
 
-          // 跟踪文本稳定时间
-          if (lengthChanged) {
-            stableTimestamps[id] = null; // 文本在变，重置
-          } else if (v.hasStart && !v.hasDone && !stableTimestamps[id]) {
-            stableTimestamps[id] = Date.now(); // 开始计时
-          }
-
-          // 更新参与者显示状态
           const p = participants.find(p => p.id === id);
           if (p) {
-            if (!v.hasStart && v.textLength === 0) {
-              p._pollStatus = "waiting"; // 等待中
-            } else if (lengthChanged) {
-              p._pollStatus = "streaming"; // 字符在增长 = 一票否决完成
+            if (lengthChanged) {
+              p._pollStatus = "streaming"; // 字符增长 = 一票否决完成
             } else if (v.hasDone) {
-              p._pollStatus = "ready"; // 标记出现 + 字符稳定
-            } else if (v.hasStart && stableTimestamps[id] && Date.now() - stableTimestamps[id] > INTERRUPT_TIMEOUT) {
-              p._pollStatus = "ready"; // 疑似中断：START 出现后文本稳定超过 15 秒无 DONE
-              addLog(`${p.name} 疑似中断（无 DONE 标记，文本已稳定 15 秒）`, "error");
-              stableTimestamps[id] = -1; // 只报一次
+              p._pollStatus = "ready"; // DONE 标记 + 字符稳定
+            } else if (v.hasStart) {
+              p._pollStatus = "streaming"; // START 出现但无 DONE
             } else {
-              p._pollStatus = "streaming"; // 有内容但无 DONE 标记
+              p._pollStatus = "waiting"; // 尚无标记
             }
           }
-
           if (p?._pollStatus !== "ready") allDone = false;
         }
         renderParticipants();
 
-        // 检测到任何 START → 切换到快速轮询
+        // 检测到 START → 切换快速轮询
         const hasAnyStart = Object.values(s).some(v => v.hasStart);
         if (hasAnyStart && !anyStartDetected) {
           anyStartDetected = true;
           pollCurrentInterval = POLL_INTERVAL_FAST;
         }
 
-        // 降级检测：60 秒内无任何 START 标记，回退到选择器检测
-        if (!hasAnyStart && Date.now() - pollStartTime > POLL_FALLBACK_TIMEOUT) {
-          addLog("⚠️ 未检测到标记，降级到选择器检测", "error");
-          stopStreamingPoll();
-          startFallbackStreamingPoll();
-          return;
+        // 动态超时：长时间无标记 → 提示异常（不降级到选择器）
+        const noMarkerTimeout = getNoMarkerTimeout();
+        if (!hasAnyStart && Date.now() - pollStartTime > noMarkerTimeout && !pollNoMarkerReported) {
+          pollNoMarkerReported = true;
+          addLog(`⚠️ ${Math.round(noMarkerTimeout/1000)}秒内未检测到标记，疑似异常，建议手动查看`, "error");
+          // 不停止轮询，继续检测，用户可用手动确认按钮
         }
 
         if (allDone && hasOnline) {
@@ -374,44 +367,13 @@ function schedulePollTick() {
           return;
         }
       }
-      // 递归调度下一次轮询（仅在未被 stop 时）
       if (streamingPollTimer !== null) schedulePollTick();
     }, pollCurrentInterval);
 }
 
-// 降级：选择器 + 文本稳定性检测（标记不可用时）
-function startFallbackStreamingPoll() {
-  let fallbackReadyCount = 0;
-  let fallbackPrevLengths = {};
-  streamingPollTimer = setInterval(async () => {
-    try {
-      const s = await chrome.runtime.sendMessage({ type: "checkAllCompletion" });
-      const sStream = await chrome.runtime.sendMessage({ type: "checkAllStreaming" });
-      let allStable = true;
-      for (const [id, v] of Object.entries(s)) {
-        if (v.status === "offline") continue;
-        const prevLen = fallbackPrevLengths[id] || 0;
-        const lengthStable = v.textLength === prevLen && v.textLength > 0;
-        const noSelector = !sStream[id] || sStream[id].status !== "streaming";
-        fallbackPrevLengths[id] = v.textLength;
-        if (!(lengthStable && noSelector)) allStable = false;
-      }
-      if (allStable) {
-        fallbackReadyCount++;
-        if (fallbackReadyCount >= 3) { // 5 秒稳定（3 × 1.5s）
-          addLog("降级检测确认完成，读取回复...", "success");
-          stopStreamingPoll();
-          await readAllResponses();
-          showConfirmPanel();
-        }
-      } else { fallbackReadyCount = 0; }
-    } catch {}
-  }, POLL_INTERVAL_SLOW);
-}
-
 function stopStreamingPoll() {
   if (pollDelayTimer) { clearTimeout(pollDelayTimer); pollDelayTimer = null; }
-  if (streamingPollTimer) clearInterval(streamingPollTimer);
+  if (streamingPollTimer) { clearTimeout(streamingPollTimer); }
   streamingPollTimer = null;
 }
 
@@ -567,7 +529,7 @@ async function doBroadcast() {
     renderParticipants();
     // 如果自动进入了 awaiting，开始轮询
     if (flowState === "awaiting_responses") {
-      startStreamingPoll();
+      startStreamingPoll(text.length);
     }
   } catch (e) { addLog("失败: " + e.message, "error"); }
   btnSend.disabled = false; btnSend.textContent = "发送给全部";
