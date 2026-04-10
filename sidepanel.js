@@ -8,8 +8,6 @@ const judgeSelect = $("#judge-select");
 const broadcastInput = $("#broadcast-input"), btnSend = $("#btn-send");
 const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRetry = $("#btn-debate-retry");
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
-const confirmPanel = $("#confirm-panel"), confirmCards = $("#confirm-cards");
-const btnConfirmReady = $("#btn-confirm-ready"), btnConfirmWait = $("#btn-confirm-wait");
 const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
@@ -173,61 +171,6 @@ function checkGate1Complete() {
   }
 }
 
-// ── 确认面板（门控2/4） ──
-function showConfirmPanel() {
-  confirmPanel.style.display = "";
-  confirmCards.innerHTML = participants.map(p => {
-    const isReady = p._pollStatus === "ready" || !!p.responsePreview;
-    const isFailed = false; // no more state-based failure; poll determines status
-    const suspicious = isReady && p.responsePreview && p.responsePreview.trim().length < 10;
-    const statusIcon = isReady ? (suspicious ? "⚠️" : "✅") : "⏳";
-    const statusText = isReady ? (suspicious ? "疑似不完整" : "回复就绪") : "等待中";
-
-    return `<div class="confirm-card">
-      <span class="cc-status">${statusIcon}</span>
-      <div class="cc-info">
-        <div class="cc-name">${p.name}</div>
-        ${isReady && p.responsePreview ? `<div class="cc-preview">${p.responsePreview}${p.responsePreview.length >= 100 ? '...' : ''}</div>` : ''}
-        ${suspicious ? `<div class="cc-suspicious">回复较短，请确认是否完整</div>` : ''}
-      </div>
-      <div class="cc-actions">
-        ${isReady || isFailed ? `<button class="cc-btn" data-action="continue-wait" data-id="${p.id}">继续等</button>` : ''}
-        ${isFailed || suspicious ? `<button class="cc-btn cc-btn-paste" data-action="paste" data-id="${p.id}">手动粘贴</button>` : ''}
-        ${isFailed ? `<button class="cc-btn" data-action="skip-confirm" data-id="${p.id}">跳过</button>` : ''}
-      </div>
-    </div>`;
-  }).join("");
-
-  // 更新确认按钮状态
-  const validCount = participants.filter(p => p._pollStatus === "ready" || p.responsePreview).length;
-  btnConfirmReady.disabled = validCount < 2;
-  btnConfirmReady.textContent = validCount >= 2 ? `全部就绪，开始辩论 (${validCount}个有效)` : "至少需要 2 个有效回复";
-
-  // 确认面板按钮事件
-  confirmCards.querySelectorAll(".cc-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const { action, id } = btn.dataset;
-      if (action === "continue-wait") {
-        flowState = "awaiting_responses";
-        hideConfirmPanel();
-        startStreamingPoll();
-        addLog(`${participants.find(p => p.id === id)?.name || id} 继续等待`, "info");
-      } else if (action === "paste") {
-        openPasteModal(id);
-      } else if (action === "skip-confirm") {
-        // Mark as skipped locally, refresh confirm panel
-        const pIdx = participants.findIndex(p => p.id === id);
-        if (pIdx !== -1) participants[pIdx]._pollStatus = "ready";
-        showConfirmPanel();
-      }
-    });
-  });
-}
-
-function hideConfirmPanel() {
-  confirmPanel.style.display = "none";
-}
-
 // ── 手动粘贴弹框 ──
 function openPasteModal(participantId) {
   currentPasteParticipantId = participantId;
@@ -252,36 +195,20 @@ $("#btn-paste-confirm").addEventListener("click", async () => {
   await chrome.runtime.sendMessage({ type: "manualPaste", id: currentPasteParticipantId, text });
   addLog(`已手动粘贴 ${participants.find(p => p.id === currentPasteParticipantId)?.name || ''} 的回复`, "success");
   closePasteModal();
-  // 刷新确认面板
+  // 刷新状态
   const state = await chrome.runtime.sendMessage({ type: "getState" });
   if (state) { mergeParticipants(state.participants); debateSession = state.debateSession; flowState = state.flowState; }
-  showConfirmPanel();
+  renderParticipants();
 });
 
-// 检查是否所有参与者都 ready，如果是则自动弹确认面板
+// 检查是否所有参与者都 ready
 function checkAllReadyAndConfirm() {
   const allReady = participants.length > 0 && participants.every(p => p._pollStatus === "ready");
   if (allReady) {
     stopStreamingPoll();
-    showConfirmPanel();
-    addLog("所有 AI 回复已就绪", "success");
+    addLog("所有 AI 回复已就绪，可以开始辩论", "success");
   }
 }
-
-// ── 确认面板按钮 ──
-btnConfirmReady.addEventListener("click", () => {
-  flowState = "debating";
-  hideConfirmPanel();
-  addLog("确认就绪，进入辩论", "success");
-  updateWizard("ready");
-});
-
-btnConfirmWait.addEventListener("click", () => {
-  flowState = "awaiting_responses";
-  hideConfirmPanel();
-  startStreamingPoll();
-  addLog("继续等待所有 AI 回复...", "info");
-});
 
 // ── 标记驱动轮询（纯标记+字符数，无CSS选择器） ──
 let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
@@ -367,9 +294,8 @@ function schedulePollTick() {
             addLog("所有 AI 已回答完毕（标记确认），读取回复...", "success");
             stopStreamingPoll();
             await readAllResponses();
-            showConfirmPanel();
             if (Notification.permission === "granted") {
-              try { new Notification("AI Arena", { body: "所有 AI 已回答完毕，请确认", icon: "icons/icon128.png" }); } catch {}
+              try { new Notification("AI Arena", { body: "所有 AI 已回答完毕，可以开始辩论", icon: "icons/icon128.png" }); } catch {}
             }
           }
         } else { pollReadyCount = 0; }
@@ -414,7 +340,6 @@ chrome.runtime.onMessage.addListener((msg) => {
     debateSession = msg.debateSession || {};
     flowState = msg.flowState || "idle";
     renderParticipants();
-    updateWizard(flowState);
   }
   if (msg.type === "selectorWarning") {
     addLog(`⚠️ ${msg.message}`, "error");
@@ -429,7 +354,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 (async () => {
   try {
     const r = await chrome.runtime.sendMessage({ type: "getState" });
-    if (r) { mergeParticipants(r.participants); debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); updateWizard(flowState); }
+    if (r) { mergeParticipants(r.participants); debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); }
   } catch {}
 })();
 
@@ -518,7 +443,6 @@ async function doBroadcast() {
     text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
   }
   btnSend.disabled = true; btnSend.textContent = "发送中...";
-  hideConfirmPanel();
   const attachInfo = [];
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
   if (hasFiles) attachInfo.push(`${pendingFiles.length}个文件`);
@@ -566,7 +490,6 @@ btnDebate.addEventListener("click", async () => {
   if (participants.length < 2) { addLog("至少需要 2 个参与者", "error"); return; }
   const nextRound = getDebateRound() + 1;
   btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
-  hideConfirmPanel();
   const guidance = guidanceInput?.value?.trim() || "";
   addLog(`第${nextRound}轮辩论${guidance ? " (引导: " + guidance.slice(0, 30) + ")" : ""}`, "info");
   try {
@@ -588,13 +511,11 @@ btnDebate.addEventListener("click", async () => {
 // ── 辩论重试 ──
 btnDebateRetry.addEventListener("click", async () => {
   stopStreamingPoll();
-  hideConfirmPanel();
   btnDebate.disabled = false;
   btnDebate.textContent = `开始辩论（第${getDebateRound() + 1}轮）`;
   btnSend.disabled = false;
   btnSend.textContent = "发送给全部";
   await chrome.runtime.sendMessage({ type: "resetSession" });
-  updateWizard("idle");
   addLog("已重置辩论状态，可以重试", "info");
 });
 
@@ -616,10 +537,8 @@ btnSummary.addEventListener("click", async () => {
 $("#btn-reset").addEventListener("click", async () => {
   await chrome.runtime.sendMessage({ type: "resetSession" });
   stopStreamingPoll();
-  hideConfirmPanel();
   addLog("会话已重置", "info");
   btnDebate.textContent = "开始辩论";
-  updateWizard("idle");
   renderParticipants();
 });
 
@@ -630,7 +549,6 @@ $("#btn-hard-reset").addEventListener("click", async () => {
   }
   await chrome.runtime.sendMessage({ type: "hardReset" });
   stopStreamingPoll();
-  hideConfirmPanel();
   participants = [];
   debateSession = {};
   flowState = "idle";
@@ -644,27 +562,10 @@ $("#btn-hard-reset").addEventListener("click", async () => {
   btnSend.textContent = "发送给全部";
   btnSummary.disabled = false;
   btnSummary.textContent = "输出总结";
-  updateWizard("idle");
   renderParticipants();
   addLog("已彻底重置，所有状态已清除", "success");
 });
 
-// ── 辩论向导（FlowState 驱动） ──
-const wizardEl = $("#debate-wizard");
-function updateWizard(state) {
-  if (!wizardEl) return;
-  const steps = {
-    idle: "① 先发送问题 → ② 等待回答完成 → ③ 点击辩论",
-    broadcasting: "① ⏳ 发送中... → ② 等待回答 → ③ 辩论",
-    awaiting_responses: "① ✅ 已发送 → ② ⏳ 等待回答中... → ③ 辩论",
-    confirming: "① ✅ → ② ✅ 回答已收集 → <b>③ 请确认后开始辩论</b>",
-    debating: "① ✅ → ② ✅ → ③ ⏳ 辩论进行中...",
-    ready: "① ✅ 问题已发送 → ② ✅ 回答已完成 → <b>③ 现在可以辩论了！</b>",
-    summary: "① ✅ → ② ✅ → ③ ✅ → 📝 总结中...",
-  };
-  wizardEl.innerHTML = steps[state] || steps.idle;
-  // awaiting_responses 时显示手动确认按钮（防止轮询卡住时用户无法操作）
-}
 
 // ── 通知权限 ──
 if ("Notification" in window) Notification.requestPermission();
