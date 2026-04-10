@@ -1,14 +1,6 @@
 // AI Arena — Content Script for claude.ai
 const SITE = "claude";
 
-// 强制标签页始终"可见"，防止 AI 平台在后台暂停渲染
-(function injectVisibilityHack() {
-  const s = document.createElement('script');
-  s.textContent = `Object.defineProperty(document,'visibilityState',{get:()=>'visible'});Object.defineProperty(document,'hidden',{get:()=>false});document.addEventListener('visibilitychange',e=>e.stopImmediatePropagation(),true);`;
-  document.documentElement.appendChild(s);
-  s.remove();
-})();
-
 // 选择器配置（启动时从 background 获取）
 let selectors = null;
 chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {

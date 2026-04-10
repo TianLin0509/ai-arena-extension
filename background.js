@@ -28,6 +28,29 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
+// ── 强制后台标签页保持"可见"（绕过 CSP，使用扩展特权 API） ──
+async function injectVisibilityOverride(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+        Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+        document.addEventListener('visibilitychange', e => e.stopImmediatePropagation(), true);
+      }
+    });
+  } catch {}
+}
+
+// 页面导航后重新注入
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'complete') {
+    const p = StateMachine.participants.find(p => p.tabId === tabId);
+    if (p) injectVisibilityOverride(tabId);
+  }
+});
+
 // ── 标签页关闭 → 直接移除参与者 ──
 chrome.tabs.onRemoved.addListener((closedId) => {
   const p = StateMachine.participants.find(p => p.tabId === closedId);
@@ -349,6 +372,7 @@ async function waitForContentScript(tabId, maxRetries = 12) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       await chrome.tabs.sendMessage(tabId, { action: "ping" });
+      await injectVisibilityOverride(tabId);
       return true;
     } catch (e) {
       if (e.message && (e.message.includes("No tab") || e.message.includes("removed"))) return false;
