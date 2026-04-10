@@ -5,7 +5,6 @@ const FlowState = {
   IDLE: "idle",
   BROADCASTING: "broadcasting",
   AWAITING_RESPONSES: "awaiting_responses",
-  CONFIRMING: "confirming",
   DEBATING: "debating",
   SUMMARY: "summary"
 };
@@ -13,7 +12,7 @@ const FlowState = {
 // ── 状态管理器 ──
 const StateMachine = {
   flowState: FlowState.IDLE,
-  participants: [],     // { id, service, tabId, name, response, responsePreview, manualResponse }
+  participants: [],     // { id, service, tabId, name, response, responsePreview }
   nextId: 1,
   debateSession: { originalQuestion: "", rounds: [], summaryText: "" },
   markerRound: 0,
@@ -50,8 +49,7 @@ const StateMachine = {
     this.participants.push({
       id, service, tabId, name,
       response: null,
-      responsePreview: null,
-      manualResponse: null
+      responsePreview: null
     });
     this.save();
   },
@@ -75,17 +73,6 @@ const StateMachine = {
     }
   },
 
-  setParticipantManualResponse(id, text) {
-    const p = this.getParticipant(id);
-    if (p) {
-      p.manualResponse = text;
-      p.response = text;
-      p.responsePreview = text ? text.slice(0, 100) : null;
-      this.save();
-      this._broadcastStateUpdate();
-    }
-  },
-
   // ── 会话管理 ──
   resetSession() {
     this.debateSession = { originalQuestion: "", rounds: [], summaryText: "" };
@@ -94,7 +81,6 @@ const StateMachine = {
     this.participants.forEach(p => {
       p.response = null;
       p.responsePreview = null;
-      p.manualResponse = null;
     });
     this.save();
   },

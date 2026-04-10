@@ -8,7 +8,6 @@ const judgeSelect = $("#judge-select");
 const broadcastInput = $("#broadcast-input"), btnSend = $("#btn-send");
 const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRetry = $("#btn-debate-retry");
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
-const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
 
@@ -21,19 +20,14 @@ function mergeParticipants(remote) {
     return { ...rp, _pollStatus: local?._pollStatus || null };
   });
 }
-let currentPasteParticipantId = null;
 let injectResults = {}; // { participantId: "ok" | "failed" }
 
 // ── 状态标签映射 ──
 const STATE_LABELS = {
-  idle: "", injecting: "注入中", inject_ok: "已发送", inject_failed: "发送失败",
-  waiting: "等待中", streaming: "生成中", ready: "已完成",
-  response_ready: "回复就绪", response_failed: "读取失败"
+  idle: "", waiting: "等待中", streaming: "生成中", ready: "已完成"
 };
 const STATE_ICONS = {
-  idle: "", injecting: "⏳", inject_ok: "✅", inject_failed: "❌",
-  waiting: "🤔", streaming: "⏳", ready: "✅",
-  response_ready: "✅", response_failed: "❌"
+  idle: "", waiting: "🤔", streaming: "⏳", ready: "✅"
 };
 
 function setEditorText(text) {
@@ -170,36 +164,6 @@ function checkGate1Complete() {
     addLog("所有参与者已就绪，开始等待回复...", "success");
   }
 }
-
-// ── 手动粘贴弹框 ──
-function openPasteModal(participantId) {
-  currentPasteParticipantId = participantId;
-  const p = participants.find(p => p.id === participantId);
-  $("#paste-modal-title").textContent = `手动粘贴 ${p?.name || ''} 的回复`;
-  pasteTextarea.value = "";
-  pasteModal.style.display = "flex";
-  pasteTextarea.focus();
-}
-
-function closePasteModal() {
-  pasteModal.style.display = "none";
-  currentPasteParticipantId = null;
-}
-
-$("#paste-modal-close").addEventListener("click", closePasteModal);
-pasteModal.addEventListener("click", (e) => { if (e.target === pasteModal) closePasteModal(); });
-
-$("#btn-paste-confirm").addEventListener("click", async () => {
-  const text = pasteTextarea.value.trim();
-  if (!text) { addLog("请粘贴回复内容", "error"); return; }
-  await chrome.runtime.sendMessage({ type: "manualPaste", id: currentPasteParticipantId, text });
-  addLog(`已手动粘贴 ${participants.find(p => p.id === currentPasteParticipantId)?.name || ''} 的回复`, "success");
-  closePasteModal();
-  // 刷新状态
-  const state = await chrome.runtime.sendMessage({ type: "getState" });
-  if (state) { mergeParticipants(state.participants); debateSession = state.debateSession; flowState = state.flowState; }
-  renderParticipants();
-});
 
 // 检查是否所有参与者都 ready
 function checkAllReadyAndConfirm() {
@@ -511,6 +475,15 @@ btnDebate.addEventListener("click", async () => {
     const r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise });
     if (r?.ok) {
       addLog(`第${nextRound}轮已发送`, "success");
+      // Mark non-active participants as ready so poll doesn't hang waiting for them
+      if (r.activeIds) {
+        participants.forEach(p => {
+          if (!r.activeIds.includes(p.id)) {
+            p._pollStatus = "ready";
+            p._textLength = 0;
+          }
+        });
+      }
       // 刷新状态
       const state = await chrome.runtime.sendMessage({ type: "getState" });
       if (state) { mergeParticipants(state.participants); flowState = state.flowState; }

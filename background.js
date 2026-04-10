@@ -1,5 +1,5 @@
 // AI Arena — Background Service Worker v6.0 (状态机驱动)
-importScripts("selectors-config.js", "selector-manager.js", "state-machine.js", "debate-engine.js");
+importScripts("selectors-config.js", "state-machine.js", "debate-engine.js");
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -11,9 +11,10 @@ const SERVICES = {
 };
 
 const MAX_PARTICIPANTS = 3;
+const _removingTabs = new Set();
 
 // ── 初始化 ──
-const initPromise = Promise.all([StateMachine.init(), SelectorManager.init()]);
+const initPromise = StateMachine.init();
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
@@ -45,6 +46,7 @@ async function activateTabsBriefly() {
 
 // ── 标签页关闭 → 直接移除参与者 ──
 chrome.tabs.onRemoved.addListener((closedId) => {
+  if (_removingTabs.delete(closedId)) return; // We initiated this removal
   const p = StateMachine.participants.find(p => p.tabId === closedId);
   if (p) {
     StateMachine.removeParticipant(p.id);
@@ -69,18 +71,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
-        case "getSelectors":      sendResponse(SelectorManager.getAllForPlatform(msg.platform)); break;
-        case "selectorFailure":   SelectorManager.reportFailure(msg.platform, msg.action); sendResponse({ ok: true }); break;
+        case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
 
         // ── 半自动门控操作 ──
         case "retryInject":
           sendResponse(await retryInjectParticipant(msg.id));
           break;
-        case "manualPaste":
-          StateMachine.setParticipantManualResponse(msg.id, msg.text);
-          sendResponse({ ok: true });
-          break;
-
         case "resetSession":
           StateMachine.resetSession();
           notifyStatus("会话已重置");
@@ -123,7 +119,7 @@ async function addParticipant(service) {
 async function removeParticipant(id) {
   const p = StateMachine.getParticipant(id);
   if (!p) return { ok: false };
-  if (p.tabId) { try { await chrome.tabs.remove(p.tabId); } catch {} }
+  if (p.tabId) { _removingTabs.add(p.tabId); try { await chrome.tabs.remove(p.tabId); } catch {} }
   StateMachine.removeParticipant(id);
   notifyStatus(`已移除 ${p.name}`);
   StateMachine._broadcastStateUpdate();
@@ -142,7 +138,6 @@ async function handleBroadcast(text, images) {
   StateMachine.participants.forEach(p => {
     p.response = null;
     p.responsePreview = null;
-    p.manualResponse = null;
   });
   StateMachine.save();
   StateMachine._broadcastStateUpdate();
@@ -232,7 +227,6 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
     if (responses[p.id]) {
       p.response = null;
       p.responsePreview = null;
-      p.manualResponse = null;
     }
   });
   StateMachine.setFlowState(FlowState.BROADCASTING);
@@ -253,7 +247,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
   StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
   notifyStatus(`第${roundNum}轮辩论已发送`);
 
-  return { ok: true, roundNum };
+  return { ok: true, roundNum, activeIds: Object.keys(responses) };
 }
 
 // ── 辩论总结 ──

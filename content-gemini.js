@@ -19,8 +19,6 @@ function queryBySelectors(action, options = {}) {
     const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
     if (options.all ? el.length > 0 : el) return el;
   }
-  // streaming 检测不走启发式：没匹配到 = 不在生成中（正确结果）
-  if (action === "streaming") return null;
   const heuristic = getHeuristicElement(action, options);
   if (heuristic) return heuristic;
   if (!_reportedFailures.has(action)) { _reportedFailures.add(action); chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {}); }
@@ -49,9 +47,6 @@ function getHeuristicElement(action, options = {}) {
     }
     return options.all ? [] : null;
   }
-  if (action === "streaming") {
-    return document.querySelector('button[aria-label*="Stop"], button[aria-label*="stop"], button[aria-label*="Cancel"]');
-  }
   if (action === "sendButton") {
     const btns = [...document.querySelectorAll("button")];
     return btns.filter(b => b.getBoundingClientRect().bottom > window.innerHeight - 150 && b.querySelector("svg")).pop() || null;
@@ -76,10 +71,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         hasDone: tail.includes(doneMarker),
         textLength: text.length
       });
-      return false;
-    }
-    if (msg.action === "checkStreaming") {
-      sendResponse({ site: SITE, streaming: isThinkingOrStreaming() });
       return false;
     }
     if (msg.action === "readFullConversation") { sendResponse({ site: SITE, turns: readFullConversation() }); return false; }
@@ -139,21 +130,6 @@ async function injectAndSend(text) {
   } catch (e) {
     return { site: SITE, status: "error", error: e.message };
   }
-}
-
-function isThinkingOrStreaming() {
-  // 先检查 SelectorManager 配置的 streaming 选择器
-  if (queryBySelectors("streaming")) return true;
-  // Gemini-specific: 检测最后一个 model-response 内是否有动画/思考元素
-  const responses = document.querySelectorAll("model-response");
-  if (responses.length > 0) {
-    const last = responses[responses.length - 1];
-    if (last.querySelector('[class*="animat"], [class*="spin"], [class*="loading"], [class*="progress"]')) return true;
-    const thinkEl = last.querySelector("thinking-tag, [class*='thinking'], [class*='Thinking'], [class*='Analyzing']");
-    const markdown = last.querySelector(".markdown");
-    if (thinkEl && (!markdown || markdown.innerText.trim().length < 10)) return true;
-  }
-  return false;
 }
 
 async function readLatestResponse() {

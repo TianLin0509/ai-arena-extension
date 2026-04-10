@@ -19,8 +19,6 @@ function queryBySelectors(action, options = {}) {
     const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
     if (options.all ? el.length > 0 : el) return el;
   }
-  // streaming 检测不走启发式：没匹配到 = 不在生成中（正确结果）
-  if (action === "streaming") return null;
   const heuristic = getHeuristicElement(action, options);
   if (heuristic) return heuristic;
   if (!_reportedFailures.has(action)) { _reportedFailures.add(action); chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {}); }
@@ -48,9 +46,6 @@ function getHeuristicElement(action, options = {}) {
       }
     }
     return options.all ? [] : null;
-  }
-  if (action === "streaming") {
-    return document.querySelector('button[aria-label*="Stop"], button[aria-label*="stop"], button[aria-label*="Cancel"]');
   }
   if (action === "sendButton") {
     const btns = [...document.querySelectorAll("button")];
@@ -90,10 +85,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
       return false;
     }
-    if (msg.action === "checkStreaming") {
-      sendResponse({ site: SITE, streaming: isStreaming() });
-      return false;
-    }
     if (msg.action === "readFullConversation") {
       sendResponse({ site: SITE, turns: readFullConversation() });
       return false;
@@ -108,10 +99,6 @@ function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
   if (responses.length > 0) return responses[responses.length - 1].textContent || "";
   return "";
-}
-
-function isStreaming() {
-  return !!queryBySelectors("streaming");
 }
 
 async function robustInject(el, text) {
