@@ -36,7 +36,7 @@ async function activateTabsBriefly() {
   const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
   for (const tabId of tabs) {
     try { await chrome.tabs.update(tabId, { active: true }); } catch {}
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, 30));
   }
   if (currentTab?.id) {
     try { await chrome.tabs.update(currentTab.id, { active: true }); } catch {}
