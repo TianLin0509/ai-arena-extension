@@ -20,11 +20,13 @@ let currentPasteParticipantId = null;
 // ── 状态标签映射 ──
 const STATE_LABELS = {
   idle: "", injecting: "注入中", inject_ok: "已发送", inject_failed: "发送失败",
-  waiting: "等待中", streaming: "生成中", response_ready: "回复就绪", response_failed: "读取失败"
+  waiting: "等待中", streaming: "生成中", ready: "已完成",
+  response_ready: "回复就绪", response_failed: "读取失败"
 };
 const STATE_ICONS = {
   idle: "", injecting: "⏳", inject_ok: "✅", inject_failed: "❌",
-  waiting: "🤔", streaming: "⏳", response_ready: "✅", response_failed: "❌"
+  waiting: "🤔", streaming: "⏳", ready: "✅",
+  response_ready: "✅", response_failed: "❌"
 };
 
 function setEditorText(text) {
@@ -251,9 +253,12 @@ let prevLengths = {}; // { participantId: number } 上一次文本长度
 const POLL_MAX_DURATION = 10 * 60 * 1000; // 10 分钟超时
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 2; // 连续 2 次稳定+标记 = 完成（3 秒）
-const POLL_INITIAL_DELAY = 2000; // 初始等待 2 秒（标记检测更快，缩短等待）
-const POLL_INTERVAL = 1500; // 1.5 秒轮询间隔
+const POLL_INITIAL_DELAY = 2000; // 初始等待 2 秒
+const POLL_INTERVAL_SLOW = 1500; // 等待阶段 1.5 秒
+const POLL_INTERVAL_FAST = 500; // 生成中阶段 0.5 秒（检测到 START 后加速）
 const POLL_FALLBACK_TIMEOUT = 60000; // 60 秒无标记降级到选择器
+let pollCurrentInterval = POLL_INTERVAL_SLOW;
+let anyStartDetected = false;
 
 function startStreamingPoll() {
   stopStreamingPoll();
@@ -261,9 +266,16 @@ function startStreamingPoll() {
   pollErrorCount = 0;
   pollReadyCount = 0;
   prevLengths = {};
+  pollCurrentInterval = POLL_INTERVAL_SLOW;
+  anyStartDetected = false;
   pollDelayTimer = setTimeout(() => {
     pollDelayTimer = null;
-    streamingPollTimer = setInterval(async () => {
+    schedulePollTick();
+  }, POLL_INITIAL_DELAY);
+}
+
+function schedulePollTick() {
+  streamingPollTimer = setTimeout(async () => {
       if (Date.now() - pollStartTime > POLL_MAX_DURATION) {
         addLog("轮询超时（10分钟），已自动停止", "error");
         stopStreamingPoll();
@@ -300,9 +312,15 @@ function startStreamingPoll() {
         }
         renderParticipants();
 
+        // 检测到任何 START → 切换到快速轮询
+        const hasAnyStart = Object.values(s).some(v => v.hasStart);
+        if (hasAnyStart && !anyStartDetected) {
+          anyStartDetected = true;
+          pollCurrentInterval = POLL_INTERVAL_FAST;
+        }
+
         // 降级检测：60 秒内无任何 START 标记，回退到选择器检测
-        const noStartAnywhere = Object.values(s).every(v => v.status === "offline" || !v.hasStart);
-        if (noStartAnywhere && Date.now() - pollStartTime > POLL_FALLBACK_TIMEOUT) {
+        if (!hasAnyStart && Date.now() - pollStartTime > POLL_FALLBACK_TIMEOUT) {
           addLog("⚠️ 未检测到标记，降级到选择器检测", "error");
           stopStreamingPoll();
           startFallbackStreamingPoll();
@@ -326,10 +344,12 @@ function startStreamingPoll() {
         if (pollErrorCount >= POLL_MAX_ERRORS) {
           addLog(`轮询连续失败 ${POLL_MAX_ERRORS} 次，已停止`, "error");
           stopStreamingPoll();
+          return;
         }
       }
-    }, POLL_INTERVAL);
-  }, POLL_INITIAL_DELAY);
+      // 递归调度下一次轮询（自适应频率）
+      schedulePollTick();
+    }, pollCurrentInterval);
 }
 
 // 降级：选择器 + 文本稳定性检测（标记不可用时）
@@ -359,7 +379,7 @@ function startFallbackStreamingPoll() {
         }
       } else { fallbackReadyCount = 0; }
     } catch {}
-  }, POLL_INTERVAL);
+  }, POLL_INTERVAL_SLOW);
 }
 
 function stopStreamingPoll() {
