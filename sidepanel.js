@@ -83,7 +83,12 @@ function renderParticipants() {
       const charCount = p._textLength || 0;
       const charDisplay = charCount > 0 ? `<span class="p-chars">${charCount}字</span>` : '';
 
-      // 手动提取按钮（生成中/等待中时可用，替代全局手动确认）
+      // 有效回答状态（StateMachine 中已存储回复）
+      const hasResponse = !!p.responsePreview;
+      const readyBadge = hasResponse
+        ? `<span class="p-ready-badge ready">✓</span>`
+        : `<span class="p-ready-badge not-ready">✗</span>`;
+
       // 手动操作按钮
       const actionBtns = !gateActions ? [
         `<button class="p-btn p-send" data-id="${p.id}" title="手动发送提问">📤</button>`,
@@ -93,7 +98,8 @@ function renderParticipants() {
       return `<div class="participant-item ${p.service}">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
-        ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : `<span class="p-status-text">${sc === "offline" ? "离线" : ""}</span>`}
+        ${readyBadge}
+        ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : ''}
         ${charDisplay}
         ${gateActions}
         ${actionBtns}
@@ -170,6 +176,17 @@ function renderParticipants() {
     sel.innerHTML = '<option value="">选择裁判...</option>' + participants.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
     if (cur && participants.find(p => p.id === cur)) sel.value = cur;
   });
+
+  // 辩论按钮状态：至少 2 个有效回答才能辩论
+  const readyCount = participants.filter(p => !!p.responsePreview).length;
+  if (btnDebate) {
+    btnDebate.disabled = readyCount < 2;
+    if (readyCount < 2) {
+      btnDebate.title = `需要至少 2 个有效回答（当前 ${readyCount} 个）`;
+    } else {
+      btnDebate.title = `${readyCount} 个有效回答，可以开始辩论`;
+    }
+  }
 }
 
 // 门控1完成检查：injectResults 中无 failed → 自动进入 AWAITING_RESPONSES
