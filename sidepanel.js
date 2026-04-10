@@ -255,6 +255,8 @@ btnManualReady.addEventListener("click", async () => {
 let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
 let pollDelayTimer = null;
 let prevLengths = {}; // { participantId: number } 上一次文本长度
+let stableTimestamps = {}; // { participantId: number } 文本停止增长的时间戳
+const INTERRUPT_TIMEOUT = 15000; // START 出现后文本稳定 15 秒无 DONE → 疑似中断
 const POLL_MAX_DURATION = 10 * 60 * 1000; // 10 分钟超时
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 2; // 连续 2 次稳定+标记 = 完成（3 秒）
@@ -271,6 +273,7 @@ function startStreamingPoll() {
   pollErrorCount = 0;
   pollReadyCount = 0;
   prevLengths = {};
+  stableTimestamps = {};
   pollCurrentInterval = POLL_INTERVAL_SLOW;
   anyStartDetected = false;
   pollDelayTimer = setTimeout(() => {
@@ -299,6 +302,13 @@ function schedulePollTick() {
           const lengthChanged = v.textLength !== prevLen;
           prevLengths[id] = v.textLength;
 
+          // 跟踪文本稳定时间
+          if (lengthChanged) {
+            stableTimestamps[id] = null; // 文本在变，重置
+          } else if (v.hasStart && !v.hasDone && !stableTimestamps[id]) {
+            stableTimestamps[id] = Date.now(); // 开始计时
+          }
+
           // 更新参与者显示状态
           const p = participants.find(p => p.id === id);
           if (p) {
@@ -308,6 +318,10 @@ function schedulePollTick() {
               p._pollStatus = "streaming"; // 字符在增长 = 一票否决完成
             } else if (v.hasDone) {
               p._pollStatus = "ready"; // 标记出现 + 字符稳定
+            } else if (v.hasStart && stableTimestamps[id] && Date.now() - stableTimestamps[id] > INTERRUPT_TIMEOUT) {
+              p._pollStatus = "ready"; // 疑似中断：START 出现后文本稳定超过 15 秒无 DONE
+              addLog(`${p.name} 疑似中断（无 DONE 标记，文本已稳定 15 秒）`, "error");
+              stableTimestamps[id] = -1; // 只报一次
             } else {
               p._pollStatus = "streaming"; // 有内容但无 DONE 标记
             }

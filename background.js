@@ -156,6 +156,7 @@ async function handleOpenAll() {
 // ── 广播（状态机驱动） ──
 
 async function handleBroadcast(text, images) {
+  nextMarkerRound(); // 递增标记轮次，防止跨轮污染
   StateMachine.debateSession.originalQuestion = text;
   StateMachine.debateSession.rounds = [];
   StateMachine.debateSession.summaryText = "";
@@ -184,7 +185,7 @@ async function handleBroadcast(text, images) {
       if (images && images.length > 0) {
         await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
       }
-      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
+      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + buildMarkerInstruction() });
       results[p.id] = { name: p.name, ...result };
     } catch (e) {
       results[p.id] = { name: p.name, status: "error", error: e.message };
@@ -214,7 +215,7 @@ async function retryInjectParticipant(id) {
       return { ok: false, error: "页面未就绪" };
     }
     const text = StateMachine.debateSession.originalQuestion;
-    const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
+    const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + buildMarkerInstruction() });
     const success = result.status !== "error";
     return { ok: success, result };
   } catch (e) {
@@ -225,6 +226,7 @@ async function retryInjectParticipant(id) {
 // ── 辩论（状态机驱动） ──
 
 async function handleDebateRound(style = "free", guidance = "", concise = false) {
+  nextMarkerRound(); // 递增标记轮次
   if (StateMachine.participants.length < 2) {
     notifyStatus("至少需要 2 个参与者");
     return { ok: false, error: "参与者不足" };
@@ -397,11 +399,13 @@ async function checkAllStreaming() {
 // ── 标记驱动的完成检测 ──
 
 async function checkAllCompletion() {
+  const startMarker = currentStartMarker();
+  const doneMarker = currentDoneMarker();
   const statuses = {};
   await Promise.all(StateMachine.participants.map(async (p) => {
     if (!p.tabId) { statuses[p.id] = { name: p.name, status: "offline", hasStart: false, hasDone: false, textLength: 0 }; return; }
     try {
-      const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkCompletion" });
+      const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkCompletion", startMarker, doneMarker });
       statuses[p.id] = { name: p.name, hasStart: r.hasStart || false, hasDone: r.hasDone || false, textLength: r.textLength || 0 };
     } catch { statuses[p.id] = { name: p.name, status: "offline", hasStart: false, hasDone: false, textLength: 0 }; }
   }));

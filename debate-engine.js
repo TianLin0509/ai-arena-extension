@@ -1,12 +1,16 @@
 // debate-engine.js — 辩论轮次编排、prompt 组装
 
-// ── 标记协议 ──
-const MARKER_START = "ARENA_START";
-const MARKER_DONE = "ARENA_DONE";
-const MARKER_INSTRUCTION = `\n（请在回答的最开头输出 ${MARKER_START}，最末尾输出 ${MARKER_DONE} 作为标记，不要解释这些标记）`;
+// ── 标记协议（每轮唯一，防止跨轮污染） ──
+let _markerRound = 0;
 
+function nextMarkerRound() { return ++_markerRound; }
+function currentStartMarker() { return `ARENA_START_R${_markerRound}`; }
+function currentDoneMarker() { return `ARENA_DONE_R${_markerRound}`; }
+function buildMarkerInstruction() {
+  return `\n（请在回答的最开头输出 ${currentStartMarker()}，最末尾输出 ${currentDoneMarker()} 作为标记，不要解释这些标记）`;
+}
 function stripMarkers(text) {
-  return text.replace(/ARENA_START/g, '').replace(/ARENA_DONE/g, '').trim();
+  return text.replace(/ARENA_START_R\d+/g, '').replace(/ARENA_DONE_R\d+/g, '').trim();
 }
 
 const DEBATE_STYLES = {
@@ -45,7 +49,7 @@ const DebateEngine = {
 
     let prompt = `${roundHint}\n\n${styleConfig.prompt}\n\n${othersText}${conciseRule}`;
     if (guidance) prompt = `用户补充要求：${guidance}\n\n${prompt}`;
-    return prompt + MARKER_INSTRUCTION;
+    return prompt + buildMarkerInstruction();
   },
 
   buildSummaryPrompt(originalQuestion, rounds, responses, customInstruction) {
@@ -92,7 +96,7 @@ ${allText}
 要求：客观公正，不偏袒任何一方，重点是综合各家之长得出最优答案。`;
 
     if (customInstruction?.trim()) prompt += `\n\n## 额外要求\n${customInstruction.trim()}`;
-    return prompt + MARKER_INSTRUCTION;
+    return prompt + buildMarkerInstruction();
   },
 
   buildContextForkPrompt(history) {
