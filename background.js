@@ -29,20 +29,31 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// ── 激活标签页以触发后台标签页 DOM 渲染 ──
-// AI 平台在后台标签页暂停渲染，需要短暂激活来刷新 DOM
-async function activateTabsBriefly() {
-  const tabs = StateMachine.participants.filter(p => p.tabId).map(p => p.tabId);
-  if (tabs.length === 0) return;
-  const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  for (const tabId of tabs) {
-    try { await chrome.tabs.update(tabId, { active: true }); } catch {}
-    await new Promise(r => setTimeout(r, 30));
-  }
-  if (currentTab?.id) {
-    try { await chrome.tabs.update(currentTab.id, { active: true }); } catch {}
-  }
+// ── 强制后台标签页保持"可见"──
+// DNR 已剥离 CSP，chrome.scripting.executeScript 可以注入 MAIN world
+async function injectVisibilityOverride(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      world: "MAIN",
+      func: () => {
+        if (document._arenaVisibilityPatched) return;
+        document._arenaVisibilityPatched = true;
+        Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+        Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+        document.addEventListener('visibilitychange', e => e.stopImmediatePropagation(), true);
+      }
+    });
+  } catch {}
 }
+
+// 页面导航后重新注入
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'complete') {
+    const p = StateMachine.participants.find(p => p.tabId === tabId);
+    if (p) injectVisibilityOverride(tabId);
+  }
+});
 
 // ── 标签页关闭 → 直接移除参与者 ──
 chrome.tabs.onRemoved.addListener((closedId) => {
@@ -66,7 +77,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise)); break;
         case "summary":           sendResponse(await handleSummary(msg.judgeId, msg.customInstruction)); break;
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
-        case "activateTabs":      activateTabsBriefly().then(() => sendResponse({ ok: true })).catch(() => sendResponse({ ok: false })); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
         case "exportSession":     sendResponse(exportSession()); break;
@@ -359,6 +369,7 @@ async function waitForContentScript(tabId, maxRetries = 12) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       await chrome.tabs.sendMessage(tabId, { action: "ping" });
+      await injectVisibilityOverride(tabId);
       return true;
     } catch (e) {
       if (e.message && (e.message.includes("No tab") || e.message.includes("removed"))) return false;

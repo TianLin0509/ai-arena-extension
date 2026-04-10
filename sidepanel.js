@@ -179,8 +179,6 @@ let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
 let pollDelayTimer = null;
 let prevLengths = {}; // { participantId: number }
 let pollNoMarkerReported = false;
-let lastTabActivateTime = 0;
-const TAB_ACTIVATE_INTERVAL = 1500; // 每 1.5 秒激活标签页一次，刷新后台 DOM
 const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 2;
@@ -244,12 +242,6 @@ function schedulePollTick() {
           if (p?._pollStatus !== "ready") allDone = false;
         }
         renderParticipants();
-
-        // 定期激活标签页，刷新后台 DOM 渲染
-        if (!allDone && Date.now() - lastTabActivateTime > TAB_ACTIVATE_INTERVAL) {
-          lastTabActivateTime = Date.now();
-          chrome.runtime.sendMessage({ type: "activateTabs" }).catch(() => {});
-        }
 
         // 动态超时：长时间无标记 → 提示异常
         const hasAnyStart = Object.values(s).some(v => v.hasStart);

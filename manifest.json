@@ -10,8 +10,15 @@
     "system.display",
     "storage",
     "windows",
-    "contextMenus"
+    "contextMenus",
+    "scripting",
+    "declarativeNetRequest"
   ],
+  "declarative_net_request": {
+    "rule_resources": [
+      { "id": "strip_csp", "enabled": true, "path": "dnr-rules.json" }
+    ]
+  },
   "host_permissions": [
     "https://claude.ai/*",
     "https://gemini.google.com/*",
