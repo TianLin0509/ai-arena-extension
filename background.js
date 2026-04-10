@@ -199,6 +199,8 @@ async function handleBroadcast(text, images) {
   if (allOk) {
     StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
     notifyStatus("广播完成，等待回复...");
+    // 唤醒所有 AI 标签页，确保后台标签页恢复 DOM 渲染
+    wakeUpTabs().catch(() => {});
   } else {
     notifyStatus("部分发送失败，请处理后继续");
   }
@@ -274,6 +276,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
   StateMachine.save();
   StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
   notifyStatus(`第${roundNum}轮辩论已发送`);
+  wakeUpTabs().catch(() => {});
 
   return { ok: true, roundNum };
 }
@@ -485,6 +488,25 @@ async function sendMessageWithTimeout(tabId, msg, timeoutMs = 90000) {
     chrome.tabs.sendMessage(tabId, msg),
     new Promise((_, reject) => setTimeout(() => reject(new Error("消息超时")), timeoutMs))
   ]);
+}
+
+// 快速激活每个 AI 标签页，触发后台标签页恢复 DOM 渲染
+// 很多 AI 平台在标签页不可见时暂停 rAF / 流式输出
+async function wakeUpTabs() {
+  const tabs = StateMachine.participants.filter(p => p.tabId).map(p => p.tabId);
+  if (tabs.length === 0) return;
+  // 记住当前活跃标签页
+  const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  for (const tabId of tabs) {
+    try {
+      await chrome.tabs.update(tabId, { active: true });
+      await new Promise(r => setTimeout(r, 200)); // 给平台 200ms 启动渲染
+    } catch {}
+  }
+  // 切回原标签页
+  if (currentTab?.id) {
+    try { await chrome.tabs.update(currentTab.id, { active: true }); } catch {}
+  }
 }
 
 function notifyStatus(message) { chrome.runtime.sendMessage({ type: "status", message }).catch(() => {}); }
