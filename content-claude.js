@@ -7,6 +7,13 @@ chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
   if (resp) selectors = resp;
 });
 
+const MARKER_START = "⚡ARENA_START⚡";
+const MARKER_DONE = "⚡ARENA_DONE⚡";
+
+function stripMarkers(text) {
+  return text.replace(/⚡ARENA_START⚡/g, '').replace(/⚡ARENA_DONE⚡/g, '').trim();
+}
+
 // 按优先级尝试选择器数组，返回第一个匹配的元素
 function queryBySelectors(action, options = {}) {
   const sels = selectors?.[action] || [];
@@ -72,6 +79,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message }));
       return true;
     }
+    if (msg.action === "checkCompletion") {
+      const text = getLastResponseText();
+      sendResponse({
+        site: SITE,
+        hasStart: text.includes(MARKER_START),
+        hasDone: text.includes(MARKER_DONE),
+        textLength: text.length
+      });
+      return false;
+    }
     if (msg.action === "checkStreaming") {
       const streaming = isStreaming();
       sendResponse({ site: SITE, streaming });
@@ -86,6 +103,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return false;
   }
 });
+
+function getLastResponseText() {
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return responses[responses.length - 1].innerText || "";
+  return "";
+}
 
 function isStreaming() {
   return !!queryBySelectors("streaming");
@@ -155,7 +178,7 @@ async function readLatestResponse() {
 
   // 多策略读取最后一条 AI 回答
   const text = getLastAssistantText();
-  return text;
+  return stripMarkers(text);
 }
 
 function getLastAssistantText() {

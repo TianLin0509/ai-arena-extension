@@ -7,6 +7,13 @@ chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
   if (resp) selectors = resp;
 });
 
+const MARKER_START = "⚡ARENA_START⚡";
+const MARKER_DONE = "⚡ARENA_DONE⚡";
+
+function stripMarkers(text) {
+  return text.replace(/⚡ARENA_START⚡/g, '').replace(/⚡ARENA_DONE⚡/g, '').trim();
+}
+
 // 按优先级尝试选择器数组，返回第一个匹配的元素
 function queryBySelectors(action, options = {}) {
   const sels = selectors?.[action] || [];
@@ -60,6 +67,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "inject") { injectAndSend(msg.text).then(sendResponse).catch(e => sendResponse({ site: SITE, status: "error", error: e.message })); return true; }
     if (msg.action === "readResponse") { readLatestResponse().then(r => sendResponse({ site: SITE, text: r })).catch(e => sendResponse({ site: SITE, text: "", error: e.message })); return true; }
     if (msg.action === "injectImages") { handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message })); return true; }
+    if (msg.action === "checkCompletion") {
+      const text = getLastResponseText();
+      sendResponse({
+        site: SITE,
+        hasStart: text.includes(MARKER_START),
+        hasDone: text.includes(MARKER_DONE),
+        textLength: text.length
+      });
+      return false;
+    }
     if (msg.action === "checkStreaming") {
       sendResponse({ site: SITE, streaming: isThinkingOrStreaming() });
       return false;
@@ -67,6 +84,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "readFullConversation") { sendResponse({ site: SITE, turns: readFullConversation() }); return false; }
   } catch (e) { sendResponse({ site: SITE, status: "error", error: e.message }); return false; }
 });
+
+function getLastResponseText() {
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return responses[responses.length - 1].innerText || "";
+  return "";
+}
 
 async function robustInject(el, text) {
   el.focus();
@@ -138,12 +161,12 @@ async function readLatestResponse() {
 
   // 优先使用 SelectorManager 配置的选择器
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
+  if (responses.length > 0) return stripMarkers(responses[responses.length - 1].innerText.trim());
 
   // 备选选择器
   const modelTurns = document.querySelectorAll("[data-content-type='model']");
   if (modelTurns.length > 0) {
-    return modelTurns[modelTurns.length - 1].innerText.trim();
+    return stripMarkers(modelTurns[modelTurns.length - 1].innerText.trim());
   }
 
   return "";
