@@ -57,6 +57,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise)); break;
         case "summary":           sendResponse(await handleSummary(msg.judgeId, msg.customInstruction)); break;
         case "checkAllStreaming":  sendResponse(await checkAllStreaming()); break;
+        case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
         case "optimizePrompt":    sendResponse(await handleOptimizePrompt(msg.text, msg.judgeId)); break;
@@ -205,7 +206,7 @@ async function handleBroadcast(text, images) {
       if (images && images.length > 0) {
         await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
       }
-      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text });
+      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
       if (result.status === "error") {
         p.state = ParticipantState.INJECT_FAILED;
       } else {
@@ -246,7 +247,7 @@ async function retryInjectParticipant(id) {
       return { ok: false, error: "页面未就绪" };
     }
     const text = StateMachine.debateSession.originalQuestion;
-    const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text });
+    const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
     p.state = result.status === "error" ? ParticipantState.INJECT_FAILED : ParticipantState.INJECT_OK;
     StateMachine.save();
     StateMachine._broadcastStateUpdate();
@@ -440,6 +441,25 @@ async function checkAllStreaming() {
         StateMachine.save();
       }
     } catch { statuses[p.id] = { name: p.name, status: "offline", state: p.state }; }
+  }));
+  return statuses;
+}
+
+// ── 标记驱动的完成检测 ──
+
+async function checkAllCompletion() {
+  const statuses = {};
+  await Promise.all(StateMachine.participants.map(async (p) => {
+    if (!p.tabId) { statuses[p.id] = { name: p.name, status: "offline", hasStart: false, hasDone: false, textLength: 0 }; return; }
+    try {
+      const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkCompletion" });
+      statuses[p.id] = { name: p.name, hasStart: r.hasStart || false, hasDone: r.hasDone || false, textLength: r.textLength || 0 };
+      // 状态转换
+      if (r.hasStart && !r.hasDone && p.state === ParticipantState.INJECT_OK) {
+        p.state = ParticipantState.STREAMING;
+        StateMachine.save();
+      }
+    } catch { statuses[p.id] = { name: p.name, status: "offline", hasStart: false, hasDone: false, textLength: 0 }; }
   }));
   return statuses;
 }

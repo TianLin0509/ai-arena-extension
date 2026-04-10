@@ -20,11 +20,11 @@ let currentPasteParticipantId = null;
 // ── 状态标签映射 ──
 const STATE_LABELS = {
   idle: "", injecting: "注入中", inject_ok: "已发送", inject_failed: "发送失败",
-  streaming: "生成中", response_ready: "回复就绪", response_failed: "读取失败"
+  waiting: "等待中", streaming: "生成中", response_ready: "回复就绪", response_failed: "读取失败"
 };
 const STATE_ICONS = {
   idle: "", injecting: "⏳", inject_ok: "✅", inject_failed: "❌",
-  streaming: "⏳", response_ready: "✅", response_failed: "❌"
+  waiting: "🤔", streaming: "⏳", response_ready: "✅", response_failed: "❌"
 };
 
 function setEditorText(text) {
@@ -61,8 +61,9 @@ function renderParticipants() {
     listEl.innerHTML = '<div class="empty-hint">选择预设或手动添加参与者</div>';
   } else {
     listEl.innerHTML = participants.map(p => {
-      const pState = p.state || "idle";
-      const sc = pState === "streaming" ? "streaming" : (p.tabId ? (pState === "response_ready" ? "ready" : "ready") : "offline");
+      // 优先使用轮询状态，其次用状态机状态
+      const pState = p._pollStatus || p.state || "idle";
+      const sc = (pState === "streaming" || pState === "waiting") ? "streaming" : (p.tabId ? "ready" : "offline");
       const stateLabel = STATE_LABELS[pState] || "";
       const stateIcon = STATE_ICONS[pState] || "";
 
@@ -243,20 +244,23 @@ btnManualReady.addEventListener("click", async () => {
   btnManualReady.textContent = "✋ AI 都回答完了？点此手动确认";
 });
 
-// ── 流式轮询（带确认门控） ──
-let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0, pollEverStreaming = false;
+// ── 标记驱动轮询 ──
+let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0;
 let pollDelayTimer = null;
-const POLL_MAX_DURATION = 10 * 60 * 1000;
+let prevLengths = {}; // { participantId: number } 上一次文本长度
+const POLL_MAX_DURATION = 10 * 60 * 1000; // 10 分钟超时
 const POLL_MAX_ERRORS = 10;
-const POLL_READY_THRESHOLD = 4;
-const POLL_INITIAL_DELAY = 4000;
+const POLL_READY_THRESHOLD = 2; // 连续 2 次稳定+标记 = 完成（3 秒）
+const POLL_INITIAL_DELAY = 2000; // 初始等待 2 秒（标记检测更快，缩短等待）
+const POLL_INTERVAL = 1500; // 1.5 秒轮询间隔
+const POLL_FALLBACK_TIMEOUT = 60000; // 60 秒无标记降级到选择器
 
 function startStreamingPoll() {
   stopStreamingPoll();
   pollStartTime = Date.now();
   pollErrorCount = 0;
   pollReadyCount = 0;
-  pollEverStreaming = false;
+  prevLengths = {};
   pollDelayTimer = setTimeout(() => {
     pollDelayTimer = null;
     streamingPollTimer = setInterval(async () => {
@@ -266,21 +270,51 @@ function startStreamingPoll() {
         return;
       }
       try {
-        const s = await chrome.runtime.sendMessage({ type: "checkAllStreaming" });
+        const s = await chrome.runtime.sendMessage({ type: "checkAllCompletion" });
         pollErrorCount = 0;
+
+        let allDone = true;
+        let hasOnline = false;
+        for (const [id, v] of Object.entries(s)) {
+          if (v.status === "offline") continue;
+          hasOnline = true;
+          const prevLen = prevLengths[id] || 0;
+          const lengthChanged = v.textLength !== prevLen;
+          prevLengths[id] = v.textLength;
+
+          // 更新参与者显示状态
+          const p = participants.find(p => p.id === id);
+          if (p) {
+            if (!v.hasStart && v.textLength === 0) {
+              p._pollStatus = "waiting"; // 等待中
+            } else if (lengthChanged) {
+              p._pollStatus = "streaming"; // 字符在增长 = 一票否决完成
+            } else if (v.hasDone) {
+              p._pollStatus = "ready"; // 标记出现 + 字符稳定
+            } else {
+              p._pollStatus = "streaming"; // 有内容但无 DONE 标记
+            }
+          }
+
+          if (p?._pollStatus !== "ready") allDone = false;
+        }
         renderParticipants();
-        const hasOnline = Object.values(s).some(v => v.status !== "offline");
-        const isStreaming = Object.values(s).some(v => v.status === "streaming");
-        if (isStreaming) pollEverStreaming = true;
-        const gracePeriodPassed = Date.now() - pollStartTime > 19000;
-        if (!isStreaming && hasOnline && (pollEverStreaming || gracePeriodPassed)) {
+
+        // 降级检测：60 秒内无任何 START 标记，回退到选择器检测
+        const noStartAnywhere = Object.values(s).every(v => v.status === "offline" || !v.hasStart);
+        if (noStartAnywhere && Date.now() - pollStartTime > POLL_FALLBACK_TIMEOUT) {
+          addLog("⚠️ 未检测到标记，降级到选择器检测", "error");
+          stopStreamingPoll();
+          startFallbackStreamingPoll();
+          return;
+        }
+
+        if (allDone && hasOnline) {
           pollReadyCount++;
           if (pollReadyCount >= POLL_READY_THRESHOLD) {
-            addLog("所有 AI 已回答完毕，读取回复...", "success");
+            addLog("所有 AI 已回答完毕（标记确认），读取回复...", "success");
             stopStreamingPoll();
-            // 读取所有回复
             await readAllResponses();
-            // 弹出确认面板（门控2/4）
             showConfirmPanel();
             if (Notification.permission === "granted") {
               try { new Notification("AI Arena", { body: "所有 AI 已回答完毕，请确认", icon: "icons/icon128.png" }); } catch {}
@@ -294,9 +328,40 @@ function startStreamingPoll() {
           stopStreamingPoll();
         }
       }
-    }, 2500);
+    }, POLL_INTERVAL);
   }, POLL_INITIAL_DELAY);
 }
+
+// 降级：选择器 + 文本稳定性检测（标记不可用时）
+function startFallbackStreamingPoll() {
+  let fallbackReadyCount = 0;
+  let fallbackPrevLengths = {};
+  streamingPollTimer = setInterval(async () => {
+    try {
+      const s = await chrome.runtime.sendMessage({ type: "checkAllCompletion" });
+      const sStream = await chrome.runtime.sendMessage({ type: "checkAllStreaming" });
+      let allStable = true;
+      for (const [id, v] of Object.entries(s)) {
+        if (v.status === "offline") continue;
+        const prevLen = fallbackPrevLengths[id] || 0;
+        const lengthStable = v.textLength === prevLen && v.textLength > 0;
+        const noSelector = !sStream[id] || sStream[id].status !== "streaming";
+        fallbackPrevLengths[id] = v.textLength;
+        if (!(lengthStable && noSelector)) allStable = false;
+      }
+      if (allStable) {
+        fallbackReadyCount++;
+        if (fallbackReadyCount >= 3) { // 5 秒稳定（3 × 1.5s）
+          addLog("降级检测确认完成，读取回复...", "success");
+          stopStreamingPoll();
+          await readAllResponses();
+          showConfirmPanel();
+        }
+      } else { fallbackReadyCount = 0; }
+    } catch {}
+  }, POLL_INTERVAL);
+}
+
 function stopStreamingPoll() {
   if (pollDelayTimer) { clearTimeout(pollDelayTimer); pollDelayTimer = null; }
   if (streamingPollTimer) clearInterval(streamingPollTimer);

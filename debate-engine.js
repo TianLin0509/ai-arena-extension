@@ -1,5 +1,14 @@
 // debate-engine.js — 辩论轮次编排、prompt 组装
 
+// ── 标记协议 ──
+const MARKER_START = "⚡ARENA_START⚡";
+const MARKER_DONE = "⚡ARENA_DONE⚡";
+const MARKER_INSTRUCTION = `\n（请在回答的最开头输出 ${MARKER_START}，最末尾输出 ${MARKER_DONE} 作为标记，不要解释这些标记）`;
+
+function stripMarkers(text) {
+  return text.replace(/⚡ARENA_START⚡/g, '').replace(/⚡ARENA_DONE⚡/g, '').trim();
+}
+
 const DEBATE_STYLES = {
   free: { name: "自由辩论", prompt: "以下是其他 AI 对同一问题的回答，请分析他们的观点，指出你认同和不认同的地方，并给出你的改进回答。" },
   collab: { name: "群策群力", prompt: "以下是你的队友们对同一问题的回答。你们是协作关系，目标是共同得出最优方案。请：1) 吸收队友回答中的亮点和你没想到的角度；2) 补充你认为队友遗漏的重要内容；3) 整合所有人的优势，给出一个更完善的综合回答。不要攻击或否定队友，而是取长补短。" },
@@ -36,7 +45,7 @@ const DebateEngine = {
 
     let prompt = `${roundHint}\n\n${styleConfig.prompt}\n\n${othersText}${conciseRule}`;
     if (guidance) prompt = `用户补充要求：${guidance}\n\n${prompt}`;
-    return prompt;
+    return prompt + MARKER_INSTRUCTION;
   },
 
   buildSummaryPrompt(originalQuestion, rounds, responses, customInstruction) {
@@ -83,7 +92,7 @@ ${allText}
 要求：客观公正，不偏袒任何一方，重点是综合各家之长得出最优答案。`;
 
     if (customInstruction?.trim()) prompt += `\n\n## 额外要求\n${customInstruction.trim()}`;
-    return prompt;
+    return prompt + MARKER_INSTRUCTION;
   },
 
   buildContextForkPrompt(history) {
