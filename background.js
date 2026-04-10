@@ -236,7 +236,6 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
   StateMachine.save();
   StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
   notifyStatus(`第${roundNum}轮辩论已发送`);
-  wakeUpTabs().catch(() => {});
 
   return { ok: true, roundNum };
 }

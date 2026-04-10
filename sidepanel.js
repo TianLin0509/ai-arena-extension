@@ -342,7 +342,7 @@ chrome.runtime.onMessage.addListener((msg) => {
     renderParticipants();
   }
   if (msg.type === "selectorWarning") {
-    addLog(`⚠️ ${msg.message}`, "error");
+    addLog(msg.message, "info");
   }
   if (msg.type === "contextMenuText") {
     const text = msg.text || "";
@@ -443,6 +443,9 @@ async function doBroadcast() {
     text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
   }
   btnSend.disabled = true; btnSend.textContent = "发送中...";
+  // 重置所有参与者的轮询状态
+  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
+  renderParticipants();
   const attachInfo = [];
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
   if (hasFiles) attachInfo.push(`${pendingFiles.length}个文件`);
@@ -490,6 +493,9 @@ btnDebate.addEventListener("click", async () => {
   if (participants.length < 2) { addLog("至少需要 2 个参与者", "error"); return; }
   const nextRound = getDebateRound() + 1;
   btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
+  // 重置所有参与者的轮询状态（新一轮开始）
+  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
+  renderParticipants();
   const guidance = guidanceInput?.value?.trim() || "";
   addLog(`第${nextRound}轮辩论${guidance ? " (引导: " + guidance.slice(0, 30) + ")" : ""}`, "info");
   try {
