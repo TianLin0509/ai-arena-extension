@@ -231,6 +231,7 @@ btnConfirmWait.addEventListener("click", async () => {
 
 // ── 流式轮询（带确认门控） ──
 let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0, pollEverStreaming = false;
+let pollDelayTimer = null;
 const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
 const POLL_READY_THRESHOLD = 4;
@@ -242,8 +243,8 @@ function startStreamingPoll() {
   pollErrorCount = 0;
   pollReadyCount = 0;
   pollEverStreaming = false;
-  setTimeout(() => {
-    if (!streamingPollTimer) return;
+  pollDelayTimer = setTimeout(() => {
+    pollDelayTimer = null;
     streamingPollTimer = setInterval(async () => {
       if (Date.now() - pollStartTime > POLL_MAX_DURATION) {
         addLog("轮询超时（10分钟），已自动停止", "error");
@@ -281,10 +282,10 @@ function startStreamingPoll() {
       }
     }, 2500);
   }, POLL_INITIAL_DELAY);
-  streamingPollTimer = -1;
 }
 function stopStreamingPoll() {
-  if (streamingPollTimer && streamingPollTimer !== -1) clearInterval(streamingPollTimer);
+  if (pollDelayTimer) { clearTimeout(pollDelayTimer); pollDelayTimer = null; }
+  if (streamingPollTimer) clearInterval(streamingPollTimer);
   streamingPollTimer = null;
 }
 
