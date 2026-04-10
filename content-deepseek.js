@@ -14,6 +14,7 @@ function stripMarkers(text) {
   return text.replace(/ARENA_START/g, '').replace(/ARENA_DONE/g, '').trim();
 }
 
+const _reportedFailures = new Set();
 // 按优先级尝试选择器数组，返回第一个匹配的元素
 function queryBySelectors(action, options = {}) {
   const sels = selectors?.[action] || [];
@@ -25,7 +26,7 @@ function queryBySelectors(action, options = {}) {
   if (action === "streaming") return null;
   const heuristic = getHeuristicElement(action, options);
   if (heuristic) return heuristic;
-  chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {});
+  if (!_reportedFailures.has(action)) { _reportedFailures.add(action); chrome.runtime.sendMessage({ type: "selectorFailure", platform: SITE, action }).catch(() => {}); }
   return options.all ? [] : null;
 }
 
