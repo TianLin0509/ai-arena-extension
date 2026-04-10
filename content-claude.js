@@ -106,7 +106,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return responses[responses.length - 1].innerText || "";
+  if (responses.length > 0) return responses[responses.length - 1].textContent || "";
   return "";
 }
 
