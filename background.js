@@ -68,30 +68,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "selectorFailure":   SelectorManager.reportFailure(msg.platform, msg.action); sendResponse({ ok: true }); break;
 
         // ── 半自动门控操作 ──
-        case "confirmManualSend":
-          StateMachine.setParticipantState(msg.id, ParticipantState.INJECT_OK);
-          sendResponse({ ok: true });
-          break;
         case "retryInject":
           sendResponse(await retryInjectParticipant(msg.id));
           break;
-        case "skipParticipant":
-          StateMachine.setParticipantState(msg.id, ParticipantState.RESPONSE_FAILED);
-          sendResponse({ ok: true });
-          break;
         case "manualPaste":
           StateMachine.setParticipantManualResponse(msg.id, msg.text);
-          sendResponse({ ok: true });
-          break;
-        case "confirmAllReady":
-          StateMachine.setFlowState(FlowState.DEBATING);
-          sendResponse({ ok: true });
-          break;
-        case "continueWaiting":
-          if (msg.id) {
-            StateMachine.setParticipantState(msg.id, ParticipantState.STREAMING);
-          }
-          StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
           sendResponse({ ok: true });
           break;
 
@@ -181,7 +162,6 @@ async function handleBroadcast(text, images) {
   StateMachine.setFlowState(FlowState.BROADCASTING);
 
   StateMachine.participants.forEach(p => {
-    p.state = ParticipantState.INJECTING;
     p.response = null;
     p.responsePreview = null;
     p.manualResponse = null;
@@ -192,14 +172,12 @@ async function handleBroadcast(text, images) {
   const results = {};
   await Promise.all(StateMachine.participants.map(async (p) => {
     if (!p.tabId) {
-      p.state = ParticipantState.INJECT_FAILED;
       results[p.id] = { name: p.name, status: "error", error: "未打开" };
       return;
     }
     try {
       const ready = await waitForContentScript(p.tabId);
       if (!ready) {
-        p.state = ParticipantState.INJECT_FAILED;
         results[p.id] = { name: p.name, status: "error", error: "页面未就绪" };
         return;
       }
@@ -207,14 +185,8 @@ async function handleBroadcast(text, images) {
         await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
       }
       const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
-      if (result.status === "error") {
-        p.state = ParticipantState.INJECT_FAILED;
-      } else {
-        p.state = ParticipantState.INJECT_OK;
-      }
       results[p.id] = { name: p.name, ...result };
     } catch (e) {
-      p.state = ParticipantState.INJECT_FAILED;
       results[p.id] = { name: p.name, status: "error", error: e.message };
     }
   }));
@@ -222,7 +194,7 @@ async function handleBroadcast(text, images) {
   StateMachine.save();
   StateMachine._broadcastStateUpdate();
 
-  const allOk = StateMachine.participants.every(p => p.state === ParticipantState.INJECT_OK);
+  const allOk = Object.values(results).every(r => r.status === "sent" || r.status === "inputted");
   if (allOk) {
     StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
     notifyStatus("广播完成，等待回复...");
@@ -236,25 +208,16 @@ async function handleBroadcast(text, images) {
 async function retryInjectParticipant(id) {
   const p = StateMachine.getParticipant(id);
   if (!p || !p.tabId) return { ok: false, error: "参与者无效" };
-  p.state = ParticipantState.INJECTING;
-  StateMachine.save();
-  StateMachine._broadcastStateUpdate();
   try {
     const ready = await waitForContentScript(p.tabId);
     if (!ready) {
-      p.state = ParticipantState.INJECT_FAILED;
-      StateMachine.save();
       return { ok: false, error: "页面未就绪" };
     }
     const text = StateMachine.debateSession.originalQuestion;
     const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + MARKER_INSTRUCTION });
-    p.state = result.status === "error" ? ParticipantState.INJECT_FAILED : ParticipantState.INJECT_OK;
-    StateMachine.save();
-    StateMachine._broadcastStateUpdate();
-    return { ok: p.state === ParticipantState.INJECT_OK };
+    const success = result.status !== "error";
+    return { ok: success, result };
   } catch (e) {
-    p.state = ParticipantState.INJECT_FAILED;
-    StateMachine.save();
     return { ok: false, error: e.message };
   }
 }
@@ -269,7 +232,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
 
   const responses = {};
   for (const p of StateMachine.participants) {
-    if (p.state === ParticipantState.RESPONSE_READY && p.response) {
+    if (p.response) {
       responses[p.id] = { name: p.name, text: p.response };
     }
   }
@@ -287,7 +250,6 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
 
   StateMachine.participants.forEach(p => {
     if (responses[p.id]) {
-      p.state = ParticipantState.INJECTING;
       p.response = null;
       p.responsePreview = null;
       p.manualResponse = null;
@@ -301,24 +263,15 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
     if (!p?.tabId) return;
     const prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
     try {
-      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
-      p.state = result.status === "error" ? ParticipantState.INJECT_FAILED : ParticipantState.INJECT_OK;
+      await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
     } catch (e) {
-      p.state = ParticipantState.INJECT_FAILED;
       notifyStatus(`注入 ${p.name} 失败: ${e.message}`);
     }
   }));
 
   StateMachine.save();
-  const allOk = StateMachine.participants
-    .filter(p => responses[p.id])
-    .every(p => p.state === ParticipantState.INJECT_OK);
-  if (allOk) {
-    StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
-    notifyStatus(`第${roundNum}轮辩论已发送`);
-  } else {
-    notifyStatus("部分发送失败，请处理后继续");
-  }
+  StateMachine.setFlowState(FlowState.AWAITING_RESPONSES);
+  notifyStatus(`第${roundNum}轮辩论已发送`);
 
   return { ok: true, roundNum };
 }
@@ -332,7 +285,7 @@ async function handleSummary(judgeId, customInstruction = "") {
 
   const responses = {};
   for (const p of StateMachine.participants) {
-    if (p.state === ParticipantState.RESPONSE_READY && p.response) {
+    if (p.response) {
       responses[p.id] = { name: p.name, text: p.response };
     }
   }
@@ -431,16 +384,12 @@ async function handleOptimizePrompt(text, judgeId) {
 async function checkAllStreaming() {
   const statuses = {};
   await Promise.all(StateMachine.participants.map(async (p) => {
-    if (!p.tabId) { statuses[p.id] = { name: p.name, status: "offline", state: p.state }; return; }
+    if (!p.tabId) { statuses[p.id] = { name: p.name, status: "offline" }; return; }
     try {
       const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkStreaming" });
       const status = r.streaming ? "streaming" : "ready";
-      statuses[p.id] = { name: p.name, status, state: p.state };
-      if (r.streaming && p.state === ParticipantState.INJECT_OK) {
-        p.state = ParticipantState.STREAMING;
-        StateMachine.save();
-      }
-    } catch { statuses[p.id] = { name: p.name, status: "offline", state: p.state }; }
+      statuses[p.id] = { name: p.name, status };
+    } catch { statuses[p.id] = { name: p.name, status: "offline" }; }
   }));
   return statuses;
 }
@@ -454,11 +403,6 @@ async function checkAllCompletion() {
     try {
       const r = await chrome.tabs.sendMessage(p.tabId, { action: "checkCompletion" });
       statuses[p.id] = { name: p.name, hasStart: r.hasStart || false, hasDone: r.hasDone || false, textLength: r.textLength || 0 };
-      // 状态转换
-      if (r.hasStart && !r.hasDone && p.state === ParticipantState.INJECT_OK) {
-        p.state = ParticipantState.STREAMING;
-        StateMachine.save();
-      }
     } catch { statuses[p.id] = { name: p.name, status: "offline", hasStart: false, hasDone: false, textLength: 0 }; }
   }));
   return statuses;
@@ -477,8 +421,6 @@ async function readOneResponse(participantId) {
     }
     return { ok: true, text };
   } catch (e) {
-    p.state = ParticipantState.RESPONSE_FAILED;
-    StateMachine.save();
     return { ok: false, text: "", error: e.message };
   }
 }

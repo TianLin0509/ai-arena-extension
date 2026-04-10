@@ -1,4 +1,4 @@
-// state-machine.js — FlowState + ParticipantState 状态机
+// state-machine.js — FlowState + 纯数据存储（无 ParticipantState）
 
 // ── 状态枚举 ──
 const FlowState = {
@@ -10,20 +10,10 @@ const FlowState = {
   SUMMARY: "summary"
 };
 
-const ParticipantState = {
-  IDLE: "idle",
-  INJECTING: "injecting",
-  INJECT_OK: "inject_ok",
-  INJECT_FAILED: "inject_failed",
-  STREAMING: "streaming",
-  RESPONSE_READY: "response_ready",
-  RESPONSE_FAILED: "response_failed"
-};
-
 // ── 状态管理器 ──
 const StateMachine = {
   flowState: FlowState.IDLE,
-  participants: [],     // { id, service, tabId, name, state, response, responsePreview, manualResponse }
+  participants: [],     // { id, service, tabId, name, response, responsePreview, manualResponse }
   nextId: 1,
   debateSession: { originalQuestion: "", rounds: [], summaryText: "" },
 
@@ -56,7 +46,6 @@ const StateMachine = {
   addParticipant(id, service, tabId, name) {
     this.participants.push({
       id, service, tabId, name,
-      state: ParticipantState.IDLE,
       response: null,
       responsePreview: null,
       manualResponse: null
@@ -73,22 +62,11 @@ const StateMachine = {
     return this.participants.find(p => p.id === id);
   },
 
-  // ── 参与者状态转换 ──
-  setParticipantState(id, newState) {
-    const p = this.getParticipant(id);
-    if (p) {
-      p.state = newState;
-      this.save();
-      this._broadcastStateUpdate();
-    }
-  },
-
   setParticipantResponse(id, text) {
     const p = this.getParticipant(id);
     if (p) {
       p.response = text;
       p.responsePreview = text ? text.slice(0, 100) : null;
-      p.state = ParticipantState.RESPONSE_READY;
       this.save();
       this._broadcastStateUpdate();
     }
@@ -100,38 +78,9 @@ const StateMachine = {
       p.manualResponse = text;
       p.response = text;
       p.responsePreview = text ? text.slice(0, 100) : null;
-      p.state = ParticipantState.RESPONSE_READY;
       this.save();
       this._broadcastStateUpdate();
     }
-  },
-
-  // ── 确认门控检查 ──
-
-  allResponsesSettled() {
-    return this.participants
-      .filter(p => p.state !== ParticipantState.INJECT_FAILED)
-      .every(p =>
-        p.state === ParticipantState.RESPONSE_READY ||
-        p.state === ParticipantState.RESPONSE_FAILED
-      );
-  },
-
-  validResponseCount() {
-    return this.participants.filter(p => p.state === ParticipantState.RESPONSE_READY && p.response).length;
-  },
-
-  canStartDebate() {
-    return this.validResponseCount() >= 2;
-  },
-
-  isSuspiciousResponse(id) {
-    const p = this.getParticipant(id);
-    if (!p || p.state !== ParticipantState.RESPONSE_READY || !p.response) return false;
-    const text = p.response.trim();
-    if (text.length < 10) return true;
-    if (text.endsWith("...") || text.endsWith("…")) return true;
-    return false;
   },
 
   // ── 会话管理 ──
@@ -139,7 +88,6 @@ const StateMachine = {
     this.debateSession = { originalQuestion: "", rounds: [], summaryText: "" };
     this.flowState = FlowState.IDLE;
     this.participants.forEach(p => {
-      p.state = ParticipantState.IDLE;
       p.response = null;
       p.responsePreview = null;
       p.manualResponse = null;
@@ -162,8 +110,7 @@ const StateMachine = {
       flowState: this.flowState,
       participants: this.participants.map(p => ({
         id: p.id, service: p.service, tabId: p.tabId, name: p.name,
-        state: p.state, responsePreview: p.responsePreview,
-        suspicious: this.isSuspiciousResponse(p.id)
+        responsePreview: p.responsePreview
       })),
       debateSession: this.debateSession
     }).catch(() => {});
@@ -174,8 +121,7 @@ const StateMachine = {
       flowState: this.flowState,
       participants: this.participants.map(p => ({
         id: p.id, service: p.service, tabId: p.tabId, name: p.name,
-        state: p.state, responsePreview: p.responsePreview,
-        suspicious: this.isSuspiciousResponse(p.id)
+        responsePreview: p.responsePreview
       })),
       debateSession: this.debateSession
     };

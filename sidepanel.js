@@ -16,6 +16,7 @@ const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
 let currentPasteParticipantId = null;
+let injectResults = {}; // { participantId: "ok" | "failed" }
 
 // ── 状态标签映射 ──
 const STATE_LABELS = {
@@ -63,15 +64,15 @@ function renderParticipants() {
     listEl.innerHTML = '<div class="empty-hint">选择预设或手动添加参与者</div>';
   } else {
     listEl.innerHTML = participants.map(p => {
-      // 优先使用轮询状态，其次用状态机状态
-      const pState = p._pollStatus || p.state || "idle";
+      // 轮询状态是唯一 UI 状态源
+      const pState = p._pollStatus || "idle";
       const sc = (pState === "streaming" || pState === "waiting") ? "streaming" : (p.tabId ? "ready" : "offline");
       const stateLabel = STATE_LABELS[pState] || "";
       const stateIcon = STATE_ICONS[pState] || "";
 
       // 门控1：发送失败时显示操作按钮
       let gateActions = "";
-      if (pState === "inject_failed" && (flowState === "broadcasting")) {
+      if (injectResults[p.id] === "failed" && flowState === "broadcasting") {
         gateActions = `<div class="p-gate-actions">
           <button class="p-gate-btn" data-action="retry" data-id="${p.id}">重试</button>
           <button class="p-gate-btn" data-action="manual-send" data-id="${p.id}">已手动发送</button>
@@ -99,15 +100,19 @@ function renderParticipants() {
         const { action, id } = btn.dataset;
         if (action === "retry") {
           addLog("重试注入...", "info");
-          await chrome.runtime.sendMessage({ type: "retryInject", id });
+          const r = await chrome.runtime.sendMessage({ type: "retryInject", id });
+          if (r?.ok) {
+            injectResults[id] = "ok";
+          }
         } else if (action === "manual-send") {
-          await chrome.runtime.sendMessage({ type: "confirmManualSend", id });
+          injectResults[id] = "ok";
           addLog("已标记为手动发送", "info");
         } else if (action === "skip") {
-          await chrome.runtime.sendMessage({ type: "skipParticipant", id });
+          delete injectResults[id];
           addLog("已跳过", "info");
         }
         // 检查是否所有门控1都已处理
+        renderParticipants();
         checkGate1Complete();
       });
     });
@@ -122,12 +127,13 @@ function renderParticipants() {
   });
 }
 
-// 门控1完成检查：所有参与者都不再是 INJECT_FAILED → 自动进入 AWAITING_RESPONSES
+// 门控1完成检查：injectResults 中无 failed → 自动进入 AWAITING_RESPONSES
 function checkGate1Complete() {
   if (flowState !== "broadcasting") return;
-  const hasFailure = participants.some(p => p.state === "inject_failed");
+  const hasFailure = Object.values(injectResults).some(v => v === "failed");
   if (!hasFailure) {
-    chrome.runtime.sendMessage({ type: "continueWaiting" });
+    flowState = "awaiting_responses";
+    startStreamingPoll();
     addLog("所有参与者已就绪，开始等待回复...", "success");
   }
 }
@@ -136,11 +142,11 @@ function checkGate1Complete() {
 function showConfirmPanel() {
   confirmPanel.style.display = "";
   confirmCards.innerHTML = participants.map(p => {
-    const isReady = p.state === "response_ready";
-    const isFailed = p.state === "response_failed";
-    const suspicious = p.suspicious;
-    const statusIcon = isReady ? (suspicious ? "⚠️" : "✅") : (isFailed ? "❌" : "⏳");
-    const statusText = isReady ? (suspicious ? "疑似不完整" : "回复就绪") : (isFailed ? "读取失败" : "等待中");
+    const isReady = p._pollStatus === "ready" || !!p.responsePreview;
+    const isFailed = false; // no more state-based failure; poll determines status
+    const suspicious = isReady && p.responsePreview && p.responsePreview.trim().length < 10;
+    const statusIcon = isReady ? (suspicious ? "⚠️" : "✅") : "⏳";
+    const statusText = isReady ? (suspicious ? "疑似不完整" : "回复就绪") : "等待中";
 
     return `<div class="confirm-card">
       <span class="cc-status">${statusIcon}</span>
@@ -158,7 +164,7 @@ function showConfirmPanel() {
   }).join("");
 
   // 更新确认按钮状态
-  const validCount = participants.filter(p => p.state === "response_ready").length;
+  const validCount = participants.filter(p => p._pollStatus === "ready" || p.responsePreview).length;
   btnConfirmReady.disabled = validCount < 2;
   btnConfirmReady.textContent = validCount >= 2 ? `全部就绪，开始辩论 (${validCount}个有效)` : "至少需要 2 个有效回复";
 
@@ -167,17 +173,16 @@ function showConfirmPanel() {
     btn.addEventListener("click", async () => {
       const { action, id } = btn.dataset;
       if (action === "continue-wait") {
-        await chrome.runtime.sendMessage({ type: "continueWaiting", id });
+        flowState = "awaiting_responses";
         hideConfirmPanel();
         startStreamingPoll();
         addLog(`${participants.find(p => p.id === id)?.name || id} 继续等待`, "info");
       } else if (action === "paste") {
         openPasteModal(id);
       } else if (action === "skip-confirm") {
-        await chrome.runtime.sendMessage({ type: "skipParticipant", id });
-        // 刷新确认面板
-        const state = await chrome.runtime.sendMessage({ type: "getState" });
-        if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+        // Mark as skipped locally, refresh confirm panel
+        const pIdx = participants.findIndex(p => p.id === id);
+        if (pIdx !== -1) participants[pIdx]._pollStatus = "ready";
         showConfirmPanel();
       }
     });
@@ -219,15 +224,15 @@ $("#btn-paste-confirm").addEventListener("click", async () => {
 });
 
 // ── 确认面板按钮 ──
-btnConfirmReady.addEventListener("click", async () => {
-  await chrome.runtime.sendMessage({ type: "confirmAllReady" });
+btnConfirmReady.addEventListener("click", () => {
+  flowState = "debating";
   hideConfirmPanel();
   addLog("确认就绪，进入辩论", "success");
   updateWizard("ready");
 });
 
-btnConfirmWait.addEventListener("click", async () => {
-  await chrome.runtime.sendMessage({ type: "continueWaiting" });
+btnConfirmWait.addEventListener("click", () => {
+  flowState = "awaiting_responses";
   hideConfirmPanel();
   startStreamingPoll();
   addLog("继续等待所有 AI 回复...", "info");
@@ -391,12 +396,10 @@ function stopStreamingPoll() {
 // 读取所有参与者的回复
 async function readAllResponses() {
   for (const p of participants) {
-    if (p.state === "inject_ok" || p.state === "streaming") {
-      try {
-        await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: p.id });
-      } catch (e) {
-        addLog(`读取 ${p.name} 失败: ${e.message}`, "error");
-      }
+    try {
+      await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: p.id });
+    } catch (e) {
+      addLog(`读取 ${p.name} 失败: ${e.message}`, "error");
     }
   }
   // 刷新状态
@@ -539,7 +542,13 @@ async function doBroadcast() {
 
   try {
     const r = await chrome.runtime.sendMessage({ type: "broadcast", text, images: hasImages ? pendingImages : undefined });
-    if (r) for (const [, v] of Object.entries(r)) addLog(`${v.name}: ${v.status}${v.error ? " - " + v.error : ""}`, v.status === "sent" ? "success" : "error");
+    if (r) {
+      injectResults = {};
+      for (const [id, v] of Object.entries(r)) {
+        injectResults[id] = (v.status === "sent" || v.status === "inputted") ? "ok" : "failed";
+        addLog(`${v.name}: ${v.status}${v.error ? " - " + v.error : ""}`, v.status === "sent" || v.status === "inputted" ? "success" : "error");
+      }
+    }
     broadcastInput.innerHTML = "";
     pendingImages = [];
     pendingFiles = [];
@@ -689,6 +698,7 @@ $("#btn-hard-reset").addEventListener("click", async () => {
   participants = [];
   debateSession = {};
   flowState = "idle";
+  injectResults = {};
   pendingImages = [];
   pendingFiles = [];
   renderFilePreviews();
