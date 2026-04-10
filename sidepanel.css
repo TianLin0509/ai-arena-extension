@@ -203,3 +203,61 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+
+/* ── 确认面板 ── */
+.confirm-panel {
+  margin-top: 10px; background: #f0f4ff; border: 1.5px solid #c7d2fe;
+  border-radius: 10px; padding: 10px; animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.confirm-header { font-size: 12px; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
+.confirm-card {
+  display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px;
+  background: #fff; border-radius: 8px; border: 1px solid #e5e7eb;
+  margin-bottom: 6px; font-size: 12px;
+}
+.confirm-card .cc-status { font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+.confirm-card .cc-info { flex: 1; min-width: 0; }
+.confirm-card .cc-name { font-weight: 600; color: #333; }
+.confirm-card .cc-preview { color: #888; font-size: 11px; margin-top: 2px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.confirm-card .cc-suspicious { color: #f59e0b; font-size: 10px; font-weight: 600; }
+.confirm-card .cc-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.confirm-card .cc-btn { padding: 3px 8px; font-size: 10px; border-radius: 4px; border: 1px solid #d1d5db; background: #f9fafb; color: #555; cursor: pointer; white-space: nowrap; }
+.confirm-card .cc-btn:hover { background: #e8e9ed; }
+.confirm-card .cc-btn.cc-btn-paste { border-color: #6366f1; color: #6366f1; }
+.confirm-actions { display: flex; gap: 6px; margin-top: 8px; }
+.confirm-actions .btn { flex: 1; font-size: 12px; padding: 8px; }
+
+/* ── 手动粘贴弹框 ── */
+.paste-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.3); display: flex; align-items: center;
+  justify-content: center; z-index: 100;
+}
+.paste-modal-content {
+  background: #fff; border-radius: 12px; padding: 16px; width: 90%;
+  max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.paste-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; color: #333; }
+.paste-textarea {
+  width: 100%; min-height: 120px; padding: 10px; border: 1.5px solid #e5e7eb;
+  border-radius: 8px; font-size: 12px; resize: vertical; outline: none;
+  font-family: inherit;
+}
+.paste-textarea:focus { border-color: #6366f1; }
+
+/* ── 状态卡片增强 ── */
+.participant-item .p-state-badge {
+  font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 600;
+}
+.p-state-badge.injecting { background: #fef3c7; color: #92400e; }
+.p-state-badge.inject-ok { background: #d1fae5; color: #065f46; }
+.p-state-badge.inject-failed { background: #fee2e2; color: #991b1b; }
+.p-state-badge.streaming { background: #fef3c7; color: #92400e; }
+.p-state-badge.response-ready { background: #d1fae5; color: #065f46; }
+.p-state-badge.response-failed { background: #fee2e2; color: #991b1b; }
+
+/* 门控1 操作按钮 */
+.p-gate-actions { display: flex; gap: 3px; }
+.p-gate-btn { padding: 2px 6px; font-size: 9px; border-radius: 4px; border: 1px solid #d1d5db; background: #f9fafb; color: #555; cursor: pointer; }
+.p-gate-btn:hover { background: #e8e9ed; }

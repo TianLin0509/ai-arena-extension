@@ -13,14 +13,13 @@
   <!-- 参与者（融合：预设 + 添加 + 在线列表） -->
   <div class="section">
     <div class="section-title">
-      <span>参与者 (<span id="participant-count">0</span>)</span>
+      <span>参与者 (<span id="participant-count">0</span>/3)</span>
       <span id="round-badge" class="round-badge" style="display:none"></span>
     </div>
     <div class="preset-group">
       <button class="btn-preset" data-preset="trio">三巨头</button>
       <button class="btn-preset" data-preset="global">中外对决</button>
       <button class="btn-preset" data-preset="deep">深度对抗</button>
-      <button class="btn-preset" data-preset="all">全员集结</button>
     </div>
     <div class="add-group">
       <button class="btn-add claude" data-service="claude">+ Claude</button>
@@ -72,6 +71,26 @@
       <button class="mode-btn" data-mode="collab">🤝 群策群力</button>
     </div>
     <div id="debate-wizard" class="debate-wizard">① 先发送问题 → ② 等待回答完成 → ③ 点击辩论</div>
+    <!-- 确认面板（门控2/4） -->
+    <div id="confirm-panel" class="confirm-panel" style="display:none">
+      <div class="confirm-header">回复确认</div>
+      <div id="confirm-cards"></div>
+      <div class="confirm-actions">
+        <button class="btn btn-primary" id="btn-confirm-ready" disabled>全部就绪，开始辩论</button>
+        <button class="btn btn-secondary" id="btn-confirm-wait">全部继续等待</button>
+      </div>
+    </div>
+    <!-- 手动粘贴弹框 -->
+    <div id="paste-modal" class="paste-modal" style="display:none">
+      <div class="paste-modal-content">
+        <div class="paste-modal-header">
+          <span id="paste-modal-title">手动粘贴回复</span>
+          <button id="paste-modal-close" class="p-btn">✕</button>
+        </div>
+        <textarea id="paste-textarea" class="paste-textarea" placeholder="从 AI 页面复制回复，粘贴到这里..."></textarea>
+        <button class="btn btn-primary" id="btn-paste-confirm" style="margin-top:8px;width:100%">确认</button>
+      </div>
+    </div>
     <details class="custom-details">
       <summary class="custom-summary">引导注入（可选）</summary>
       <textarea id="guidance-input" class="custom-textarea"
@@ -80,7 +99,10 @@
     <label class="concise-toggle">
       <input type="checkbox" id="concise-mode"> <span>简洁模式</span>（限制 AI 输出长度，要点式回答）
     </label>
-    <button class="btn btn-debate" id="btn-debate">开始辩论</button>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn btn-debate" id="btn-debate" style="flex:1;margin-top:0">开始辩论</button>
+      <button class="btn btn-secondary" id="btn-debate-retry" style="padding:9px 12px;font-size:13px" title="强制重试（卡住时使用）">🔄</button>
+    </div>
   </div>
 
   <!-- 上下文提炼 -->

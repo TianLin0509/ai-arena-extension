@@ -1,4 +1,4 @@
-// AI Arena — Side Panel v5.0 (精简版)
+// AI Arena — Side Panel v6.0 (状态机驱动)
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -6,11 +6,25 @@ const $$ = (s) => document.querySelectorAll(s);
 const logEl = $("#log"), listEl = $("#participant-list"), countEl = $("#participant-count");
 const judgeSelect = $("#judge-select");
 const broadcastInput = $("#broadcast-input"), btnSend = $("#btn-send");
-const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary");
+const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRetry = $("#btn-debate-retry");
 const customInstruction = $("#custom-instruction"), presetSelect = $("#preset-select");
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
+const confirmPanel = $("#confirm-panel"), confirmCards = $("#confirm-cards");
+const btnConfirmReady = $("#btn-confirm-ready"), btnConfirmWait = $("#btn-confirm-wait");
+const pasteModal = $("#paste-modal"), pasteTextarea = $("#paste-textarea");
 
-let participants = [], debateSession = {}, streamingPollTimer = null;
+let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
+let currentPasteParticipantId = null;
+
+// ── 状态标签映射 ──
+const STATE_LABELS = {
+  idle: "", injecting: "注入中", inject_ok: "已发送", inject_failed: "发送失败",
+  streaming: "生成中", response_ready: "回复就绪", response_failed: "读取失败"
+};
+const STATE_ICONS = {
+  idle: "", injecting: "⏳", inject_ok: "✅", inject_failed: "❌",
+  streaming: "⏳", response_ready: "✅", response_failed: "❌"
+};
 
 function setEditorText(text) {
   broadcastInput.innerText = text;
@@ -35,10 +49,9 @@ function addLog(msg, type = "info") {
   while (logEl.children.length > 50) logEl.lastChild.remove();
 }
 
-// ── 渲染参与者 ──
-function renderParticipants(statuses = null) {
+// ── 渲染参与者（状态卡片） ──
+function renderParticipants() {
   countEl.textContent = participants.length;
-
   const rounds = debateSession?.rounds?.length || 0;
   if (rounds > 0) { roundBadge.style.display = ""; roundBadge.textContent = `第${rounds}轮`; }
   else { roundBadge.style.display = "none"; }
@@ -47,24 +60,53 @@ function renderParticipants(statuses = null) {
     listEl.innerHTML = '<div class="empty-hint">选择预设或手动添加参与者</div>';
   } else {
     listEl.innerHTML = participants.map(p => {
-      const st = statuses?.[p.id];
-      const sc = st ? st.status : (p.tabId ? "ready" : "offline");
-      const stxt = { ready: "就绪", streaming: "生成中", offline: "离线" }[sc] || "";
+      const pState = p.state || "idle";
+      const sc = pState === "streaming" ? "streaming" : (p.tabId ? (pState === "response_ready" ? "ready" : "ready") : "offline");
+      const stateLabel = STATE_LABELS[pState] || "";
+      const stateIcon = STATE_ICONS[pState] || "";
+
+      // 门控1：发送失败时显示操作按钮
+      let gateActions = "";
+      if (pState === "inject_failed" && (flowState === "broadcasting")) {
+        gateActions = `<div class="p-gate-actions">
+          <button class="p-gate-btn" data-action="retry" data-id="${p.id}">重试</button>
+          <button class="p-gate-btn" data-action="manual-send" data-id="${p.id}">已手动发送</button>
+          <button class="p-gate-btn" data-action="skip" data-id="${p.id}">跳过</button>
+        </div>`;
+      }
+
       return `<div class="participant-item ${p.service}">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
-        <span class="p-status-text">${stxt}</span>
-        ${sc === "offline" ? `<button class="p-btn p-reconnect" data-id="${p.id}" title="重连">🔄</button>` : `<button class="p-btn p-focus" data-id="${p.id}">👁</button>`}
+        ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : `<span class="p-status-text">${sc === "offline" ? "离线" : ""}</span>`}
+        ${gateActions}
+        ${!gateActions ? (sc === "offline" ? '' : `<button class="p-btn p-focus" data-id="${p.id}">👁</button>`) : ''}
         <button class="p-btn p-remove" data-id="${p.id}">✕</button>
       </div>`;
     }).join("");
 
+    // 事件绑定
     listEl.querySelectorAll(".p-focus").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "focusTab", id: b.dataset.id })));
-    listEl.querySelectorAll(".p-reconnect").forEach(b => b.addEventListener("click", async () => {
-      addLog("重连中...", "info");
-      await chrome.runtime.sendMessage({ type: "reconnect", id: b.dataset.id });
-    }));
     listEl.querySelectorAll(".p-remove").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "removeParticipant", id: b.dataset.id })));
+
+    // 门控1 按钮
+    listEl.querySelectorAll(".p-gate-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const { action, id } = btn.dataset;
+        if (action === "retry") {
+          addLog("重试注入...", "info");
+          await chrome.runtime.sendMessage({ type: "retryInject", id });
+        } else if (action === "manual-send") {
+          await chrome.runtime.sendMessage({ type: "confirmManualSend", id });
+          addLog("已标记为手动发送", "info");
+        } else if (action === "skip") {
+          await chrome.runtime.sendMessage({ type: "skipParticipant", id });
+          addLog("已跳过", "info");
+        }
+        // 检查是否所有门控1都已处理
+        checkGate1Complete();
+      });
+    });
   }
 
   // 更新裁判下拉
@@ -76,23 +118,132 @@ function renderParticipants(statuses = null) {
   });
 }
 
-// ── 流式轮询（带初始等待、连续确认、超时和错误计数） ──
-let pollStartTime = 0;
-let pollErrorCount = 0;
-let pollReadyCount = 0; // 连续"非流式"计数
-const POLL_MAX_DURATION = 10 * 60 * 1000; // 10 分钟超时
+// 门控1完成检查：所有参与者都不再是 INJECT_FAILED → 自动进入 AWAITING_RESPONSES
+function checkGate1Complete() {
+  if (flowState !== "broadcasting") return;
+  const hasFailure = participants.some(p => p.state === "inject_failed");
+  if (!hasFailure) {
+    chrome.runtime.sendMessage({ type: "continueWaiting" });
+    addLog("所有参与者已就绪，开始等待回复...", "success");
+  }
+}
+
+// ── 确认面板（门控2/4） ──
+function showConfirmPanel() {
+  confirmPanel.style.display = "";
+  confirmCards.innerHTML = participants.map(p => {
+    const isReady = p.state === "response_ready";
+    const isFailed = p.state === "response_failed";
+    const suspicious = p.suspicious;
+    const statusIcon = isReady ? (suspicious ? "⚠️" : "✅") : (isFailed ? "❌" : "⏳");
+    const statusText = isReady ? (suspicious ? "疑似不完整" : "回复就绪") : (isFailed ? "读取失败" : "等待中");
+
+    return `<div class="confirm-card">
+      <span class="cc-status">${statusIcon}</span>
+      <div class="cc-info">
+        <div class="cc-name">${p.name}</div>
+        ${isReady && p.responsePreview ? `<div class="cc-preview">${p.responsePreview}${p.responsePreview.length >= 100 ? '...' : ''}</div>` : ''}
+        ${suspicious ? `<div class="cc-suspicious">回复较短，请确认是否完整</div>` : ''}
+      </div>
+      <div class="cc-actions">
+        ${isReady || isFailed ? `<button class="cc-btn" data-action="continue-wait" data-id="${p.id}">继续等</button>` : ''}
+        ${isFailed || suspicious ? `<button class="cc-btn cc-btn-paste" data-action="paste" data-id="${p.id}">手动粘贴</button>` : ''}
+        ${isFailed ? `<button class="cc-btn" data-action="skip-confirm" data-id="${p.id}">跳过</button>` : ''}
+      </div>
+    </div>`;
+  }).join("");
+
+  // 更新确认按钮状态
+  const validCount = participants.filter(p => p.state === "response_ready").length;
+  btnConfirmReady.disabled = validCount < 2;
+  btnConfirmReady.textContent = validCount >= 2 ? `全部就绪，开始辩论 (${validCount}个有效)` : "至少需要 2 个有效回复";
+
+  // 确认面板按钮事件
+  confirmCards.querySelectorAll(".cc-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const { action, id } = btn.dataset;
+      if (action === "continue-wait") {
+        await chrome.runtime.sendMessage({ type: "continueWaiting", id });
+        hideConfirmPanel();
+        startStreamingPoll();
+        addLog(`${participants.find(p => p.id === id)?.name || id} 继续等待`, "info");
+      } else if (action === "paste") {
+        openPasteModal(id);
+      } else if (action === "skip-confirm") {
+        await chrome.runtime.sendMessage({ type: "skipParticipant", id });
+        // 刷新确认面板
+        const state = await chrome.runtime.sendMessage({ type: "getState" });
+        if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+        showConfirmPanel();
+      }
+    });
+  });
+}
+
+function hideConfirmPanel() {
+  confirmPanel.style.display = "none";
+}
+
+// ── 手动粘贴弹框 ──
+function openPasteModal(participantId) {
+  currentPasteParticipantId = participantId;
+  const p = participants.find(p => p.id === participantId);
+  $("#paste-modal-title").textContent = `手动粘贴 ${p?.name || ''} 的回复`;
+  pasteTextarea.value = "";
+  pasteModal.style.display = "flex";
+  pasteTextarea.focus();
+}
+
+function closePasteModal() {
+  pasteModal.style.display = "none";
+  currentPasteParticipantId = null;
+}
+
+$("#paste-modal-close").addEventListener("click", closePasteModal);
+pasteModal.addEventListener("click", (e) => { if (e.target === pasteModal) closePasteModal(); });
+
+$("#btn-paste-confirm").addEventListener("click", async () => {
+  const text = pasteTextarea.value.trim();
+  if (!text) { addLog("请粘贴回复内容", "error"); return; }
+  await chrome.runtime.sendMessage({ type: "manualPaste", id: currentPasteParticipantId, text });
+  addLog(`已手动粘贴 ${participants.find(p => p.id === currentPasteParticipantId)?.name || ''} 的回复`, "success");
+  closePasteModal();
+  // 刷新确认面板
+  const state = await chrome.runtime.sendMessage({ type: "getState" });
+  if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+  showConfirmPanel();
+});
+
+// ── 确认面板按钮 ──
+btnConfirmReady.addEventListener("click", async () => {
+  await chrome.runtime.sendMessage({ type: "confirmAllReady" });
+  hideConfirmPanel();
+  addLog("确认就绪，进入辩论", "success");
+  updateWizard("ready");
+});
+
+btnConfirmWait.addEventListener("click", async () => {
+  await chrome.runtime.sendMessage({ type: "continueWaiting" });
+  hideConfirmPanel();
+  startStreamingPoll();
+  addLog("继续等待所有 AI 回复...", "info");
+});
+
+// ── 流式轮询（带确认门控） ──
+let pollStartTime = 0, pollErrorCount = 0, pollReadyCount = 0, pollEverStreaming = false;
+const POLL_MAX_DURATION = 10 * 60 * 1000;
 const POLL_MAX_ERRORS = 10;
-const POLL_READY_THRESHOLD = 3; // 连续 3 次非流式才算完成
-const POLL_INITIAL_DELAY = 2000; // 初始等待 2 秒（等 AI 开始思考）
+const POLL_READY_THRESHOLD = 4;
+const POLL_INITIAL_DELAY = 4000;
 
 function startStreamingPoll() {
   stopStreamingPoll();
   pollStartTime = Date.now();
   pollErrorCount = 0;
   pollReadyCount = 0;
-  // 初始等待后再开始轮询，避免 AI 还没开始生成就被判定完成
+  pollEverStreaming = false;
   setTimeout(() => {
-    if (!streamingPollTimer) return; // 已被手动停止
+    if (!streamingPollTimer) return;
     streamingPollTimer = setInterval(async () => {
       if (Date.now() - pollStartTime > POLL_MAX_DURATION) {
         addLog("轮询超时（10分钟），已自动停止", "error");
@@ -102,22 +253,25 @@ function startStreamingPoll() {
       try {
         const s = await chrome.runtime.sendMessage({ type: "checkAllStreaming" });
         pollErrorCount = 0;
-        renderParticipants(s);
+        renderParticipants();
         const hasOnline = Object.values(s).some(v => v.status !== "offline");
         const isStreaming = Object.values(s).some(v => v.status === "streaming");
-        if (!isStreaming && hasOnline) {
+        if (isStreaming) pollEverStreaming = true;
+        const gracePeriodPassed = Date.now() - pollStartTime > 19000;
+        if (!isStreaming && hasOnline && (pollEverStreaming || gracePeriodPassed)) {
           pollReadyCount++;
           if (pollReadyCount >= POLL_READY_THRESHOLD) {
-            addLog("所有 AI 已回答完毕", "success");
+            addLog("所有 AI 已回答完毕，读取回复...", "success");
             stopStreamingPoll();
-            updateWizard("ready");
+            // 读取所有回复
+            await readAllResponses();
+            // 弹出确认面板（门控2/4）
+            showConfirmPanel();
             if (Notification.permission === "granted") {
-              try { new Notification("AI Arena", { body: "所有 AI 已回答完毕", icon: "icons/icon128.png" }); } catch {}
+              try { new Notification("AI Arena", { body: "所有 AI 已回答完毕，请确认", icon: "icons/icon128.png" }); } catch {}
             }
           }
-        } else {
-          pollReadyCount = 0; // 只要还有流式，重置计数
-        }
+        } else { pollReadyCount = 0; }
       } catch (e) {
         pollErrorCount++;
         if (pollErrorCount >= POLL_MAX_ERRORS) {
@@ -127,12 +281,28 @@ function startStreamingPoll() {
       }
     }, 2500);
   }, POLL_INITIAL_DELAY);
-  // 用一个占位 timer 标记轮询已启动（初始等待阶段）
   streamingPollTimer = -1;
 }
 function stopStreamingPoll() {
   if (streamingPollTimer && streamingPollTimer !== -1) clearInterval(streamingPollTimer);
   streamingPollTimer = null;
+}
+
+// 读取所有参与者的回复
+async function readAllResponses() {
+  for (const p of participants) {
+    if (p.state === "inject_ok" || p.state === "streaming") {
+      try {
+        await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: p.id });
+      } catch (e) {
+        addLog(`读取 ${p.name} 失败: ${e.message}`, "error");
+      }
+    }
+  }
+  // 刷新状态
+  const state = await chrome.runtime.sendMessage({ type: "getState" });
+  if (state) { participants = state.participants; debateSession = state.debateSession; flowState = state.flowState; }
+  renderParticipants();
 }
 
 // ── 消息监听 ──
@@ -141,25 +311,43 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "stateUpdate") {
     participants = msg.participants;
     debateSession = msg.debateSession || {};
+    flowState = msg.flowState || "idle";
     renderParticipants();
+    updateWizard(flowState);
+  }
+  if (msg.type === "selectorWarning") {
+    addLog(`⚠️ ${msg.message}`, "error");
   }
   if (msg.type === "contextMenuText") {
     const text = msg.text || "";
-    if (text) {
-      setEditorText(text);
-      addLog("已从网页获取选中文本 (" + text.length + " 字)", "info");
-    }
+    if (text) { setEditorText(text); addLog("已从网页获取选中文本 (" + text.length + " 字)", "info"); }
   }
 });
 
 // 初始化
 (async () => {
-  try { const r = await chrome.runtime.sendMessage({ type: "getState" }); if (r) { participants = r.participants; debateSession = r.debateSession || {}; renderParticipants(); } } catch {}
-  try { const s = await chrome.storage.local.get(["customPresets", "lastCustomInstruction"]); if (s.lastCustomInstruction && customInstruction) customInstruction.value = s.lastCustomInstruction; if (s.customPresets) renderCustomPresets(s.customPresets); } catch {}
+  try {
+    const r = await chrome.runtime.sendMessage({ type: "getState" });
+    if (r) { participants = r.participants; debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); updateWizard(flowState); }
+  } catch {}
+  try {
+    const s = await chrome.storage.local.get(["customPresets", "lastCustomInstruction"]);
+    if (s.lastCustomInstruction && customInstruction) customInstruction.value = s.lastCustomInstruction;
+    if (s.customPresets) renderCustomPresets(s.customPresets);
+  } catch {}
 })();
 
 // 定期刷新
-setInterval(async () => { try { const r = await chrome.runtime.sendMessage({ type: "getState" }); if (r) { participants = r.participants; debateSession = r.debateSession || {}; if (!streamingPollTimer) renderParticipants(); } } catch {} }, 5000);
+setInterval(async () => {
+  try {
+    const r = await chrome.runtime.sendMessage({ type: "getState" });
+    if (r) {
+      participants = r.participants; debateSession = r.debateSession || {};
+      flowState = r.flowState || "idle";
+      if (!streamingPollTimer) renderParticipants();
+    }
+  } catch {}
+}, 5000);
 
 // ── 预设 ──
 $$(".btn-preset").forEach(b => b.addEventListener("click", async () => {
@@ -169,22 +357,21 @@ $$(".btn-preset").forEach(b => b.addEventListener("click", async () => {
 
 // ── 添加参与者 ──
 $$(".btn-add").forEach(b => b.addEventListener("click", async () => {
+  if (participants.length >= 3) { addLog("最多 3 个参与者", "error"); return; }
   addLog(`添加 ${b.dataset.service}...`);
   await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service });
 }));
 
-// ── 打开全部（Tab 模式） ──
-$("#btn-open-all").addEventListener("click", async () => { addLog("打开全部..."); await chrome.runtime.sendMessage({ type: "openAll", mode: "tabs" }); });
+// ── 打开全部 ──
+$("#btn-open-all").addEventListener("click", async () => { addLog("打开全部..."); await chrome.runtime.sendMessage({ type: "openAll" }); });
 
-// ── 文件管理（图片 + 文本文件） ──
-let pendingImages = []; // 图片 dataUrl
-let pendingFiles = [];  // 非图片文件 { name, content }
+// ── 文件管理 ──
+let pendingImages = [], pendingFiles = [];
 const imagePreviews = $("#image-previews");
 const fileInput = $("#file-input");
 
 function addImage(dataUrl) { pendingImages.push(dataUrl); renderFilePreviews(); }
 function addTextFile(name, content) { pendingFiles.push({ name, content }); renderFilePreviews(); }
-
 function removeAttachment(type, index) {
   if (type === "img") pendingImages.splice(index, 1);
   else pendingFiles.splice(index, 1);
@@ -193,44 +380,15 @@ function removeAttachment(type, index) {
 
 function renderFilePreviews() {
   let html = "";
-  pendingImages.forEach((dataUrl, i) => {
-    html += `<div class="img-preview">
-      <img src="${dataUrl}">
-      <button class="img-remove" data-type="img" data-idx="${i}">✕</button>
-    </div>`;
-  });
-  pendingFiles.forEach((f, i) => {
-    html += `<div class="img-preview file-preview">
-      <span class="file-icon">📄</span>
-      <span class="file-name">${f.name.length > 12 ? f.name.slice(0, 10) + '...' : f.name}</span>
-      <button class="img-remove" data-type="file" data-idx="${i}">✕</button>
-    </div>`;
-  });
+  pendingImages.forEach((dataUrl, i) => { html += `<div class="img-preview"><img src="${dataUrl}"><button class="img-remove" data-type="img" data-idx="${i}">✕</button></div>`; });
+  pendingFiles.forEach((f, i) => { html += `<div class="img-preview file-preview"><span class="file-icon">📄</span><span class="file-name">${f.name.length > 12 ? f.name.slice(0, 10) + '...' : f.name}</span><button class="img-remove" data-type="file" data-idx="${i}">✕</button></div>`; });
   imagePreviews.innerHTML = html;
-  imagePreviews.querySelectorAll(".img-remove").forEach(btn => {
-    btn.addEventListener("click", () => removeAttachment(btn.dataset.type, parseInt(btn.dataset.idx)));
-  });
+  imagePreviews.querySelectorAll(".img-remove").forEach(btn => { btn.addEventListener("click", () => removeAttachment(btn.dataset.type, parseInt(btn.dataset.idx))); });
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-function fileToText(file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsText(file);
-  });
-}
-
-function isImageFile(file) {
-  return file.type.startsWith("image/");
-}
+function fileToDataUrl(file) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); }); }
+function fileToText(file) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsText(file); }); }
+function isImageFile(file) { return file.type.startsWith("image/"); }
 
 broadcastInput.addEventListener("paste", async (e) => {
   const items = e.clipboardData?.items;
@@ -246,25 +404,20 @@ broadcastInput.addEventListener("paste", async (e) => {
 
 fileInput.addEventListener("change", async () => {
   for (const file of fileInput.files) {
-    if (isImageFile(file)) {
-      addImage(await fileToDataUrl(file));
-    } else {
+    if (isImageFile(file)) { addImage(await fileToDataUrl(file)); }
+    else {
       try {
         const content = await fileToText(file);
         addTextFile(file.name, content);
         addLog(`已添加文件: ${file.name} (${(content.length / 1024).toFixed(1)}KB)`, "info");
-      } catch {
-        addLog(`无法读取文件: ${file.name}`, "error");
-      }
+      } catch { addLog(`无法读取文件: ${file.name}`, "error"); }
     }
   }
   fileInput.value = "";
 });
 
 broadcastInput.addEventListener("input", () => {
-  broadcastInput.querySelectorAll("img").forEach(img => {
-    if (img.src.startsWith("data:")) { addImage(img.src); img.remove(); }
-  });
+  broadcastInput.querySelectorAll("img").forEach(img => { if (img.src.startsWith("data:")) { addImage(img.src); img.remove(); } });
 });
 
 // ── 广播 ──
@@ -274,17 +427,11 @@ async function doBroadcast() {
   const hasFiles = pendingFiles.length > 0;
   if (!text && !hasImages && !hasFiles) return;
   if (!participants.length) { addLog("请先添加参与者", "error"); return; }
-
-  // 把文本文件内容拼接到 prompt
   if (hasFiles) {
-    const fileContents = pendingFiles.map(f =>
-      `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``
-    ).join("");
-    text = text + fileContents;
+    text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
   }
-
   btnSend.disabled = true; btnSend.textContent = "发送中...";
-  updateWizard("broadcasting");
+  hideConfirmPanel();
   const attachInfo = [];
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
   if (hasFiles) attachInfo.push(`${pendingFiles.length}个文件`);
@@ -297,7 +444,14 @@ async function doBroadcast() {
     pendingImages = [];
     pendingFiles = [];
     renderFilePreviews();
-    startStreamingPoll();
+    // 刷新状态
+    const state = await chrome.runtime.sendMessage({ type: "getState" });
+    if (state) { participants = state.participants; flowState = state.flowState; }
+    renderParticipants();
+    // 如果自动进入了 awaiting，开始轮询
+    if (flowState === "awaiting_responses") {
+      startStreamingPoll();
+    }
   } catch (e) { addLog("失败: " + e.message, "error"); }
   btnSend.disabled = false; btnSend.textContent = "发送给全部";
 }
@@ -319,16 +473,36 @@ btnDebate.addEventListener("click", async () => {
   if (participants.length < 2) { addLog("至少需要 2 个参与者", "error"); return; }
   const nextRound = getDebateRound() + 1;
   btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
-  updateWizard("debating");
+  hideConfirmPanel();
   const guidance = guidanceInput?.value?.trim() || "";
   addLog(`第${nextRound}轮辩论${guidance ? " (引导: " + guidance.slice(0, 30) + ")" : ""}`, "info");
   try {
     const concise = $("#concise-mode")?.checked || false;
     const r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise });
-    if (r?.ok) { addLog(`第${nextRound}轮已发送`, "success"); startStreamingPoll(); if (guidance && guidanceInput) guidanceInput.value = ""; }
-    else addLog(`失败: ${r?.error}`, "error");
+    if (r?.ok) {
+      addLog(`第${nextRound}轮已发送`, "success");
+      // 刷新状态
+      const state = await chrome.runtime.sendMessage({ type: "getState" });
+      if (state) { participants = state.participants; flowState = state.flowState; }
+      renderParticipants();
+      if (flowState === "awaiting_responses") startStreamingPoll();
+      if (guidance && guidanceInput) guidanceInput.value = "";
+    } else addLog(`失败: ${r?.error}`, "error");
   } catch (e) { addLog("失败: " + e.message, "error"); }
   btnDebate.disabled = false; btnDebate.textContent = `开始辩论（第${getDebateRound() + 1}轮）`;
+});
+
+// ── 辩论重试 ──
+btnDebateRetry.addEventListener("click", async () => {
+  stopStreamingPoll();
+  hideConfirmPanel();
+  btnDebate.disabled = false;
+  btnDebate.textContent = `开始辩论（第${getDebateRound() + 1}轮）`;
+  btnSend.disabled = false;
+  btnSend.textContent = "发送给全部";
+  await chrome.runtime.sendMessage({ type: "resetSession" });
+  updateWizard("idle");
+  addLog("已重置辩论状态，可以重试", "info");
 });
 
 // ── 上下文提炼 ──
@@ -338,16 +512,13 @@ $("#btn-ctx-fork").addEventListener("click", async (e) => {
   const preview = $("#ctx-fork-preview");
   preview.style.display = "none";
   addLog("正在读取对话并请求 AI 提炼摘要...", "info");
-
   const r = await chrome.runtime.sendMessage({ type: "contextForkActive" });
   if (r?.ok) {
     await navigator.clipboard.writeText(r.prompt);
     addLog(`已提炼 ${r.turns} 轮对话，摘要已复制到剪贴板 ✓`, "success");
     preview.style.display = "block";
     preview.textContent = r.prompt.slice(0, 300) + (r.prompt.length > 300 ? "..." : "");
-  } else {
-    addLog(`提炼失败: ${r?.error}`, "error");
-  }
+  } else { addLog(`提炼失败: ${r?.error}`, "error"); }
   btn.disabled = false; btn.textContent = "📋 提炼当前页面并复制";
 });
 
@@ -400,28 +571,27 @@ function renderCustomPresets(presets) {
 $("#btn-reset").addEventListener("click", async () => {
   await chrome.runtime.sendMessage({ type: "resetSession" });
   stopStreamingPoll();
+  hideConfirmPanel();
   addLog("会话已重置", "info");
   btnDebate.textContent = "开始辩论";
   updateWizard("idle");
   renderParticipants();
 });
 
-// ── 彻底重置（清除一切状态，关闭所有参与者标签页） ──
+// ── 彻底重置 ──
 $("#btn-hard-reset").addEventListener("click", async () => {
-  // 关闭所有参与者标签页
   for (const p of participants) {
-    if (p.tabId) {
-      try { await chrome.tabs.remove(p.tabId); } catch {}
-    }
+    if (p.tabId) { try { await chrome.tabs.remove(p.tabId); } catch {} }
   }
-  // 重置后台状态
   await chrome.runtime.sendMessage({ type: "hardReset" });
-  // 重置前端状态
   stopStreamingPoll();
+  hideConfirmPanel();
   participants = [];
   debateSession = {};
+  flowState = "idle";
   pendingImages = [];
-  renderImagePreviews();
+  pendingFiles = [];
+  renderFilePreviews();
   broadcastInput.innerHTML = "";
   btnDebate.textContent = "开始辩论";
   btnSend.disabled = false;
@@ -451,7 +621,6 @@ async function loadTemplates() {
   const data = await chrome.storage.local.get("userTemplates");
   const userTpls = data.userTemplates || [];
   const allTpls = [...BUILTIN_TEMPLATES, ...userTpls];
-
   templateList.innerHTML = allTpls.map(t => `
     <div class="tpl-item" data-id="${t.id}">
       <span class="tpl-icon">${t.icon || '📄'}</span>
@@ -459,25 +628,21 @@ async function loadTemplates() {
       ${t.id.startsWith("t_user_") ? `<button class="tpl-del" data-id="${t.id}">✕</button>` : ''}
     </div>
   `).join("");
-
   templateList.querySelectorAll(".tpl-item").forEach(item => {
     item.addEventListener("click", (e) => {
       if (e.target.classList.contains("tpl-del")) return;
       const tpl = allTpls.find(t => t.id === item.dataset.id);
       if (!tpl) return;
       const currentText = broadcastInput.innerText.trim();
-      const filled = tpl.content.replace("{{问题}}", currentText || "[在此输入具体内容]");
-      setEditorText(filled);
+      setEditorText(tpl.content.replace("{{问题}}", currentText || "[在此输入具体内容]"));
       addLog(`已加载模板: ${tpl.name}`, "info");
     });
   });
-
   templateList.querySelectorAll(".tpl-del").forEach(btn => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const id = btn.dataset.id;
       const data = await chrome.storage.local.get("userTemplates");
-      const tpls = (data.userTemplates || []).filter(t => t.id !== id);
+      const tpls = (data.userTemplates || []).filter(t => t.id !== btn.dataset.id);
       await chrome.storage.local.set({ userTemplates: tpls });
       loadTemplates();
       addLog("已删除模板", "info");
@@ -489,12 +654,10 @@ $("#btn-save-tpl").addEventListener("click", async () => {
   const name = $("#tpl-name").value.trim();
   const content = $("#tpl-content").value.trim();
   if (!name || !content) { addLog("请填写模板名称和内容", "error"); return; }
-
   const data = await chrome.storage.local.get("userTemplates");
   const tpls = data.userTemplates || [];
   tpls.push({ id: "t_user_" + Date.now(), name, icon: "📌", content });
   await chrome.storage.local.set({ userTemplates: tpls });
-
   $("#tpl-name").value = "";
   $("#tpl-content").value = "";
   loadTemplates();
@@ -509,17 +672,12 @@ btnOptimize.addEventListener("click", async () => {
   const text = broadcastInput.innerText.trim();
   if (!text) { addLog("请先输入 Prompt", "error"); return; }
   if (!participants.length) { addLog("请先添加参与者", "error"); return; }
-
   const judge = participants.find(p => p.tabId);
   if (!judge) { addLog("没有在线参与者", "error"); return; }
-
-  btnOptimize.disabled = true;
-  btnOptimize.textContent = "⏳";
+  btnOptimize.disabled = true; btnOptimize.textContent = "⏳";
   addLog(`正在由 ${judge.name} 优化 Prompt...`, "info");
-
   const r = await chrome.runtime.sendMessage({ type: "optimizePrompt", text, judgeId: judge.id });
   if (!r?.ok) { addLog(`失败: ${r?.error}`, "error"); btnOptimize.disabled = false; btnOptimize.textContent = "✨ 优化"; return; }
-
   addLog("等待优化结果...", "info");
   await new Promise(resolve => setTimeout(resolve, 3000));
   for (let i = 0; i < 60; i++) {
@@ -530,28 +688,24 @@ btnOptimize.addEventListener("click", async () => {
     } catch {}
     await new Promise(r => setTimeout(r, 2000));
   }
-
   const resp = await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: judge.id });
-  if (resp?.ok && resp.text) {
-    setEditorText(resp.text.trim());
-    addLog("Prompt 已优化并填回输入框", "success");
-  } else {
-    addLog("未读取到结果，请手动查看 AI 页面", "error");
-  }
-
-  btnOptimize.disabled = false;
-  btnOptimize.textContent = "✨ 优化";
+  if (resp?.ok && resp.text) { setEditorText(resp.text.trim()); addLog("Prompt 已优化并填回输入框", "success"); }
+  else { addLog("未读取到结果，请手动查看 AI 页面", "error"); }
+  btnOptimize.disabled = false; btnOptimize.textContent = "✨ 优化";
 });
 
-// ── 辩论向导 ──
+// ── 辩论向导（FlowState 驱动） ──
 const wizardEl = $("#debate-wizard");
 function updateWizard(state) {
   if (!wizardEl) return;
   const steps = {
     idle: "① 先发送问题 → ② 等待回答完成 → ③ 点击辩论",
-    broadcasting: "① ✅ 问题已发送 → ② ⏳ 等待回答中... → ③ 点击辩论",
-    ready: "① ✅ 问题已发送 → ② ✅ 回答已完成 → <b>③ 现在可以辩论了！</b>",
+    broadcasting: "① ⏳ 发送中... → ② 等待回答 → ③ 辩论",
+    awaiting_responses: "① ✅ 已发送 → ② ⏳ 等待回答中... → ③ 辩论",
+    confirming: "① ✅ → ② ✅ 回答已收集 → <b>③ 请确认后开始辩论</b>",
     debating: "① ✅ → ② ✅ → ③ ⏳ 辩论进行中...",
+    ready: "① ✅ 问题已发送 → ② ✅ 回答已完成 → <b>③ 现在可以辩论了！</b>",
+    summary: "① ✅ → ② ✅ → ③ ✅ → 📝 总结中...",
   };
   wizardEl.innerHTML = steps[state] || steps.idle;
 }
