@@ -83,7 +83,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
 
-        // ── 半自动门控操作 ──
+        // ── 手动操作 ──
+        case "sendToOne":
+          sendResponse(await sendToOneParticipant(msg.participantId));
+          break;
         case "retryInject":
           sendResponse(await retryInjectParticipant(msg.id));
           break;
@@ -201,6 +204,38 @@ async function retryInjectParticipant(id) {
     const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + buildMarkerInstruction() });
     const success = result.status !== "error";
     return { ok: success, result };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ── 手动发送给单个参与者（根据当前阶段自动构建 prompt） ──
+async function sendToOneParticipant(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p?.tabId) return { ok: false, error: "参与者无效" };
+
+  try {
+    const ready = await waitForContentScript(p.tabId);
+    if (!ready) return { ok: false, error: "页面未就绪" };
+
+    let text;
+    const rounds = StateMachine.debateSession.rounds;
+    if (rounds.length === 0) {
+      // 初始广播阶段：发原始问题
+      text = (StateMachine.debateSession.originalQuestion || "") + buildMarkerInstruction();
+    } else {
+      // 辩论阶段：构建该参与者的辩论 prompt
+      const lastRound = rounds[rounds.length - 1];
+      const responses = lastRound.responses || {};
+      text = DebateEngine.buildDebatePrompt(
+        participantId, responses, lastRound.style || "free",
+        lastRound.roundNum, lastRound.guidance || "", false
+      );
+    }
+
+    if (!text) return { ok: false, error: "无可发送内容" };
+    const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text });
+    return { ok: result.status !== "error", result };
   } catch (e) {
     return { ok: false, error: e.message };
   }

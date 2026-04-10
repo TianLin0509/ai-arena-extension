@@ -84,8 +84,11 @@ function renderParticipants() {
       const charDisplay = charCount > 0 ? `<span class="p-chars">${charCount}字</span>` : '';
 
       // 手动提取按钮（生成中/等待中时可用，替代全局手动确认）
-      const canExtract = pState === "streaming" || pState === "waiting" || pState === "idle";
-      const extractBtn = canExtract && !gateActions ? `<button class="p-btn p-extract" data-id="${p.id}" title="手动提取回复">📥</button>` : '';
+      // 手动操作按钮
+      const actionBtns = !gateActions ? [
+        `<button class="p-btn p-send" data-id="${p.id}" title="手动发送提问">📤</button>`,
+        `<button class="p-btn p-extract" data-id="${p.id}" title="手动提取回复">📥</button>`
+      ].join('') : '';
 
       return `<div class="participant-item ${p.service}">
         <span class="p-status ${sc}"></span>
@@ -93,15 +96,30 @@ function renderParticipants() {
         ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : `<span class="p-status-text">${sc === "offline" ? "离线" : ""}</span>`}
         ${charDisplay}
         ${gateActions}
-        ${extractBtn}
-        ${!gateActions && !extractBtn ? (sc === "offline" ? '' : `<button class="p-btn p-focus" data-id="${p.id}">👁</button>`) : ''}
+        ${actionBtns}
         <button class="p-btn p-remove" data-id="${p.id}">✕</button>
       </div>`;
     }).join("");
 
     // 事件绑定
-    listEl.querySelectorAll(".p-focus").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "focusTab", id: b.dataset.id })));
     listEl.querySelectorAll(".p-remove").forEach(b => b.addEventListener("click", () => chrome.runtime.sendMessage({ type: "removeParticipant", id: b.dataset.id })));
+    // 手动发送按钮
+    listEl.querySelectorAll(".p-send").forEach(b => b.addEventListener("click", async () => {
+      const id = b.dataset.id;
+      const p = participants.find(p => p.id === id);
+      b.textContent = "⏳"; b.disabled = true;
+      addLog(`手动发送给 ${p?.name || id}...`, "info");
+      const resp = await chrome.runtime.sendMessage({ type: "sendToOne", participantId: id });
+      if (resp?.ok) {
+        if (p) { p._pollStatus = null; p._textLength = 0; }
+        addLog(`已发送给 ${p?.name || id}`, "success");
+        renderParticipants();
+        if (!streamingPollTimer) startStreamingPoll();
+      } else {
+        addLog(`发送失败: ${resp?.error || '未知错误'}`, "error");
+      }
+      b.textContent = "📤"; b.disabled = false;
+    }));
     // 手动提取按钮
     listEl.querySelectorAll(".p-extract").forEach(b => b.addEventListener("click", async () => {
       const id = b.dataset.id;
