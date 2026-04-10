@@ -10,8 +10,7 @@
     "system.display",
     "storage",
     "windows",
-    "contextMenus",
-    "scripting"
+    "contextMenus"
   ],
   "host_permissions": [
     "https://claude.ai/*",
