@@ -27,11 +27,6 @@ body {
 .btn-tiny { background: #f3f4f6; color: #666; padding: 4px 10px; font-size: 11px; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .btn-tiny:hover { background: #e8e9ed; }
 
-/* ── 预设组合 ── */
-.preset-group { display: flex; gap: 4px; margin-bottom: 8px; }
-.btn-preset { flex: 1; padding: 6px 2px; border: 1.5px solid #e5e7eb; border-radius: 8px; background: #fafafa; color: #666; cursor: pointer; font-size: 11px; font-weight: 600; text-align: center; transition: all 0.2s; }
-.btn-preset:hover { border-color: #6366f1; color: #6366f1; background: #f5f3ff; transform: translateY(-1px); }
-
 /* ── 添加按钮 ── */
 .add-group { display: flex; gap: 4px; }
 .btn-add { flex: 1; padding: 7px 2px; border: 1.5px dashed #d1d5db; border-radius: 8px; background: #fafafa; color: #aaa; cursor: pointer; font-size: 11px; font-weight: 600; text-align: center; transition: all 0.2s; }
@@ -118,7 +113,6 @@ body {
 
 /* ── 总结 ── */
 .summary-row { display: flex; gap: 6px; }
-.consensus-legend { display: flex; gap: 8px; margin-top: 10px; font-size: 10px; color: #999; flex-wrap: wrap; }
 
 /* ── 折叠面板 ── */
 .custom-details { margin-top: 8px; }
@@ -129,38 +123,6 @@ body {
 .custom-textarea { width: 100%; min-height: 45px; padding: 8px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px; background: #fafafa; color: #333; font-size: 12px; resize: vertical; outline: none; font-family: inherit; margin-top: 6px; }
 .custom-textarea:focus { border-color: #6366f1; background: #fff; }
 .custom-textarea::placeholder { color: #ccc; }
-.preset-row { display: flex; gap: 4px; margin-top: 6px; align-items: center; }
-
-/* ── 模板库 ── */
-.clickable { cursor: pointer; }
-.template-list { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
-.template-list:empty::after { content: "暂无模板，点击下方创建"; color: #ccc; font-size: 12px; text-align: center; padding: 10px; }
-.tpl-item {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 10px; border-radius: 8px; background: #f9fafb;
-  border: 1px solid #f0f0f0; cursor: pointer; transition: all 0.15s;
-}
-.tpl-item:hover { background: #f0f0ff; border-color: #c7d2fe; }
-.tpl-item .tpl-icon { font-size: 14px; flex-shrink: 0; }
-.tpl-item .tpl-name { flex: 1; font-size: 12px; font-weight: 600; color: #333; }
-.tpl-item .tpl-del { background: transparent; border: none; color: #ccc; cursor: pointer; font-size: 12px; padding: 0 4px; }
-.tpl-item .tpl-del:hover { color: #ef4444; }
-.tpl-input {
-  width: 100%; padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px;
-  background: #fafafa; color: #333; font-size: 12px; outline: none; margin-bottom: 6px;
-}
-.tpl-input:focus { border-color: #6366f1; }
-
-/* ── 上下文提炼 ── */
-.fork-desc { font-size: 11px; color: #aaa; margin-bottom: 8px; line-height: 1.5; }
-.ctx-fork-preview {
-  margin-top: 8px; padding: 8px 10px;
-  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
-  font-size: 11px; color: #166534; line-height: 1.6;
-  white-space: pre-wrap; word-break: break-all;
-  max-height: 120px; overflow-y: auto;
-}
-
 /* ── 辩论模式切换 ── */
 .debate-mode-toggle {
   display: flex; gap: 4px; margin-bottom: 8px;

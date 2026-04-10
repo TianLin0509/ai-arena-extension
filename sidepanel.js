@@ -7,7 +7,6 @@ const logEl = $("#log"), listEl = $("#participant-list"), countEl = $("#particip
 const judgeSelect = $("#judge-select");
 const broadcastInput = $("#broadcast-input"), btnSend = $("#btn-send");
 const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRetry = $("#btn-debate-retry");
-const customInstruction = $("#custom-instruction"), presetSelect = $("#preset-select");
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
 const confirmPanel = $("#confirm-panel"), confirmCards = $("#confirm-cards");
 const btnConfirmReady = $("#btn-confirm-ready"), btnConfirmWait = $("#btn-confirm-wait");
@@ -52,7 +51,6 @@ function setEditorText(text) {
 }
 function getDebateRound() { return debateSession?.rounds?.length || 0; }
 
-const BUILTIN_PRESETS = { table: "请用表格对比各方观点，列出各自的优缺点", tech: "重点分析技术可行性和具体实现方案", invest: "从投资角度分析，关注风险、收益和仓位建议", academic: "以学术标准评价各方论证的严谨性", action: "只输出可直接执行的行动清单" };
 
 // ── 日志 ──
 function addLog(msg, type = "info") {
@@ -71,7 +69,7 @@ function renderParticipants() {
   else { roundBadge.style.display = "none"; }
 
   if (!participants.length) {
-    listEl.innerHTML = '<div class="empty-hint">选择预设或手动添加参与者</div>';
+    listEl.innerHTML = '<div class="empty-hint">点击上方按钮添加参与者</div>';
   } else {
     listEl.innerHTML = participants.map(p => {
       // 轮询状态是唯一 UI 状态源
@@ -457,11 +455,6 @@ chrome.runtime.onMessage.addListener((msg) => {
     const r = await chrome.runtime.sendMessage({ type: "getState" });
     if (r) { mergeParticipants(r.participants); debateSession = r.debateSession || {}; flowState = r.flowState || "idle"; renderParticipants(); updateWizard(flowState); }
   } catch {}
-  try {
-    const s = await chrome.storage.local.get(["customPresets", "lastCustomInstruction"]);
-    if (s.lastCustomInstruction && customInstruction) customInstruction.value = s.lastCustomInstruction;
-    if (s.customPresets) renderCustomPresets(s.customPresets);
-  } catch {}
 })();
 
 // 定期刷新
@@ -476,21 +469,12 @@ setInterval(async () => {
   } catch {}
 }, 5000);
 
-// ── 预设 ──
-$$(".btn-preset").forEach(b => b.addEventListener("click", async () => {
-  addLog(`加载预设: ${b.textContent}...`);
-  await chrome.runtime.sendMessage({ type: "loadPreset", presetId: b.dataset.preset });
-}));
-
 // ── 添加参与者 ──
 $$(".btn-add").forEach(b => b.addEventListener("click", async () => {
   if (participants.length >= 3) { addLog("最多 3 个参与者", "error"); return; }
   addLog(`添加 ${b.dataset.service}...`);
   await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service });
 }));
-
-// ── 打开全部 ──
-$("#btn-open-all").addEventListener("click", async () => { addLog("打开全部..."); await chrome.runtime.sendMessage({ type: "openAll" }); });
 
 // ── 文件管理 ──
 let pendingImages = [], pendingFiles = [];
@@ -638,67 +622,19 @@ btnDebateRetry.addEventListener("click", async () => {
   addLog("已重置辩论状态，可以重试", "info");
 });
 
-// ── 上下文提炼 ──
-$("#btn-ctx-fork").addEventListener("click", async (e) => {
-  const btn = e.currentTarget;
-  btn.disabled = true; btn.textContent = "⏳ AI 提炼中...";
-  const preview = $("#ctx-fork-preview");
-  preview.style.display = "none";
-  addLog("正在读取对话并请求 AI 提炼摘要...", "info");
-  const r = await chrome.runtime.sendMessage({ type: "contextForkActive" });
-  if (r?.ok) {
-    await navigator.clipboard.writeText(r.prompt);
-    addLog(`已提炼 ${r.turns} 轮对话，摘要已复制到剪贴板 ✓`, "success");
-    preview.style.display = "block";
-    preview.textContent = r.prompt.slice(0, 300) + (r.prompt.length > 300 ? "..." : "");
-  } else { addLog(`提炼失败: ${r?.error}`, "error"); }
-  btn.disabled = false; btn.textContent = "📋 提炼当前页面并复制";
-});
-
 // ── 辩论总结 ──
 btnSummary.addEventListener("click", async () => {
   const judgeId = judgeSelect.value;
   if (!judgeId) { addLog("请先选择裁判", "error"); return; }
-  const ci = customInstruction?.value?.trim() || "";
-  if (ci) chrome.storage.local.set({ lastCustomInstruction: ci });
   btnSummary.disabled = true; btnSummary.textContent = "总结中...";
-  addLog("生成总结..." + (ci ? " (含自定义指令)" : ""), "info");
+  addLog("生成总结...", "info");
   try {
-    const r = await chrome.runtime.sendMessage({ type: "summary", judgeId, customInstruction: ci });
+    const r = await chrome.runtime.sendMessage({ type: "summary", judgeId });
     if (r?.ok) { addLog("总结已发送", "success"); startStreamingPoll(); }
     else addLog(`失败: ${r?.error}`, "error");
   } catch (e) { addLog("失败: " + e.message, "error"); }
   btnSummary.disabled = false; btnSummary.textContent = "输出总结";
 });
-
-// ── 常用指令 ──
-presetSelect.addEventListener("change", () => {
-  const v = presetSelect.value;
-  if (BUILTIN_PRESETS[v]) customInstruction.value = BUILTIN_PRESETS[v];
-  else if (v.startsWith("custom_")) chrome.storage.local.get("customPresets", d => { if (d.customPresets?.[v]) customInstruction.value = d.customPresets[v]; });
-  presetSelect.value = "";
-});
-
-$("#btn-save-preset").addEventListener("click", async () => {
-  const text = customInstruction.value.trim();
-  if (!text) { addLog("请先输入指令", "error"); return; }
-  const key = "custom_" + Date.now();
-  const d = await chrome.storage.local.get("customPresets");
-  const p = d.customPresets || {};
-  p[key] = text;
-  await chrome.storage.local.set({ customPresets: p });
-  renderCustomPresets(p);
-  addLog("已保存常用指令", "success");
-});
-
-function renderCustomPresets(presets) {
-  presetSelect.querySelectorAll('option[value^="custom_"]').forEach(o => o.remove());
-  for (const [k, t] of Object.entries(presets)) {
-    const o = document.createElement("option");
-    o.value = k; o.textContent = "📌 " + t.slice(0, 20) + (t.length > 20 ? "..." : "");
-    presetSelect.appendChild(o);
-  }
-}
 
 // ── 重置 ──
 $("#btn-reset").addEventListener("click", async () => {
@@ -735,97 +671,6 @@ $("#btn-hard-reset").addEventListener("click", async () => {
   updateWizard("idle");
   renderParticipants();
   addLog("已彻底重置，所有状态已清除", "success");
-});
-
-// ── Prompt 模板库 ──
-const BUILTIN_TEMPLATES = [
-  { id: "t_code_review", name: "代码审查", icon: "🔍", content: "请审查以下代码，关注：1) 潜在 bug 2) 性能问题 3) 安全隐患 4) 代码风格\n\n{{问题}}" },
-  { id: "t_solution", name: "方案评估", icon: "⚖️", content: "请从技术可行性、成本、风险、可维护性等角度评估以下方案：\n\n{{问题}}" },
-  { id: "t_translate", name: "翻译润色", icon: "🌐", content: "请将以下内容翻译为流畅地道的中文/英文，保持专业术语准确：\n\n{{问题}}" },
-  { id: "t_brainstorm", name: "头脑风暴", icon: "💡", content: "请围绕以下主题进行发散思考，给出至少5个不同角度的创意或方案：\n\n{{问题}}" },
-  { id: "t_swot", name: "SWOT分析", icon: "📊", content: "请对以下内容进行 SWOT 分析（优势、劣势、机会、威胁），用表格呈现：\n\n{{问题}}" },
-  { id: "t_explain", name: "深入讲解", icon: "📖", content: "请用通俗易懂的方式深入解释以下概念，使用类比和具体例子：\n\n{{问题}}" },
-  { id: "t_debug", name: "问题诊断", icon: "🐛", content: "以下代码/系统出现了问题，请分析可能的原因并给出修复方案：\n\n{{问题}}" },
-  { id: "t_summary", name: "内容总结", icon: "📝", content: "请总结以下内容的核心要点，用结构化的方式呈现（要点不超过5条）：\n\n{{问题}}" },
-];
-
-const templateList = $("#template-list");
-
-async function loadTemplates() {
-  const data = await chrome.storage.local.get("userTemplates");
-  const userTpls = data.userTemplates || [];
-  const allTpls = [...BUILTIN_TEMPLATES, ...userTpls];
-  templateList.innerHTML = allTpls.map(t => `
-    <div class="tpl-item" data-id="${t.id}">
-      <span class="tpl-icon">${t.icon || '📄'}</span>
-      <span class="tpl-name">${t.name}</span>
-      ${t.id.startsWith("t_user_") ? `<button class="tpl-del" data-id="${t.id}">✕</button>` : ''}
-    </div>
-  `).join("");
-  templateList.querySelectorAll(".tpl-item").forEach(item => {
-    item.addEventListener("click", (e) => {
-      if (e.target.classList.contains("tpl-del")) return;
-      const tpl = allTpls.find(t => t.id === item.dataset.id);
-      if (!tpl) return;
-      const currentText = broadcastInput.innerText.trim();
-      setEditorText(tpl.content.replace("{{问题}}", currentText || "[在此输入具体内容]"));
-      addLog(`已加载模板: ${tpl.name}`, "info");
-    });
-  });
-  templateList.querySelectorAll(".tpl-del").forEach(btn => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const data = await chrome.storage.local.get("userTemplates");
-      const tpls = (data.userTemplates || []).filter(t => t.id !== btn.dataset.id);
-      await chrome.storage.local.set({ userTemplates: tpls });
-      loadTemplates();
-      addLog("已删除模板", "info");
-    });
-  });
-}
-
-$("#btn-save-tpl").addEventListener("click", async () => {
-  const name = $("#tpl-name").value.trim();
-  const content = $("#tpl-content").value.trim();
-  if (!name || !content) { addLog("请填写模板名称和内容", "error"); return; }
-  const data = await chrome.storage.local.get("userTemplates");
-  const tpls = data.userTemplates || [];
-  tpls.push({ id: "t_user_" + Date.now(), name, icon: "📌", content });
-  await chrome.storage.local.set({ userTemplates: tpls });
-  $("#tpl-name").value = "";
-  $("#tpl-content").value = "";
-  loadTemplates();
-  addLog(`已保存模板: ${name}`, "success");
-});
-
-loadTemplates();
-
-// ── Prompt 优化 ──
-const btnOptimize = $("#btn-optimize");
-btnOptimize.addEventListener("click", async () => {
-  const text = broadcastInput.innerText.trim();
-  if (!text) { addLog("请先输入 Prompt", "error"); return; }
-  if (!participants.length) { addLog("请先添加参与者", "error"); return; }
-  const judge = participants.find(p => p.tabId);
-  if (!judge) { addLog("没有在线参与者", "error"); return; }
-  btnOptimize.disabled = true; btnOptimize.textContent = "⏳";
-  addLog(`正在由 ${judge.name} 优化 Prompt...`, "info");
-  const r = await chrome.runtime.sendMessage({ type: "optimizePrompt", text, judgeId: judge.id });
-  if (!r?.ok) { addLog(`失败: ${r?.error}`, "error"); btnOptimize.disabled = false; btnOptimize.textContent = "✨ 优化"; return; }
-  addLog("等待优化结果...", "info");
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  for (let i = 0; i < 60; i++) {
-    try {
-      const s = await chrome.runtime.sendMessage({ type: "checkAllStreaming" });
-      const judgeStatus = s[judge.id];
-      if (judgeStatus && judgeStatus.status !== "streaming") break;
-    } catch {}
-    await new Promise(r => setTimeout(r, 2000));
-  }
-  const resp = await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: judge.id });
-  if (resp?.ok && resp.text) { setEditorText(resp.text.trim()); addLog("Prompt 已优化并填回输入框", "success"); }
-  else { addLog("未读取到结果，请手动查看 AI 页面", "error"); }
-  btnOptimize.disabled = false; btnOptimize.textContent = "✨ 优化";
 });
 
 // ── 辩论向导（FlowState 驱动） ──
