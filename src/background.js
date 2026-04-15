@@ -433,8 +433,8 @@ async function arrangeWindows(screen = lastKnownScreen) {
   if (parts.length === 0) return { ok: false, error: "无参与者" };
 
   // 使用传入或缓存的屏幕尺寸（替代 chrome.system.display）
-  const screenW = screen.width;
-  const screenH = screen.height;
+  const screenW = screen.width  || 1920;
+  const screenH = screen.height || 1080;
   const screenLeft = screen.left || 0;
   const screenTop = screen.top || 0;
 
