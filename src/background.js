@@ -1,4 +1,4 @@
-// AI Arena — Background Service Worker v6.0 (状态机驱动)
+// AI Arena — Background Service Worker v1.0.0
 importScripts("selectors-config.js", "state-machine.js", "debate-engine.js");
 
 const SERVICES = {

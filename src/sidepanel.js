@@ -1,4 +1,4 @@
-// AI Arena — Side Panel v6.0 (状态机驱动)
+// AI Arena — Side Panel v1.0.0
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
