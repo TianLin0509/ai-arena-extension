@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Arena 隐私政策</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.75; }
+  h1 { border-bottom: 2px solid #6366f1; padding-bottom: 8px; }
+  h2 { margin-top: 32px; color: #4338ca; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; font-size: 14px; }
+  th { background: #f5f3ff; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 90%; }
+  a { color: #6366f1; }
+</style>
+</head>
+<body>
+<h1>AI Arena 隐私政策</h1>
+<p><strong>最后更新：</strong>2026-04-16</p>
+
+<h2>概述</h2>
+<p>AI Arena 是一个 Chrome 浏览器扩展，用于让用户同时向多个主流 AI 对话平台（Claude、Gemini、ChatGPT、DeepSeek、豆包、通义千问）发送问题并汇总回答。</p>
+<p><strong>本扩展不会收集、存储或上传任何用户数据到扩展开发者或任何第三方服务器。</strong></p>
+
+<h2>数据处理说明</h2>
+<p>扩展运行期间会处理以下数据，且<strong>全部仅在用户本地浏览器内流动</strong>：</p>
+<ol>
+  <li><strong>用户输入的 prompt 和上传的文件</strong>：由扩展直接注入到用户已登录的 AI 官网页面，等同于用户自己在对应网站输入框粘贴发送。</li>
+  <li><strong>AI 返回的回答内容</strong>：扩展从各 AI 官网页面读取后显示在侧边栏，同时可选择性地复制或导出为文本。</li>
+  <li><strong>扩展配置和历史会话</strong>：存储在 <code>chrome.storage.local</code>，仅当前浏览器可访问，不上传云端。</li>
+</ol>
+<p>用户的账号、密码、Cookie 等凭证完全由各 AI 官网管理，扩展无法访问也不尝试访问。</p>
+
+<h2>各 AI 平台的数据处理</h2>
+<p>用户在 Claude、Gemini、ChatGPT 等官网与扩展交互时，数据的后续处理由<strong>各平台自身的隐私政策</strong>决定，与本扩展无关。</p>
+
+<h2>权限用途说明</h2>
+<table>
+  <thead><tr><th>权限</th><th>用途</th></tr></thead>
+  <tbody>
+    <tr><td><code>sidePanel</code></td><td>显示主界面侧边栏</td></tr>
+    <tr><td><code>tabs</code> / <code>windows</code></td><td>管理和切换各 AI 平台的标签页和窗口</td></tr>
+    <tr><td><code>activeTab</code></td><td>获取当前活动标签页信息</td></tr>
+    <tr><td><code>storage</code></td><td>本地保存扩展配置和会话历史</td></tr>
+    <tr><td><code>scripting</code></td><td>向各 AI 平台注入提问和读取回答</td></tr>
+    <tr><td><code>contextMenus</code></td><td>右键菜单快捷操作</td></tr>
+    <tr><td><code>declarativeNetRequest</code>（仅 GitHub 版）</td><td>剥离目标站点响应头 CSP，提高内容注入稳定性</td></tr>
+    <tr><td><code>host_permissions</code></td><td>限定仅访问列出的 AI 官网域名</td></tr>
+  </tbody>
+</table>
+
+<h2>联系方式</h2>
+<p>如有隐私相关疑问，请在 GitHub 仓库提交 Issue：<br>
+<a href="https://github.com/lintian0509/ai-arena-extension/issues">https://github.com/lintian0509/ai-arena-extension/issues</a></p>
+</body>
+</html>
