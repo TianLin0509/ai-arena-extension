@@ -1,4 +1,8 @@
 // AI Arena — Background Service Worker v1.0.0
+
+// 从 sidepanel 缓存的屏幕尺寸（用于并列模式，替代 chrome.system.display）
+let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
+
 importScripts("selectors-config.js", "state-machine.js", "debate-engine.js");
 
 const SERVICES = {
@@ -84,7 +88,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
         case "setWindowMode":     windowMode = msg.mode; sendResponse({ ok: true }); break;
-        case "arrangeWindows":    sendResponse(await arrangeWindows()); break;
+        case "arrangeWindows":
+          if (msg.screen) lastKnownScreen = msg.screen;
+          sendResponse(await arrangeWindows(msg.screen || lastKnownScreen));
+          break;
 
         // ── 手动操作 ──
         case "sendToOne":
@@ -420,15 +427,16 @@ function exportSession() {
 }
 
 // ── 并列模式：排列窗口 ──
-async function arrangeWindows() {
+async function arrangeWindows(screen = lastKnownScreen) {
   if (windowMode !== "tiled") return { ok: false, error: "非并列模式" };
   const parts = StateMachine.participants.filter(p => p.tabId);
   if (parts.length === 0) return { ok: false, error: "无参与者" };
 
-  // 获取屏幕尺寸
-  const displays = await chrome.system.display.getInfo();
-  const primary = displays[0];
-  const { width: screenW, height: screenH } = primary.workArea;
+  // 使用传入或缓存的屏幕尺寸（替代 chrome.system.display）
+  const screenW = screen.width;
+  const screenH = screen.height;
+  const screenLeft = screen.left || 0;
+  const screenTop = screen.top || 0;
 
   // 反转顺序：第一个添加的参与者放最右边（带侧边栏）
   const ordered = [...parts].reverse();
@@ -444,8 +452,8 @@ async function arrangeWindows() {
     const winId = tab.windowId;
     const isLast = i === n - 1;
     await chrome.windows.update(winId, {
-      left: primary.workArea.left + i * perW,
-      top: primary.workArea.top,
+      left: screenLeft + i * perW,
+      top: screenTop,
       width: isLast ? perW + sidePanelWidth : perW,
       height: screenH,
       state: "normal",

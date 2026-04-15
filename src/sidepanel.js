@@ -393,7 +393,13 @@ $$(".mode-opt").forEach(btn => {
     addLog(`切换到${mode === "tiled" ? "并列" : "Tab"}模式`, "info");
     // 并列模式下自动排列已有窗口
     if (mode === "tiled" && participants.length > 0) {
-      const r = await chrome.runtime.sendMessage({ type: "arrangeWindows" });
+      const screen = {
+        width: window.screen.availWidth,
+        height: window.screen.availHeight,
+        left: window.screen.availLeft,
+        top: window.screen.availTop,
+      };
+      const r = await chrome.runtime.sendMessage({ type: "arrangeWindows", screen });
       if (r?.ok) addLog("窗口已排列", "success");
     }
   });
