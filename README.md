@@ -48,7 +48,7 @@
 
 ## 隐私声明
 
-本扩展不收集、不上传任何用户数据。详见 [隐私政策](https://lintian0509.github.io/ai-arena-extension/privacy.html)。
+本扩展不收集、不上传任何用户数据。详见 [隐私政策](https://TianLin0509.github.io/ai-arena-extension/privacy.html)。
 
 ## 从源码构建
 

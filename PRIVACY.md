@@ -38,4 +38,4 @@ AI Arena 是一个 Chrome 浏览器扩展，用于让用户同时向多个主流
 ## 联系方式
 
 如有隐私相关疑问，请在 GitHub 仓库提交 Issue：
-https://github.com/lintian0509/ai-arena-extension/issues
+https://github.com/TianLin0509/ai-arena-extension/issues

@@ -36,10 +36,10 @@ AI Arena 是一个让你同时与多个主流 AI 对话的 Chrome 扩展。
 
 ### 隐私承诺
 本扩展不收集、不上传任何用户数据。所有对话内容仅在你的浏览器和你已登录的各 AI 官网之间流动。
-完整政策：https://lintian0509.github.io/ai-arena-extension/privacy.html
+完整政策：https://TianLin0509.github.io/ai-arena-extension/privacy.html
 
 ### 开源
-源码公开在 GitHub：https://github.com/lintian0509/ai-arena-extension
+源码公开在 GitHub：https://github.com/TianLin0509/ai-arena-extension
 
 ---
 
