@@ -1,6 +1,6 @@
 {
   "name": "ai-arena-extension",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Claude × Gemini × ChatGPT — 多 AI 辩论协作 Chrome 扩展",
   "scripts": {

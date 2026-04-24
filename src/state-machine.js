@@ -63,6 +63,10 @@ const StateMachine = {
     return this.participants.find(p => p.id === id);
   },
 
+  getParticipantByTabId(tabId) {
+    return this.participants.find(p => p.tabId === tabId) || null;
+  },
+
   setParticipantResponse(id, text) {
     const p = this.getParticipant(id);
     if (p) {

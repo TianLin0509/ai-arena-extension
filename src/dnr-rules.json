@@ -16,7 +16,12 @@
         "chatgpt.com",
         "chat.deepseek.com",
         "www.doubao.com",
-        "tongyi.aliyun.com"
+        "tongyi.aliyun.com",
+        "kimi.moonshot.cn",
+        "www.kimi.com",
+        "yuanbao.tencent.com",
+        "grok.com",
+        "www.qianwen.com"
       ],
       "resourceTypes": ["main_frame", "sub_frame"]
     }

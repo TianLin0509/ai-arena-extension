@@ -155,9 +155,10 @@ const DEFAULT_SELECTORS = {
   },
   qwen: {
     input: [
+      '[role="textbox"]',
       '[contenteditable="true"]',
-      "textarea",
-      "#chat-input"
+      '[contenteditable]',
+      "textarea"
     ],
     response: [
       '[class*="assistant"] [class*="content"]',
@@ -176,6 +177,87 @@ const DEFAULT_SELECTORS = {
       '[class*="user"] [class*="content"]',
       '[class*="human"] [class*="text"]',
       '[class*="question"]'
+    ]
+  },
+  kimi: {
+    input: [
+      '[role="textbox"]',
+      '[contenteditable="true"]',
+      '[contenteditable]',
+      "textarea"
+    ],
+    response: [
+      '[class*="markdown"]',
+      '[class*="assistant"] [class*="content"]',
+      '[class*="message-content"]'
+    ],
+    streaming: [
+      'button[class*="stop"]',
+      '[class*="generating"]',
+      '[class*="loading"]'
+    ],
+    sendButton: [
+      'button[class*="send"]',
+      'button[class*="submit"]'
+    ],
+    userMessage: [
+      '[class*="user"] [class*="content"]',
+      '[class*="human"]'
+    ]
+  },
+  yuanbao: {
+    input: [
+      '[contenteditable="true"]',
+      "textarea",
+      '#chat-input'
+    ],
+    response: [
+      '[class*="markdown"]',
+      '[class*="assistant"] [class*="content"]',
+      '[class*="bot-message"]',
+      '[class*="answer"]'
+    ],
+    streaming: [
+      'button[class*="stop"]',
+      '[class*="generating"]',
+      '[class*="loading"]'
+    ],
+    sendButton: [
+      'button[class*="send"]',
+      'button[class*="submit"]'
+    ],
+    userMessage: [
+      '[class*="user"] [class*="content"]',
+      '[class*="human"]'
+    ]
+  },
+  grok: {
+    input: [
+      'div.tiptap.ProseMirror[contenteditable="true"]',
+      '[contenteditable="true"]',
+      '[role="textbox"]',
+      "textarea"
+    ],
+    response: [
+      '[class*="message-bubble"] [class*="markdown"]',
+      '[class*="assistant"] [class*="content"]',
+      '[class*="markdown"]',
+      ".prose"
+    ],
+    streaming: [
+      'button[aria-label="Stop"]',
+      'button[aria-label="Stop generating"]',
+      'button[aria-label="停止"]',
+      '[class*="stop"]'
+    ],
+    sendButton: [
+      'button[aria-label="提交"]',
+      'button[aria-label="Submit"]',
+      'button[aria-label="Send"]'
+    ],
+    userMessage: [
+      '[class*="user"] [class*="content"]',
+      '[class*="human"]'
     ]
   }
 };

@@ -27,7 +27,7 @@ function queryBySelectors(action, options = {}) {
 
 function getHeuristicElement(action, options = {}) {
   if (action === "input") {
-    const editables = [...document.querySelectorAll('[contenteditable="true"], textarea')];
+    const editables = [...document.querySelectorAll('[role="textbox"], [contenteditable], textarea')];
     if (editables.length > 0) {
       return editables.reduce((best, el) => {
         const rect = el.getBoundingClientRect();
@@ -119,14 +119,30 @@ async function injectAndSend(text) {
 
     await robustInject(el, text);
 
-    for (let attempt = 0; attempt < 8; attempt++) {
-      await sleep(400);
+    for (let i = 0; i < 15; i++) {
+      await sleep(200);
+      const current = (el.tagName === "TEXTAREA" ? el.value : el.innerText).trim();
+      if (current.length >= text.length * 0.3) break;
+    }
+
+    el.focus();
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    await sleep(50);
+    el.dispatchEvent(new KeyboardEvent("keypress", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    await sleep(50);
+    el.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
+
+    await sleep(500);
+    const remaining = (el.tagName === "TEXTAREA" ? el.value : el.innerText).trim();
+    if (remaining.length < text.length * 0.3) return { site: SITE, status: "sent" };
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await sleep(300);
       const btn = findSendButton();
       if (btn && !btn.disabled) { btn.click(); return { site: SITE, status: "sent" }; }
     }
 
-    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", bubbles: true }));
-    return { site: SITE, status: "sent", error: "通过Enter发送" };
+    return { site: SITE, status: "sent" };
   } catch (e) {
     return { site: SITE, status: "error", error: e.message };
   }

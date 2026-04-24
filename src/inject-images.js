@@ -80,7 +80,9 @@ async function handleInjectImages(images) {
     document.querySelector('#chat-input') ||
     document.querySelector('textarea[placeholder]') ||
     document.querySelector('textarea') ||
-    document.querySelector('[contenteditable="true"]');
+    document.querySelector('[role="textbox"]') ||
+    document.querySelector('[contenteditable="true"]') ||
+    document.querySelector('[contenteditable]');
 
   if (!el) return { status: "error", error: "未找到输入框" };
 

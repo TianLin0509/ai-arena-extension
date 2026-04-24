@@ -1,4 +1,4 @@
-// AI Arena — Side Panel v1.0.0
+// AI Arena — Side Panel v2.0.0
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -10,6 +10,22 @@ const btnDebate = $("#btn-debate"), btnSummary = $("#btn-summary"), btnDebateRet
 const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
+
+// ── 场景预设 ──
+const SCENARIO_PRESETS = [
+  { id: "analysis",  icon: "📊", label: "深度分析",
+    prompt: "请从多个角度深入分析这个问题：\n1. 分别列出优势与劣势\n2. 考虑短期和长期影响\n3. 给出风险评估和可行性判断" },
+  { id: "debate",    icon: "🆚", label: "正反对比",
+    prompt: "请分别站在正方和反方的立场进行论证：\n1. 正方：列出支持的核心论据和证据\n2. 反方：列出反对的核心论据和证据\n3. 最后给出你的综合判断" },
+  { id: "code",      icon: "💻", label: "代码审查",
+    prompt: "请对代码进行全面审查，重点关注：\n1. 安全性（注入、越权、数据泄露）\n2. 性能（时间复杂度、内存、并发）\n3. 可读性与可维护性\n4. 边界情况和错误处理" },
+  { id: "plan",      icon: "📝", label: "方案设计",
+    prompt: "请给出详细的实施方案：\n1. 目标拆解与里程碑\n2. 具体实施步骤和时间线\n3. 所需资源和依赖\n4. 风险识别与应对策略" },
+  { id: "decision",  icon: "🎯", label: "决策建议",
+    prompt: "请给出明确的决策建议：\n1. 列出所有可选方案\n2. 对每个方案进行利弊权衡\n3. 给出推荐方案及核心理由\n4. 说明推荐方案的执行要点" },
+  { id: "factcheck", icon: "🔍", label: "事实核查",
+    prompt: "请对以下信息进行事实核查：\n1. 逐条验证关键事实的准确性\n2. 标注已确认、待确认和错误的内容\n3. 引用可靠来源佐证\n4. 指出可能的误导或遗漏" },
+];
 
 function mergeParticipants(remote) {
   if (!remote) return;
@@ -265,10 +281,7 @@ function schedulePollTick() {
           const p = participants.find(p => p.id === id);
           if (p) {
             p._textLength = v.textLength;
-            if (lengthChanged) {
-              p._pollStatus = "streaming";
-            } else if (v.hasDone) {
-              // 刚变为 ready → 立即读取该参与者的回复
+            if (v.hasDone) {
               if (p._pollStatus !== "ready") {
                 p._pollStatus = "ready";
                 chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
@@ -282,7 +295,7 @@ function schedulePollTick() {
                   }
                 }).catch(() => {});
               }
-            } else if (v.hasStart) {
+            } else if (lengthChanged || v.hasStart) {
               p._pollStatus = "streaming";
             } else {
               p._pollStatus = "waiting";
@@ -469,11 +482,17 @@ broadcastInput.addEventListener("input", () => {
 
 // ── 广播 ──
 async function doBroadcast() {
+  if (btnSend.disabled) return;
+  btnSend.disabled = true;
   let text = broadcastInput.innerText.trim();
   const hasImages = pendingImages.length > 0;
   const hasFiles = pendingFiles.length > 0;
   if (!text && !hasImages && !hasFiles) return;
   if (!participants.length) { addLog("请先添加参与者", "error"); return; }
+  const scenarios = getSelectedScenarios();
+  if (scenarios.length > 0) {
+    text += "\n\n" + scenarios.map(s => `【要求】${s}`).join("\n");
+  }
   if (hasFiles) {
     text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
   }
@@ -499,6 +518,7 @@ async function doBroadcast() {
     broadcastInput.innerHTML = "";
     pendingImages = [];
     pendingFiles = [];
+    clearScenarioSelection();
     renderFilePreviews();
     // 刷新状态
     const state = await chrome.runtime.sendMessage({ type: "getState" });
@@ -526,6 +546,7 @@ $$(".mode-btn").forEach(btn => {
 
 // ── 辩论 ──
 btnDebate.addEventListener("click", async () => {
+  if (btnDebate.disabled) return;
   if (participants.length < 2) { addLog("至少需要 2 个参与者", "error"); return; }
   const nextRound = getDebateRound() + 1;
   btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
@@ -585,16 +606,25 @@ btnSummary.addEventListener("click", async () => {
   btnSummary.disabled = false; btnSummary.textContent = "输出总结";
 });
 
-// ── 重置 ──
-$("#btn-reset").addEventListener("click", async () => {
-  await chrome.runtime.sendMessage({ type: "resetSession" });
-  stopStreamingPoll();
-  addLog("会话已重置", "info");
-  btnDebate.textContent = "开始辩论";
-  renderParticipants();
+// ── 导出 ──
+$("#btn-export").addEventListener("click", async () => {
+  try {
+    const r = await chrome.runtime.sendMessage({ type: "exportSession" });
+    if (!r?.ok || !r.markdown) { addLog("无辩论记录可导出", "error"); return; }
+    await navigator.clipboard.writeText(r.markdown);
+    addLog("辩论记录已复制到剪贴板", "success");
+    const blob = new Blob([r.markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ai-arena-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addLog("Markdown 文件已下载", "success");
+  } catch (e) { addLog("导出失败: " + e.message, "error"); }
 });
 
-// ── 彻底重置 ──
+// ── 重置 ──
 $("#btn-hard-reset").addEventListener("click", async () => {
   for (const p of participants) {
     if (p.tabId) { try { await chrome.tabs.remove(p.tabId); } catch {} }
@@ -684,6 +714,125 @@ loadStats();
 
 // ── 通知权限 ──
 if ("Notification" in window) Notification.requestPermission();
+
+// ── 场景预设下拉 ──
+const scenarioMenu = $("#scenario-menu");
+const btnScenario = $("#btn-scenario");
+
+(function initScenarioMenu() {
+  scenarioMenu.innerHTML = SCENARIO_PRESETS.map(s =>
+    `<div class="scenario-item" data-id="${s.id}">${s.icon} ${s.label}<span class="scenario-tip">${s.prompt}</span></div>`
+  ).join("");
+
+  btnScenario.addEventListener("click", (e) => {
+    e.stopPropagation();
+    scenarioMenu.classList.toggle("open");
+  });
+
+  scenarioMenu.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const item = e.target.closest(".scenario-item");
+    if (!item) return;
+    const id = item.dataset.id;
+    const wasSelected = item.classList.contains("selected");
+    scenarioMenu.querySelectorAll(".scenario-item").forEach(el => el.classList.remove("selected"));
+    if (!wasSelected) item.classList.add("selected");
+    updateScenarioButton();
+    scenarioMenu.classList.remove("open");
+  });
+
+  document.addEventListener("click", () => {
+    scenarioMenu.classList.remove("open");
+  });
+})();
+
+function updateScenarioButton() {
+  const sel = scenarioMenu.querySelector(".scenario-item.selected");
+  if (sel) {
+    const preset = SCENARIO_PRESETS.find(s => s.id === sel.dataset.id);
+    btnScenario.textContent = preset ? `${preset.icon} ${preset.label} ▾` : "🎯 场景 ▾";
+    btnScenario.classList.add("has-selected");
+  } else {
+    btnScenario.textContent = "🎯 场景 ▾";
+    btnScenario.classList.remove("has-selected");
+  }
+}
+
+function getSelectedScenarios() {
+  const sel = scenarioMenu.querySelector(".scenario-item.selected");
+  if (!sel) return [];
+  const preset = SCENARIO_PRESETS.find(s => s.id === sel.dataset.id);
+  return preset ? [preset.prompt] : [];
+}
+
+function clearScenarioSelection() {
+  scenarioMenu.querySelectorAll(".scenario-item.selected").forEach(el => el.classList.remove("selected"));
+  updateScenarioButton();
+}
+
+// ── 动态预览浮窗 ──
+const dynamicTip = $("#dynamic-tip");
+
+function truncateMiddle(text, maxLen = 300) {
+  if (text.length <= maxLen) return text;
+  const half = Math.floor((maxLen - 3) / 2);
+  return text.slice(0, half) + "\n…\n" + text.slice(-half);
+}
+
+function buildBroadcastPreview() {
+  let text = broadcastInput.innerText.trim();
+  if (!text && !pendingImages.length && !pendingFiles.length) return "（空内容）";
+  const scenarios = getSelectedScenarios();
+  if (scenarios.length > 0) text += "\n\n" + scenarios.map(s => `【要求】${s}`).join("\n");
+  if (pendingFiles.length > 0) text += pendingFiles.map(f => `\n\n📄 文件: ${f.name}`).join("");
+  if (pendingImages.length > 0) text += `\n\n🖼️ ${pendingImages.length}张图片`;
+  text += "\n\n（请在回答的最开头输出 ARENA_START_R{n}，最末尾输出 ARENA_DONE_R{n} 作为标记，不要解释这些标记）";
+  return truncateMiddle(text, 500);
+}
+
+function buildDebatePreview() {
+  const round = getDebateRound() + 1;
+  const style = debateMode === "free" ? "⚔️ 自由辩论" : "🤝 群策群力";
+  const guidance = guidanceInput?.value?.trim();
+  const concise = $("#concise-mode")?.checked;
+  const readyNames = participants.filter(p => !!p.responsePreview).map(p => p.name);
+  let text = `第${round}轮 ${style}\n参与者: ${readyNames.join(", ") || "（无就绪回答）"}`;
+  if (guidance) text += `\n引导: ${guidance}`;
+  if (concise) text += "\n📏 简洁模式（≤1000字）";
+  text += "\n\n各AI将收到其他参与者的回答，并按辩论风格回应";
+  return text;
+}
+
+let dynamicTipTimer = null;
+
+function showDynamicTip(target, content) {
+  clearTimeout(dynamicTipTimer);
+  dynamicTip.textContent = content;
+  const rect = target.getBoundingClientRect();
+  dynamicTip.style.left = Math.max(4, rect.left) + "px";
+  dynamicTip.style.top = (rect.top - dynamicTip.offsetHeight - 8) + "px";
+  dynamicTip.classList.add("visible");
+  requestAnimationFrame(() => {
+    dynamicTip.style.top = (rect.top - dynamicTip.offsetHeight - 8) + "px";
+  });
+}
+
+function hideDynamicTipDelayed() {
+  dynamicTipTimer = setTimeout(() => dynamicTip.classList.remove("visible"), 300);
+}
+
+function hideDynamicTipNow() {
+  clearTimeout(dynamicTipTimer);
+  dynamicTip.classList.remove("visible");
+}
+
+dynamicTip.addEventListener("mouseenter", () => clearTimeout(dynamicTipTimer));
+dynamicTip.addEventListener("mouseleave", hideDynamicTipNow);
+
+btnSend.addEventListener("mouseenter", () => showDynamicTip(btnSend, buildBroadcastPreview()));
+btnSend.addEventListener("mouseleave", hideDynamicTipDelayed);
+btnDebate.addEventListener("mouseenter", () => showDynamicTip(btnDebate, buildDebatePreview()));
+btnDebate.addEventListener("mouseleave", hideDynamicTipDelayed);
 
 // ── 快捷键 ──
 document.addEventListener("keydown", (e) => {

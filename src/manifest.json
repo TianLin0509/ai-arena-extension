@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Arena",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Claude × Gemini × ChatGPT — 一键提问 & 多轮辩论",
   "permissions": [
     "sidePanel",
@@ -24,7 +24,12 @@
     "https://chatgpt.com/*",
     "https://chat.deepseek.com/*",
     "https://www.doubao.com/*",
-    "https://tongyi.aliyun.com/*"
+    "https://tongyi.aliyun.com/*",
+    "https://kimi.moonshot.cn/*",
+    "https://www.kimi.com/*",
+    "https://yuanbao.tencent.com/*",
+    "https://grok.com/*",
+    "https://www.qianwen.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -59,8 +64,23 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://tongyi.aliyun.com/*"],
+      "matches": ["https://tongyi.aliyun.com/*", "https://www.qianwen.com/*"],
       "js": ["inject-images.js", "content-qwen.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://kimi.moonshot.cn/*", "https://www.kimi.com/*"],
+      "js": ["inject-images.js", "content-kimi.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://yuanbao.tencent.com/*"],
+      "js": ["inject-images.js", "content-yuanbao.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://grok.com/*"],
+      "js": ["inject-images.js", "content-grok.js"],
       "run_at": "document_idle"
     }
   ],

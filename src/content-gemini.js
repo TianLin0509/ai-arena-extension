@@ -111,22 +111,35 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
-    // 找输入框 — 通过 SelectorManager 或启发式
     const el = queryBySelectors("input");
     if (!el) return { site: SITE, status: "error", error: "未找到输入框" };
 
     await robustInject(el, text);
 
-    for (let attempt = 0; attempt < 8; attempt++) {
-      await sleep(400);
-      const btn = queryBySelectors("sendButton");
-      if (btn && !btn.disabled) {
-        btn.click();
-        return { site: SITE, status: "sent" };
-      }
+    for (let i = 0; i < 15; i++) {
+      await sleep(200);
+      const current = (el.tagName === "TEXTAREA" ? el.value : el.innerText).trim();
+      if (current.length >= text.length * 0.3) break;
     }
-    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", bubbles: true }));
-    return { site: SITE, status: "sent", error: "通过Enter发送" };
+
+    el.focus();
+    el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    await sleep(50);
+    el.dispatchEvent(new KeyboardEvent("keypress", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    await sleep(50);
+    el.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
+
+    await sleep(500);
+    const remaining = (el.tagName === "TEXTAREA" ? el.value : el.innerText).trim();
+    if (remaining.length < text.length * 0.3) return { site: SITE, status: "sent" };
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await sleep(300);
+      const btn = queryBySelectors("sendButton");
+      if (btn && !btn.disabled) { btn.click(); return { site: SITE, status: "sent" }; }
+    }
+
+    return { site: SITE, status: "sent" };
   } catch (e) {
     return { site: SITE, status: "error", error: e.message };
   }

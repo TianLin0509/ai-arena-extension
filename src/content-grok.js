@@ -1,7 +1,6 @@
-// AI Arena — Content Script for www.doubao.com
-const SITE = "doubao";
+// AI Arena — Content Script for grok.com
+const SITE = "grok";
 
-// 选择器配置（启动时从 background 获取）
 let selectors = null;
 chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
   if (resp) selectors = resp;
@@ -12,7 +11,6 @@ function stripMarkers(text) {
 }
 
 const _reportedFailures = new Set();
-// 按优先级尝试选择器数组，返回第一个匹配的元素
 function queryBySelectors(action, options = {}) {
   const sels = selectors?.[action] || [];
   for (const sel of sels) {
@@ -27,7 +25,7 @@ function queryBySelectors(action, options = {}) {
 
 function getHeuristicElement(action, options = {}) {
   if (action === "input") {
-    const editables = [...document.querySelectorAll('[contenteditable="true"], textarea')];
+    const editables = [...document.querySelectorAll('[role="textbox"], [contenteditable], textarea')];
     if (editables.length > 0) {
       return editables.reduce((best, el) => {
         const rect = el.getBoundingClientRect();
@@ -90,6 +88,7 @@ async function robustInject(el, text) {
     if (nativeSetter) nativeSetter.call(el, text);
     else el.value = text;
     el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
     return;
   }
   el.innerHTML = "";
@@ -149,18 +148,18 @@ async function injectAndSend(text) {
 }
 
 async function readLatestResponse() {
-  // v6: streaming 检测已由 sidepanel 轮询负责，此处仅短暂等待 DOM 稳定
   await sleep(500);
-
   const responses = queryBySelectors("response", { all: true });
   if (responses.length > 0) return stripMarkers(responses[responses.length - 1].innerText.trim());
+  const prose = document.querySelectorAll('.markdown-body, .prose, [class*="markdown"]');
+  if (prose.length > 0) return stripMarkers(prose[prose.length - 1].innerText.trim());
   return "";
 }
 
 function readFullConversation() {
   const turns = [];
-  const userMsgs = [...document.querySelectorAll('[class*="user-message"], [class*="human-message"], [class*="user_message"]')];
-  const aiMsgs = [...document.querySelectorAll('[class*="assistant"] [class*="content"], [class*="bot-message"], [class*="markdown"]')];
+  const userMsgs = [...document.querySelectorAll('[class*="user-message"], [class*="human"], [class*="user"] [class*="content"]')];
+  const aiMsgs = [...document.querySelectorAll('[class*="markdown"], [class*="assistant-message"], [class*="bot-message"]')];
   const len = Math.max(userMsgs.length, aiMsgs.length);
   for (let i = 0; i < len; i++) {
     if (userMsgs[i]) turns.push({ role: "user", text: userMsgs[i].innerText.trim() });

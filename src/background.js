@@ -1,4 +1,4 @@
-// AI Arena — Background Service Worker v1.0.0
+// AI Arena — Background Service Worker v2.0.0
 
 // 从 sidepanel 缓存的屏幕尺寸（用于并列模式，替代 chrome.system.display）
 let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
@@ -11,12 +11,16 @@ const SERVICES = {
   chatgpt:  { url: "https://chatgpt.com",                name: "ChatGPT" },
   deepseek: { url: "https://chat.deepseek.com",          name: "DeepSeek" },
   doubao:   { url: "https://www.doubao.com/chat",        name: "豆包" },
-  qwen:     { url: "https://tongyi.aliyun.com/qianwen",  name: "通义千问" },
+  qwen:     { url: "https://www.qianwen.com",             name: "千问" },
+  kimi:     { url: "https://www.kimi.com",               name: "Kimi" },
+  yuanbao:  { url: "https://yuanbao.tencent.com/chat",   name: "元宝" },
+  grok:     { url: "https://grok.com",                   name: "Grok" },
 };
 
 const MAX_PARTICIPANTS = 3;
 const _removingTabs = new Set();
-let windowMode = "tab"; // "tab" | "tiled"
+let windowMode = "tiled"; // "tab" | "tiled"
+chrome.storage.local.get("windowMode", (d) => { if (d.windowMode) windowMode = d.windowMode; });
 
 // ── 初始化 ──
 const initPromise = StateMachine.init();
@@ -52,12 +56,29 @@ async function injectVisibilityOverride(tabId) {
   } catch {}
 }
 
-// 页面导航后重新注入
+// 页面导航后重新注入 + 自动重连
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (changeInfo.status === 'complete') {
-    const p = StateMachine.participants.find(p => p.tabId === tabId);
-    if (p) injectVisibilityOverride(tabId);
-  }
+  if (changeInfo.status !== 'complete') return;
+  const p = StateMachine.getParticipantByTabId(tabId);
+  if (!p) return;
+
+  injectVisibilityOverride(tabId);
+
+  setTimeout(async () => {
+    try {
+      await sendMessageWithTimeout(tabId, { action: "ping" }, 3000);
+    } catch {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ["inject-images.js", `content-${p.service}.js`]
+        });
+        notifyStatus(`${p.name} 已自动重连`);
+      } catch (e) {
+        console.warn(`[Arena] Auto-reconnect failed for ${p.name}:`, e.message);
+      }
+    }
+  }, 2000);
 });
 
 // ── 标签页关闭 → 直接移除参与者 ──
@@ -87,7 +108,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
-        case "setWindowMode":     windowMode = msg.mode; sendResponse({ ok: true }); break;
+        case "setWindowMode":     windowMode = msg.mode; chrome.storage.local.set({ windowMode: msg.mode }); sendResponse({ ok: true }); break;
         case "arrangeWindows":
           if (msg.screen) lastKnownScreen = msg.screen;
           sendResponse(await arrangeWindows(msg.screen || lastKnownScreen));
@@ -189,19 +210,30 @@ async function handleBroadcast(text, images) {
       results[p.id] = { name: p.name, status: "error", error: "未打开" };
       return;
     }
-    try {
+    const tryInject = async () => {
       const ready = await waitForContentScript(p.tabId);
-      if (!ready) {
-        results[p.id] = { name: p.name, status: "error", error: "页面未就绪" };
-        return;
-      }
+      if (!ready) return { name: p.name, status: "error", error: "页面未就绪" };
       if (images && images.length > 0) {
         await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
       }
       const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: text + buildMarkerInstruction() });
-      results[p.id] = { name: p.name, ...result };
+      return { name: p.name, ...result };
+    };
+    try {
+      const r = await tryInject();
+      if (r.status === "error") {
+        await new Promise(ok => setTimeout(ok, 2000));
+        results[p.id] = await tryInject();
+      } else {
+        results[p.id] = r;
+      }
     } catch (e) {
-      results[p.id] = { name: p.name, status: "error", error: e.message };
+      try {
+        await new Promise(ok => setTimeout(ok, 2000));
+        results[p.id] = await tryInject();
+      } catch (e2) {
+        results[p.id] = { name: p.name, status: "error", error: e2.message };
+      }
     }
   }));
 
@@ -312,7 +344,12 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
     try {
       await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
     } catch (e) {
-      notifyStatus(`注入 ${p.name} 失败: ${e.message}`);
+      await new Promise(ok => setTimeout(ok, 2000));
+      try {
+        await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
+      } catch (e2) {
+        notifyStatus(`注入 ${p.name} 失败: ${e2.message}`);
+      }
     }
   }));
 
@@ -412,6 +449,13 @@ function exportSession() {
   md += `**参与者**: ${StateMachine.participants.map(p => p.name).join(", ")}\n\n`;
   if (StateMachine.debateSession.originalQuestion) {
     md += `## 原始问题\n\n${StateMachine.debateSession.originalQuestion}\n\n`;
+  }
+  const initialResponses = StateMachine.participants.filter(p => p.response);
+  if (initialResponses.length > 0) {
+    md += `## 各 AI 回答\n\n`;
+    for (const p of initialResponses) {
+      md += `### ${p.name}\n\n${p.response}\n\n`;
+    }
   }
   for (const round of StateMachine.debateSession.rounds) {
     const styleName = DEBATE_STYLES[round.style]?.name || round.style;

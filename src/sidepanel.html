@@ -7,10 +7,10 @@
 <body>
   <div class="header">
     <h1>AI Arena</h1>
-    <span class="version">v1.0.0</span>
+    <span class="version">v2.0.0</span>
     <div class="mode-toggle">
-      <button class="mode-opt active" data-mode="tab" title="所有AI在同一窗口的不同标签页">Tab</button>
-      <button class="mode-opt" data-mode="tiled" title="每个AI独立窗口并列显示">并列</button>
+      <button class="mode-opt" data-mode="tab" title="所有AI在同一窗口的不同标签页">Tab</button>
+      <button class="mode-opt active" data-mode="tiled" title="每个AI独立窗口并列显示">并列</button>
     </div>
   </div>
 
@@ -30,6 +30,11 @@
       <button class="btn-add doubao" data-service="doubao">+ 豆包</button>
       <button class="btn-add qwen" data-service="qwen">+ 千问</button>
     </div>
+    <div class="add-group" style="margin-top: 4px;">
+      <button class="btn-add kimi" data-service="kimi">+ Kimi</button>
+      <button class="btn-add yuanbao" data-service="yuanbao">+ 元宝</button>
+      <button class="btn-add grok" data-service="grok">+ Grok</button>
+    </div>
     <div id="participant-list" class="participant-list">
       <div class="empty-hint">点击上方按钮添加参与者</div>
     </div>
@@ -46,6 +51,10 @@
         📎 文件
         <input type="file" id="file-input" multiple hidden>
       </label>
+      <div class="scenario-dropdown" id="scenario-dropdown">
+        <button class="btn btn-tiny btn-scenario" id="btn-scenario" type="button">🎯 场景 ▾</button>
+        <div class="scenario-menu" id="scenario-menu"></div>
+      </div>
       <button class="btn btn-primary" id="btn-send" style="flex:1">发送给全部</button>
     </div>
   </div>
@@ -54,8 +63,8 @@
   <div class="section">
     <div class="section-title">辩论</div>
     <div class="debate-mode-toggle">
-      <button class="mode-btn active" data-mode="free">⚔️ 自由辩论</button>
-      <button class="mode-btn" data-mode="collab">🤝 群策群力</button>
+      <button class="mode-btn active" data-mode="free">⚔️ 自由辩论<span class="hover-tip">各AI相互质疑、反驳对方观点，找出核心分歧，通过交锋逐步逼近真相</span></button>
+      <button class="mode-btn" data-mode="collab">🤝 群策群力<span class="hover-tip">各AI取长补短、吸收彼此亮点，协作迭代出更完善的综合方案</span></button>
     </div>
     <details class="custom-details">
       <summary class="custom-summary">引导注入（可选）</summary>
@@ -63,7 +72,8 @@
                 placeholder="引导辩论方向，如：请重点讨论性能问题"></textarea>
     </details>
     <label class="concise-toggle">
-      <input type="checkbox" id="concise-mode"> <span>简洁模式</span>（限制 AI 输出长度，要点式回答）
+      <input type="checkbox" id="concise-mode"> <span>简洁模式</span>
+      <span class="hover-tip">限制每个AI回答在1000字以内，以要点列表形式呈现核心观点，减少冗长论述</span>
     </label>
     <div style="display:flex;gap:6px;margin-top:8px">
       <button class="btn btn-debate" id="btn-debate" style="flex:1;margin-top:0">开始辩论</button>
@@ -81,8 +91,8 @@
       <button class="btn btn-summary" id="btn-summary">输出总结</button>
     </div>
     <div style="display:flex;gap:6px;margin-top:10px">
-      <button class="btn btn-secondary" id="btn-reset" style="flex:1">🔄 重置会话</button>
-      <button class="btn btn-secondary" id="btn-hard-reset" style="flex:1;color:#ef4444;border-color:#fca5a5">⚡ 彻底重置</button>
+      <button class="btn btn-secondary" id="btn-export" style="flex:1">📤 导出</button>
+      <button class="btn btn-secondary" id="btn-hard-reset" style="flex:1;color:#ef4444;border-color:#fca5a5">⚡ 重置</button>
     </div>
   </div>
 
@@ -112,9 +122,10 @@
     </div>
   </div>
 
+  <div class="dynamic-tip" id="dynamic-tip"></div>
   <div class="footer">
     <div class="shortcuts-hint">快捷键: Ctrl+Enter 发送 | Ctrl+Shift+D 辩论</div>
-    AI Arena v1.0.0
+    AI Arena v2.0.0
   </div>
   <script src="sidepanel.js"></script>
 </body>
