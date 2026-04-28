@@ -14,14 +14,18 @@ function stripMarkers(text) {
 const DEBATE_STYLES = {
   free: { name: "自由辩论", prompt: "以下是其他 AI 对同一问题的回答，请分析他们的观点，指出你认同和不认同的地方，并给出你的改进回答。" },
   collab: { name: "群策群力", prompt: "以下是你的队友们对同一问题的回答。你们是协作关系，目标是共同得出最优方案。请：1) 吸收队友回答中的亮点和你没想到的角度；2) 补充你认为队友遗漏的重要内容；3) 整合所有人的优势，给出一个更完善的综合回答。不要攻击或否定队友，而是取长补短。" },
+  self: { name: "自审改进", prompt: "以下是你上一轮给出的回答。请以严格的自我审视态度重新检查，找出不足之处并改进：1) 检查内容准确性和完整性，补充遗漏的要点；2) 优化表达结构和逻辑层次；3) 强化核心论点，删除冗余内容。给出改进后的完整回答。" },
 };
 
 const DebateEngine = {
   buildDebatePrompt(participantId, responses, style, roundNum, guidance, concise) {
     const styleConfig = DEBATE_STYLES[style] || DEBATE_STYLES.free;
+    const isSelf = style === "self";
     const isCollab = style === "collab";
 
-    const roundHints = isCollab ? {
+    const roundHints = isSelf ? {
+      1: "请重新审视你的初始回答，找出可以改进的地方。",
+    } : isCollab ? {
       1: "这是第1轮协作。请仔细阅读队友们的回答，找出各自的亮点和你没想到的角度。",
       2: "这是第2轮协作。队友们已经互相补充了一轮，请在此基础上进一步整合，查漏补缺。",
       3: "这是第3轮协作。方案已趋于成熟，请做最终打磨——精简冗余，强化核心结论，形成一份完整方案。",
@@ -31,21 +35,29 @@ const DebateEngine = {
       3: "这是第3轮辩论。辩论已进入深水区，请避免重复已达成共识的内容，集中攻克剩余分歧点，给出最终立场。",
     };
 
-    const defaultHint = isCollab
-      ? `这是第${roundNum}轮协作。请只补充新的见解，不要重复已有内容。`
-      : `这是第${roundNum}轮辩论。请只针对仍有分歧的核心问题发表精炼观点。`;
+    const defaultHint = isSelf
+      ? `请再次审视并改进你的回答。`
+      : isCollab
+        ? `这是第${roundNum}轮协作。请只补充新的见解，不要重复已有内容。`
+        : `这是第${roundNum}轮辩论。请只针对仍有分歧的核心问题发表精炼观点。`;
     const roundHint = roundHints[roundNum] || defaultHint;
 
     const conciseRule = concise
       ? "\n\n⚠️ 简洁模式：请控制回答在 1000 字以内，用要点列表呈现核心观点，避免长篇大论。每个论点简明扼要。"
       : "";
 
-    const othersText = Object.entries(responses)
-      .filter(([id, r]) => id !== participantId && r.text)
-      .map(([, r]) => `【${r.name} 的回答】:\n${r.text}`)
-      .join("\n\n");
+    let contextText;
+    if (isSelf) {
+      const own = responses[participantId];
+      contextText = own?.text ? `【你的上一轮回答】:\n${own.text}` : "";
+    } else {
+      contextText = Object.entries(responses)
+        .filter(([id, r]) => id !== participantId && r.text)
+        .map(([, r]) => `【${r.name} 的回答】:\n${r.text}`)
+        .join("\n\n");
+    }
 
-    let prompt = `${roundHint}\n\n${styleConfig.prompt}\n\n${othersText}${conciseRule}`;
+    let prompt = `${roundHint}\n\n${styleConfig.prompt}\n\n${contextText}${conciseRule}`;
     if (guidance) prompt = `用户补充要求：${guidance}\n\n${prompt}`;
     return prompt + buildMarkerInstruction();
   },

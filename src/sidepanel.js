@@ -25,6 +25,8 @@ const SCENARIO_PRESETS = [
     prompt: "请给出明确的决策建议：\n1. 列出所有可选方案\n2. 对每个方案进行利弊权衡\n3. 给出推荐方案及核心理由\n4. 说明推荐方案的执行要点" },
   { id: "factcheck", icon: "🔍", label: "事实核查",
     prompt: "请对以下信息进行事实核查：\n1. 逐条验证关键事实的准确性\n2. 标注已确认、待确认和错误的内容\n3. 引用可靠来源佐证\n4. 指出可能的误导或遗漏" },
+  { id: "ppt",       icon: "📑", label: "PPT文案",
+    prompt: "你正在为一份技术汇报PPT生成文案。请严格按要求生成内容：\n1. 严格遵守每个文本框的字数范围要求，必须写满不留空白\n2. 标题必须是观点型/结论型，嵌入量化数据\n3. Bullet要点必须术语化、结论化，每条表达一个完整论点\n4. 输出严格JSON格式，不要有注释或额外解释" },
 ];
 
 function mergeParticipants(remote) {
@@ -407,10 +409,10 @@ $$(".mode-opt").forEach(btn => {
     // 并列模式下自动排列已有窗口
     if (mode === "tiled" && participants.length > 0) {
       const screen = {
-        width: window.screen.availWidth,
+        width: window.screen.width,
         height: window.screen.availHeight,
-        left: window.screen.availLeft,
-        top: window.screen.availTop,
+        left: 0,
+        top: window.screen.availTop || 0,
       };
       const r = await chrome.runtime.sendMessage({ type: "arrangeWindows", screen });
       if (r?.ok) addLog("窗口已排列", "success");
@@ -422,7 +424,13 @@ $$(".mode-opt").forEach(btn => {
 $$(".btn-add").forEach(b => b.addEventListener("click", async () => {
   if (participants.length >= 3) { addLog("最多 3 个参与者", "error"); return; }
   addLog(`添加 ${b.dataset.service}...`);
-  await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service });
+  const screen = {
+    width: window.screen.availWidth,
+    height: window.screen.availHeight,
+    left: window.screen.availLeft || 0,
+    top: window.screen.availTop || 0,
+  };
+  await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service, screen });
 }));
 
 // ── 文件管理 ──
