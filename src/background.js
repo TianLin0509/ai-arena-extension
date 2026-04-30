@@ -160,6 +160,7 @@ async function addParticipant(service) {
     // 并列模式：每个 AI 开独立窗口
     const win = await chrome.windows.create({ url: info.url, state: "normal", focused: false });
     tabId = win.tabs[0].id;
+    chrome.sidePanel.open({ windowId: win.id }).catch(() => {});
   } else {
     // Tab 模式：同一窗口的不同标签页
     const currentWindow = await chrome.windows.getCurrent();
