@@ -6,9 +6,7 @@ chrome.runtime.sendMessage({ type: "getSelectors", platform: SITE }, (resp) => {
   if (resp) selectors = resp;
 });
 
-function stripMarkers(text) {
-  return text.replace(/ARENA_START_R\d+/g, '').replace(/ARENA_DONE_R\d+/g, '').trim();
-}
+// v2.1.0: marker 已移除
 
 const _reportedFailures = new Set();
 function queryBySelectors(action, options = {}) {
@@ -60,14 +58,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "injectImages") { handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message })); return true; }
     if (msg.action === "checkCompletion") {
       const text = getLastResponseText();
-      const startMarker = msg.startMarker || "ARENA_START";
-      const doneMarker = msg.doneMarker || "ARENA_DONE";
-      const tail = text.trimEnd().slice(-200);
+      const streamingEl = queryBySelectors("streaming");
+      const isStreaming = !!(streamingEl && streamingEl.getBoundingClientRect?.().width > 0);
       sendResponse({
         site: SITE,
-        hasStart: text.includes(startMarker),
-        hasDone: tail.includes(doneMarker),
-        textLength: text.length
+        textLength: text.length,
+        isStreaming
       });
       return false;
     }
@@ -150,9 +146,9 @@ async function injectAndSend(text) {
 async function readLatestResponse() {
   await sleep(500);
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return stripMarkers(responses[responses.length - 1].innerText.trim());
+  if (responses.length > 0) return responses[responses.length - 1].innerText.trim();
   const prose = document.querySelectorAll('.markdown-body, .prose, [class*="markdown"]');
-  if (prose.length > 0) return stripMarkers(prose[prose.length - 1].innerText.trim());
+  if (prose.length > 0) return prose[prose.length - 1].innerText.trim();
   return "";
 }
 
