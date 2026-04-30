@@ -113,7 +113,7 @@ function renderParticipants() {
         `<button class="p-action-btn p-extract" data-id="${p.id}" title="手动提取该AI的回复">📋提取</button>`
       ].join('') : '';
 
-      return `<div class="participant-item ${p.service}">
+      return `<div class="participant-item ${p.service}" data-tab-id="${p.tabId || ''}" style="cursor:pointer">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
         ${readyBadge}
@@ -184,6 +184,20 @@ function renderParticipants() {
         // 检查是否所有门控1都已处理
         renderParticipants();
         checkGate1Complete();
+      });
+    });
+
+    // 点击参与者卡片 → 聚焦对应 tab
+    listEl.querySelectorAll(".participant-item").forEach(card => {
+      card.addEventListener("click", async (e) => {
+        if (e.target.closest("button")) return;
+        const tabId = parseInt(card.dataset.tabId);
+        if (!tabId) return;
+        try {
+          const tab = await chrome.tabs.get(tabId);
+          await chrome.windows.update(tab.windowId, { focused: true });
+          await chrome.tabs.update(tabId, { active: true });
+        } catch {}
       });
     });
   }

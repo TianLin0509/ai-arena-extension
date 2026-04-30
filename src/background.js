@@ -97,7 +97,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   initPromise.then(async () => {
     try {
       switch (msg.type) {
-        case "addParticipant":    sendResponse(await addParticipant(msg.service)); break;
+        case "addParticipant":
+          if (msg.screen) lastKnownScreen = msg.screen;
+          sendResponse(await addParticipant(msg.service)); break;
         case "removeParticipant": sendResponse(await removeParticipant(msg.id)); break;
         case "broadcast":         sendResponse(await handleBroadcast(msg.text, msg.images)); break;
         case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise)); break;
@@ -485,23 +487,24 @@ async function arrangeWindows(screen = lastKnownScreen) {
   // 反转顺序：第一个添加的参与者放最右边（带侧边栏）
   const ordered = [...parts].reverse();
   const n = ordered.length;
-  const sidePanelWidth = 420;
-  const availW = screenW - sidePanelWidth;
-  const perW = Math.floor(availW / n);
+  // Win10/11 窗口有 ~7px 隐形边框（阴影），补偿后窗口视觉上无缝拼接
+  const border = 7;
+  const perW = Math.floor(screenW / n);
 
-  // 排列每个参与者窗口（依次 focused:true 确保拉到前台）
   for (let i = 0; i < n; i++) {
     const tab = await chrome.tabs.get(ordered[i].tabId).catch(() => null);
     if (!tab) continue;
     const winId = tab.windowId;
     const isLast = i === n - 1;
+    const baseLeft = screenLeft + i * perW;
+    const baseW = isLast ? screenW - i * perW : perW;
     await chrome.windows.update(winId, {
-      left: screenLeft + i * perW,
+      left: baseLeft - border,
       top: screenTop,
-      width: isLast ? perW + sidePanelWidth : perW,
+      width: baseW + border * 2,
       height: screenH,
       state: "normal",
-      focused: true // 依次聚焦，确保每个窗口都在前台层
+      focused: true
     });
   }
 
