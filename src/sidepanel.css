@@ -83,7 +83,11 @@ body[data-theme] .stream-progress { background: rgba(255,255,255,0.06); }
 
 /* ── 添加按钮 ── */
 .add-group { display: flex; gap: var(--space-1); }
-.btn-add { flex: 1; padding: 7px 2px; border: 1.5px dashed #d1d5db; border-radius: 8px; background: #fafafa; color: #aaa; cursor: pointer; font-size: 11px; font-weight: 600; text-align: center; transition: all 0.2s; }
+.btn-add { flex: 1; padding: 7px 2px; border: 1.5px dashed #d1d5db; border-radius: 8px; background: #fafafa; color: #aaa; cursor: pointer; font-size: 11px; font-weight: 600; text-align: center; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.brand-icon { width: 14px; height: 14px; flex-shrink: 0; vertical-align: middle; }
+.btn-add .brand-icon { width: 16px; height: 16px; }
+.participant-item .brand-icon { width: 16px; height: 16px; }
+.model-row .brand-icon { width: 18px; height: 18px; }
 .btn-add:hover { border-style: solid; background: #fff; transform: translateY(-1px); }
 .btn-add.claude:hover  { border-color: #d4a574; color: #b8845a; }
 .btn-add.gemini:hover  { border-color: #4285f4; color: #3b78e0; }

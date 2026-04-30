@@ -141,6 +141,7 @@ function renderParticipants() {
 
       return `<div class="participant-item ${p.service}" data-tab-id="${p.tabId || ''}" style="cursor:pointer">
         <span class="p-status ${sc}"></span>
+        ${brandIcon(p.service)}
         <span class="p-name">${p.name}</span>
         ${progressBar}
         ${readyBadge}
@@ -700,6 +701,17 @@ const SERVICE_NAMES = {
   deepseek: "DeepSeek", doubao: "豆包", qwen: "千问",
   kimi: "Kimi", yuanbao: "元宝", grok: "Grok"
 };
+const BRAND_ICONS = {
+  claude: "icons/brands/claude.svg", gemini: "icons/brands/gemini.svg",
+  chatgpt: "icons/brands/openai.svg", deepseek: "icons/brands/deepseek.svg",
+  doubao: "icons/brands/doubao.svg", qwen: "icons/brands/qwen.svg",
+  kimi: "icons/brands/kimi.svg", yuanbao: "icons/brands/yuanbao.svg",
+  grok: "icons/brands/grok.svg"
+};
+function brandIcon(service) {
+  const src = BRAND_ICONS[service] || "";
+  return src ? `<img class="brand-icon" src="${src}" alt="">` : "";
+}
 
 // 字数→Token 估算（中文~1.5 token/字，英文~1.3 token/word，取 1.4 均值）
 function charsToTokens(chars) { return Math.round(chars * 1.4); }
@@ -753,9 +765,9 @@ function renderPerModelStats() {
     const name = SERVICE_NAMES[service] || service;
     const pct = totalChars > 0 ? ((data.chars || 0) / totalChars * 100).toFixed(0) : 0;
     const rankClass = i === 0 ? "rank-1" : i === 1 ? "rank-2" : i === 2 ? "rank-3" : "";
-    return `<div class="model-row">
+  return `<div class="model-row">
       <span class="model-rank ${rankClass}">#${i + 1}</span>
-      <span class="model-dot" style="background:${color}"></span>
+      ${brandIcon(service)}
       <span class="model-name">${name}</span>
       <span class="model-stat"><span class="val">${fmtTokens(tokenCount)}</span> <span class="lbl">总Token</span></span>
       <span class="model-stat"><span class="val">${avgPerRound.toLocaleString()}</span> <span class="lbl">均/轮</span></span>
