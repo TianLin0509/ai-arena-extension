@@ -8,7 +8,7 @@
 <body data-theme="C">
   <div class="header">
     <h1>AI Arena</h1>
-    <span class="version">v2.3.0</span>
+    <span class="version">v2.4.0</span>
     <div class="theme-switcher">
       <button class="theme-btn" id="btn-theme">🎨</button>
       <div class="theme-menu" id="theme-menu">
@@ -121,6 +121,7 @@
       <div class="stats-tabs">
         <button class="stats-tab active" data-tab="session">本次</button>
         <button class="stats-tab" data-tab="lifetime">历史累计</button>
+        <button class="stats-tab" data-tab="models">模型</button>
       </div>
     </div>
     <div class="stats-grid" id="stats-session">
@@ -133,12 +134,17 @@
       <div class="stat-item"><span class="stat-val" id="stat-l-debates">0</span><span class="stat-label">辩论轮</span></div>
       <div class="stat-item"><span class="stat-val" id="stat-l-tokens">0</span><span class="stat-label">Token</span></div>
     </div>
+    <div class="stats-models" id="stats-models" style="display:none">
+      <div class="models-list" id="models-list">
+        <div class="empty-hint">暂无模型统计数据</div>
+      </div>
+    </div>
   </div>
 
   <div class="dynamic-tip" id="dynamic-tip"></div>
   <div class="footer">
     <div class="shortcuts-hint">快捷键: Ctrl+Enter 发送 | Ctrl+Shift+D 辩论</div>
-    AI Arena v2.0.0
+    AI Arena v2.4.0
   </div>
   <script src="sidepanel.js"></script>
 </body>

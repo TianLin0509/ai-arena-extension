@@ -1,4 +1,4 @@
-// AI Arena — Side Panel v2.0.0
+// AI Arena — Side Panel v2.4.0
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -78,7 +78,27 @@ function renderParticipants() {
   else { roundBadge.style.display = "none"; }
 
   if (!participants.length) {
-    listEl.innerHTML = '<div class="empty-hint">点击上方按钮添加参与者</div>';
+    listEl.innerHTML = `<div class="empty-hint">
+      <div class="empty-icon">⚡</div>
+      <div class="empty-title">添加 AI 参与者</div>
+      <div class="empty-desc">支持 Claude、GPT、Gemini 等 9 种 AI，在同一窗口中同步提问并展开多轮辩论</div>
+      <div class="empty-actions">
+        <span class="empty-chip claude" data-service="claude">+ Claude</span>
+        <span class="empty-chip chatgpt" data-service="chatgpt">+ GPT</span>
+        <span class="empty-chip gemini" data-service="gemini">+ Gemini</span>
+      </div>
+    </div>`;
+    // 空状态芯片可点击
+    listEl.querySelectorAll('.empty-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const screen = {
+          width: window.screen.availWidth, height: window.screen.availHeight,
+          left: window.screen.availLeft || 0, top: window.screen.availTop || 0,
+        };
+        chrome.runtime.sendMessage({ type: "addParticipant", service: chip.dataset.service, screen });
+      });
+    });
   } else {
     listEl.innerHTML = participants.map(p => {
       // 轮询状态是唯一 UI 状态源
@@ -96,6 +116,12 @@ function renderParticipants() {
           <button class="p-gate-btn" data-action="skip" data-id="${p.id}">跳过</button>
         </div>`;
       }
+
+      // 流式进度条
+      const isStreamingNow = pState === "streaming" || pState === "waiting";
+      const progressBar = isStreamingNow
+        ? `<div class="stream-progress"><div class="stream-progress-bar" style="width:${Math.min(90, Math.max(15, (p._textLength || 0) / 10))}%"></div></div>`
+        : '';
 
       // 实时字数显示
       const charCount = p._textLength || 0;
@@ -116,6 +142,7 @@ function renderParticipants() {
       return `<div class="participant-item ${p.service}" data-tab-id="${p.tabId || ''}" style="cursor:pointer">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
+        ${progressBar}
         ${readyBadge}
         ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : ''}
         ${charDisplay}
@@ -153,7 +180,7 @@ function renderParticipants() {
       const resp = await chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id });
       if (resp?.ok && resp.text) {
         if (p) { p._pollStatus = "ready"; p._textLength = resp.text.length; }
-        trackChars(resp.text.length);
+        trackChars(resp.text.length, p?.service);
         addLog(`${p?.name || id} 回复已提取 (${resp.text.length}字)`, "success");
         renderParticipants();
         // 检查是否所有人都 ready 了
@@ -297,7 +324,7 @@ function schedulePollTick() {
                 p._pollStatus = "ready";
                 chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
                   if (resp?.ok) {
-                    if (resp.text) trackChars(resp.text.length);
+                    if (resp.text) trackChars(resp.text.length, p.service);
                     addLog(`${p.name} 回复已自动提取`, "success");
                     chrome.runtime.sendMessage({ type: "getState" }).then(state => {
                       if (state) { mergeParticipants(state.participants); renderParticipants(); }
@@ -504,7 +531,7 @@ async function doBroadcast() {
   if (hasFiles) {
     text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
   }
-  btnSend.disabled = true; btnSend.textContent = "发送中...";
+  btnSend.disabled = true; btnSend.innerHTML = '<span class="btn-spinner btn-dark-spinner"></span> 发送中...';
   // 重置所有参与者的轮询状态
   participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
   renderParticipants();
@@ -537,7 +564,7 @@ async function doBroadcast() {
       startStreamingPoll(text.length);
     }
   } catch (e) { addLog("失败: " + e.message, "error"); }
-  btnSend.disabled = false; btnSend.textContent = "发送给全部";
+  btnSend.disabled = false; btnSend.innerHTML = '发送给全部';
 }
 btnSend.addEventListener("click", doBroadcast);
 broadcastInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); doBroadcast(); } });
@@ -557,7 +584,7 @@ btnDebate.addEventListener("click", async () => {
   if (btnDebate.disabled) return;
   if (participants.length < 2) { addLog("至少需要 2 个参与者", "error"); return; }
   const nextRound = getDebateRound() + 1;
-  btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
+  btnDebate.disabled = true; btnDebate.innerHTML = `<span class="btn-spinner"></span> 第${nextRound}轮...`;
   // 重置所有参与者的轮询状态（新一轮开始）
   participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
   renderParticipants();
@@ -586,7 +613,7 @@ btnDebate.addEventListener("click", async () => {
       if (guidance && guidanceInput) guidanceInput.value = "";
     } else addLog(`失败: ${r?.error}`, "error");
   } catch (e) { addLog("失败: " + e.message, "error"); }
-  btnDebate.disabled = false; btnDebate.textContent = `开始辩论（第${getDebateRound() + 1}轮）`;
+  btnDebate.disabled = false; btnDebate.innerHTML = `开始辩论（第${getDebateRound() + 1}轮）`;
 });
 
 // ── 辩论重试 ──
@@ -604,14 +631,14 @@ btnDebateRetry.addEventListener("click", async () => {
 btnSummary.addEventListener("click", async () => {
   const judgeId = judgeSelect.value;
   if (!judgeId) { addLog("请先选择裁判", "error"); return; }
-  btnSummary.disabled = true; btnSummary.textContent = "总结中...";
+  btnSummary.disabled = true; btnSummary.innerHTML = '<span class="btn-spinner"></span> 总结中...';
   addLog("生成总结...", "info");
   try {
     const r = await chrome.runtime.sendMessage({ type: "summary", judgeId });
     if (r?.ok) { addLog("总结已发送", "success"); startStreamingPoll(); }
     else addLog(`失败: ${r?.error}`, "error");
   } catch (e) { addLog("失败: " + e.message, "error"); }
-  btnSummary.disabled = false; btnSummary.textContent = "输出总结";
+  btnSummary.disabled = false; btnSummary.innerHTML = '输出总结';
 });
 
 // ── 导出 ──
@@ -659,8 +686,20 @@ $("#btn-hard-reset").addEventListener("click", async () => {
 
 // ── 统计（本次 + 历史累计） ──
 const STATS_KEY = "arena_lifetime_stats";
-let lifetimeStats = { conversations: 0, debates: 0, totalChars: 0 };
-let sessionStats = { conversations: 0, debates: 0, totalChars: 0 };
+let lifetimeStats = { conversations: 0, debates: 0, totalChars: 0, models: {} };
+let sessionStats = { conversations: 0, debates: 0, totalChars: 0, models: {} };
+
+// 模型品牌色映射
+const SERVICE_COLORS = {
+  claude: "#d4a574", gemini: "#4285f4", chatgpt: "#10a37f",
+  deepseek: "#4d6bfe", doubao: "#ff6a3d", qwen: "#6236ff",
+  kimi: "#1a1a2e", yuanbao: "#0052d9", grok: "#191919"
+};
+const SERVICE_NAMES = {
+  claude: "Claude", gemini: "Gemini", chatgpt: "GPT",
+  deepseek: "DeepSeek", doubao: "豆包", qwen: "千问",
+  kimi: "Kimi", yuanbao: "元宝", grok: "Grok"
+};
 
 // 字数→Token 估算（中文~1.5 token/字，英文~1.3 token/word，取 1.4 均值）
 function charsToTokens(chars) { return Math.round(chars * 1.4); }
@@ -668,7 +707,11 @@ function fmtTokens(tokens) { return tokens >= 10000 ? (tokens / 10000).toFixed(1
 
 async function loadStats() {
   const data = await chrome.storage.local.get(STATS_KEY);
-  if (data[STATS_KEY]) lifetimeStats = data[STATS_KEY];
+  if (data[STATS_KEY]) {
+    lifetimeStats = data[STATS_KEY];
+    // 兼容旧数据（无 models 字段）
+    if (!lifetimeStats.models) lifetimeStats.models = {};
+  }
   renderStats();
 }
 
@@ -686,6 +729,39 @@ function renderStats() {
   $("#stat-l-conversations").textContent = lifetimeStats.conversations;
   $("#stat-l-debates").textContent = lifetimeStats.debates;
   $("#stat-l-tokens").textContent = fmtTokens(charsToTokens(lifetimeStats.totalChars));
+  // 分模型
+  renderPerModelStats();
+}
+
+function renderPerModelStats() {
+  const listEl = $("#models-list");
+  const models = lifetimeStats.models;
+  const entries = Object.entries(models);
+  if (!entries.length) {
+    listEl.innerHTML = '<div class="empty-hint">暂无模型统计数据</div>';
+    return;
+  }
+  // 按 Token 量降序
+  entries.sort((a, b) => (b[1].chars || 0) - (a[1].chars || 0));
+  const totalChars = entries.reduce((sum, [, v]) => sum + (v.chars || 0), 0);
+
+  listEl.innerHTML = entries.map(([service, data], i) => {
+    const tokenCount = charsToTokens(data.chars || 0);
+    const rounds = data.rounds || 0;
+    const avgPerRound = rounds > 0 ? Math.round(charsToTokens(data.chars || 0) / rounds) : 0;
+    const color = SERVICE_COLORS[service] || "#888";
+    const name = SERVICE_NAMES[service] || service;
+    const pct = totalChars > 0 ? ((data.chars || 0) / totalChars * 100).toFixed(0) : 0;
+    const rankClass = i === 0 ? "rank-1" : i === 1 ? "rank-2" : i === 2 ? "rank-3" : "";
+    return `<div class="model-row">
+      <span class="model-rank ${rankClass}">#${i + 1}</span>
+      <span class="model-dot" style="background:${color}"></span>
+      <span class="model-name">${name}</span>
+      <span class="model-stat"><span class="val">${fmtTokens(tokenCount)}</span> <span class="lbl">总Token</span></span>
+      <span class="model-stat"><span class="val">${avgPerRound.toLocaleString()}</span> <span class="lbl">均/轮</span></span>
+      <span class="model-stat" style="min-width:34px"><span class="val">${pct}%</span></span>
+    </div>`;
+  }).join("");
 }
 
 // 广播：对话次数 = 参与者数量（每个AI算一次对话）
@@ -700,10 +776,18 @@ function trackDebateRound() {
   lifetimeStats.debates++;
   saveStats();
 }
-// 回复字数累加
-function trackChars(charCount) {
+// 回复字数累加（per-model）
+function trackChars(charCount, service) {
   sessionStats.totalChars += charCount;
   lifetimeStats.totalChars += charCount;
+  if (service) {
+    if (!sessionStats.models[service]) sessionStats.models[service] = { chars: 0, rounds: 0 };
+    sessionStats.models[service].chars += charCount;
+    sessionStats.models[service].rounds++;
+    if (!lifetimeStats.models[service]) lifetimeStats.models[service] = { chars: 0, rounds: 0 };
+    lifetimeStats.models[service].chars += charCount;
+    lifetimeStats.models[service].rounds++;
+  }
   saveStats();
 }
 
@@ -712,9 +796,10 @@ $$(".stats-tab").forEach(btn => {
   btn.addEventListener("click", () => {
     $$(".stats-tab").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    const isSession = btn.dataset.tab === "session";
-    $("#stats-session").style.display = isSession ? "" : "none";
-    $("#stats-lifetime").style.display = isSession ? "none" : "";
+    const tab = btn.dataset.tab;
+    $("#stats-session").style.display = tab === "session" ? "" : "none";
+    $("#stats-lifetime").style.display = tab === "lifetime" ? "" : "none";
+    $("#stats-models").style.display = tab === "models" ? "" : "none";
   });
 });
 
