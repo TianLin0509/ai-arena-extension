@@ -845,3 +845,39 @@ btnDebate.addEventListener("mouseleave", hideDynamicTipDelayed);
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); btnDebate.click(); }
 });
+
+// ── 主题切换 ──
+(function initTheme() {
+  const btnTheme = $("#btn-theme");
+  const themeMenu = $("#theme-menu");
+  if (!btnTheme || !themeMenu) return;
+
+  chrome.storage.local.get("uiTheme", (d) => {
+    const theme = d.uiTheme || "C";
+    document.body.setAttribute("data-theme", theme);
+    updateThemeActive(theme);
+  });
+
+  btnTheme.addEventListener("click", (e) => {
+    e.stopPropagation();
+    themeMenu.classList.toggle("open");
+  });
+
+  themeMenu.querySelectorAll(".theme-menu-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const theme = item.dataset.theme;
+      document.body.setAttribute("data-theme", theme);
+      chrome.storage.local.set({ uiTheme: theme });
+      updateThemeActive(theme);
+      themeMenu.classList.remove("open");
+    });
+  });
+
+  document.addEventListener("click", () => themeMenu.classList.remove("open"));
+
+  function updateThemeActive(theme) {
+    themeMenu.querySelectorAll(".theme-menu-item").forEach(i => {
+      i.classList.toggle("active", i.dataset.theme === theme);
+    });
+  }
+})();
