@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>AI Arena PoC — Capture Method Comparison</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0f1117; color: #e0e0e0; padding: 24px; }
+    h1 { font-size: 20px; margin-bottom: 16px; color: #7dd3fc; }
+    h2 { font-size: 15px; margin: 20px 0 8px; color: #a5b4fc; }
+
+    .controls { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; }
+    .controls label { font-size: 13px; color: #9ca3af; }
+    .controls select, .controls textarea, .controls button {
+      background: #1e2130; border: 1px solid #374151; color: #e0e0e0;
+      border-radius: 6px; padding: 8px 12px; font-size: 13px;
+    }
+    .controls textarea { width: 400px; height: 60px; resize: vertical; }
+    .controls button {
+      cursor: pointer; font-weight: 600; padding: 8px 20px;
+      background: #3b82f6; border-color: #3b82f6; color: #fff;
+    }
+    .controls button:hover { background: #2563eb; }
+    .controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .controls button.danger { background: #ef4444; border-color: #ef4444; }
+
+    .toggle { display: flex; align-items: center; gap: 6px; }
+    .toggle input[type=checkbox] { accent-color: #3b82f6; }
+
+    #status { font-size: 13px; color: #fbbf24; margin-bottom: 16px; min-height: 20px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #1e2130; }
+    th { background: #1a1d2e; color: #9ca3af; font-weight: 500; position: sticky; top: 0; }
+    td { font-variant-numeric: tabular-nums; }
+    tr:hover td { background: #1a1d2e; }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .tag-ok { background: #065f46; color: #6ee7b7; }
+    .tag-wait { background: #78350f; color: #fcd34d; }
+    .tag-fail { background: #7f1d1d; color: #fca5a5; }
+    .tag-na { background: #374151; color: #9ca3af; }
+
+    .text-preview { max-width: 300px; max-height: 60px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; font-size: 12px; color: #9ca3af; cursor: pointer; }
+    .text-preview:hover { white-space: normal; max-height: none; color: #e0e0e0; }
+
+    #log { margin-top: 20px; background: #1a1d2e; border-radius: 8px; padding: 12px;
+      max-height: 300px; overflow-y: auto; font-size: 12px; font-family: monospace; color: #9ca3af; }
+    #log div { padding: 2px 0; border-bottom: 1px solid #252a3a; }
+    #log .ts { color: #6b7280; margin-right: 8px; }
+
+    .history { margin-top: 20px; }
+    .history table th { background: #1a1d2e; }
+  </style>
+</head>
+<body>
+  <h1>AI Arena PoC — Capture Method Comparison</h1>
+
+  <div class="controls">
+    <div>
+      <label>Prompt</label><br>
+      <select id="promptSelect">
+        <option value="short">短答：1+1等于几？</option>
+        <option value="long">长答：写一首200字的现代诗</option>
+        <option value="code">代码：写一个Python快速排序</option>
+        <option value="think">思考：分析量子计算的优缺点</option>
+        <option value="roleplay">角色：你是一个海盗船长</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+    <div>
+      <label>自定义 Prompt</label><br>
+      <textarea id="customPrompt" placeholder="选择"自定义"后在此输入"></textarea>
+    </div>
+    <div>
+      <div class="toggle">
+        <input type="checkbox" id="includeMarker" checked>
+        <label for="includeMarker">包含 Marker（基线对比用）</label>
+      </div>
+    </div>
+    <div>
+      <button id="btnInject">1. 注入脚本</button>
+      <button id="btnRun">2. 发送 &amp; 捕获</button>
+      <button id="btnPoll" class="danger">3. 拉取结果</button>
+      <button id="btnExport">导出 JSON</button>
+    </div>
+  </div>
+
+  <div id="status">等待操作...</div>
+
+  <h2>实时对比</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>方案</th>
+        <th>状态</th>
+        <th>首 Token (ms)</th>
+        <th>完成耗时 (ms)</th>
+        <th>文本长度</th>
+        <th>预览</th>
+      </tr>
+    </thead>
+    <tbody id="resultBody">
+      <tr id="row-A"><td>A (fetch hook)</td><td><span class="tag tag-na">—</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr id="row-C"><td>C (MutationObserver)</td><td><span class="tag tag-na">—</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr id="row-H"><td>H (ResizeObserver)</td><td><span class="tag tag-na">—</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr id="row-baseline"><td>Baseline (marker)</td><td><span class="tag tag-na">—</span></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h2>事件日志</h2>
+  <div id="log"></div>
+
+  <div class="history">
+    <h2>历史记录</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Prompt</th><th>A</th><th>C</th><th>H</th><th>BL</th><th>时间</th></tr>
+      </thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+
+  <script src="poc-runner.js"></script>
+</body>
+</html>
