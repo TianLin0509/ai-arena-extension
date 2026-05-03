@@ -246,6 +246,50 @@ function renderParticipants() {
       }
     }));
 
+    // PPT 场景：复制 JSON 按钮
+    listEl.querySelectorAll(".p-copy-json").forEach(b => b.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = b.dataset.id;
+      const p = participants.find(p => p.id === id);
+      const originalText = b.textContent;
+      b.textContent = "⏳"; b.disabled = true;
+      try {
+        const fullText = await fetchFullResponse(id);
+        if (!fullText) {
+          addLog(`${p?.name || id} 暂无回复内容，请先点 📋提取`, "error");
+          return;
+        }
+        const parsed = parseAiJson(fullText);
+        if (parsed === null) {
+          if (p) p._jsonValid = false;
+          addLog(`${p?.name || id} 输出不是合法 JSON，请用 🔄 自审改进 让该 AI 修复`, "error");
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("AI Arena", {
+              body: `${p?.name || id} 的输出不是合法 JSON。建议用「🔄 自审改进」修复后重试。`,
+              silent: true,
+            });
+          }
+          renderParticipants();
+          return;
+        }
+        const pretty = JSON.stringify(parsed, null, 2);
+        await navigator.clipboard.writeText(pretty);
+        if (p) p._jsonValid = true;
+        addLog(`已复制 ${p?.name || id} 的 JSON（${Object.keys(parsed).length} 个字段），切到 PPT 工具粘贴`, "success");
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("AI Arena → PPT 工具", {
+            body: `已复制 ${p?.name || id} 的 JSON，建议立刻切换到 PPT 工具的 Step 4 粘贴`,
+            silent: true,
+          });
+        }
+        renderParticipants();
+      } catch (err) {
+        addLog(`复制失败: ${err.message}`, "error");
+      } finally {
+        b.textContent = originalText; b.disabled = false;
+      }
+    }));
+
     // 门控1 按钮
     listEl.querySelectorAll(".p-gate-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
