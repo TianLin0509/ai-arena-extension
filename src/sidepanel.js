@@ -188,7 +188,7 @@ function renderParticipants() {
       addLog(`手动发送给 ${p?.name || id}...`, "info");
       const resp = await chrome.runtime.sendMessage({ type: "sendToOne", participantId: id });
       if (resp?.ok) {
-        if (p) { p._pollStatus = null; p._textLength = 0; }
+        if (p) { p._pollStatus = null; p._textLength = 0; p._jsonValid = null; }
         addLog(`已发送给 ${p?.name || id}`, "success");
         renderParticipants();
         if (!streamingPollTimer) startStreamingPoll();
@@ -383,6 +383,13 @@ function schedulePollTick() {
             if (v.hasDone) {
               if (p._pollStatus !== "ready") {
                 p._pollStatus = "ready";
+                // PPT 场景：自动校验 JSON 输出
+                if (isPptScenarioActive()) {
+                  fetchFullResponse(id).then(fullText => {
+                    p._jsonValid = parseAiJson(fullText) !== null;
+                    renderParticipants();
+                  });
+                }
                 chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
                   if (resp?.ok) {
                     if (resp.text) trackChars(resp.text.length);
@@ -603,7 +610,7 @@ async function doBroadcast() {
   }
   btnSend.disabled = true; btnSend.textContent = "发送中...";
   // 重置所有参与者的轮询状态
-  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
+  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; p._jsonValid = null; });
   renderParticipants();
   const attachInfo = [];
   if (hasImages) attachInfo.push(`${pendingImages.length}张图`);
@@ -656,7 +663,7 @@ btnDebate.addEventListener("click", async () => {
   const nextRound = getDebateRound() + 1;
   btnDebate.disabled = true; btnDebate.textContent = `第${nextRound}轮...`;
   // 重置所有参与者的轮询状态（新一轮开始）
-  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; });
+  participants.forEach(p => { p._pollStatus = null; p._textLength = 0; p._jsonValid = null; });
   renderParticipants();
   const guidance = guidanceInput?.value?.trim() || "";
   addLog(`第${nextRound}轮辩论${guidance ? " (引导: " + guidance.slice(0, 30) + ")" : ""}`, "info");
