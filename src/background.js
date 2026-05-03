@@ -1,4 +1,4 @@
-// AI Arena — Background Service Worker v2.0.0
+// AI Arena — Background Service Worker v2.5.0
 
 // 从 sidepanel 缓存的屏幕尺寸（用于并列模式，替代 chrome.system.display）
 let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
