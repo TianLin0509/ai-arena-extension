@@ -11,6 +11,33 @@ const guidanceInput = $("#guidance-input"), roundBadge = $("#round-badge");
 
 let participants = [], debateSession = {}, flowState = "idle", streamingPollTimer = null;
 
+// ── PPT JSON 容错解析（移植自 ppt-assistant src/prompt/json_parser.py） ──
+function parseAiJson(rawText) {
+  if (!rawText || !rawText.trim()) return null;
+  let text = rawText.trim();
+
+  // 1. 提取 ```json ... ``` 代码块
+  const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (codeBlockMatch) text = codeBlockMatch[1].trim();
+
+  // 2. 提取最外层大括号
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first === -1 || last === -1 || first >= last) return null;
+  text = text.substring(first, last + 1);
+
+  // 3. 修复尾逗号
+  text = text.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+
+  // 4. JSON.parse
+  try { return JSON.parse(text); } catch (e) {}
+
+  // 5. 尝试单引号 → 双引号兜底（AI 偶尔会把 JSON 写成 Python dict 字面量）
+  try { return JSON.parse(text.replace(/'/g, '"')); } catch (e) {}
+
+  return null;
+}
+
 // ── 场景预设 ──
 const SCENARIO_PRESETS = [
   { id: "analysis",  icon: "📊", label: "深度分析",
