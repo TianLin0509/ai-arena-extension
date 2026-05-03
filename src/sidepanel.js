@@ -38,6 +38,25 @@ function parseAiJson(rawText) {
   return null;
 }
 
+// 当前是否选中了 PPT 场景
+function isPptScenarioActive() {
+  const sel = scenarioMenu?.querySelector(".scenario-item.selected");
+  return sel?.dataset.id === "ppt";
+}
+
+// 取该参与者最近一次完整回复（来自 background state）
+async function fetchFullResponse(participantId) {
+  try {
+    const r = await chrome.runtime.sendMessage({
+      type: "readOneResponse",
+      participantId,
+    });
+    return r?.text || "";
+  } catch (e) {
+    return "";
+  }
+}
+
 // ── 场景预设 ──
 const SCENARIO_PRESETS = [
   { id: "analysis",  icon: "📊", label: "深度分析",
@@ -140,6 +159,12 @@ function renderParticipants() {
         `<button class="p-action-btn p-extract" data-id="${p.id}" title="手动提取该AI的回复">📋提取</button>`
       ].join('') : '';
 
+      // PPT 场景下额外按钮：复制 JSON + 校验徽章
+      const pptBtns = (isPptScenarioActive() && !gateActions && hasResponse) ? [
+        `<span class="p-json-badge ${p._jsonValid === true ? 'valid' : p._jsonValid === false ? 'invalid' : 'pending'}" title="${p._jsonValid === true ? 'JSON 合法' : p._jsonValid === false ? 'JSON 不合法 — 请用 🔄 自审改进 修复' : 'JSON 校验中'}">${p._jsonValid === true ? '✅' : p._jsonValid === false ? '⚠️' : '⏳'}</span>`,
+        `<button class="p-action-btn p-copy-json" data-id="${p.id}" title="解析并复制此 AI 的 JSON 输出到剪贴板">📋复制JSON</button>`
+      ].join('') : '';
+
       return `<div class="participant-item ${p.service}">
         <span class="p-status ${sc}"></span>
         <span class="p-name">${p.name}</span>
@@ -147,6 +172,7 @@ function renderParticipants() {
         ${stateLabel ? `<span class="p-state-badge ${pState.replace(/_/g, '-')}">${stateIcon} ${stateLabel}</span>` : ''}
         ${charDisplay}
         ${gateActions}
+        ${pptBtns}
         ${actionBtns}
         <button class="p-btn p-remove" data-id="${p.id}">✕</button>
       </div>`;
