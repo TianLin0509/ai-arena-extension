@@ -38,10 +38,9 @@ function parseAiJson(rawText) {
   return null;
 }
 
-// 当前是否选中了 PPT 场景
+// 当前 PPT 模式是否开启（toggle 按钮 active class）
 function isPptScenarioActive() {
-  const sel = scenarioMenu?.querySelector(".scenario-item.selected");
-  return sel?.dataset.id === "ppt";
+  return document.getElementById("btn-ppt-mode")?.classList.contains("active") ?? false;
 }
 
 // 取该参与者最近一次完整回复（来自 background state）
@@ -57,23 +56,8 @@ async function fetchFullResponse(participantId) {
   }
 }
 
-// ── 场景预设 ──
-const SCENARIO_PRESETS = [
-  { id: "analysis",  icon: "📊", label: "深度分析",
-    prompt: "请从多个角度深入分析这个问题：\n1. 分别列出优势与劣势\n2. 考虑短期和长期影响\n3. 给出风险评估和可行性判断" },
-  { id: "debate",    icon: "🆚", label: "正反对比",
-    prompt: "请分别站在正方和反方的立场进行论证：\n1. 正方：列出支持的核心论据和证据\n2. 反方：列出反对的核心论据和证据\n3. 最后给出你的综合判断" },
-  { id: "code",      icon: "💻", label: "代码审查",
-    prompt: "请对代码进行全面审查，重点关注：\n1. 安全性（注入、越权、数据泄露）\n2. 性能（时间复杂度、内存、并发）\n3. 可读性与可维护性\n4. 边界情况和错误处理" },
-  { id: "plan",      icon: "📝", label: "方案设计",
-    prompt: "请给出详细的实施方案：\n1. 目标拆解与里程碑\n2. 具体实施步骤和时间线\n3. 所需资源和依赖\n4. 风险识别与应对策略" },
-  { id: "decision",  icon: "🎯", label: "决策建议",
-    prompt: "请给出明确的决策建议：\n1. 列出所有可选方案\n2. 对每个方案进行利弊权衡\n3. 给出推荐方案及核心理由\n4. 说明推荐方案的执行要点" },
-  { id: "factcheck", icon: "🔍", label: "事实核查",
-    prompt: "请对以下信息进行事实核查：\n1. 逐条验证关键事实的准确性\n2. 标注已确认、待确认和错误的内容\n3. 引用可靠来源佐证\n4. 指出可能的误导或遗漏" },
-  { id: "ppt",       icon: "📑", label: "PPT文案",
-    prompt: "你正在为一份技术汇报PPT生成文案。请严格按要求生成内容：\n1. 严格遵守每个文本框的字数范围要求，必须写满不留空白\n2. 标题必须是观点型/结论型，嵌入量化数据\n3. Bullet要点必须术语化、结论化，每条表达一个完整论点\n4. 输出严格JSON格式，不要有注释或额外解释" },
-];
+// ── PPT 模式 prompt 约束（开启后自动拼接到广播 prompt 末尾） ──
+const PPT_MODE_PROMPT = "你正在为一份技术汇报PPT生成文案。请严格按要求生成内容：\n1. 严格遵守每个文本框的字数范围要求，必须写满不留空白\n2. 标题必须是观点型/结论型，嵌入量化数据\n3. Bullet要点必须术语化、结论化，每条表达一个完整论点\n4. 输出严格JSON格式，不要有注释或额外解释";
 
 function mergeParticipants(remote) {
   if (!remote) return;
@@ -630,9 +614,8 @@ async function doBroadcast() {
   const hasFiles = pendingFiles.length > 0;
   if (!text && !hasImages && !hasFiles) return;
   if (!participants.length) { addLog("请先添加参与者", "error"); return; }
-  const scenarios = getSelectedScenarios();
-  if (scenarios.length > 0) {
-    text += "\n\n" + scenarios.map(s => `【要求】${s}`).join("\n");
+  if (isPptScenarioActive()) {
+    text += "\n\n【要求】" + PPT_MODE_PROMPT;
   }
   if (hasFiles) {
     text += pendingFiles.map(f => `\n\n---\n📄 文件: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join("");
@@ -659,7 +642,7 @@ async function doBroadcast() {
     broadcastInput.innerHTML = "";
     pendingImages = [];
     pendingFiles = [];
-    clearScenarioSelection();
+    // PPT 模式不在发送后清掉（用户要持续多轮 + 复制 JSON）
     renderFilePreviews();
     // 刷新状态
     const state = await chrome.runtime.sendMessage({ type: "getState" });
@@ -925,60 +908,21 @@ loadStats();
 // ── 通知权限 ──
 if ("Notification" in window) Notification.requestPermission();
 
-// ── 场景预设下拉 ──
-const scenarioMenu = $("#scenario-menu");
-const btnScenario = $("#btn-scenario");
+// ── PPT 模式 toggle ──
+const btnPptMode = $("#btn-ppt-mode");
 
-(function initScenarioMenu() {
-  scenarioMenu.innerHTML = SCENARIO_PRESETS.map(s =>
-    `<div class="scenario-item" data-id="${s.id}">${s.icon} ${s.label}<span class="scenario-tip">${s.prompt}</span></div>`
-  ).join("");
+btnPptMode?.addEventListener("click", () => {
+  const nowActive = !btnPptMode.classList.contains("active");
+  btnPptMode.classList.toggle("active", nowActive);
+  chrome.storage.local.set({ pptModeActive: nowActive });
+  addLog(`PPT 模式 ${nowActive ? "已开启" : "已关闭"}`, "info");
+  renderParticipants(); // 立即更新卡片徽章/复制按钮的可见性
+});
 
-  btnScenario.addEventListener("click", (e) => {
-    e.stopPropagation();
-    scenarioMenu.classList.toggle("open");
-  });
-
-  scenarioMenu.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const item = e.target.closest(".scenario-item");
-    if (!item) return;
-    const id = item.dataset.id;
-    const wasSelected = item.classList.contains("selected");
-    scenarioMenu.querySelectorAll(".scenario-item").forEach(el => el.classList.remove("selected"));
-    if (!wasSelected) item.classList.add("selected");
-    updateScenarioButton();
-    scenarioMenu.classList.remove("open");
-  });
-
-  document.addEventListener("click", () => {
-    scenarioMenu.classList.remove("open");
-  });
-})();
-
-function updateScenarioButton() {
-  const sel = scenarioMenu.querySelector(".scenario-item.selected");
-  if (sel) {
-    const preset = SCENARIO_PRESETS.find(s => s.id === sel.dataset.id);
-    btnScenario.textContent = preset ? `${preset.icon} ${preset.label} ▾` : "🎯 场景 ▾";
-    btnScenario.classList.add("has-selected");
-  } else {
-    btnScenario.textContent = "🎯 场景 ▾";
-    btnScenario.classList.remove("has-selected");
-  }
-}
-
-function getSelectedScenarios() {
-  const sel = scenarioMenu.querySelector(".scenario-item.selected");
-  if (!sel) return [];
-  const preset = SCENARIO_PRESETS.find(s => s.id === sel.dataset.id);
-  return preset ? [preset.prompt] : [];
-}
-
-function clearScenarioSelection() {
-  scenarioMenu.querySelectorAll(".scenario-item.selected").forEach(el => el.classList.remove("selected"));
-  updateScenarioButton();
-}
+// 启动时恢复 PPT 模式状态
+chrome.storage.local.get("pptModeActive", (r) => {
+  if (r.pptModeActive) btnPptMode?.classList.add("active");
+});
 
 // ── 动态预览浮窗 ──
 const dynamicTip = $("#dynamic-tip");
@@ -992,8 +936,7 @@ function truncateMiddle(text, maxLen = 300) {
 function buildBroadcastPreview() {
   let text = broadcastInput.innerText.trim();
   if (!text && !pendingImages.length && !pendingFiles.length) return "（空内容）";
-  const scenarios = getSelectedScenarios();
-  if (scenarios.length > 0) text += "\n\n" + scenarios.map(s => `【要求】${s}`).join("\n");
+  if (isPptScenarioActive()) text += "\n\n【要求】" + PPT_MODE_PROMPT;
   if (pendingFiles.length > 0) text += pendingFiles.map(f => `\n\n📄 文件: ${f.name}`).join("");
   if (pendingImages.length > 0) text += `\n\n🖼️ ${pendingImages.length}张图片`;
   return truncateMiddle(text, 500);

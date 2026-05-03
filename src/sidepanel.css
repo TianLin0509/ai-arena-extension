@@ -412,3 +412,19 @@ body[data-theme] .models-list .empty-hint { color: var(--text-muted, #8ea3c7); }
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── PPT 模式 toggle 按钮 ── */
+.btn-ppt-mode {
+  transition: all 0.2s ease;
+  border: 1px solid var(--border, rgba(255,255,255,0.15));
+}
+.btn-ppt-mode.active {
+  background: linear-gradient(135deg, #5eead4, #a78bfa);
+  color: #0d1117;
+  font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(94, 234, 212, 0.4);
+}
+.btn-ppt-mode.active::after {
+  content: " ✓";
+}
