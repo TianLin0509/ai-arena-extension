@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI Arena v4.0.0-alpha Phase 1 完成报告</title>
+<style>
+  :root { --bg:#fafafa; --card:#fff; --ink:#1d1d1f; --ink-soft:#6e6e73; --border:#d2d2d7; --accent:#0071e3; --success:#34c759; --warning:#ff9f0a; --code-bg:#1d1d1f; --code-ink:#f5f5f7; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1d1d1f; --card:#2c2c2e; --ink:#f5f5f7; --ink-soft:#aeaeb2; --border:#38383a; --accent:#0a84ff; --success:#30d158; --warning:#ff9f0a; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"PingFang SC",system-ui; background:var(--bg); color:var(--ink); padding:32px 20px; line-height:1.55; font-size:14px; }
+  .container { max-width:840px; margin:0 auto; }
+  h1 { font-size:26px; letter-spacing:-0.02em; margin-bottom:6px; }
+  .subtitle { color:var(--ink-soft); margin-bottom:24px; font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:14px; }
+  h2 { font-size:16px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  h2 .num { background:var(--accent); color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); }
+  th { color:var(--ink-soft); font-weight:500; font-size:11px; }
+  code, pre { font-family:"SF Mono","Consolas",monospace; }
+  pre { background:var(--code-bg); color:var(--code-ink); padding:10px 12px; border-radius:6px; overflow-x:auto; font-size:11.5px; line-height:1.45; }
+  code { background:var(--bg); padding:1px 5px; border-radius:3px; font-size:0.9em; }
+  pre code { background:none; padding:0; }
+  ul { margin-left:18px; }
+  li { margin:3px 0; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+  .pill.ok { background:var(--success); color:#fff; }
+  .pill.warn { background:var(--warning); color:#000; }
+  .pill.info { background:var(--accent); color:#fff; }
+  .pill.mute { background:var(--border); color:var(--ink); }
+  .checklist li { list-style:none; margin-left:-18px; padding:4px 0; }
+  .checklist input { margin-right:8px; transform:scale(1.1); vertical-align:middle; }
+  .commit-row { font-family:"SF Mono",monospace; font-size:11.5px; }
+  .commit-sha { color:var(--accent); font-weight:600; }
+  .file-tree { font-family:"SF Mono",monospace; font-size:12px; color:var(--ink-soft); line-height:1.7; }
+  .file-tree .new { color:var(--success); }
+  .file-tree .mod { color:var(--warning); }
+  .num-stat { display:flex; gap:16px; margin-top:8px; flex-wrap:wrap; }
+  .num-stat .stat { background:var(--bg); padding:8px 14px; border-radius:8px; display:flex; flex-direction:column; gap:2px; min-width:90px; }
+  .num-stat .stat .v { font-size:20px; font-weight:600; }
+  .num-stat .stat .l { font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em; }
+  .footer-note { margin-top:18px; padding:14px 18px; background:var(--bg); border-left:3px solid var(--accent); border-radius:4px; font-size:12px; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Arena v4.0.0-alpha <span class="pill ok">Phase 1 完成</span></h1>
+  <p class="subtitle">微信群聊视图 · 骨架 + 基础广播 · 2026-05-22</p>
+
+  <div class="card">
+    <h2><span class="num">①</span> 全景数据</h2>
+    <div class="num-stat">
+      <div class="stat"><span class="v">13</span><span class="l">commits</span></div>
+      <div class="stat"><span class="v">22</span><span class="l">unit tests ✓</span></div>
+      <div class="stat"><span class="v">5</span><span class="l">new files</span></div>
+      <div class="stat"><span class="v">11</span><span class="l">modified files</span></div>
+      <div class="stat"><span class="v">~970</span><span class="l">lines added</span></div>
+      <div class="stat"><span class="v">v4.0.0-alpha</span><span class="l">git tag</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">②</span> Commit 链路</h2>
+    <table>
+      <thead><tr><th>#</th><th>SHA</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr class="commit-row"><td>T1</td><td class="commit-sha">e3a26aa</td><td>chore: bump version to v4.0.0</td></tr>
+        <tr class="commit-row"><td>T2</td><td class="commit-sha">476b42e</td><td>feat(popup): add static skeleton (html + css)</td></tr>
+        <tr class="commit-row"><td>T3</td><td class="commit-sha">b26b7b5</td><td>feat(popup): add lightweight markdown renderer (xss-safe)</td></tr>
+        <tr class="commit-row"><td>T4</td><td class="commit-sha">4552cd7</td><td>test(popup-markdown): add unit tests + 修复 INLINE 占位贪婪 bug</td></tr>
+        <tr class="commit-row"><td>T5</td><td class="commit-sha">2d1055f</td><td>feat(chat-bus): add popup window lifecycle</td></tr>
+        <tr class="commit-row"><td>T6</td><td class="commit-sha">e4d5e56</td><td>feat(sidepanel): add 'open group chat' button</td></tr>
+        <tr class="commit-row"><td>T7</td><td class="commit-sha">426872b</td><td>feat(popup): add render + input + IPC scaffolding</td></tr>
+        <tr class="commit-row"><td>T8</td><td class="commit-sha">d808894</td><td>feat(chat-bus): broadcast routing + 1.5s polling scheduler</td></tr>
+        <tr class="commit-row"><td>T9</td><td class="commit-sha">f05027b</td><td>feat(content): add hasRichContent detector to 9 AI platforms</td></tr>
+        <tr class="commit-row"><td>T10</td><td class="commit-sha">e5cfc56</td><td>feat(chat-bus): implement jumpToOrigin</td></tr>
+        <tr class="commit-row"><td>T11</td><td class="commit-sha">56405d3</td><td>feat(popup): @mention completion menu</td></tr>
+        <tr class="commit-row"><td>T12</td><td class="commit-sha">2968d23</td><td>test(chat-bus): chatLog FIFO + snapshot independence</td></tr>
+        <tr class="commit-row"><td>T13</td><td class="commit-sha">982742f</td><td>release(v4.0.0-alpha): WeChat group chat view phase 1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">③</span> 文件结构</h2>
+    <div class="file-tree">
+      src/<br>
+      ├── <span class="new">popup.html</span> &nbsp; 群聊窗口 DOM 结构（含 header / messages / input bar）<br>
+      ├── <span class="new">popup.css</span> &nbsp; 微信风格 + 浅+深色（prefers-color-scheme）<br>
+      ├── <span class="new">popup.js</span> &nbsp; 渲染 + 输入 + @mention 菜单 + IPC + 历史恢复（168 行）<br>
+      ├── <span class="new">popup-markdown.js</span> &nbsp; XSS-safe markdown 渲染（69 行，含 \x02 边界 bug 修复）<br>
+      ├── <span class="new">chat-bus.js</span> &nbsp; 群聊业务总线：popup 生命周期 + broadcast + polling + chatLog + jumpToOrigin（~200 行）<br>
+      ├── <span class="mod">manifest.json</span> &nbsp; v3.0.0 → v4.0.0<br>
+      ├── <span class="mod">background.js</span> &nbsp; importScripts chat-bus + 5 个新 switch case + 2 个 window 监听器<br>
+      ├── <span class="mod">sidepanel.html/js/css</span> &nbsp; 加"🪟 群聊"按钮<br>
+      ├── <span class="mod">content-claude.js</span> &nbsp; readResponse 返回扩展字段 + detectRichContent (artifact/image/mermaid)<br>
+      ├── <span class="mod">content-gemini.js</span> &nbsp; detectRichContent (canvas/image/mermaid)<br>
+      ├── <span class="mod">content-chatgpt.js</span> &nbsp; detectRichContent (canvas-panel/mermaid/image)<br>
+      └── <span class="mod">content-{deepseek,doubao,qwen,kimi,yuanbao,grok}.js</span> &nbsp; 通用 detectRichContent<br>
+      &nbsp;<br>
+      src/test/<br>
+      ├── <span class="new">popup-markdown.test.mjs</span> &nbsp; 9 个测试<br>
+      ├── <span class="new">content-richcontent.test.mjs</span> &nbsp; 4 个测试<br>
+      ├── <span class="new">popup-mention.test.mjs</span> &nbsp; 5 个测试<br>
+      └── <span class="new">chat-bus-log.test.mjs</span> &nbsp; 4 个测试<br>
+      &nbsp;<br>
+      docs/<br>
+      ├── superpowers/specs/<span class="new">2026-05-22-ai-arena-wechat-view-design.md</span><br>
+      ├── superpowers/plans/<span class="new">2026-05-22-ai-arena-wechat-view-phase1.md</span><br>
+      └── <span class="new">release-notes-4.0.0-alpha.html</span><br>
+      &nbsp;<br>
+      dist/ (gitignored)<br>
+      ├── ai-arena-github-v4.0.0.zip &nbsp; 114 KB<br>
+      └── ai-arena-store-v4.0.0.zip &nbsp; 113 KB
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">④</span> E2E 验证清单（需你手动跑） <span class="pill warn">用户介入</span></h2>
+    <p style="margin:6px 0 10px;color:var(--ink-soft);font-size:12px;">按 CLAUDE.md 测试铁律，UI / IPC 流程必须真实加载扩展验证。在 Chrome 加载 <code>src/</code> 目录后，逐项打勾：</p>
+    <ul class="checklist">
+      <li><input type="checkbox"> <strong>1.</strong> chrome://extensions → 开启开发者模式 → 加载已解压扩展 → 选 <code>C:\Users\lintian\AI_debate\ai-arena-extension\src</code></li>
+      <li><input type="checkbox"> <strong>2.</strong> 打开 sidepanel → 顶部出现"🪟 群聊"蓝色按钮，版本徽章显示 <code>v4.0.0</code></li>
+      <li><input type="checkbox"> <strong>3.</strong> 加 Claude + Gemini + ChatGPT 三个参与者（用并列模式） → 3 个独立 chrome window 弹出</li>
+      <li><input type="checkbox"> <strong>4.</strong> 点 sidepanel "🪟 群聊" → popup 窗口在主屏右半弹出（800×900）</li>
+      <li><input type="checkbox"> <strong>5.</strong> popup 输入 <code>hello</code> + Ctrl+Enter → 3 个 AI 气泡显示 typing → 1.5s 后开始填充内容 → 流完显示完整回答</li>
+      <li><input type="checkbox"> <strong>6.</strong> popup 输入 <code>@Claude 你好</code> + 看候选菜单 → 选 Claude → 输入框变 <code>@Claude</code> → 再敲 <code>你好</code> + Ctrl+Enter → 只有 Claude 气泡触发，Gemini/ChatGPT 不响应</li>
+      <li><input type="checkbox"> <strong>7.</strong> 让 Claude 写 artifact：发 <code>写个 React todo list 用 artifact</code> → popup Claude 气泡末尾出现 <code>📦 含 artifact ↗ 在 Claude 查看</code> pill</li>
+      <li><input type="checkbox"> <strong>8.</strong> 点 pill → 自动切到 Claude window/tab</li>
+      <li><input type="checkbox"> <strong>9.</strong> 关闭 popup → 点 sidepanel "🪟 群聊"重开 → 之前的对话气泡全部恢复</li>
+      <li><input type="checkbox"> <strong>10.</strong> 拖动 popup 到不同位置 → 关闭 → 重开 → popup 位置还原</li>
+      <li><input type="checkbox"> <strong>11.</strong> popup 顶部点 🗑 → 确认清空 → 消息列空 → AI 原页不受影响</li>
+      <li><input type="checkbox"> <strong>12.</strong> 关闭其中一个 AI 标签页 → popup 再发消息 → 该 AI 气泡显示 <code>⚠ XX 已断开</code>，其他 AI 正常</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">⑤</span> 下一步选项</h2>
+    <ul>
+      <li><strong>A. 你跑 E2E 清单</strong>：用 <code>C:\Users\lintian\AI_debate\ai-arena-extension\src</code> 加载到 Chrome 验证。遇到 bug 我修。</li>
+      <li><strong>B. 直接进 Phase 2</strong>：sidepanel 减肥（搬同时提问/辩论/PPT 到 popup 抽屉式工具栏）。我写 Phase 2 plan 然后继续 SDD。</li>
+      <li><strong>C. 合并到 main</strong>：feature/ppt-bridge-v2.5.0 分支 PR 出去（含 v3.0 wip + v4 phase 1 全部）。但分支名滞后于实际内容，可能需要先 rename。</li>
+      <li><strong>D. 留着今天到此</strong>：spec + plan + 实施 + tag 都落地，分支可以随时回来。</li>
+    </ul>
+  </div>
+
+  <div class="footer-note">
+    <strong>Phase 1 限制（spec 明确不做、Phase 2/3 解决）</strong>：sidepanel 还保留同时提问/辩论/PPT 三个 tab（Phase 2 搬入 popup 抽屉）；不拉取 AI 原页已有历史（v1.1 加折叠回溯）；富文本一律跳原页不内嵌渲染（v3+）。
+  </div>
+</div>
+</body>
+</html>
