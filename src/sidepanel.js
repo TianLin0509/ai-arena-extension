@@ -1388,6 +1388,15 @@ btnSend.addEventListener("mouseleave", hideDynamicTipDelayed);
 btnDebate.addEventListener("mouseenter", () => showDynamicTip(btnDebate, buildDebatePreview()));
 btnDebate.addEventListener("mouseleave", hideDynamicTipDelayed);
 
+// ── 打开群聊窗口 ──
+document.getElementById("btn-open-chat")?.addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "openChatPopup" }, (resp) => {
+    if (chrome.runtime.lastError || !resp?.ok) {
+      console.warn("打开群聊失败:", chrome.runtime.lastError);
+    }
+  });
+});
+
 // ── 快捷键 ──
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === "D") { e.preventDefault(); btnDebate.click(); }

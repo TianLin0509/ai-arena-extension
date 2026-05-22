@@ -870,3 +870,19 @@ body[data-theme="D"] .p-meta-row,
 body[data-theme="F"] .p-meta-row {
   color: var(--text-muted, #8ea3c7);
 }
+
+.btn-open-chat {
+  background: var(--accent-color, #0a84ff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+.btn-open-chat:hover { opacity: 0.9; }
