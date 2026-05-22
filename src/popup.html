@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Arena 群聊</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="chat-app">
+    <header class="chat-header">
+      <div class="chat-title">
+        <span class="chat-icon">🪟</span>
+        <span class="chat-name">AI Arena 群聊</span>
+        <span class="chat-version">v4.0.0</span>
+      </div>
+      <div class="chat-actions">
+        <button class="btn-icon" id="btn-clear" title="清空群聊">🗑</button>
+        <button class="btn-icon" id="btn-settings" title="设置">⚙️</button>
+      </div>
+    </header>
+    <main class="chat-messages" id="chat-messages">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">👋</div>
+        <div class="empty-text">群聊已就绪</div>
+        <div class="empty-hint">输入消息广播给所有参与者</div>
+      </div>
+    </main>
+    <footer class="chat-input-bar">
+      <div class="chat-input-wrap">
+        <div id="chat-input" class="chat-input" contenteditable="true"
+             data-placeholder="输入消息…  Ctrl+Enter 发送  @ 单发"></div>
+        <div class="mention-menu" id="mention-menu" hidden></div>
+      </div>
+      <button class="btn-send" id="btn-send" title="发送 (Ctrl+Enter)">↑</button>
+    </footer>
+  </div>
+  <script src="popup-markdown.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
