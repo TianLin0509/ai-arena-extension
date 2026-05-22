@@ -66,8 +66,122 @@ const ChatBus = (() => {
     } catch {}
   }
 
-  // ── 暂时留空，后续 task 填 ──
-  async function broadcast(text, targets, images) { /* Task T8 */ }
+  // ── polling 调度器 ──
+  // pollers: Map<participantId, { intervalId, lastText, sameCount, msgId }>
+  const pollers = new Map();
+  const POLL_INTERVAL_MS = 1500;
+  const STREAM_DONE_THRESHOLD = 3;  // 连续 N 次相同视为完成
+
+  async function sendToPopup(payload) {
+    if (popupWindowId == null) return;
+    try {
+      // popup 没有 tabId，只能广播到所有 runtime context
+      await chrome.runtime.sendMessage(payload);
+    } catch {}
+  }
+
+  function newMsgId() {
+    return `m${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  }
+
+  function pushLog(entry) {
+    chatLog.push(entry);
+    while (chatLog.length > MAX_LOG) chatLog.shift();
+    chrome.storage.local.set({ [STORAGE_KEYS.log]: chatLog }).catch(() => {});
+  }
+
+  async function broadcast(text, targets, images) {
+    if (!text?.trim()) return { ok: false, error: "empty text" };
+
+    // 决定目标参与者
+    const allParticipants = StateMachine.participants || [];
+    const targetList = targets?.length
+      ? allParticipants.filter(p => targets.includes(p.service))
+      : allParticipants;
+
+    if (!targetList.length) {
+      return { ok: false, error: "无可用参与者" };
+    }
+
+    const msgId = newMsgId();
+    const userEntry = { role: "user", msgId, text, ts: Date.now() };
+    pushLog(userEntry);
+    sendToPopup({ type: "chatStreamUpdate", role: "user", msgId, text });
+
+    // 对每个目标 AI: 注入 + 启动 polling
+    for (const p of targetList) {
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId,
+        participantId: p.service, text: "", isDone: false,
+      });
+      injectAndPoll(p, msgId, text);
+    }
+    return { ok: true, msgId, targets: targetList.map(p => p.service) };
+  }
+
+  async function injectAndPoll(participant, msgId, text) {
+    const { tabId, service } = participant;
+    try {
+      await chrome.tabs.sendMessage(tabId, { action: "inject", text });
+    } catch (e) {
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId,
+        participantId: service, text: `⚠ ${participant.name} 注入失败: ${e.message}`,
+        isDone: true,
+      });
+      return;
+    }
+    // 启动 polling
+    if (pollers.has(service)) clearInterval(pollers.get(service).intervalId);
+    const state = { lastText: "", sameCount: 0, msgId };
+    state.intervalId = setInterval(() => pollOnce(participant, state), POLL_INTERVAL_MS);
+    pollers.set(service, state);
+  }
+
+  async function pollOnce(participant, state) {
+    const { tabId, service } = participant;
+    try {
+      const r = await chrome.tabs.sendMessage(tabId, { action: "readResponse" });
+      const text = (r?.text || "").trim();
+      const hasRich = !!r?.hasRichContent;
+      const richTypes = r?.richTypes || [];
+
+      if (text === state.lastText) {
+        state.sameCount++;
+        if (state.sameCount >= STREAM_DONE_THRESHOLD && text.length > 0) {
+          // 完成
+          clearInterval(state.intervalId);
+          pollers.delete(service);
+          pushLog({
+            role: "ai", msgId: state.msgId, participantId: service,
+            text, ts: Date.now(), hasRichContent: hasRich, richTypes,
+          });
+          sendToPopup({
+            type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
+            participantId: service, text, isDone: true,
+            hasRichContent: hasRich, richTypes,
+          });
+        }
+      } else {
+        state.lastText = text;
+        state.sameCount = 0;
+        sendToPopup({
+          type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
+          participantId: service, text, isDone: false,
+        });
+      }
+    } catch (e) {
+      // tab 关闭或 content script 失联
+      clearInterval(state.intervalId);
+      pollers.delete(service);
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
+        participantId: service, text: `⚠ ${participant.name} 已断开`,
+        isDone: true,
+      });
+    }
+  }
+
   function getLog() { return chatLog.slice(); }
   function clearLog() { chatLog.length = 0; chrome.storage.local.remove(STORAGE_KEYS.log); }
   async function jumpToOrigin(participantId) { /* Task T10 */ }
