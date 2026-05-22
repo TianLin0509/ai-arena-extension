@@ -53,11 +53,20 @@
 
   function appendUserMessage(text, msgId) {
     ensureEmptyHidden();
+    const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
     row.className = "msg me";
     row.dataset.msgId = msgId;
     row.innerHTML = `
-      <div class="msg-body"><div class="msg-bubble">${escapeHtml(text)}</div></div>
+      <div class="msg-body">
+        <div class="msg-meta me-meta">
+          <span class="acts"><button data-act="copy" title="复制">📋</button></span>
+          <span class="stat done"><span class="pip"></span>已发送</span>
+          <span class="time">${escapeHtml(ts)}</span>
+          <span class="name">我 · Huawei</span>
+        </div>
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+      </div>
       <div class="msg-avatar huawei">${brandLogoHtml('huawei')}</div>`;
     $messages.appendChild(row);
     scrollToBottom();
@@ -65,20 +74,30 @@
 
   function appendAIBubble(msgId, participantId, initialText = "", isTyping = true) {
     ensureEmptyHidden();
+    const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
     row.className = "msg ai";
     row.dataset.msgId = msgId;
     row.dataset.participantId = participantId;
     const avatarClass = AVATAR_CLASS[participantId] || "";
-    const initial = AVATAR_INITIAL[participantId] || "?";
     const name = NAME[participantId] || participantId;
+    const statClass = isTyping ? "streaming" : "done";
+    const statText = isTyping ? "提取中" : "已完成";
     row.innerHTML = `
       <div class="msg-avatar ${avatarClass}">${brandLogoHtml(participantId)}</div>
       <div class="msg-body">
-        <div class="msg-name">${name}</div>
-        <div class="msg-bubble">
-          ${isTyping ? `<span class="msg-typing"><span></span><span></span><span></span></span>` : renderMarkdown(initialText)}
+        <div class="msg-meta">
+          <span class="name">${name}</span>
+          <span class="time">${escapeHtml(ts)}</span>
+          <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
+          <span class="acts">
+            <button data-act="reextract" title="重新提取">🔄</button>
+            <button data-act="resend" title="重新发送">📤</button>
+            <button data-act="copy" title="复制">📋</button>
+            <button data-act="jump" title="跳原页">↗</button>
+          </span>
         </div>
+        <div class="msg-bubble">${isTyping ? `<span class="msg-typing"><span></span><span></span><span></span></span>` : renderMarkdown(initialText)}</div>
       </div>`;
     $messages.appendChild(row);
     bubbleByKey.set(`${msgId}-${participantId}`, row);
@@ -90,8 +109,18 @@
     const row = bubbleByKey.get(`${msgId}-${participantId}`);
     if (!row) return appendAIBubble(msgId, participantId, text, !text);
     const bubble = row.querySelector(".msg-bubble");
+    const stat = row.querySelector(".msg-meta .stat");
     if (!bubble) return;
     bubble.innerHTML = text ? renderMarkdown(text) : `<span class="msg-typing"><span></span><span></span><span></span></span>`;
+    if (stat) {
+      if (isDone) {
+        stat.className = "stat done";
+        stat.innerHTML = `<span class="pip"></span>已完成`;
+      } else if (text) {
+        stat.className = "stat streaming";
+        stat.innerHTML = `<span class="pip"></span>提取中`;
+      }
+    }
     if (isDone && hasRichContent && richTypes?.length) {
       const pill = document.createElement("a");
       pill.className = "msg-rich-pill";
