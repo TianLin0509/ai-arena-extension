@@ -132,6 +132,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           ChatBus.clearLog(); sendResponse({ ok: true }); break;
         case "chatJumpToOrigin":
           sendResponse(await ChatBus.jumpToOrigin(msg.participantId)); break;
+        case "chatReextractOne":
+          sendResponse(await ChatBus.reextractOne(msg.participantId)); break;
 
         // ── 手动操作 ──
         case "sendToOne":

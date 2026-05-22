@@ -197,6 +197,29 @@ const ChatBus = (() => {
     }
   }
 
+  async function reextractOne(participantId) {
+    const p = (StateMachine.participants || []).find(x => x.service === participantId);
+    if (!p || !p.tabId) return { ok: false, error: "未找到参与者" };
+    try {
+      const r = await chrome.tabs.sendMessage(p.tabId, { action: "readResponse" });
+      const text = (r?.text || "").trim();
+      const msgId = `manual_${Date.now()}`;
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId,
+        participantId, text, isDone: true,
+        hasRichContent: !!r?.hasRichContent, richTypes: r?.richTypes || [],
+      });
+      pushLog({
+        role: "ai", msgId, participantId,
+        text, ts: Date.now(),
+        hasRichContent: !!r?.hasRichContent, richTypes: r?.richTypes || [],
+      });
+      return { ok: true, text };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
   return {
     init,
     openChatPopup,
@@ -206,6 +229,7 @@ const ChatBus = (() => {
     getLog,
     clearLog,
     jumpToOrigin,
+    reextractOne,
   };
 })();
 
