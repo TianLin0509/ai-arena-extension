@@ -23,7 +23,12 @@ function mergeParticipants(remote) {
   for (const p of participants) localMap[p.id] = p;
   participants = remote.map(rp => {
     const local = localMap[rp.id];
-    return { ...rp, _pollStatus: local?._pollStatus || null };
+    // 保留本地瞬时字段（远端 StateMachine 不存这些）
+    return {
+      ...rp,
+      _pollStatus: local?._pollStatus || null,
+      _textLength: local?._textLength || (rp.response ? rp.response.length : 0),
+    };
   });
 }
 let injectResults = {}; // { participantId: "ok" | "failed" }
@@ -690,7 +695,12 @@ function schedulePollTick() {
                 p._pollStatus = "ready";
                 chrome.runtime.sendMessage({ type: "readOneResponse", participantId: id }).then(resp => {
                   if (resp?.ok) {
-                    if (resp.text) trackChars(resp.text.length, p.service);
+                    if (resp.text) {
+                      trackChars(resp.text.length, p.service);
+                      // 同步更新本地 _textLength 以最终回复长度为准
+                      const localP = participants.find(x => x.id === id);
+                      if (localP) localP._textLength = resp.text.length;
+                    }
                     addLog(`${p.name} 回复已自动提取`, "success");
                     chrome.runtime.sendMessage({ type: "getState" }).then(state => {
                       if (state) { mergeParticipants(state.participants); renderParticipants(); }
