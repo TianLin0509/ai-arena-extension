@@ -64,6 +64,11 @@ body[data-theme] .stream-progress { background: rgba(255,255,255,0.06); }
 .mode-opt:hover { border-color: #6366f1; color: #6366f1; }
 .mode-opt.active { background: #f5f3ff; border-color: #6366f1; color: #6366f1; }
 
+.header .screen-toggle { display: flex; gap: 2px; margin-left: 6px; }
+.screen-opt { padding: 6px 10px; font-size: 10.5px; font-weight: 600; border: 1.5px solid #e5e7eb; border-radius: 6px; background: #fafafa; color: #888; cursor: pointer; min-height: var(--touch-min); }
+.screen-opt:hover { border-color: #0ea5e9; color: #0ea5e9; }
+.screen-opt.active { background: #ecfeff; border-color: #0ea5e9; color: #0ea5e9; }
+
 .section { background: #fff; border-radius: 12px; padding: var(--space-3); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .section-title { font-size: 11px; color: #999; margin-bottom: var(--space-2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
 

@@ -20,7 +20,11 @@ const SERVICES = {
 const MAX_PARTICIPANTS = 3;
 const _removingTabs = new Set();
 let windowMode = "tiled"; // "tab" | "tiled"
-chrome.storage.local.get("windowMode", (d) => { if (d.windowMode) windowMode = d.windowMode; });
+let aiScreenMode = "current"; // "current" | "secondary" — AI 窗口位置（默认同屏，避免单屏环境踩 Chrome 虚假副屏）
+chrome.storage.local.get(["windowMode", "aiScreenMode"], (d) => {
+  if (d.windowMode) windowMode = d.windowMode;
+  if (d.aiScreenMode === "secondary" || d.aiScreenMode === "current") aiScreenMode = d.aiScreenMode;
+});
 
 // ── 初始化 ──
 const initPromise = Promise.all([StateMachine.init(), ChatBus.init()]);
@@ -118,6 +122,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
         case "setWindowMode":     windowMode = msg.mode; chrome.storage.local.set({ windowMode: msg.mode }); sendResponse({ ok: true }); break;
+        case "setAiScreenMode":   aiScreenMode = (msg.mode === "secondary" ? "secondary" : "current"); chrome.storage.local.set({ aiScreenMode }); sendResponse({ ok: true, aiScreenMode }); break;
+        case "getAiScreenMode":   sendResponse({ aiScreenMode }); break;
         case "arrangeWindows":
           if (msg.screen) lastKnownScreen = msg.screen;
           sendResponse(await arrangeWindows(msg.screen || lastKnownScreen));
@@ -634,22 +640,43 @@ async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
       .map(d => ({ id: d.id, screen: normalizeScreen(d.workArea || d.bounds), isPrimary: !!d.isPrimary }))
       .filter(d => d.screen.width > 0 && d.screen.height > 0);
 
-    if (normalized.length < 2) {
-      const only = normalized[0]?.screen || fallback;
-      return { screen: only, displayId: normalized[0]?.id || null, isDifferentDisplay: false };
+    // 找到 sidepanel 所在屏（current display）
+    const current = findDisplayForScreen(fallback, normalized) || normalized.find(d => d.isPrimary) || normalized[0];
+    const currentScreen = current?.screen || fallback;
+
+    // 默认 aiScreenMode='current'：AI 窗口与 sidepanel 同屏（避免单屏环境的虚假副屏 bug）
+    if (aiScreenMode !== "secondary") {
+      return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }
 
-    const current = findDisplayForScreen(fallback, normalized) || normalized.find(d => d.isPrimary) || normalized[0];
-    const currentCenter = centerOf(current.screen);
-    const target = normalized
-      .filter(d => d.id !== current.id)
-      .sort((a, b) => distance(centerOf(a.screen), currentCenter) - distance(centerOf(b.screen), currentCenter))[0];
-
+    // 用户显式选 secondary：找另一屏（仅当确实存在不重叠的另一屏时才用，否则回退当前屏）
+    if (normalized.length < 2) {
+      return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
+    }
+    const others = normalized.filter(d => d.id !== current.id && !overlapsDisplay(d.screen, currentScreen));
+    if (others.length === 0) {
+      // displays>=2 但全都和 current 重叠（虚假副屏） → 用当前屏
+      return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
+    }
+    const currentCenter = centerOf(currentScreen);
+    const target = others.sort((a, b) => distance(centerOf(a.screen), currentCenter) - distance(centerOf(b.screen), currentCenter))[0];
     return { screen: target.screen, displayId: target.id, isDifferentDisplay: true };
   } catch (e) {
     console.warn("[Arena] system.display unavailable, falling back to current screen:", e?.message || e);
     return { screen: fallback, displayId: null, isDifferentDisplay: false };
   }
+}
+
+// 判断两个 screen rect 是否物理重叠（用于过滤虚假副屏）
+function overlapsDisplay(a, b) {
+  const ax2 = a.left + a.width, ay2 = a.top + a.height;
+  const bx2 = b.left + b.width, by2 = b.top + b.height;
+  const overlapW = Math.max(0, Math.min(ax2, bx2) - Math.max(a.left, b.left));
+  const overlapH = Math.max(0, Math.min(ay2, by2) - Math.max(a.top, b.top));
+  const overlapArea = overlapW * overlapH;
+  const minArea = Math.min(a.width * a.height, b.width * b.height);
+  // 重叠面积 ≥ 较小屏 50% → 视为虚假副屏
+  return overlapArea / minArea > 0.5;
 }
 
 function normalizeScreen(screen = {}) {
