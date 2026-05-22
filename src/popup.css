@@ -249,3 +249,45 @@ body {
   display: none;
 }
 .menu-item.has-sub:hover .sub-menu { display: block; }
+
+/* ── 微动效 + 字距 + 整体精致化 ── */
+body { letter-spacing: -0.01em; }
+.msg { animation: slide-in 0.25s ease-out; }
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-icon { display: inline-block; animation: pulse-live 2.4s ease-in-out infinite; }
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.12); }
+}
+.btn-send {
+  background: linear-gradient(135deg, #0a84ff 0%, #007aff 100%);
+  box-shadow: 0 4px 10px rgba(10,132,255,0.35);
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-send:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(10,132,255,0.45);
+}
+.btn-send:active { transform: translateY(0) scale(0.98); }
+.msg-bubble {
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.msg-name, .chat-name { letter-spacing: 0; }
+.task-picker, .task-menu, .mention-menu {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.chat-header { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.chat-input { transition: border-color 0.15s; }
+.chat-input:focus { border-color: var(--accent); outline: none; }
+.msg:hover .msg-bubble {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+@media (prefers-color-scheme: dark) {
+  .msg:hover .msg-bubble { box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+}
