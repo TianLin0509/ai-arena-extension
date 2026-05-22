@@ -652,13 +652,34 @@ async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
     const current = findDisplayForScreen(fallback, normalized) || normalized.find(d => d.isPrimary) || normalized[0];
     const currentScreen = current?.screen || fallback;
 
-    // 自动：副屏优先 + 不存在真副屏（或全是虚假副屏）则回退同屏
+    // 自动：副屏优先 + 不存在真副屏则回退同屏
     if (normalized.length < 2) {
       return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }
-    const others = normalized.filter(d => d.id !== current.id && !overlapsDisplay(d.screen, currentScreen));
+
+    // 检测"真副屏"：(1) 与 current 屏物理不重叠 AND (2) 该 display 上至少存在一个用户 chrome window
+    // 条件 (2) 用于排除 Chrome 在 Windows 上偶尔报告的虚拟显示器（HDR/远程桌面/旧设备缓存）—
+    // 这些 display 物理上不存在，自然没有任何窗口会落在其上。
+    const allWindows = await chrome.windows.getAll().catch(() => []);
+    function hasUserWindow(displayScreen) {
+      return allWindows.some(w => {
+        if (typeof w.left !== "number" || typeof w.width !== "number") return false;
+        const cx = w.left + w.width / 2;
+        const cy = w.top + w.height / 2;
+        return cx >= displayScreen.left
+          && cx < displayScreen.left + displayScreen.width
+          && cy >= displayScreen.top
+          && cy < displayScreen.top + displayScreen.height;
+      });
+    }
+
+    const others = normalized.filter(d =>
+      d.id !== current.id
+      && !overlapsDisplay(d.screen, currentScreen)
+      && hasUserWindow(d.screen)
+    );
     if (others.length === 0) {
-      // displays>=2 但全都和 current 重叠（虚假副屏） → 用当前屏
+      // 没有"既不重叠 又有真实 window"的副屏 → 视为单屏环境，用当前屏
       return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }
     const currentCenter = centerOf(currentScreen);
