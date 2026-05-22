@@ -161,6 +161,12 @@ const ChatBus = (() => {
             participantId: service, text, isDone: true,
             hasRichContent: hasRich, richTypes,
           });
+          // 同步 sidepanel：调 readOneResponse 写入 StateMachine 并广播 stateUpdate
+          // 这样 sidepanel 不必等自己的 startStreamingPoll 判定，立即显示"已完成"
+          // readOneResponse 在 background.js 顶层定义，importScripts 后同一 SW 作用域可直接调
+          if (typeof readOneResponse === "function") {
+            readOneResponse(participant.id).catch(() => {});
+          }
         }
       } else {
         state.lastText = text;
