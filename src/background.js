@@ -20,10 +20,10 @@ const SERVICES = {
 const MAX_PARTICIPANTS = 3;
 const _removingTabs = new Set();
 let windowMode = "tiled"; // "tab" | "tiled"
-let aiScreenMode = "current"; // "current" | "secondary" — AI 窗口位置（默认同屏，避免单屏环境踩 Chrome 虚假副屏）
+let aiScreenMode = "auto"; // "auto" | "current" — auto: 副屏优先，无真副屏回退同屏；current: 强制同屏
 chrome.storage.local.get(["windowMode", "aiScreenMode"], (d) => {
   if (d.windowMode) windowMode = d.windowMode;
-  if (d.aiScreenMode === "secondary" || d.aiScreenMode === "current") aiScreenMode = d.aiScreenMode;
+  if (d.aiScreenMode === "current" || d.aiScreenMode === "auto") aiScreenMode = d.aiScreenMode;
 });
 
 // ── 初始化 ──
@@ -122,7 +122,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
         case "setWindowMode":     windowMode = msg.mode; chrome.storage.local.set({ windowMode: msg.mode }); sendResponse({ ok: true }); break;
-        case "setAiScreenMode":   aiScreenMode = (msg.mode === "secondary" ? "secondary" : "current"); chrome.storage.local.set({ aiScreenMode }); sendResponse({ ok: true, aiScreenMode }); break;
+        case "setAiScreenMode":   aiScreenMode = (msg.mode === "current" ? "current" : "auto"); chrome.storage.local.set({ aiScreenMode }); sendResponse({ ok: true, aiScreenMode }); break;
         case "getAiScreenMode":   sendResponse({ aiScreenMode }); break;
         case "arrangeWindows":
           if (msg.screen) lastKnownScreen = msg.screen;
@@ -644,12 +644,12 @@ async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
     const current = findDisplayForScreen(fallback, normalized) || normalized.find(d => d.isPrimary) || normalized[0];
     const currentScreen = current?.screen || fallback;
 
-    // 默认 aiScreenMode='current'：AI 窗口与 sidepanel 同屏（避免单屏环境的虚假副屏 bug）
-    if (aiScreenMode !== "secondary") {
+    // 用户强制选 current：直接同屏
+    if (aiScreenMode === "current") {
       return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }
 
-    // 用户显式选 secondary：找另一屏（仅当确实存在不重叠的另一屏时才用，否则回退当前屏）
+    // 默认 auto：副屏优先 + 不存在真副屏（或全是虚假副屏）则回退同屏
     if (normalized.length < 2) {
       return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }

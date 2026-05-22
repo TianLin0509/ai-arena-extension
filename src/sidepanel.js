@@ -827,9 +827,9 @@ $$(".mode-opt").forEach(btn => {
   });
 });
 
-// ── AI 窗口屏幕切换（单/双屏） ──
+// ── AI 窗口屏幕切换 ──
 chrome.runtime.sendMessage({ type: "getAiScreenMode" }, (resp) => {
-  const mode = resp?.aiScreenMode === "secondary" ? "secondary" : "current";
+  const mode = resp?.aiScreenMode === "current" ? "current" : "auto";
   $$(".screen-opt").forEach(b => b.classList.toggle("active", b.dataset.screen === mode));
 });
 $$(".screen-opt").forEach(btn => {
@@ -838,8 +838,7 @@ $$(".screen-opt").forEach(btn => {
     btn.classList.add("active");
     const mode = btn.dataset.screen;
     await chrome.runtime.sendMessage({ type: "setAiScreenMode", mode });
-    addLog(`AI 窗口位置：${mode === "secondary" ? "副屏" : "同屏"}`, "info");
-    // 立即重排已有 AI 窗口到新位置
+    addLog(`AI 窗口位置：${mode === "current" ? "同屏" : "自动（副屏优先）"}`, "info");
     if (participants.length > 0) {
       const screen = {
         width: window.screen.width,
