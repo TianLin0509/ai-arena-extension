@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI Arena v4.0.0-beta 发布说明</title>
+<style>
+  :root { --bg:#fafafa; --card:#fff; --ink:#1d1d1f; --ink-soft:#6e6e73; --border:#d2d2d7; --accent:#0071e3; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1d1d1f; --card:#2c2c2e; --ink:#f5f5f7; --ink-soft:#aeaeb2; --border:#38383a; --accent:#0a84ff; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"PingFang SC",system-ui; background:var(--bg); color:var(--ink); padding:40px 20px; line-height:1.6; letter-spacing:-0.01em; }
+  .container { max-width:780px; margin:0 auto; }
+  h1 { font-size:28px; margin-bottom:8px; }
+  .subtitle { color:var(--ink-soft); margin-bottom:28px; font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px 26px; margin-bottom:16px; }
+  h2 { font-size:18px; margin-bottom:12px; }
+  ul { margin-left:20px; }
+  li { margin:5px 0; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; }
+  code { background:rgba(0,0,0,0.05); padding:1px 5px; border-radius:3px; font-family:"SF Mono",Consolas,monospace; font-size:0.9em; }
+  @media (prefers-color-scheme: dark) { code { background:rgba(255,255,255,0.08); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Arena v4.0.0-beta <span class="pill">Phase 2 完成</span></h1>
+  <p class="subtitle">2026-05-22 · 群聊 popup 增强为独立完整工具，sidepanel 保留 + bug 修复</p>
+
+  <div class="card">
+    <h2>新增 — popup 群聊增强</h2>
+    <ul>
+      <li><strong>左下角参与者多选 roster</strong>：头像 toggle 选择下轮参与者，默认全选，状态持久化（chrome.storage.local），全空自动回弹防呆</li>
+      <li><strong>任务模式选择器</strong>：输入框左侧 <code>⚙️ 任务</code> 按钮，hover 弹三级菜单 — 同时提问 / 辩论 (自由 / 群策) / 总结 (N 候选裁判) / PPT 制作</li>
+      <li><strong>紧凑 meta 行</strong>：每条气泡上方一行 = 名字 + 时间戳（SF Mono 等宽）+ 状态点（已完成/提取中/失败，含脉动动画）+ hover 浮现的操作按钮</li>
+      <li><strong>气泡 4 个操作按钮</strong>：🔄 重提（手动 readResponse）/ 📤 重发（重新 inject 同问题）/ 📋 复制 / ↗ 跳原页</li>
+      <li><strong>品牌 logo</strong>：用户头像 = 华为红圆（HW），9 个 AI 各用自己品牌 SVG（Claude 八角形 / Gemini 钻石 / OpenAI 莲花 / DeepSeek / 豆包 / 千问 / Kimi / 元宝 / Grok）</li>
+      <li><strong>视觉精致化</strong>：新消息 slide-in 动画、headers/bubbles backdrop-blur 毛玻璃、send 按钮弹性回弹 cubic-bezier、letter-spacing -0.01em 字距收紧</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>修复</h2>
+    <ul>
+      <li><strong>sidepanel 自动提取失败 bug</strong>：旧检测条件依赖 streaming indicator (stop button) 的 DOM selector，selector 失效后 sidepanel 永远不会自动判定完成，需用户手动点提取。现简化为 popup 同款"N 次稳定文本"判定，不再依赖 streaming indicator。<code>src/sidepanel.js:685</code></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>等价性保证（mirror）</h2>
+    <p style="color:var(--ink-soft);font-size:13px;margin-bottom:8px;">popup 工具栏每个按钮的 background handler 与 sidepanel 完全一致：</p>
+    <ul>
+      <li><code>同时提问</code> → <code>chatBroadcast</code></li>
+      <li><code>辩论·自由/群策</code> → <code>debateRound</code> (style: free | collab)</li>
+      <li><code>总结</code> → <code>summary</code> (judgeId)</li>
+      <li><code>PPT 工坊</code> → 当前提示用户在 sidepanel 完成（prompt builders 高度依赖 sidepanel 内部状态，未来重构后两边共用）</li>
+      <li><code>气泡 重提/重发</code> → <code>chatReextractOne</code> / <code>sendPromptToService</code></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>已知限制（v4.1+ 解决）</h2>
+    <ul>
+      <li>PPT 工坊三个 prompt 构造函数尚未抽到共享文件，popup 点 PPT 任务弹提示让用户在 sidepanel 完成</li>
+      <li>历史回填（拉取 AI 原页已有 turns）仍未做（v1.1 计划）</li>
+      <li>Artifact / Mermaid / 图片仍跳原页不内嵌渲染（v3+ 计划）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>体验建议</h2>
+    <ul>
+      <li>启用并列模式（3 个 AI 各独立 window）+ 群聊 popup 独立 window，所有窗口都是 top-level，不踩 Chrome 后台 tab throttling</li>
+      <li>双屏：副屏铺 AI 窗口，主屏右半放群聊 popup</li>
+      <li>任务模式选择器选定后会持续生效（直到再切换），不像 @mention 用完即过</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
