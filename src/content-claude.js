@@ -63,7 +63,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return true;
     }
     if (msg.action === "readResponse") {
-      readLatestResponse().then(r => sendResponse({ site: SITE, text: r })).catch(e => sendResponse({ site: SITE, text: "", error: e.message }));
+      readLatestResponse().then(text => {
+        const { hasRichContent, richTypes } = detectRichContent();
+        sendResponse({ site: SITE, text, hasRichContent, richTypes });
+      }).catch(e => sendResponse({ site: SITE, text: "", error: e.message }));
       return true;
     }
     if (msg.action === "injectImages") {
@@ -252,6 +255,18 @@ function readFullConversation() {
 
 function findSendButton() {
   return queryBySelectors("sendButton");
+}
+
+function detectRichContent() {
+  const types = [];
+  // Claude Artifact
+  if (document.querySelector('[class*="artifact"], iframe[src*="artifact"]')) types.push("artifact");
+  // 多图
+  const imgs = document.querySelectorAll("main img, [role='main'] img");
+  if (imgs.length > 1) types.push("image");
+  // Mermaid（Claude 偶尔嵌 mermaid）
+  if (document.querySelector('code.language-mermaid, [class*="mermaid"]')) types.push("mermaid");
+  return { hasRichContent: types.length > 0, richTypes: types };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

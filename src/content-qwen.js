@@ -56,7 +56,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") { sendResponse({ ready: true }); return false; }
     if (msg.action === "inject") { injectAndSend(msg.text).then(sendResponse).catch(e => sendResponse({ site: SITE, status: "error", error: e.message })); return true; }
-    if (msg.action === "readResponse") { readLatestResponse().then(r => sendResponse({ site: SITE, text: r })).catch(e => sendResponse({ site: SITE, text: "", error: e.message })); return true; }
+    if (msg.action === "readResponse") {
+      readLatestResponse().then(text => {
+        const { hasRichContent, richTypes } = detectRichContent();
+        sendResponse({ site: SITE, text, hasRichContent, richTypes });
+      }).catch(e => sendResponse({ site: SITE, text: "", error: e.message }));
+      return true;
+    }
     if (msg.action === "injectImages") { handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message })); return true; }
     if (msg.action === "checkCompletion") {
       const text = getLastResponseText();
@@ -167,6 +173,14 @@ function readFullConversation() {
 
 function findSendButton() {
   return queryBySelectors("sendButton");
+}
+
+function detectRichContent() {
+  const types = [];
+  if (document.querySelectorAll("main img, .message img, [class*='response'] img").length > 1) types.push("image");
+  if (document.querySelector('code.language-mermaid, [class*="mermaid"]')) types.push("mermaid");
+  if (document.querySelector('[class*="canvas"]:not(button):not(input)')) types.push("canvas");
+  return { hasRichContent: types.length > 0, richTypes: types };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
