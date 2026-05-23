@@ -191,7 +191,7 @@ try {
   // 测试组 D：版本号 4 处同步
   // ─────────────────────────────────────────
   console.log("\n=== D. 版本号同步（feedback_ai_arena_version_bump 铁律） ===");
-  const expectedVersion = "4.3.0-beta";
+  const expectedVersion = "4.3.1-beta";
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   const popupHtml = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
   const sidepanelHtml = fs.readFileSync(path.join(EXT_PATH, "sidepanel.html"), "utf8");
@@ -359,6 +359,30 @@ try {
   });
   check("H6a: popup-themes.css 文件存在", filesOk.themes);
   check("H6b: ppt-prompts.js 文件存在", filesOk.ppt);
+
+  // H7: v4.3.1 CSP — popup 不再拦截外部 https 图
+  // 验证方式：监听 console，看是否有 "Refused to load the image" CSP 报错
+  const cspErrors = [];
+  popup.on("console", m => {
+    const t = m.text();
+    if (/Refused to load the image|Content Security Policy.*img-src/i.test(t)) cspErrors.push(t);
+  });
+  await popup.evaluate(() => {
+    // 创建一个 <img> 指向公网 https → 不等加载完成，只看是否触发 CSP 报错
+    const img = new Image();
+    img.src = "https://www.google.com/favicon.ico";
+    document.body.appendChild(img);
+    setTimeout(() => img.remove(), 100);
+  });
+  await popup.waitForTimeout(800);
+  check("H7: CSP 不拦截外部 https 图（无 Refused to load 报错）",
+    cspErrors.length === 0,
+    cspErrors.join(" | ").slice(0, 200));
+
+  // H8: manifest 含 img-src 放开
+  const manifestSrc = fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8");
+  check("H8: manifest.json content_security_policy 含 img-src https",
+    /img-src[^"]*\bhttps:/.test(manifestSrc));
 
   // ─────────────────────────────────────────
   // 测试组 E：诊断日志格式
