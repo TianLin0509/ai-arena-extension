@@ -18,7 +18,7 @@
     kimi: "K", yuanbao: "元", grok: "X",
   };
   const BRAND_SVG = {
-    huawei: "icons/brands/huawei.svg",
+    huawei: "icons/brands/huawei.png",
     claude: "icons/brands/claude.svg",
     gemini: "icons/brands/gemini.svg",
     chatgpt: "icons/brands/openai.svg",

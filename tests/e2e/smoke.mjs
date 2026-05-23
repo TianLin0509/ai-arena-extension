@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.0.10-beta", manifest.version_name === "4.0.10-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.0.11-beta", manifest.version_name === "4.0.11-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.0.10-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.0.11-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.0.10-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.0.11-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,25 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.0.10-beta", popupVersion === "v4.0.10-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.0.11-beta", popupVersion === "v4.0.11-beta", `actual: "${popupVersion}"`);
+
+  // 图标资产验证（v4.0.11）
+  const assetsOk = await popupPage.evaluate(async (extId) => {
+    async function exists(p) {
+      try { const r = await fetch(`chrome-extension://${extId}/${p}`); return r.ok; }
+      catch { return false; }
+    }
+    return {
+      icon16: await exists("icons/icon16.png"),
+      icon48: await exists("icons/icon48.png"),
+      icon128: await exists("icons/icon128.png"),
+      huawei: await exists("icons/brands/huawei.png"),
+      huaweiSvgGone: !(await exists("icons/brands/huawei.svg")),
+    };
+  }, extensionId);
+  check("icon16/48/128 资源存在（hub logo）", assetsOk.icon16 && assetsOk.icon48 && assetsOk.icon128, JSON.stringify(assetsOk));
+  check("huawei.png 存在", assetsOk.huawei === true);
+  check("旧 huawei.svg 已删", assetsOk.huaweiSvgGone === true);
 
   const taskPickerBtn = await popupPage.locator("#task-picker-btn").count();
   check("popup has task-picker", taskPickerBtn === 1);
