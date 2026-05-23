@@ -26,8 +26,9 @@
     { service: "qwen",     model: "Qwen 3.5 Max Preview",     elo: 1464, rank: 27,  grade: "S"  },
     { service: "kimi",     model: "Kimi K2.6",                elo: 1462, rank: 29,  grade: "S"  },
     { service: "deepseek", model: "DeepSeek V4 Pro Thinking", elo: 1461, rank: 30,  grade: "S"  },
+    // v4.3.17: 豆包内部是字节 Seed 系列，arena 榜上叫 dola-seed-2.0-pro
+    { service: "doubao",   model: "Doubao Seed 2.0 Pro",      elo: 1456, rank: 35,  grade: "A"  },
     { service: "yuanbao",  model: "Hunyuan HY3 Preview",      elo: 1417, rank: 86,  grade: "B"  },
-    { service: "doubao",   model: "豆包",                      elo: null, rank: null, grade: "?", notRanked: true },
   ];
 
   function renderLeaderboard() {
