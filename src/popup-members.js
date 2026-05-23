@@ -35,10 +35,11 @@
     const span = Math.max(1, maxElo - minElo);
     return `
       <div class="rp-section-title rp-lb-title" style="margin-top:18px">
+        <button class="rp-lb-toggle" id="rp-lb-toggle" title="${lbCollapsed ? "展开" : "折叠"}排行榜" aria-expanded="${!lbCollapsed}">${lbCollapsed ? "▸" : "▾"}</button>
         <span>模型实力榜</span>
         <span class="rp-lb-meta">${LEADERBOARD_DATE} · Chatbot Arena</span>
       </div>
-      <div class="rp-leaderboard">
+      <div class="rp-leaderboard ${lbCollapsed ? "collapsed" : ""}">
         ${LEADERBOARD.map(m => {
           const meta = SERVICE_MAP[m.service] || { logo: null };
           const pct = ((m.elo - minElo) / span * 100).toFixed(1);
@@ -74,6 +75,8 @@
   // v4.3.11: 成员状态直接跟主区气泡同步，不依赖 StateMachine 字段更新
   // key=service, value="busy"|"ready"|"error"|"skipped"
   const streamStatus = new Map();
+  // v4.3.15: 排行榜折叠状态（持久化）
+  let lbCollapsed = false;
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
@@ -158,6 +161,8 @@
     root.querySelectorAll(".rp-more").forEach(el => {
       el.addEventListener("click", (e) => openActionMenu(e, el.dataset.pid));
     });
+    // v4.3.15: 排行榜折叠按钮
+    root.querySelector("#rp-lb-toggle")?.addEventListener("click", toggleLeaderboard);
   }
 
   async function refresh() {
@@ -169,10 +174,17 @@
     } catch (_) {}
     try {
       const r2 = await new Promise(res => {
-        chrome.storage.local.get(["windowMode"], resp => res(resp || {}));
+        chrome.storage.local.get(["windowMode", "leaderboardCollapsed"], resp => res(resp || {}));
       });
       if (r2.windowMode) state.layoutMode = r2.windowMode;
+      if (typeof r2.leaderboardCollapsed === "boolean") lbCollapsed = r2.leaderboardCollapsed;
     } catch (_) {}
+    render();
+  }
+
+  function toggleLeaderboard() {
+    lbCollapsed = !lbCollapsed;
+    try { chrome.storage.local.set({ leaderboardCollapsed: lbCollapsed }); } catch (_) {}
     render();
   }
 
