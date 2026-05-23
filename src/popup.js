@@ -69,7 +69,9 @@
       </div>
       <div class="msg-avatar huawei">${brandLogoHtml('huawei')}</div>`;
     $messages.appendChild(row);
-    scrollToBottom();
+    // 用户自己发的消息：强制跳底（即使之前在浏览历史也跳到自己刚发的消息）
+    scrollToBottomForce();
+    autoFollow = true; // 用户主动发送 → 恢复 follow 模式
   }
 
   function appendAIBubble(msgId, participantId, initialText = "", isTyping = true) {
@@ -139,9 +141,21 @@
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
-  function scrollToBottom() {
-    $messages.scrollTop = $messages.scrollHeight;
+  // ── 智能 auto-follow 滚动 ──
+  // 用户贴底时自动跟随新消息；用户向上滚浏览历史时停止跟随，回到接近底部时恢复
+  const FOLLOW_THRESHOLD_PX = 80;  // 距底 < 80px 视为"贴底"
+  let autoFollow = true;
+  $messages?.addEventListener("scroll", () => {
+    const distFromBottom = $messages.scrollHeight - $messages.scrollTop - $messages.clientHeight;
+    autoFollow = distFromBottom < FOLLOW_THRESHOLD_PX;
+  });
+
+  function scrollToBottom(force = false) {
+    if (force || autoFollow) {
+      $messages.scrollTop = $messages.scrollHeight;
+    }
   }
+  function scrollToBottomForce() { scrollToBottom(true); }
 
   // ── @mention 自动补全 ──
   const MENTION_CANDIDATES = Object.entries(NAME).map(([id, name]) => ({ id, name }));
