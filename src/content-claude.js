@@ -267,7 +267,8 @@ function detectRichContent() {
   if (imgs.length > 1) types.push("image");
   // Mermaid（Claude 偶尔嵌 mermaid）
   if (document.querySelector('code.language-mermaid, [class*="mermaid"]')) types.push("mermaid");
-  return { hasRichContent: types.length > 0, richTypes: types };
+  const imagesPending = (typeof countPendingImages === "function") ? countPendingImages() : 0;
+  return { hasRichContent: types.length > 0, richTypes: types, imagesPending };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

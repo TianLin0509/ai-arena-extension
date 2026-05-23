@@ -226,7 +226,8 @@ function detectRichContent() {
   if (document.querySelector('[class*="canvas"], canvas[width][height]')) types.push("canvas");
   if (document.querySelectorAll("main img").length > 1) types.push("image");
   if (document.querySelector('code.language-mermaid')) types.push("mermaid");
-  return { hasRichContent: types.length > 0, richTypes: types };
+  const imagesPending = (typeof countPendingImages === "function") ? countPendingImages() : 0;
+  return { hasRichContent: types.length > 0, richTypes: types, imagesPending };
 }
 
 function sleep(ms) {

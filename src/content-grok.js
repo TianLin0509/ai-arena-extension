@@ -187,7 +187,8 @@ function detectRichContent() {
   if (document.querySelectorAll("main img, .message img, [class*='response'] img").length > 1) types.push("image");
   if (document.querySelector('code.language-mermaid, [class*="mermaid"]')) types.push("mermaid");
   if (document.querySelector('[class*="canvas"]:not(button):not(input)')) types.push("canvas");
-  return { hasRichContent: types.length > 0, richTypes: types };
+  const imagesPending = (typeof countPendingImages === "function") ? countPendingImages() : 0;
+  return { hasRichContent: types.length > 0, richTypes: types, imagesPending };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

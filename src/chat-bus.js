@@ -177,8 +177,9 @@ const ChatBus = (() => {
       // v4.3.2: 空文本超时保护——某些 AI（ChatGPT 生图等）readResponse 持续返回 "",
       // 旧逻辑 `text.length > 0` 永远不真 → polling 卡死。
       // 现在：空文本累计 EMPTY_TIMEOUT_TICKS 次（每 tick 1.5s）后放弃并标记"未提取到内容"
+      // v4.3.3: 但如果有图还在加载（imagesPending>0），不算 empty timeout
       const EMPTY_TIMEOUT_TICKS = 30; // ~45 秒
-      if (text === "") {
+      if (text === "" && !(r?.imagesPending > 0)) {
         state.emptyCount = (state.emptyCount || 0) + 1;
         if (state.emptyCount >= EMPTY_TIMEOUT_TICKS) {
           clearInterval(state.intervalId);
@@ -199,7 +200,11 @@ const ChatBus = (() => {
         state.emptyCount = 0;
       }
 
-      if (text === state.lastText) {
+      // v4.3.3: stableKey 把 imagesPending 计入稳定性判定
+      // → 文本停止变化但图还在加载时，stableKey 仍会变 → 不算 stable
+      const imagesPending = r?.imagesPending || 0;
+      const stableKey = `${text}|imgPending:${imagesPending}`;
+      if (stableKey === state.lastStableKey) {
         state.sameCount++;
         if (state.sameCount >= STREAM_DONE_THRESHOLD && text.length > 0) {
           // 完成
@@ -219,6 +224,7 @@ const ChatBus = (() => {
           }
         }
       } else {
+        state.lastStableKey = stableKey;
         state.lastText = text;
         state.sameCount = 0;
         sendToPopup({

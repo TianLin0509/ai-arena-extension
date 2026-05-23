@@ -250,7 +250,8 @@ function detectRichContent() {
   if (document.querySelector('[class*="canvas-panel"], [data-element-id*="canvas"]')) types.push("canvas");
   if (document.querySelector('code.language-mermaid, [class*="mermaid"]')) types.push("mermaid");
   if (document.querySelectorAll("[data-message-author-role='assistant'] img").length > 1) types.push("image");
-  return { hasRichContent: types.length > 0, richTypes: types };
+  const imagesPending = (typeof countPendingImages === "function") ? countPendingImages() : 0;
+  return { hasRichContent: types.length > 0, richTypes: types, imagesPending };
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

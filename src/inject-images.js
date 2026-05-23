@@ -197,6 +197,27 @@ async function handleInjectImages(images) {
 // ```html ... ``` 块），导致 popup-markdown.js 不认识为代码块。
 // 这里克隆 DOM、把每个 <pre> 替换成 "```<lang>\n<code>\n```" 文本节点，
 // 再 innerText 拿全文。9 个 content-*.js 共用。
+// v4.3.3: 统计还未加载完成的图片数量（仅算实质图片，跳过 <40px 装饰图标）
+// chat-bus polling 用这个判定"text stable 但图还在加载" → 继续 poll 不算完成
+function countPendingImages(rootEl) {
+  try {
+    const root = rootEl || document;
+    const imgs = root.querySelectorAll("img");
+    let pending = 0;
+    imgs.forEach(img => {
+      const widthAttr = parseInt(img.getAttribute("width") || "0", 10);
+      const heightAttr = parseInt(img.getAttribute("height") || "0", 10);
+      const isTinyIcon = (widthAttr && widthAttr < 40) || (heightAttr && heightAttr < 40);
+      if (isTinyIcon) return;
+      const src = img.getAttribute("src");
+      if (!src) return;
+      // complete=false 或 naturalWidth=0（src 已设但未加载完成）视为 pending
+      if (!img.complete || img.naturalWidth === 0) pending++;
+    });
+    return pending;
+  } catch { return 0; }
+}
+
 // v4.3.2: blob URL → data URL 转换辅助。content-script 在 AI 域名同源下能 fetch
 // blob URL，转成 data: 后 popup（chrome-extension:// 跨 origin）才能渲染图片。
 async function blobToDataUrl(blobUrl) {
@@ -232,8 +253,9 @@ async function postProcessBlobUrls(text) {
 }
 
 function _doExtractWithFences(clone) {
-  // 公共抽取逻辑（被 extractTextWithFences 和 extractTextWithFencesAsync 复用）
+  // 公共抽取逻辑（被 extractTextWithFences 异步/同步版复用）
   const imgs = clone.querySelectorAll("img");
+  const seenSrcs = new Set();  // v4.3.3: 按 src 去重，避免 ChatGPT 等嵌套渲染同图多副本
   imgs.forEach((img, idx) => {
     const src = img.getAttribute("src") || "";
     if (!src) { img.remove(); return; }
@@ -247,6 +269,11 @@ function _doExtractWithFences(clone) {
       img.remove();
       return;
     }
+    if (seenSrcs.has(src)) {
+      img.remove();  // 重复 src 跳过
+      return;
+    }
+    seenSrcs.add(src);
     const alt = img.getAttribute("alt") || `image-${idx + 1}`;
     const mdImg = `\n\n![${alt}](${src})\n\n`;
     img.parentNode.replaceChild(document.createTextNode(mdImg), img);
