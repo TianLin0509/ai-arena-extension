@@ -1,4 +1,7 @@
 .superpowers/
+.arena/
+.playwright-mcp/
+src/_metadata/
 node_modules/
 dist/
 *.zip
