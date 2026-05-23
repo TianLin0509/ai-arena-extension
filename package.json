@@ -7,10 +7,14 @@
     "build:github": "node build.mjs github",
     "build:store": "node build.mjs store",
     "build": "node build.mjs all",
-    "test": "node --test --test-reporter=spec src/test/*.test.mjs"
+    "test": "node --test --test-reporter=spec src/test/*.test.mjs",
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "test:e2e:stress": "node tests/e2e/stress.mjs",
+    "test:e2e:all": "node tests/e2e/smoke.mjs && node tests/e2e/stress.mjs"
   },
   "devDependencies": {
-    "archiver": "^7.0.1"
+    "archiver": "^7.0.1",
+    "playwright": "^1.59.1"
   },
   "engines": {
     "node": ">=20"
