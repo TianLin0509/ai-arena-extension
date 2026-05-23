@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.0.7-beta", manifest.version_name === "4.0.7-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.0.8-beta", manifest.version_name === "4.0.8-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.0.7-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.0.8-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.0.7-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.0.8-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.0.7-beta", popupVersion === "v4.0.7-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.0.8-beta", popupVersion === "v4.0.8-beta", `actual: "${popupVersion}"`);
 
   const taskPickerBtn = await popupPage.locator("#task-picker-btn").count();
   check("popup has task-picker", taskPickerBtn === 1);
@@ -109,6 +109,23 @@ try {
 
   const inputBox = await popupPage.locator("#chat-input").count();
   check("popup has input box", inputBox === 1);
+
+  // 4b) 对话目录侧栏（v4.0.8 新增）
+  const sidebarCount = await popupPage.locator("#chat-sidebar").count();
+  check("popup has sidebar (对话目录)", sidebarCount === 1);
+  const sidebarTitle = await popupPage.locator(".sidebar-title").textContent();
+  check("sidebar 标题正确", sidebarTitle === "对话目录");
+  const sidebarToggleCount = await popupPage.locator("#sidebar-toggle").count();
+  check("sidebar 有折叠按钮", sidebarToggleCount === 1);
+  const sidebarEmpty = await popupPage.locator(".sidebar-empty").textContent();
+  check("sidebar 空状态文案", sidebarEmpty?.includes("暂无对话"));
+  const chatScrollApi = await popupPage.evaluate(() => ({
+    hasChatScroll: typeof window.ChatScroll === "object",
+    hasChatHistory: typeof window.ChatHistory === "object",
+    historyMethods: window.ChatHistory ? Object.keys(window.ChatHistory) : [],
+  }));
+  check("popup 暴露 ChatScroll API（pauseFollow/resumeFollow）", chatScrollApi.hasChatScroll);
+  check("popup 暴露 ChatHistory API", chatScrollApi.hasChatHistory && chatScrollApi.historyMethods.includes("renderAll"));
 
   // 5) 单元测试 popup-markdown 渲染（在 popup 上下文 evaluate）
   const mdResult = await popupPage.evaluate(() => {

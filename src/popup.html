@@ -7,11 +7,22 @@
 </head>
 <body>
   <div class="chat-app">
+    <aside class="chat-sidebar" id="chat-sidebar">
+      <header class="sidebar-header">
+        <span class="sidebar-title">对话目录</span>
+        <span class="sidebar-count" id="sidebar-count">0</span>
+        <button class="sidebar-toggle" id="sidebar-toggle" title="折叠 / 展开侧栏">‹</button>
+      </header>
+      <div class="sidebar-list" id="sidebar-list">
+        <div class="sidebar-empty">暂无对话</div>
+      </div>
+    </aside>
+    <div class="chat-main">
     <header class="chat-header">
       <div class="chat-title">
         <span class="chat-icon">🪟</span>
         <span class="chat-name">AI Arena 群聊</span>
-        <span class="chat-version">v4.0.7-beta</span>
+        <span class="chat-version">v4.0.8-beta</span>
       </div>
       <div class="chat-actions">
         <button class="btn-icon" id="btn-clear" title="清空群聊">🗑</button>
@@ -65,9 +76,11 @@
       </div>
       <button class="btn-send" id="btn-send" title="发送 (Ctrl+Enter)">↑</button>
     </footer>
+    </div>
   </div>
   <script src="popup-markdown.js"></script>
   <script src="popup-bubble-actions.js"></script>
+  <script src="popup-history.js"></script>
   <script src="popup-roster.js"></script>
   <script src="popup-task-menu.js"></script>
   <script src="popup.js"></script>

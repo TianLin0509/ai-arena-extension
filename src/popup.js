@@ -157,6 +157,13 @@
   }
   function scrollToBottomForce() { scrollToBottom(true); }
 
+  // 暴露给 history 侧栏：点击跳转条目时临时停 follow（避免流式更新打断阅读）
+  window.ChatScroll = {
+    pauseFollow: () => { autoFollow = false; },
+    resumeFollow: () => { autoFollow = true; scrollToBottomForce(); },
+    isFollowing: () => autoFollow,
+  };
+
   // ── @mention 自动补全 ──
   const MENTION_CANDIDATES = Object.entries(NAME).map(([id, name]) => ({ id, name }));
   let mentionActive = false;
@@ -296,6 +303,8 @@
       $messages.appendChild($empty);
       $empty.style.display = "";
       bubbleByKey.clear();
+      // 同步清空左侧历史目录
+      window.ChatHistory?.clear();
     });
   });
 

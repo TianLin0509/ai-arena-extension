@@ -30,7 +30,91 @@ body {
   color: var(--ink);
   font-size: 14px;
 }
-.chat-app { display: flex; flex-direction: column; height: 100vh; }
+/* 整体改为左右二栏（sidebar + main） */
+.chat-app { display: flex; flex-direction: row; height: 100vh; }
+.chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; }
+
+/* 左侧对话目录 */
+.chat-sidebar {
+  width: 210px; flex: 0 0 210px;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  transition: flex-basis 0.18s ease, width 0.18s ease;
+  overflow: hidden;
+}
+.chat-sidebar.collapsed { flex: 0 0 30px; width: 30px; }
+.chat-sidebar.collapsed .sidebar-title,
+.chat-sidebar.collapsed .sidebar-count,
+.chat-sidebar.collapsed .sidebar-list { display: none; }
+.sidebar-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.sidebar-title { font-weight: 600; font-size: 12px; color: var(--ink); flex: 1; letter-spacing: 0; }
+.sidebar-count {
+  font-size: 10.5px; color: var(--ink-soft);
+  background: var(--bg); padding: 1px 7px; border-radius: 999px;
+  font-family: "SF Mono", monospace;
+}
+.sidebar-toggle {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 14px;
+  padding: 2px 4px; border-radius: 4px;
+}
+.sidebar-toggle:hover { background: var(--bg); color: var(--ink); }
+.sidebar-list {
+  flex: 1; overflow-y: auto;
+  padding: 6px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sidebar-empty {
+  text-align: center; color: var(--ink-soft); font-size: 11px;
+  padding: 20px 8px;
+}
+.sidebar-item {
+  padding: 7px 9px; border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+}
+.sidebar-item:hover { background: var(--bg); border-color: var(--border); }
+.sidebar-item.active { background: rgba(10,132,255,0.1); border-color: rgba(10,132,255,0.3); }
+.sidebar-item-head {
+  display: flex; gap: 6px; align-items: center;
+  margin-bottom: 3px;
+}
+.sidebar-item-num {
+  font-size: 10px; color: var(--accent); font-weight: 600;
+  font-family: "SF Mono", monospace;
+}
+.sidebar-item-time {
+  font-size: 10px; color: var(--ink-soft);
+  font-family: "SF Mono", monospace; margin-left: auto;
+}
+.sidebar-item-text {
+  font-size: 11.5px; color: var(--ink);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* 跳转高亮动画 */
+.msg-highlight .msg-bubble {
+  animation: msg-highlight-flash 1.5s ease-out;
+}
+@keyframes msg-highlight-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(10,132,255, 0.7); }
+  30%  { box-shadow: 0 0 0 6px rgba(10,132,255, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(10,132,255, 0); }
+}
 .chat-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 16px; background: var(--card); border-bottom: 1px solid var(--border);
