@@ -1,6 +1,15 @@
 // AI Arena — popup 气泡 actions
 (function () {
   document.getElementById("chat-messages")?.addEventListener("click", async (e) => {
+    // v4.3.4: 点击 AI 头像 → 跳原页（在 button 判定前优先匹配）
+    const avatar = e.target.closest(".msg-avatar");
+    if (avatar) {
+      const row = avatar.closest(".msg.ai");
+      if (row?.dataset.participantId) {
+        chrome.runtime.sendMessage({ type: "chatJumpToOrigin", participantId: row.dataset.participantId });
+        return;
+      }
+    }
     const btn = e.target.closest("button[data-act]");
     if (!btn) return;
     const row = btn.closest(".msg");

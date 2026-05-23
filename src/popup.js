@@ -166,7 +166,23 @@
   };
 
   // ── @mention 自动补全 ──
-  const MENTION_CANDIDATES = Object.entries(NAME).map(([id, name]) => ({ id, name }));
+  // v4.3.4: 只列已加入的参与者，不再列全部 9 个 AI
+  let joinedServices = [];  // 由 stateUpdate 同步
+  function refreshJoinedFromState() {
+    chrome.runtime.sendMessage({ type: "getState" }, (state) => {
+      const set = new Set();
+      (state?.participants || []).forEach(p => set.add(p.service));
+      joinedServices = [...set];
+    });
+  }
+  refreshJoinedFromState();
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "stateUpdate") refreshJoinedFromState();
+  });
+  function currentMentionCandidates() {
+    return joinedServices.map(id => ({ id, name: NAME[id] || id }));
+  }
+
   let mentionActive = false;
   let mentionStart = -1;
 
@@ -182,9 +198,11 @@
 
   function showMentionMenu(query) {
     const q = query.toLowerCase();
-    const list = MENTION_CANDIDATES.filter(c =>
-      c.id.startsWith(q) || c.name.toLowerCase().startsWith(q)
-    );
+    const candidates = currentMentionCandidates();
+    if (!candidates.length) return hideMentionMenu();
+    const list = q
+      ? candidates.filter(c => c.id.startsWith(q) || c.name.toLowerCase().startsWith(q))
+      : candidates;
     if (!list.length) return hideMentionMenu();
     $mentionMenu.innerHTML = list.map((c, i) => `
       <div class="mention-item ${i === 0 ? 'active' : ''}" data-id="${c.id}">

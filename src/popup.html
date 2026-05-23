@@ -28,7 +28,7 @@
       <div class="chat-title">
         <span class="chat-icon">🪟</span>
         <span class="chat-name">AI Arena 群聊</span>
-        <span class="chat-version">v4.3.3-beta</span>
+        <span class="chat-version">v4.3.4-beta</span>
       </div>
       <div class="chat-actions">
         <button class="btn-icon" id="btn-clear" title="仅清空群聊窗口（不动 AI / 辩论上下文）">🗑</button>
@@ -80,7 +80,12 @@
              data-placeholder="输入消息…  Ctrl+Enter 发送  @ 单发"></div>
         <div class="mention-menu" id="mention-menu" hidden></div>
       </div>
-      <button class="btn-send" id="btn-send" title="发送 (Ctrl+Enter)">↑</button>
+      <button class="btn-send" id="btn-send" title="发送 (Ctrl+Enter)" aria-label="发送">
+        <svg class="btn-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 19V5"/>
+          <path d="M5 12l7-7 7 7"/>
+        </svg>
+      </button>
     </footer>
     </div>
     <aside class="chat-rightpanel" id="chat-rightpanel">

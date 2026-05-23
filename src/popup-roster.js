@@ -14,6 +14,7 @@
 
   let participants = [];
   let selected = new Set();
+  let lastKnownServices = new Set();  // v4.3.4: 记录上次 known 列表，识别新加入的 AI
 
   async function refresh() {
     chrome.runtime.sendMessage({ type: "getState" }, (state) => {
@@ -24,6 +25,11 @@
         if (Array.isArray(data.rosterSelected)) {
           selected = new Set(data.rosterSelected.filter(s => known.has(s)));
         }
+        // v4.3.4: 新加入的 AI（known 里有但 lastKnownServices 里没有）→ 自动选中
+        for (const s of known) {
+          if (!lastKnownServices.has(s) && !selected.has(s)) selected.add(s);
+        }
+        lastKnownServices = known;
         if (selected.size === 0) selected = new Set(known);
         render();
       });

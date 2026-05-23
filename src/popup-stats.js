@@ -78,10 +78,48 @@
         if (!lifetimeStats.models) lifetimeStats.models = {};
       }
     } catch (_) {}
-    // 本次 session stats 由 popup.js / sidepanel.js 维护，
-    // 这里通过监听 stats:updated event 同步
     render();
   }
+
+  // v4.3.4: popup-stats 自己监听 chatStreamUpdate 累计本次 session 统计
+  // 不再依赖 sidepanel 推送
+  const _seenUserMsgIds = new Set();
+  const _seenAiMsgIds = new Set();   // 已计字数的 ai msgId+participant
+  function recordSession(msg) {
+    if (!msg) return;
+    if (msg.role === "user" && msg.msgId && !_seenUserMsgIds.has(msg.msgId)) {
+      _seenUserMsgIds.add(msg.msgId);
+      sessionStats.conversations++;
+      lifetimeStats.conversations = (lifetimeStats.conversations || 0) + 1;
+      persistLifetime();
+      render();
+      return;
+    }
+    if (msg.role === "ai" && msg.isDone && msg.text && msg.participantId) {
+      const key = `${msg.msgId}::${msg.participantId}`;
+      if (_seenAiMsgIds.has(key)) return;
+      _seenAiMsgIds.add(key);
+      const chars = (msg.text || "").length;
+      sessionStats.totalChars += chars;
+      lifetimeStats.totalChars = (lifetimeStats.totalChars || 0) + chars;
+      if (!lifetimeStats.models) lifetimeStats.models = {};
+      if (!lifetimeStats.models[msg.participantId]) {
+        lifetimeStats.models[msg.participantId] = { chars: 0, rounds: 0 };
+      }
+      lifetimeStats.models[msg.participantId].chars += chars;
+      lifetimeStats.models[msg.participantId].rounds++;
+      persistLifetime();
+      render();
+    }
+  }
+  function persistLifetime() {
+    try { chrome.storage.local.set({ [STATS_KEY]: lifetimeStats }); } catch (_) {}
+  }
+  try {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg?.type === "chatStreamUpdate") recordSession(msg);
+    });
+  } catch (_) {}
 
   document.addEventListener("rp:activated", (e) => {
     if (e.detail?.tab === "stats") refresh();
