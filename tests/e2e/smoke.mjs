@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.0.8-beta", manifest.version_name === "4.0.8-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.0.9-beta", manifest.version_name === "4.0.9-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.0.8-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.0.9-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.0.8-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.0.9-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.0.8-beta", popupVersion === "v4.0.8-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.0.9-beta", popupVersion === "v4.0.9-beta", `actual: "${popupVersion}"`);
 
   const taskPickerBtn = await popupPage.locator("#task-picker-btn").count();
   check("popup has task-picker", taskPickerBtn === 1);
@@ -126,6 +126,61 @@ try {
   }));
   check("popup 暴露 ChatScroll API（pauseFollow/resumeFollow）", chatScrollApi.hasChatScroll);
   check("popup 暴露 ChatHistory API", chatScrollApi.hasChatHistory && chatScrollApi.historyMethods.includes("renderAll"));
+
+  // 4c) v4.0.9：搜索 + 全局模式 toggle + drag grabber
+  const searchInputCount = await popupPage.locator("#sidebar-search").count();
+  check("sidebar 搜索框存在", searchInputCount === 1);
+  const searchModeToggle = await popupPage.locator("#sidebar-mode-toggle").count();
+  check("sidebar 模式 toggle（仅提问 / 全局）存在", searchModeToggle === 1);
+  const defaultMode = await popupPage.locator("#sidebar-mode-toggle").getAttribute("data-mode");
+  check("默认搜索模式 = question（仅搜提问）", defaultMode === "question");
+  const grabberCount = await popupPage.locator("#sidebar-grabber").count();
+  check("sidebar drag-resize grabber 存在", grabberCount === 1);
+
+  // 模拟注入几条 chatLog 数据测搜索 + 分组渲染
+  const renderResult = await popupPage.evaluate(async () => {
+    const now = Date.now();
+    const fakeLog = [
+      { role: "user", msgId: "u1", text: "分析下宁德时代估值", ts: now - 3600_000 },
+      { role: "ai", msgId: "u1", participantId: "claude", text: "宁德时代 PE 23x 合理但不便宜", ts: now - 3590_000 },
+      { role: "user", msgId: "u2", text: "存货周转怎样", ts: now - 1800_000 },
+      { role: "ai", msgId: "u2", participantId: "gemini", text: "存货周转天数 65 天 平稳", ts: now - 1790_000 },
+    ];
+    window.ChatHistory.renderAll(fakeLog);
+    await new Promise(r => setTimeout(r, 100));
+    const items = [...document.querySelectorAll(".sidebar-item")];
+    const groupLabels = [...document.querySelectorAll(".sidebar-group-label")].map(e => e.textContent);
+    return {
+      itemCount: items.length,
+      roles: items.map(i => i.dataset.role),
+      groupLabels,
+    };
+  });
+  check("默认模式下只显示 user 条目（2 条）", renderResult.itemCount === 2 && renderResult.roles.every(r => r === "user"),
+    JSON.stringify(renderResult));
+  check("时间分组标签出现", renderResult.groupLabels.length >= 1,
+    `groups: ${JSON.stringify(renderResult.groupLabels)}`);
+
+  // 切换到全局模式 → 显示 4 条
+  await popupPage.locator("#sidebar-mode-toggle").click();
+  await popupPage.waitForTimeout(150);
+  const globalCount = await popupPage.locator(".sidebar-item").count();
+  check("全局模式下显示 4 条（含 AI 回答）", globalCount === 4, `actual: ${globalCount}`);
+
+  // 搜索"周转" → 应该只剩 user "存货周转怎样" 1 条（全局模式下还有 AI "存货周转天数..." → 2 条）
+  await popupPage.locator("#sidebar-search").fill("周转");
+  await popupPage.waitForTimeout(150);
+  const searchMatched = await popupPage.locator(".sidebar-item").count();
+  check("搜索'周转'匹配 2 条（user + ai 各 1）", searchMatched === 2, `actual: ${searchMatched}`);
+  const markCount = await popupPage.locator(".sidebar-item mark").count();
+  check("搜索关键词高亮 <mark>", markCount === 2);
+
+  // 清空搜索 + 切回 question 模式
+  await popupPage.locator("#sidebar-search").fill("");
+  await popupPage.locator("#sidebar-mode-toggle").click();
+  await popupPage.waitForTimeout(150);
+  const backCount = await popupPage.locator(".sidebar-item").count();
+  check("切回 question 模式 + 清空搜索 → 恢复 2 条", backCount === 2, `actual: ${backCount}`);
 
   // 5) 单元测试 popup-markdown 渲染（在 popup 上下文 evaluate）
   const mdResult = await popupPage.evaluate(() => {
