@@ -13,39 +13,56 @@
   ];
   const SERVICE_MAP = Object.fromEntries(ALL_SERVICES.map(s => [s.id, s]));
 
-  // v4.3.14: 模型实力榜（静态数据，2026-05 lmarena Chatbot Arena）
+  // v4.3.16: 模型实力榜（基于 2026-05 arena.ai 实时数据 — 不再凭印象编）
+  // 数据源：https://arena.ai/leaderboard/text （前身 lmarena.ai，已 301 到 arena.ai）
   // 升级模型 / 刷新分数时在这里更新一次即可
   const LEADERBOARD_DATE = "2026-05";
-  const LEADERBOARD_URL = "https://lmarena.ai/leaderboard";
+  const LEADERBOARD_URL = "https://arena.ai/leaderboard/text";
   const LEADERBOARD = [
-    { service: "chatgpt",  model: "GPT-5",           elo: 1402, grade: "S+" },
-    { service: "claude",   model: "Claude Opus 4.6", elo: 1389, grade: "S+" },
-    { service: "gemini",   model: "Gemini 2.5 Pro",  elo: 1370, grade: "S"  },
-    { service: "grok",     model: "Grok 4",          elo: 1320, grade: "S"  },
-    { service: "deepseek", model: "DeepSeek V3.5",   elo: 1295, grade: "A"  },
-    { service: "kimi",     model: "Kimi K2",         elo: 1240, grade: "A"  },
-    { service: "qwen",     model: "千问 Max",        elo: 1180, grade: "B"  },
-    { service: "doubao",   model: "豆包 1.5 Pro",    elo: 1090, grade: "C"  },
-    { service: "yuanbao",  model: "元宝 (混元)",     elo: 1050, grade: "C"  },
+    { service: "claude",   model: "Claude Opus 4.6 Thinking", elo: 1502, rank: 1,   grade: "S+" },
+    { service: "gemini",   model: "Gemini 3.1 Pro Preview",   elo: 1488, rank: 6,   grade: "S+" },
+    { service: "chatgpt",  model: "GPT-5.5 High",             elo: 1481, rank: 8,   grade: "S+" },
+    { service: "grok",     model: "Grok 4.20 Beta",           elo: 1478, rank: 12,  grade: "S"  },
+    { service: "qwen",     model: "Qwen 3.5 Max Preview",     elo: 1464, rank: 27,  grade: "S"  },
+    { service: "kimi",     model: "Kimi K2.6",                elo: 1462, rank: 29,  grade: "S"  },
+    { service: "deepseek", model: "DeepSeek V4 Pro Thinking", elo: 1461, rank: 30,  grade: "S"  },
+    { service: "yuanbao",  model: "Hunyuan HY3 Preview",      elo: 1417, rank: 86,  grade: "B"  },
+    { service: "doubao",   model: "豆包",                      elo: null, rank: null, grade: "?", notRanked: true },
   ];
 
   function renderLeaderboard() {
-    const maxElo = Math.max(...LEADERBOARD.map(m => m.elo));
-    const minElo = Math.min(...LEADERBOARD.map(m => m.elo));
+    const ranked = LEADERBOARD.filter(m => typeof m.elo === "number");
+    const maxElo = Math.max(...ranked.map(m => m.elo));
+    const minElo = Math.min(...ranked.map(m => m.elo));
     const span = Math.max(1, maxElo - minElo);
     return `
       <div class="rp-section-title rp-lb-title" style="margin-top:18px">
         <button class="rp-lb-toggle" id="rp-lb-toggle" title="${lbCollapsed ? "展开" : "折叠"}排行榜" aria-expanded="${!lbCollapsed}">${lbCollapsed ? "▸" : "▾"}</button>
         <span>模型实力榜</span>
-        <span class="rp-lb-meta">${LEADERBOARD_DATE} · Chatbot Arena</span>
+        <span class="rp-lb-meta">${LEADERBOARD_DATE} · arena.ai</span>
       </div>
       <div class="rp-leaderboard ${lbCollapsed ? "collapsed" : ""}">
         ${LEADERBOARD.map(m => {
           const meta = SERVICE_MAP[m.service] || { logo: null };
+          const gradeCls = m.grade.replace("+", "plus").replace("?", "unranked");
+          if (m.notRanked) {
+            return `
+              <div class="rp-lb-row rp-lb-row-unranked" data-service="${m.service}" title="${escapeHtml(m.model)} 未进入 Arena Top 181">
+                <div class="rp-lb-head">
+                  ${meta.logo ? `<img class="rp-lb-logo" src="${meta.logo}" alt="">` : ""}
+                  <span class="rp-lb-name">${escapeHtml(m.model)}</span>
+                  <span class="rp-lb-grade-tiny rp-lb-grade-unranked" title="未在 Arena Top 181 出现">未参榜</span>
+                </div>
+                <div class="rp-lb-bar-wrap">
+                  <div class="rp-lb-bar-bg"><div class="rp-lb-bar-fill rp-lb-bar-unranked" style="width:0%"></div></div>
+                  <span class="rp-lb-elo">—</span>
+                </div>
+              </div>`;
+          }
           const pct = ((m.elo - minElo) / span * 100).toFixed(1);
-          const gradeCls = m.grade.replace("+", "plus");
+          const rankBadge = m.rank ? `#${m.rank}` : "";
           return `
-            <div class="rp-lb-row" data-service="${m.service}" title="${escapeHtml(m.model)} · Elo ${m.elo}">
+            <div class="rp-lb-row" data-service="${m.service}" title="${escapeHtml(m.model)} · Elo ${m.elo} · 全球排名 ${rankBadge}">
               <div class="rp-lb-head">
                 ${meta.logo ? `<img class="rp-lb-logo" src="${meta.logo}" alt="">` : ""}
                 <span class="rp-lb-name">${escapeHtml(m.model)}</span>
@@ -53,11 +70,11 @@
               </div>
               <div class="rp-lb-bar-wrap">
                 <div class="rp-lb-bar-bg"><div class="rp-lb-bar-fill rp-lb-bar-${gradeCls}" style="width:${pct}%"></div></div>
-                <span class="rp-lb-elo">${m.elo}</span>
+                <span class="rp-lb-elo" title="全球排名 ${rankBadge}">${m.elo}</span>
               </div>
             </div>`;
         }).join("")}
-        <a class="rp-lb-source" href="${LEADERBOARD_URL}" target="_blank" rel="noopener noreferrer">数据来源 · lmarena.ai ↗</a>
+        <a class="rp-lb-source" href="${LEADERBOARD_URL}" target="_blank" rel="noopener noreferrer">数据来源 · arena.ai ↗</a>
       </div>
     `;
   }

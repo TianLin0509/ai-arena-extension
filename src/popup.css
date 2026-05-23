@@ -691,6 +691,14 @@ body {
 .rp-lb-grade-A { background: linear-gradient(135deg, #34c759, #30d158); color: #fff; }
 .rp-lb-grade-B { background: linear-gradient(135deg, #ff9f0a, #ffb340); color: #fff; }
 .rp-lb-grade-C { background: var(--ink-soft); color: #fff; }
+.rp-lb-grade-unranked {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px dashed var(--ink-soft);
+  font-size: 8px;
+  padding: 0 4px;
+  min-width: auto;
+}
 
 /* progress bar 填充色 */
 .rp-lb-bar-Splus { background: linear-gradient(90deg, #ffd700, #c084fc); box-shadow: 0 0 6px rgba(192,132,252,0.3); }
@@ -698,6 +706,9 @@ body {
 .rp-lb-bar-A { background: linear-gradient(90deg, #34c759, #30d158); }
 .rp-lb-bar-B { background: linear-gradient(90deg, #ff9f0a, #ffb340); }
 .rp-lb-bar-C { background: var(--ink-soft); }
+.rp-lb-bar-unranked { background: transparent; }
+.rp-lb-row-unranked { opacity: 0.6; }
+.rp-lb-row-unranked .rp-lb-name { color: var(--ink-soft); }
 
 /* 作者标语 */
 .rp-manifesto {
