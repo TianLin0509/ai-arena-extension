@@ -168,14 +168,15 @@ const ChatBus = (() => {
   // 外部触发的轮次（辩论 / 总结 / 手动发送）：不再 inject（外部已 inject），只显示用户气泡+启动 polling
   // displayText = popup 用户气泡显示文本（如"⚔️ 第1轮辩论·自由"）
   // participantServices = 受影响的参与者 service id 列表（如 ["claude","gemini","chatgpt"]）
-  function notifyRoundStart(displayText, participantServices) {
+  // presetMsgId = v4.6.13 F20: 外部预生成 msgId（用于辩论 pending 占位 → 正式状态复用同气泡）
+  function notifyRoundStart(displayText, participantServices, presetMsgId) {
     const allParticipants = StateMachine.participants || [];
     const targetList = participantServices?.length
       ? allParticipants.filter(p => participantServices.includes(p.service))
       : allParticipants;
     if (!targetList.length) return { ok: false, error: "无目标参与者" };
 
-    const msgId = newMsgId();
+    const msgId = presetMsgId || newMsgId();
     pushLog({ role: "user", msgId, text: displayText, ts: Date.now() });
     sendToPopup({ type: "chatStreamUpdate", role: "user", msgId, text: displayText });
 

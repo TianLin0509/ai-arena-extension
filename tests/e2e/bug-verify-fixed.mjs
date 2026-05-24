@@ -246,6 +246,24 @@ function staticCheck() {
       pattern: /F19.*一并清 watchers/s,
       desc: "F19 clearAllPollers 一并清 watchers",
     },
+    {
+      id: "F20-pending",
+      file: "src/background.js",
+      pattern: /F20.*立刻推 pending 占位气泡/s,
+      desc: "F20 handleDebateRound 入口立刻推占位",
+    },
+    {
+      id: "F20-msgId-reuse",
+      file: "src/chat-bus.js",
+      pattern: /presetMsgId.*F20/s,
+      desc: "F20 notifyRoundStart 支持 presetMsgId",
+    },
+    {
+      id: "F20-popup-dedupe",
+      file: "src/popup.js",
+      pattern: /F20.*同 msgId 已存在.*更新文本/s,
+      desc: "F20 popup appendUserMessage 同 msgId 更新",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
@@ -535,6 +553,81 @@ try {
   } else {
     record("F13-fix", "regression", f13,
       `pendingSummary=${JSON.stringify(f13.pendingSummary_afterReset)} disconnectCount=${f13.disconnectMessageCount}`);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F20-fix: 辩论按下立刻显示 pending 占位气泡，inject 完成后用同 msgId 替换为正式状态
+  // 模拟 inject 慢 2 秒，验证 popup 在 inject 完成前就收到占位消息
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F20-fix: 辩论 pending 占位气泡 ===");
+  const f20 = await sw.evaluate(async () => {
+    return new Promise(async (resolve) => {
+      StateMachine.hardReset();
+      StateMachine.participants = [
+        { id: "p1", service: "ai_a", tabId: 61001, name: "A", response: "A 的初次回答", responsePreview: "A" },
+        { id: "p2", service: "ai_b", tabId: 61002, name: "B", response: "B 的初次回答", responsePreview: "B" },
+      ];
+
+      // mock inject 慢 2 秒
+      const origTabsSend = chrome.tabs.sendMessage;
+      chrome.tabs.sendMessage = async (tid, msg) => {
+        if (msg.action === "inject") {
+          await new Promise(r => setTimeout(r, 2000));
+          return { site: "test", status: "sent" };
+        }
+        if (msg.action === "readResponse") {
+          return { text: "", isStreaming: true, hasRichContent: false, richTypes: [], imagesPending: 0 };
+        }
+        return { status: "sent" };
+      };
+
+      // 捕获按时间戳的 user 消息
+      const userMsgs = [];
+      const origRuntime = chrome.runtime.sendMessage;
+      chrome.runtime.sendMessage = (m) => {
+        if (m?.type === "chatStreamUpdate" && m?.role === "user") {
+          userMsgs.push({ ts: Date.now(), msgId: m.msgId, text: m.text });
+        }
+        return Promise.resolve();
+      };
+
+      const t0 = Date.now();
+      // 触发辩论（直接调函数）
+      const debatePromise = (typeof self.handleDebateRound === "function")
+        ? self.handleDebateRound("free", "", false)
+        : handleDebateRound("free", "", false);
+
+      // 等 500ms 看是否立刻有 pending 消息（应该在 inject 2s 之前）
+      await new Promise(r => setTimeout(r, 500));
+      const pendingAt500ms = userMsgs.find(m => m.text.includes("正在发起"));
+
+      // 等辩论完成（inject 2s + 后续）
+      await debatePromise.catch(() => {});
+
+      chrome.tabs.sendMessage = origTabsSend;
+      chrome.runtime.sendMessage = origRuntime;
+
+      // 检查：pending 占位先到（含"正在发起"），正式 displayText 后到（不含"正在发起"），两条同 msgId
+      const finalMsg = userMsgs.find(m => !m.text.includes("正在发起") && m.text.includes("辩论"));
+      resolve({
+        totalUserMsgs: userMsgs.length,
+        pending_at_500ms_arrived: !!pendingAt500ms,
+        pending_text: pendingAt500ms?.text || null,
+        pending_msgId: pendingAt500ms?.msgId || null,
+        final_text: finalMsg?.text || null,
+        final_msgId: finalMsg?.msgId || null,
+        same_msgId: pendingAt500ms && finalMsg && pendingAt500ms.msgId === finalMsg.msgId,
+        time_to_pending_ms: pendingAt500ms ? pendingAt500ms.ts - t0 : -1,
+      });
+    });
+  });
+  if (f20.pending_at_500ms_arrived && f20.same_msgId && f20.time_to_pending_ms < 500) {
+    record("F20-fix", "fixed", f20,
+      `按下后 ${f20.time_to_pending_ms}ms 内立刻收到 pending 占位（含"正在发起..."），inject 完成后同 msgId 替换为正式显示文本`);
+  } else if (!f20.pending_at_500ms_arrived) {
+    record("F20-fix", "regression", f20, "500ms 内未收到 pending 占位 — 仍是老的等 inject 完成才出气泡");
+  } else {
+    record("F20-fix", "partial", f20, `pending 收到但 msgId 复用失败 — 会变成两条 user 消息`);
   }
 
   // ════════════════════════════════════════════════════════

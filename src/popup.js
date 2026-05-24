@@ -64,6 +64,16 @@
 
   function appendUserMessage(text, msgId) {
     ensureEmptyHidden();
+    // v4.6.13 F20: 同 msgId 已存在 → 更新文本（用于辩论 pending 占位 → 正式状态过渡）
+    // 避免同一辩论按下产生两条 user 气泡（先 "正在发起..." 后 "第 N 轮辩论"）
+    if (msgId) {
+      const existing = $messages.querySelector(`.msg.me[data-msg-id="${CSS.escape(msgId)}"]`);
+      if (existing) {
+        const bubble = existing.querySelector(".msg-bubble");
+        if (bubble) bubble.textContent = text;
+        return;
+      }
+    }
     const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
     row.className = "msg me";

@@ -500,6 +500,31 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
   StateMachine.setFlowState(FlowState.BROADCASTING);
   notifyStatus(`第${roundNum}轮：以「${DEBATE_STYLES[style]?.name || style}」风格交叉发送...`);
 
+  // v4.6.13 F20: 立刻推 pending 占位气泡 — 在 inject 1-3s 等待前先让 popup 显示反馈
+  // 避免用户按下辩论按钮后觉得"插件卡住了"。inject 完成后用同 msgId 替换为正式 displayText。
+  const styleName = DEBATE_STYLES[style]?.name || style;
+  const guidanceSuffix = guidance ? `：${guidance}` : "";
+  const displayText = `⚔️ 第${roundNum}轮辩论·${styleName}${guidanceSuffix}`;
+  const pendingMsgId = `m${Date.now()}_d${roundNum}`;
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "user",
+      msgId: pendingMsgId,
+      text: `${displayText} · 正在发起...`,
+    }).catch(() => {});
+    // 给每个候选参与者推 loading 气泡占位
+    for (const id of Object.keys(responses)) {
+      const p = StateMachine.getParticipant(id);
+      if (p?.service) {
+        chrome.runtime.sendMessage({
+          type: "chatStreamUpdate", role: "ai",
+          msgId: pendingMsgId, participantId: p.service,
+          text: "", isDone: false,
+        }).catch(() => {});
+      }
+    }
+  } catch (_) {}
+
   // v4.5.5 F4: 进入新一轮前先清所有参与者 response，防止上一轮某个 AI 晚到的回答
   // 污染下一轮 — race 场景：A/B 5-8s 完成 → 用户启动第 1 轮 → C 15s 晚到，C 的旧轮
   // 初始回答会塞进 p.response，下一轮 buildDebatePrompt 拿到混乱上下文
@@ -555,12 +580,10 @@ async function handleDebateRound(style = "free", guidance = "", concise = false)
   notifyStatus(`第${roundNum}轮辩论已发送`);
 
   // 同步 popup 群聊：显示用户气泡 + 启动 polling 给每个参与者
+  // v4.6.13 F20: 用 pendingMsgId 复用入口时推的占位气泡 → popup 收到时更新文本而非新增气泡
   try {
-    const styleName = DEBATE_STYLES[style]?.name || style;
-    const guidanceSuffix = guidance ? `：${guidance}` : "";
-    const displayText = `⚔️ 第${roundNum}轮辩论·${styleName}${guidanceSuffix}`;
     const services = sentIds.map(id => StateMachine.getParticipant(id)?.service).filter(Boolean);
-    ChatBus.notifyRoundStart(displayText, services);
+    ChatBus.notifyRoundStart(displayText, services, pendingMsgId);
   } catch (e) { console.warn("[chat-bus] notifyRoundStart failed:", e.message); }
 
   return { ok: true, roundNum, activeIds: sentIds, results: sendResults };
