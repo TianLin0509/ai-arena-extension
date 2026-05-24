@@ -134,11 +134,13 @@ async function injectBootstrapToTab(tabId, url, reason) {
 async function injectBootstrapToExistingTabs() {
   console.log("[F32+] scan existing AI tabs");
   let injected = 0, failed = 0, totalMatched = 0;
+  const aiTabIds = [];
   for (const pattern of AI_URL_PATTERNS) {
     try {
       const tabs = await chrome.tabs.query({ url: pattern });
       totalMatched += tabs.length;
       for (const tab of tabs) {
+        aiTabIds.push({ id: tab.id, windowId: tab.windowId });
         const r = await injectBootstrapToTab(tab.id, tab.url, "startup");
         if (r.ok && !r.skipped) injected++;
         else if (!r.ok) failed++;
@@ -148,6 +150,38 @@ async function injectBootstrapToExistingTabs() {
     }
   }
   console.log(`[F32+] scan DONE matched=${totalMatched} injected=${injected} failed=${failed}`);
+
+  // v4.8.24 F34: 一次性激活所有现有 AI window — 触发 Chrome "曾 visible" 标记
+  // 否则用户 reload 扩展后老 AI tab 仍处于 never-visible 状态 → Heavy Timer Throttling
+  await activateAiWindowsOnce(aiTabIds);
+}
+
+let _activatedOnce = false;
+async function activateAiWindowsOnce(aiTabs) {
+  if (_activatedOnce || !aiTabs.length) return;
+  _activatedOnce = true;
+  const uniqueWindowIds = [...new Set(aiTabs.map(t => t.windowId).filter(w => w != null))];
+  if (!uniqueWindowIds.length) return;
+  // 记下当前 focused window 准备恢复
+  let originalFocusedWindowId = null;
+  try {
+    const wins = await chrome.windows.getAll();
+    originalFocusedWindowId = wins.find(w => w.focused)?.id;
+  } catch {}
+  console.log(`[F34] activating ${uniqueWindowIds.length} AI windows once (anti heavy-throttle)`);
+  for (const wid of uniqueWindowIds) {
+    try {
+      await chrome.windows.update(wid, { focused: true });
+      await new Promise(r => setTimeout(r, 120));
+    } catch (e) {
+      console.warn(`[F34] activate win ${wid}: ${e?.message}`);
+    }
+  }
+  // 还原原始焦点
+  if (originalFocusedWindowId) {
+    try { await chrome.windows.update(originalFocusedWindowId, { focused: true }); } catch {}
+  }
+  console.log(`[F34] activation done, focus restored to ${originalFocusedWindowId}`);
 }
 
 // 触发 1: 安装 / 启动 / SW 唤醒
@@ -423,10 +457,14 @@ async function addParticipant(service) {
     // 并列模式：每个 AI 开独立窗口
     const isFirst = StateMachine.participants.length === 0;
     const targetLayout = await getAiTargetLayout(lastKnownScreen);
+    // v4.8.24 F34: focused:true 让 AI window 短暂可见，触发 Chrome 内核的"曾 visible"
+    // 标记 — 否则 from-never-visible tab 触发 Heavy Timer Throttling (1/min 严格 throttle)
+    // 即使 visibility patch 都救不了，因为 chrome chain count 看 C++ 层 history，不看 JS getter
+    // 500ms 后 focusPopup 会切回 popup，用户视觉上仅看到一瞬间 AI window 闪现
     const win = await chrome.windows.create({
       url: info.url,
       state: "normal",
-      focused: false,
+      focused: true,
       ...windowBoundsForCreate(targetLayout.screen)
     });
     tabId = win.tabs[0].id;
