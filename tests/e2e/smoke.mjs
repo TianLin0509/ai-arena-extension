@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.17-beta", manifest.version_name === "4.8.17-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.18-beta", manifest.version_name === "4.8.18-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.17-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.18-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.17-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.18-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.17-beta", popupVersion === "v4.8.17-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.18-beta", popupVersion === "v4.8.18-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1575,6 +1575,40 @@ try {
       && summaryCheck.titleHasJudgeName
       && summaryCheck.keepsFallbackEmoji,
     JSON.stringify(summaryCheck));
+
+  // ========== v4.8.18: 主题中文化 ==========
+  console.log("\n[smoke] === v4.8.18 主题中文名 ===");
+  const themeNamesCheck = await popupPage.evaluate(async () => {
+    document.querySelector('.rp-tab[data-tab="settings"]')?.click();
+    await new Promise(r => setTimeout(r, 300));
+    const items = [...document.querySelectorAll(".rp-theme-item")];
+    const names = items.map(el => {
+      // 文字部分（去掉 ✓）
+      const txt = el.textContent.trim().replace(/[✓\s]/g, "");
+      return { id: el.dataset.theme, name: txt };
+    });
+    return names;
+  });
+  const expectedZh = {
+    C: "极光琉璃", A: "深海指挥", B: "暖橙书页",
+    D: "霓虹赛博", E: "月白极简", F: "落日熔金",
+  };
+  const allZhMatch = Object.entries(expectedZh).every(([id, zh]) => {
+    const found = themeNamesCheck.find(n => n.id === id);
+    return found && found.name.includes(zh);
+  });
+  check("v4.8.18: 6 个主题都用中文名（极光琉璃/深海指挥/暖橙书页/霓虹赛博/月白极简/落日熔金）",
+    allZhMatch, JSON.stringify(themeNamesCheck));
+
+  // sidepanel 主题菜单也中文化
+  const sidepanelThemeCheck = await sidepanelPage.evaluate(() => {
+    const items = [...document.querySelectorAll(".theme-menu-item")];
+    return items.map(el => el.textContent.trim());
+  });
+  const sidepanelHasZh = ["极光琉璃","深海指挥","暖橙书页","霓虹赛博","月白极简","落日熔金"]
+    .every(zh => sidepanelThemeCheck.some(t => t.includes(zh)));
+  check("v4.8.18: sidepanel 主题菜单也中文化",
+    sidepanelHasZh, JSON.stringify(sidepanelThemeCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);
