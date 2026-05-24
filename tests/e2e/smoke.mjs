@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.6.0-beta", manifest.version_name === "4.6.0-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.6.1-beta", manifest.version_name === "4.6.1-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.6.0-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.6.1-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.6.0-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.6.1-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.6.0-beta", popupVersion === "v4.6.0-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.6.1-beta", popupVersion === "v4.6.1-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -415,6 +415,39 @@ try {
   });
   check("v4.6.0: 角色帽 duty override 生效",
     overrideTest.got === "OVERRIDE_CRITIC_DUTY", JSON.stringify(overrideTest));
+
+  // v4.6.1: 审查修复 — 验证 className 一致（不再有 .rp-hat-bar 查询 bug）
+  const noClassNameBug = await popupPage.evaluate(() => {
+    return {
+      sectionCount: document.querySelectorAll("#rp-panel-members .rp-hat-section").length,
+      barCount: document.querySelectorAll("#rp-panel-members .rp-hat-bar").length
+    };
+  });
+  check("v4.6.1: 成员栏只有 1 个 .rp-hat-section（不重复插入）",
+    noClassNameBug.sectionCount === 1, JSON.stringify(noClassNameBug));
+
+  // v4.6.1: togglePreview 跨区收起 — 在任务模板区展开 + 角色帽区点击 → 任务模板那个应被收起
+  await popupPage.click('.rp-tab[data-tab="templates"]');
+  await popupPage.waitForTimeout(200);
+  const togglePreviewCross = await popupPage.evaluate(async () => {
+    // 1. 在任务模板区展开 debate.free
+    const taskRow = document.querySelector('#tpl-builtin-list .tpl-item[data-binding="debate.free"] .tpl-row');
+    taskRow.click();
+    await new Promise(r => setTimeout(r, 100));
+    const taskExpandedBefore = document.querySelector('#tpl-builtin-list .tpl-item[data-binding="debate.free"]').classList.contains("tpl-expanded");
+    // 2. 在角色帽区点击 role.clarifier
+    const roleRow = document.querySelector('#tpl-role-list .tpl-item[data-binding="role.clarifier"] .tpl-row');
+    roleRow.click();
+    await new Promise(r => setTimeout(r, 100));
+    const taskExpandedAfter = document.querySelector('#tpl-builtin-list .tpl-item[data-binding="debate.free"]').classList.contains("tpl-expanded");
+    const roleExpandedAfter = document.querySelector('#tpl-role-list .tpl-item[data-binding="role.clarifier"]').classList.contains("tpl-expanded");
+    return { taskExpandedBefore, taskExpandedAfter, roleExpandedAfter };
+  });
+  check("v4.6.1: togglePreview 跨区收起 — 点角色帽后任务模板自动收起",
+    togglePreviewCross.taskExpandedBefore === true
+      && togglePreviewCross.taskExpandedAfter === false
+      && togglePreviewCross.roleExpandedAfter === true,
+    JSON.stringify(togglePreviewCross));
 
   // 切回 templates Tab（之后断言依赖）
   await popupPage.click('.rp-tab[data-tab="templates"]');

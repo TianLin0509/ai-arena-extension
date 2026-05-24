@@ -173,7 +173,8 @@
 
   function togglePreview(item, binding) {
     const wasOpen = item.classList.contains("tpl-expanded");
-    document.querySelectorAll("#tpl-builtin-list .tpl-item").forEach(x => x.classList.remove("tpl-expanded"));
+    // v4.6.1 P1 fix: 收起涵盖任务模板 + 角色帽两区（场景预设单击 = insert 不展开，不需要收起）
+    document.querySelectorAll("#tpl-builtin-list .tpl-item, #tpl-role-list .tpl-item").forEach(x => x.classList.remove("tpl-expanded"));
     if (wasOpen) return;
     item.classList.add("tpl-expanded");
     const tpl = Store.resolveTemplate(binding);
