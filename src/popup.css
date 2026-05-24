@@ -275,6 +275,42 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
   transition: all 0.15s;
 }
+
+/* v4.5.3: 顶栏 AI 窗口布局切换（紧凑 segmented control） */
+.hdr-mode-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  height: 28px;
+  margin-right: 4px;
+  gap: 1px;
+}
+.hdr-mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+}
+.hdr-mode-btn:hover { color: var(--ink); }
+.hdr-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
 .btn-icon:hover {
   background: var(--bg);
   color: var(--ink);

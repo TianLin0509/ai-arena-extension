@@ -29,9 +29,13 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v4.5.2-beta</span>
+        <span class="chat-version">v4.5.3-beta</span>
       </div>
       <div class="chat-actions">
+        <div class="hdr-mode-toggle" id="hdr-mode-toggle" role="group" aria-label="AI 窗口布局">
+          <button type="button" class="hdr-mode-btn" data-mode="tab" title="所有 AI 同窗口不同标签页">Tab</button>
+          <button type="button" class="hdr-mode-btn" data-mode="tiled" title="每个 AI 独立窗口并列">并列</button>
+        </div>
         <button class="btn-icon" id="btn-clear" title="仅清空群聊窗口（不动 AI / 辩论上下文）" aria-label="清空群聊">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -180,6 +184,7 @@
   <script src="popup-tasks.js"></script>
   <script src="popup-stats.js"></script>
   <script src="popup-settings.js"></script>
+  <script src="popup-window-mode.js"></script>
   <script src="templates-builtin.js"></script>
   <script src="template-store.js"></script>
   <script src="popup-templates.js"></script>

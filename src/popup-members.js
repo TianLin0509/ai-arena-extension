@@ -89,7 +89,8 @@
     `;
   }
 
-  const state = { participants: [], layoutMode: "tiled" };
+  // v4.5.3: layoutMode 已迁到顶栏（popup-window-mode.js）
+  const state = { participants: [] };
   // v4.3.11: 成员状态直接跟主区气泡同步，不依赖 StateMachine 字段更新
   // key=service, value="busy"|"ready"|"error"|"skipped"
   const streamStatus = new Map();
@@ -160,21 +161,12 @@
         `).join("")}
       </div>
 
-      <div class="rp-section-title">AI 窗口布局</div>
-      <div class="rp-mode-toggle">
-        <button class="rp-mode-btn ${state.layoutMode === "tab" ? "active" : ""}" data-mode="tab" title="所有 AI 同窗口不同标签页">Tab</button>
-        <button class="rp-mode-btn ${state.layoutMode === "tiled" ? "active" : ""}" data-mode="tiled" title="每个 AI 独立窗口并列">并列</button>
-      </div>
-
       ${renderLeaderboard()}
       ${renderManifesto()}
     `;
 
     root.querySelectorAll(".rp-add-btn").forEach(b => {
       b.addEventListener("click", () => addParticipant(b.dataset.service));
-    });
-    root.querySelectorAll(".rp-mode-btn").forEach(b => {
-      b.addEventListener("click", () => setWindowMode(b.dataset.mode));
     });
     root.querySelectorAll(".rp-more").forEach(el => {
       el.addEventListener("click", (e) => openActionMenu(e, el.dataset.pid));
@@ -192,9 +184,8 @@
     } catch (_) {}
     try {
       const r2 = await new Promise(res => {
-        chrome.storage.local.get(["windowMode", "leaderboardCollapsed"], resp => res(resp || {}));
+        chrome.storage.local.get(["leaderboardCollapsed"], resp => res(resp || {}));
       });
-      if (r2.windowMode) state.layoutMode = r2.windowMode;
       if (typeof r2.leaderboardCollapsed === "boolean") lbCollapsed = r2.leaderboardCollapsed;
     } catch (_) {}
     render();
@@ -220,11 +211,6 @@
 
   function reextractOne(pid) {
     chrome.runtime.sendMessage({ type: "chatReextractOne", participantId: pid }, () => {});
-  }
-
-  function setWindowMode(mode) {
-    state.layoutMode = mode;
-    chrome.runtime.sendMessage({ type: "setWindowMode", mode }, () => render());
   }
 
   function openActionMenu(ev, pid) {

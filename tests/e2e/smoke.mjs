@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.5.2-beta", manifest.version_name === "4.5.2-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.5.3-beta", manifest.version_name === "4.5.3-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.5.2-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.5.3-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.5.2-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.5.3-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.5.2-beta", popupVersion === "v4.5.2-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.5.3-beta", popupVersion === "v4.5.3-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -288,6 +288,66 @@ try {
   check("v4.3.0：header 含 🗑 + ⚡（移除 🎨/⚙️）",
     headerBtns.clear && headerBtns.hardReset && !headerBtns.theme && !headerBtns.settings,
     JSON.stringify(headerBtns));
+
+  // v4.5.3: 顶栏 AI 窗口布局 segmented toggle
+  const hdrModeToggle = await popupPage.evaluate(() => {
+    const wrap = document.getElementById("hdr-mode-toggle");
+    if (!wrap) return { exists: false };
+    const btns = [...wrap.querySelectorAll(".hdr-mode-btn")];
+    return {
+      exists: true,
+      btnCount: btns.length,
+      modes: btns.map(b => b.dataset.mode).sort(),
+      labels: btns.map(b => b.textContent.trim())
+    };
+  });
+  check("v4.5.3: 顶栏 #hdr-mode-toggle 存在",
+    hdrModeToggle.exists === true, JSON.stringify(hdrModeToggle));
+  check("v4.5.3: 顶栏 toggle 2 个按钮 (tab + tiled)",
+    hdrModeToggle.btnCount === 2 && hdrModeToggle.modes.join(",") === "tab,tiled",
+    JSON.stringify(hdrModeToggle));
+  check("v4.5.3: 顶栏 toggle 文案 (Tab / 并列)",
+    hdrModeToggle.labels?.includes("Tab") && hdrModeToggle.labels?.includes("并列"),
+    JSON.stringify(hdrModeToggle));
+
+  // 切到成员 Tab，验证不再有"AI 窗口布局" section
+  await popupPage.click('.rp-tab[data-tab="members"]');
+  await popupPage.waitForTimeout(200);
+  const oldModeToggleGone = await popupPage.evaluate(() => {
+    const panel = document.getElementById("rp-panel-members");
+    if (!panel) return { panel: false };
+    const hasOldToggle = !!panel.querySelector(".rp-mode-toggle");
+    const hasTitle = panel.innerText.includes("AI 窗口布局");
+    return { panel: true, hasOldToggle, hasTitle };
+  });
+  check("v4.5.3: Member Tab 不再有 .rp-mode-toggle DOM",
+    oldModeToggleGone.hasOldToggle === false, JSON.stringify(oldModeToggleGone));
+  check("v4.5.3: Member Tab 不再有 'AI 窗口布局' 文案",
+    oldModeToggleGone.hasTitle === false, JSON.stringify(oldModeToggleGone));
+
+  // 点击切换 → storage.local.windowMode 真改
+  const setModeRes = await popupPage.evaluate(async () => {
+    const tabBtn = document.querySelector('#hdr-mode-toggle .hdr-mode-btn[data-mode="tab"]');
+    const tiledBtn = document.querySelector('#hdr-mode-toggle .hdr-mode-btn[data-mode="tiled"]');
+    if (!tabBtn || !tiledBtn) return { err: "btn not found" };
+    tabBtn.click();
+    await new Promise(r => setTimeout(r, 200));
+    const after1 = await new Promise(res => chrome.storage.local.get(["windowMode"], r => res(r.windowMode)));
+    tiledBtn.click();
+    await new Promise(r => setTimeout(r, 200));
+    const after2 = await new Promise(res => chrome.storage.local.get(["windowMode"], r => res(r.windowMode)));
+    const tiledActive = tiledBtn.classList.contains("active");
+    return { after1, after2, tiledActive };
+  });
+  check("v4.5.3: 点 Tab 后 storage.windowMode = tab",
+    setModeRes.after1 === "tab", JSON.stringify(setModeRes));
+  check("v4.5.3: 点并列后 storage.windowMode = tiled + 该按钮高亮",
+    setModeRes.after2 === "tiled" && setModeRes.tiledActive === true,
+    JSON.stringify(setModeRes));
+
+  // 切回 templates Tab（之后断言依赖）
+  await popupPage.click('.rp-tab[data-tab="templates"]');
+  await popupPage.waitForTimeout(150);
   // popup-themes.css 是否加载（探测 <link rel=stylesheet href*=popup-themes>）
   const hasThemesCss = await popupPage.evaluate(() =>
     Array.from(document.querySelectorAll("link[rel=stylesheet]")).some(l => l.href.includes("popup-themes"))
