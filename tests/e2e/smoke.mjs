@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.23-beta", manifest.version_name === "4.8.23-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.24-beta", manifest.version_name === "4.8.24-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.23-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.24-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.23-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.24-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.23-beta", popupVersion === "v4.8.23-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.24-beta", popupVersion === "v4.8.24-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1724,9 +1724,9 @@ try {
         iconSweep: src.includes("@keyframes btn-icon-sweep"),
       }));
   });
-  check("v4.8.22 A2: 折叠到顶外发光呼吸 + Tab/并列 渐变发光 + 图标 hover 光晕 + 扫帚摆动 + 重置旋转",
-    a2Check.miniPulse && a2Check.miniAura
-      && a2Check.toggleNeon && a2Check.toggleActiveGradient
+  // v4.8.24 调整：用户反馈"折叠到顶太闪亮"，删除 miniPulse / miniAura 呼吸动画（静态化）
+  check("v4.8.22 A2: Tab/并列 渐变发光 + 图标 hover 光晕 + 扫帚摆动 + 重置旋转（v4.8.24 后折叠到顶静态化）",
+    a2Check.toggleNeon && a2Check.toggleActiveGradient
       && a2Check.iconBtnHoverGlow
       && a2Check.iconSpin && a2Check.iconSweep,
     JSON.stringify(a2Check));
@@ -1741,8 +1741,9 @@ try {
         allNineHaveDesc: (src.match(/desc:\s*"/g) || []).length >= 9,
       }));
   });
-  check("v4.8.22 B2: ALL_SERVICES 9 个 AI 都有 desc 字段 + 渲染 .rp-add-desc 副标题",
-    b2Check.hasDescField && b2Check.rendersDesc && b2Check.allNineHaveDesc,
+  // v4.8.24 调整：用户反馈"副标题没必要"，删除 .rp-add-desc 渲染（但 desc 字段保留作 title 提示）
+  check("v4.8.22 B2: ALL_SERVICES 9 个 AI 仍有 desc 字段（v4.8.24 后不再渲染副标题，但 title 仍用）",
+    b2Check.hasDescField && b2Check.allNineHaveDesc,
     JSON.stringify(b2Check));
 
   // Hat B: 角色帽 .rp-hat-em 改成圆形 icon-pin（青紫渐变 + 发光）
@@ -1854,10 +1855,73 @@ try {
         noOldLogo: !/\.rp-add-logo\s*\{[^}]*width:\s*14px/.test(src),
       }));
   });
-  check("v4.8.23 ③: AI 卡片 3 列网格 + name 11px + desc 9px + 删除旧 14×14 logo override",
-    addGridCheck.threeCols && addGridCheck.nameSize
-      && addGridCheck.descSize && addGridCheck.noOldLogo,
+  // v4.8.24: 用户反馈"副标题没必要"，删除 desc 渲染；logo 尺寸 v4.8.24 恢复 14×14（单行更平衡）
+  check("v4.8.23 ③: AI 卡片 3 列网格（其他细节随 v4.8.24 改造调整）",
+    addGridCheck.threeCols,
     JSON.stringify(addGridCheck));
+
+  // ========== v4.8.24: 删 AI 副标题 + 顶栏对齐 + 折叠到顶降亮 + sidebar 时间轴升级 ==========
+  console.log("\n[smoke] === v4.8.24 polish ===");
+
+  // ① 删除 AI 卡片副标题 — popup-members.js 不再渲染 .rp-add-desc / .rp-add-head 嵌套
+  const noDescCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-members.js"))
+      .then(r => r.text())
+      .then(src => ({
+        noDescRender: !src.includes('rp-add-desc'),
+        noHeadWrapper: !src.includes('rp-add-head'),
+      }));
+  });
+  check("v4.8.24 ①: popup-members.js 不再渲染 .rp-add-desc 副标题 + 不嵌套 .rp-add-head",
+    noDescCheck.noDescRender && noDescCheck.noHeadWrapper,
+    JSON.stringify(noDescCheck));
+
+  // ② 顶栏 .btn-icon 高度对齐到 30px（与 .btn-mini-mode + .hdr-mode-toggle 一致）
+  const alignCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => {
+        const m = /\.btn-icon\s*\{[^}]*width:\s*(\d+)px;\s*height:\s*(\d+)px/.exec(src);
+        return {
+          iconWidth: m?.[1],
+          iconHeight: m?.[2],
+        };
+      });
+  });
+  check("v4.8.24 ②a: .btn-icon 改 30×30 对齐顶栏其他按钮（折叠到顶 30 + Tab/并列 30）",
+    alignCheck.iconWidth === "30" && alignCheck.iconHeight === "30",
+    JSON.stringify(alignCheck));
+
+  // ② 折叠到顶降低闪亮 — 删除 btn-mini-pulse / btn-mini-aura @keyframes
+  const dimCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        noPulseKeyframe: !src.includes("@keyframes btn-mini-pulse"),
+        noAuraKeyframe: !src.includes("@keyframes btn-mini-aura"),
+        noPulseAnimation: !/\.btn-mini-mode\s*\{[^}]*animation:\s*btn-mini-pulse/.test(src),
+      }));
+  });
+  check("v4.8.24 ②b: 折叠到顶按钮删 btn-mini-pulse + btn-mini-aura 动画（静态化，hover 才发光）",
+    dimCheck.noPulseKeyframe && dimCheck.noAuraKeyframe && dimCheck.noPulseAnimation,
+    JSON.stringify(dimCheck));
+
+  // ③ sidebar 时间轴升级 — 彩虹渐变线 + 渐变圆点 + 卡片化 hover
+  const sidebarCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        rainbowLine: /\.sidebar-list::before\s*\{[^}]*linear-gradient[^}]*94,234,212[^}]*167,139,250[^}]*251,113,133/.test(src),
+        gradientDot: /\.sidebar-item::before\s*\{[^}]*linear-gradient/.test(src),
+        cardHover: /\.sidebar-item:hover\s*\{[^}]*linear-gradient[^}]*94,234,212/.test(src),
+        neonNum: /\.sidebar-item-num\s*\{[^}]*5eead4/.test(src),
+      }));
+  });
+  check("v4.8.24 ③: sidebar 时间轴 — 彩虹渐变线 + 渐变圆点 + 卡片化 hover + 霓虹青序号",
+    sidebarCheck.rainbowLine && sidebarCheck.gradientDot
+      && sidebarCheck.cardHover && sidebarCheck.neonNum,
+    JSON.stringify(sidebarCheck));
+
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);

@@ -180,12 +180,9 @@
       <div class="rp-section-title" style="margin-top:14px">添加</div>
       <div class="rp-add-grid">
         ${remaining.map(s => `
-          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)} — ${escapeHtml(s.desc || "")}">
-            <div class="rp-add-head">
-              <img class="rp-add-logo" src="${s.logo}" alt="">
-              <span class="rp-add-name">${escapeHtml(s.name)}</span>
-            </div>
-            ${s.desc ? `<div class="rp-add-desc">${escapeHtml(s.desc)}</div>` : ""}
+          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)}">
+            <img class="rp-add-logo" src="${s.logo}" alt="">
+            <span class="rp-add-name">${escapeHtml(s.name)}</span>
           </button>
         `).join("")}
       </div>
