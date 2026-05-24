@@ -276,13 +276,53 @@ async function checkLoginStatus(tabId, displayName, service) {
     const results = await chrome.scripting.executeScript({
       target: { tabId },
       func: () => {
-        const text = document.body?.innerText || "";
-        const hasLoginText = /登录|未登录|请登录|账号登录|微信登录|扫码登录|Sign in|Sign up|Log in|Login/i.test(text);
-        const hasInput = !!document.querySelector(
-          "textarea, [contenteditable='true'], [role='textbox'], rich-textarea .ql-editor"
-        );
-        // 启发式：有登录文案 + 找不到输入框 → 大概率未登录
-        return { loggedIn: !(hasLoginText && !hasInput), hasInput, hasLoginText };
+        // v4.7.5 F22 启发式：CTA / Modal / URL / not-login class 四个维度任一命中即未登录
+
+        // 1. 找登录 CTA 按钮 — selector 扩展到 div/span/li（Kimi 用 <div class="not-login-container">登录</div>）
+        const LOGIN_CTA = /^(登录|登陆|登入|立即登录|账号登录|账户登录|微信登录|扫码登录|手机登录|Sign in|Sign up|Sign Up|Log in|Log In|Login|Get started|Continue with)$/i;
+        const ctas = Array.from(document.querySelectorAll(
+          'button, a, [role="button"], div, span, li'
+        )).filter(el => {
+          const t = (el.innerText || el.textContent || "").trim();
+          if (!t || t.length > 10) return false;  // 收紧到 10 字
+          if (!LOGIN_CTA.test(t)) return false;
+          // 排除"父含子也含同样文本"的重复（取最深的）
+          if (el.querySelector('*')) {
+            const childTexts = Array.from(el.children).map(c => (c.innerText || "").trim());
+            if (childTexts.some(ct => ct === t)) return false;
+          }
+          const r = el.getBoundingClientRect?.();
+          return r && r.width > 20 && r.height > 10;
+        });
+        const hasLoginCTA = ctas.length > 0;
+
+        // 2. 登录 modal（含登录字眼的 dialog/modal）
+        const hasLoginModal = Array.from(document.querySelectorAll(
+          '[role="dialog"], [class*="modal"]:not([class*="modal-hidden"]):not([class*="not-modal"])'
+        )).some(el => {
+          const r = el.getBoundingClientRect?.();
+          if (!r || r.width < 100 || r.height < 80) return false;
+          const t = (el.innerText || "").trim();
+          return /登录|Sign in|Log in|Sign up|登录即可/i.test(t);
+        });
+
+        // 3. URL 路径含 login/sign_in
+        const path = (location.pathname || "") + (location.hash || "");
+        const urlLooksLikeLogin = /(?:^|\/)(login|signin|sign[_-]?in|sign[_-]?up|account\/(?:login|signin))(?:\/|\?|$)/i.test(path);
+
+        // 4. v4.7.5 关键新增：明显的"未登录"class 标识（Kimi 的 not-login-container 等）
+        // 这是最 strong 的信号 — 前端用 class 标记登录态时，登录后通常会替换类名
+        const hasNotLoginClass = Array.from(document.querySelectorAll(
+          '[class*="not-login"], [class*="not_login"], [class*="unlogin"], '
+          + '[class*="un-login"], [class*="logged-out"], [class*="loggedOut"], '
+          + '[class*="anonymous"], [class*="guest-user"]'
+        )).some(el => {
+          const r = el.getBoundingClientRect?.();
+          return r && r.width > 0 && r.height > 0;
+        });
+
+        const loggedIn = !(hasLoginCTA || hasLoginModal || urlLooksLikeLogin || hasNotLoginClass);
+        return { loggedIn, hasLoginCTA, hasLoginModal, urlLooksLikeLogin, hasNotLoginClass, ctaCount: ctas.length };
       },
     }).catch(() => null);
     const r = results?.[0]?.result;
