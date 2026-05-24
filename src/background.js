@@ -160,19 +160,33 @@ let _activatedOnce = false;
 async function activateAiWindowsOnce(aiTabs) {
   if (_activatedOnce || !aiTabs.length) return;
   _activatedOnce = true;
-  const uniqueWindowIds = [...new Set(aiTabs.map(t => t.windowId).filter(w => w != null))];
-  if (!uniqueWindowIds.length) return;
-  // 记下当前 focused window 准备恢复
+  // 按 tab 去重（避免一个 window 多个 tab 重复 focus）
+  const uniqueWindows = new Map();  // windowId -> first tabId
+  for (const t of aiTabs) {
+    if (t.windowId != null && !uniqueWindows.has(t.windowId)) {
+      uniqueWindows.set(t.windowId, t.id);
+    }
+  }
+  if (!uniqueWindows.size) return;
+
   let originalFocusedWindowId = null;
   try {
     const wins = await chrome.windows.getAll();
     originalFocusedWindowId = wins.find(w => w.focused)?.id;
   } catch {}
-  console.log(`[F34] activating ${uniqueWindowIds.length} AI windows once (anti heavy-throttle)`);
-  for (const wid of uniqueWindowIds) {
+  console.log(`[F34] activating ${uniqueWindows.size} AI windows once (anti heavy-throttle)`);
+
+  for (const [wid, tabId] of uniqueWindows) {
     try {
-      await chrome.windows.update(wid, { focused: true });
-      await new Promise(r => setTimeout(r, 120));
+      // v4.8.26 F34+: 三连击让 Chrome 真的标记"曾 visible"
+      // 1) state:"normal" + focused:true — 防 minimized 同时请求前台
+      // 2) tab active:true — 双保险确保 window 内该 tab 可见
+      // 3) 等 800ms — Windows OS Foreground Lock Timeout 防扩展程序化 focus，
+      //    但 800ms 内 chrome RenderWidgetHostImpl::SetHidden(false) 应该已触发
+      await chrome.windows.update(wid, { state: "normal", focused: true });
+      await chrome.tabs.update(tabId, { active: true });
+      await new Promise(r => setTimeout(r, 800));
+      console.log(`[F34] activated win=${wid} tab=${tabId}`);
     } catch (e) {
       console.warn(`[F34] activate win ${wid}: ${e?.message}`);
     }
