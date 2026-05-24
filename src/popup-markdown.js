@@ -60,44 +60,61 @@
     a:"ᵃ", b:"ᵇ", c:"ᶜ", d:"ᵈ", e:"ᵉ", f:"ᶠ", g:"ᵍ", h:"ʰ", i:"ⁱ",
     j:"ʲ", k:"ᵏ", l:"ˡ", m:"ᵐ", n:"ⁿ", o:"ᵒ", p:"ᵖ", r:"ʳ", s:"ˢ",
     t:"ᵗ", u:"ᵘ", v:"ᵛ", w:"ʷ", x:"ˣ", y:"ʸ", z:"ᶻ",
-    H:"ᴴ", T:"ᵀ"
+    // 大写（Unicode 部分存在）
+    A:"ᴬ", B:"ᴮ", D:"ᴰ", E:"ᴱ", G:"ᴳ", H:"ᴴ", I:"ᴵ", J:"ᴶ", K:"ᴷ",
+    L:"ᴸ", M:"ᴹ", N:"ᴺ", O:"ᴼ", P:"ᴾ", R:"ᴿ", T:"ᵀ", U:"ᵁ", V:"ⱽ", W:"ᵂ"
   };
+  // 常用函数名：\sin \cos \log 等不该保留 backslash，去掉就是函数名
+  const LATEX_FUNCTIONS = new Set([
+    "sin", "cos", "tan", "cot", "sec", "csc",
+    "arcsin", "arccos", "arctan",
+    "sinh", "cosh", "tanh",
+    "log", "ln", "lg", "exp", "lim", "limsup", "liminf",
+    "max", "min", "sup", "inf", "arg",
+    "det", "dim", "ker", "rank", "tr",
+    "gcd", "lcm", "mod",
+    "Pr", "Var", "Cov", "E"
+  ]);
   function _toSubscript(str) {
     return String(str).split("").map(c => SUB_MAP[c] !== undefined ? SUB_MAP[c] : c).join("");
   }
   function _toSuperscript(str) {
     return String(str).split("").map(c => SUP_MAP[c] !== undefined ? SUP_MAP[c] : c).join("");
   }
-  // 简化的 LaTeX → Unicode（不解析复杂嵌套；覆盖 80% 通信场景）
+  // 简化的 LaTeX → Unicode（多 pass 展开嵌套；上下标在循环内处理保证 \frac 能看到无嵌套花括号）
   function latexToUnicode(tex) {
     if (!tex) return "";
     let s = String(tex).trim();
-    // 移除 \left \right
     s = s.replace(/\\left|\\right/g, "");
-    // \\ → 换行（多行公式分隔），但行内场景少见
     s = s.replace(/\\\\/g, " ");
-    // 多 pass 处理嵌套 / 反复展开命令
     let prev;
     let iter = 0;
     do {
       prev = s;
+      // 1) \mathbb{R} 等数集（先处理避免被 \text 通用替换吃掉）
       s = s.replace(/\\mathbb\s*\{\s*([A-Za-z])\s*\}/g, (m, c) => {
         const map = { R: "ℝ", N: "ℕ", Z: "ℤ", Q: "ℚ", C: "ℂ", P: "ℙ", F: "𝔽", E: "𝔼", H: "ℍ" };
         return map[c] || c;
       });
+      // 2) \text \mathrm 等 → 内容
       s = s.replace(/\\(?:text|mathrm|operatorname|mathit|mathbf|boldsymbol|mathcal)\s*\{([^{}]*)\}/g, "$1");
-      s = s.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "$1/$2");
+      // 3) 命名符号 / 函数名（先转 Unicode/纯名，再做上下标 — 否则 e^{j\theta} 会被字符级 toSuperscript 把 backslash 也吃成上标）
+      s = s.replace(/\\([a-zA-Z]+)/g, (m, name) => {
+        if (LATEX_SYMBOLS[name] !== undefined) return LATEX_SYMBOLS[name];
+        if (LATEX_FUNCTIONS.has(name)) return name;
+        return m;
+      });
+      // 4) 上下标 _{...} ^{...}（此时内部命名符号已 Unicode 化，单字符 toSub/toSup 友好）
+      s = s.replace(/\^\{([^{}]+)\}/g, (m, c) => _toSuperscript(c));
+      s = s.replace(/_\{([^{}]+)\}/g, (m, c) => _toSubscript(c));
+      // 5) \frac 和 \sqrt
+      s = s.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)");
       s = s.replace(/\\sqrt\s*\{([^{}]+)\}/g, "√($1)");
       s = s.replace(/\\sqrt\s+(\w)/g, "√$1");
-      // 命名符号
-      s = s.replace(/\\([a-zA-Z]+)/g, (m, name) =>
-        LATEX_SYMBOLS[name] !== undefined ? LATEX_SYMBOLS[name] : m);
       iter++;
-    } while (s !== prev && iter < 6);
-    // 上下标（命令展开后做）
-    s = s.replace(/\^\{([^{}]+)\}/g, (m, c) => _toSuperscript(c));
+    } while (s !== prev && iter < 8);
+    // 剩余单字符上下标（命令展开后）
     s = s.replace(/\^(\S)/g, (m, c) => _toSuperscript(c));
-    s = s.replace(/_\{([^{}]+)\}/g, (m, c) => _toSubscript(c));
     s = s.replace(/_(\S)/g, (m, c) => _toSubscript(c));
     // 多余空格压缩
     s = s.replace(/\s+/g, " ").trim();

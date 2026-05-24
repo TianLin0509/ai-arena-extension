@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.6.5-beta", manifest.version_name === "4.6.5-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.6.6-beta", manifest.version_name === "4.6.6-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.6.5-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.6.6-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.6.5-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.6.6-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.6.5-beta", popupVersion === "v4.6.5-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.6.6-beta", popupVersion === "v4.6.6-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -291,6 +291,29 @@ try {
   check("v4.6.5: $\\theta$ → θ（KaTeX sanitize 后的干净 LaTeX）",
     katexSanitize.rendered && katexSanitize.noRawCommandInVisible && katexSanitize.hasInline,
     JSON.stringify(katexSanitize));
+
+  // v4.6.6: 边界修复（函数名 fallback + 大写上标 + 嵌套 \frac）
+  const v466 = await popupPage.evaluate(() => {
+    const r = (s) => renderMarkdown(s);
+    const visible = (html) => (html.match(/<span class="md-math"[^>]*>([\s\S]*?)<\/span>/)?.[1])
+      || (html.match(/<div class="md-math-block"[^>]*>([\s\S]*?)<\/div>/)?.[1])
+      || "";
+    return {
+      // 函数名 fallback：\sin \log \det → sin log det（去 backslash）
+      fnSin: visible(r("$\\sin\\theta$")),
+      fnLogDet: visible(r("$\\log_2 \\det(X)$")),
+      // 大写字母上标 ^N ^M → ᴺ ᴹ
+      upperSup: visible(r("$X^N \\cdot Y^M$")),
+      // 嵌套 \frac{P_{\text{signal}}}{P_{\text{noise}}} 多 pass 应展开
+      nestedFrac: visible(r("$\\frac{P_{\\text{signal}}}{P_{\\text{noise}}}$"))
+    };
+  });
+  check("v4.6.6: 函数名 \\sin\\theta → sinθ", v466.fnSin.includes("sin") && v466.fnSin.includes("θ"), v466.fnSin);
+  check("v4.6.6: 函数名 \\log_2 \\det → log₂ det", v466.fnLogDet.includes("log₂") && v466.fnLogDet.includes("det"), v466.fnLogDet);
+  check("v4.6.6: 大写字母 ^N ^M → ᴺ ᴹ", v466.upperSup.includes("ᴺ") && v466.upperSup.includes("ᴹ"), v466.upperSup);
+  check("v4.6.6: 嵌套 \\frac{P_{\\text{signal}}}{...} 多 pass 展开",
+    v466.nestedFrac.includes("Pₛᵢgₙₐₗ") && v466.nestedFrac.includes("/"),
+    v466.nestedFrac);
 
   // 6) 任务模式 hover 子菜单验证（DOM 存在性）
   const debateSubItems = await popupPage.locator('.menu-item.has-sub:has(span:text("辩论")) .sub-menu .menu-item').count();
