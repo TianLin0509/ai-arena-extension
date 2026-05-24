@@ -3,7 +3,7 @@
 // 从 sidepanel 缓存的屏幕尺寸；双屏时用于判断 AI 窗口应放到哪块屏幕。
 let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
 
-importScripts("selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js");
+importScripts("selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js");
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -395,12 +395,29 @@ async function addParticipant(service) {
   // v4.3.0：立即把 popup 拉回前端（不等 arrange）
   try { await ChatBus.focusPopup(); } catch (_) {}
 
+  // v4.8.13 F28: 添加参与者后一次性 attach CDP，黄条只在这里出现一次，之后整个会话保持
+  // 用户反馈："AI 群聊现在上方经常弹出这个窗口" — 老逻辑每次 polling 都 attach/detach 让黄条频繁弹出
+  // 改为会话级 attach：addParticipant 一次 attach，removeParticipant detach，期间 polling 不再动 CDP
+  // 延迟 1.5s 让 AI 网页加载完再 attach（页面 loading 时 attach 可能失败）
+  setTimeout(async () => {
+    try {
+      if (self.CDPExtractor && tabId) {
+        const r = await self.CDPExtractor.attachAndWake(tabId);
+        console.log(`[F28] persistent CDP attach service=${service} tab=${tabId} ok=${r?.ok} code=${r?.code}`);
+      }
+    } catch (e) { console.warn(`[F28] persistent attach fail:`, e?.message); }
+  }, 1500);
+
   return { ok: true, participants: StateMachine.getFullState().participants };
 }
 
 async function removeParticipant(id) {
   const p = StateMachine.getParticipant(id);
   if (!p) return { ok: false };
+  // v4.8.13 F28: 移除参与者前 detach 该 tab 的 CDP — 持久 attach 配对的释放点
+  if (p.tabId && self.CDPExtractor) {
+    try { await self.CDPExtractor.detach(p.tabId); } catch (_) {}
+  }
   if (p.tabId) { _removingTabs.add(p.tabId); try { await chrome.tabs.remove(p.tabId); } catch {} }
   StateMachine.removeParticipant(id);
   notifyStatus(`已移除 ${p.name}`);
@@ -850,9 +867,9 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
       StateMachine.setPendingSummary(null);
       return { ok: false, error };
     }
-    const tab = await chrome.tabs.get(judge.tabId);
-    await chrome.tabs.update(judge.tabId, { active: true });
-    await chrome.windows.update(tab.windowId, { focused: true });
+    // v4.8.13 F28: 不再强制把裁判 tab 切到前台
+    // 历史代码因为 background tab 提取失败才切，F27 CDP 已解决 throttle 问题
+    // 用户反馈："使用总结功能时会突然强迫我跳转到最前方" — 删掉这两行
     notifyStatus(`总结已发送给 ${judge.name}`);
     try {
       // v4.6.14 F21: 复用 pendingMsgId 让 popup 更新原占位气泡（不新增）

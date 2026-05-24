@@ -342,6 +342,85 @@ function staticCheck() {
       pattern: /F26.*lastSentByPid/s,
       desc: "F26 popup-bubble-actions 不再传 text",
     },
+    {
+      id: "F27-cdp-module",
+      file: "src/cdp-extractor.js",
+      pattern: /self\.CDPExtractor\s*=\s*\{[\s\S]*?attachAndWake[\s\S]*?detach[\s\S]*?\}/,
+      desc: "F27 cdp-extractor.js 暴露 CDPExtractor 模块",
+    },
+    {
+      id: "F27-lifecycle-active",
+      file: "src/cdp-extractor.js",
+      pattern: /Page\.setWebLifecycleState[\s\S]*?state:\s*["']active["']/,
+      desc: "F27 attach 后发 Page.setWebLifecycleState(active) 绕过 throttle",
+    },
+    {
+      id: "F27-no-network-cmd",
+      file: "src/cdp-extractor.js",
+      pattern: /绝不调 Network/,
+      desc: "F27 cdp-extractor.js 明确承诺不调 Network.*（保护 cookie）",
+    },
+    {
+      id: "F27-bg-imports",
+      file: "src/background.js",
+      pattern: /importScripts\([^)]*cdp-extractor\.js[^)]*\)/,
+      desc: "F27 background.js importScripts cdp-extractor.js",
+    },
+    // F27 polling 自动 attach 已被 F28 替代为 no-op（持久 attach 改在 addParticipant）— 不再 check 旧逻辑
+    {
+      id: "F27-release-on-end",
+      file: "src/chat-bus.js",
+      pattern: /releaseCDPFor\(state,\s*tabId\)/,
+      desc: "F27 polling 终止时 releaseCDPFor 触发 detach",
+    },
+    {
+      id: "F27-debugger-permission",
+      file: "src/manifest.json",
+      pattern: /"debugger"/,
+      desc: "F27 manifest 加 debugger 权限",
+    },
+    {
+      id: "F27-bugfix-detach-after-readOne",
+      file: "src/chat-bus.js",
+      pattern: /readOneResponse\(participant\.id\)[\s\S]*?\.finally\(\(\)\s*=>\s*releaseCDPFor/,
+      desc: "F27-bugfix detach 必须等 readOneResponse 完成（防 p.response 写不上）",
+    },
+    {
+      id: "F27-bugfix2-no-frozen-on-detach",
+      file: "src/cdp-extractor.js",
+      pattern: /不再手动 setWebLifecycleState\("frozen"\)/,
+      desc: "F27-bugfix2 detach 不调 frozen（防 AI 网页黑屏）",
+    },
+    {
+      id: "F28-persistent-attach-add",
+      file: "src/background.js",
+      pattern: /v4\.8\.13 F28[\s\S]*?attachAndWake\(tabId\)/,
+      desc: "F28 addParticipant 持久 attach CDP（黄条不再频繁弹出）",
+    },
+    {
+      id: "F28-persistent-detach-remove",
+      file: "src/background.js",
+      pattern: /F28: 移除参与者前 detach[\s\S]*?CDPExtractor\.detach/,
+      desc: "F28 removeParticipant 配对 detach",
+    },
+    {
+      id: "F28-poll-no-op",
+      file: "src/chat-bus.js",
+      pattern: /function releaseCDPFor\([^)]*\)\s*\{\s*\/\*\s*no-op \(F28\)/,
+      desc: "F28 polling 路径不再触发 attach/detach（防黄条闪烁）",
+    },
+    {
+      id: "F28-no-force-focus-summary",
+      file: "src/background.js",
+      pattern: /不再强制把裁判 tab 切到前台/,
+      desc: "F28 总结不再强制把裁判 tab 切到前台",
+    },
+    {
+      id: "F29-truncated-json-repair",
+      file: "src/debate-summary-template.js",
+      pattern: /tryRepairTruncatedJson/,
+      desc: "F29 截断 JSON 自动补齐未闭合括号",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
@@ -764,6 +843,154 @@ try {
   } else {
     record("F26-fix", "regression", f26,
       `result_ok=${f26.result_ok} 收到 ${f26.receivedPrompt_len} 字 vs 完整 ${f26.fullPrompt_len} 字`);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F27-fix: CDP 唤醒后台 tab — 验证 CDPExtractor 模块可用 + 关键 API
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F27-fix: CDP 唤醒后台 tab 提取 ===");
+  const f27 = await sw.evaluate(async () => {
+    const out = {
+      moduleExists: typeof self.CDPExtractor === "object",
+      hasAttach: typeof self.CDPExtractor?.attachAndWake === "function",
+      hasDetach: typeof self.CDPExtractor?.detach === "function",
+      hasDetachAll: typeof self.CDPExtractor?.detachAll === "function",
+      hasIsBackground: typeof self.CDPExtractor?.isTabInBackground === "function",
+      hasStats: typeof self.CDPExtractor?.getStats === "function",
+      initialAttached: 0,
+      isTabInBg_nonExist: null,
+      attachFail_noTab: null,
+      detachNoop: true,
+    };
+    if (!out.moduleExists) return out;
+
+    out.initialAttached = self.CDPExtractor.getStats().attachedCount;
+
+    // 调用 isTabInBackground 传 不存在的 tabId 应优雅返回 false（不抛）
+    try {
+      out.isTabInBg_nonExist = await self.CDPExtractor.isTabInBackground(999999);
+    } catch (e) {
+      out.isTabInBg_nonExist = `THREW:${e.message}`;
+    }
+
+    // attachAndWake 不存在的 tab 应返回 ok:false 而非抛错
+    try {
+      const r = await self.CDPExtractor.attachAndWake(999999);
+      out.attachFail_noTab = { ok: r?.ok, code: r?.code };
+    } catch (e) {
+      out.attachFail_noTab = `THREW:${e.message}`;
+    }
+
+    // detach 未 attach 的 tab 应静默 noop（不抛）
+    try {
+      await self.CDPExtractor.detach(999999);
+      out.detachNoop = true;
+    } catch (e) {
+      out.detachNoop = `THREW:${e.message}`;
+    }
+
+    return out;
+  });
+
+  const f27_ok = f27.moduleExists && f27.hasAttach && f27.hasDetach &&
+    f27.hasDetachAll && f27.hasIsBackground &&
+    f27.attachFail_noTab?.ok === false && f27.detachNoop === true;
+
+  if (f27_ok) {
+    record("F27-cdp", "fixed", f27,
+      `CDPExtractor 模块完整暴露；attach 不存在 tab 返回 ok:false（code=${f27.attachFail_noTab.code}）；detach noop 安全`);
+  } else {
+    record("F27-cdp", "regression", f27,
+      `module=${f27.moduleExists} attach=${f27.hasAttach} detach=${f27.hasDetach} noTab=${JSON.stringify(f27.attachFail_noTab)} detachNoop=${f27.detachNoop}`);
+  }
+
+  // F27 manifest 含 debugger 权限
+  const f27Perm = await sw.evaluate(async () => {
+    const manifest = chrome.runtime.getManifest();
+    return {
+      permissions: manifest.permissions,
+      hasDebugger: manifest.permissions.includes("debugger"),
+    };
+  });
+  if (f27Perm.hasDebugger) {
+    record("F27-perm", "fixed", f27Perm, "manifest.permissions 包含 debugger");
+  } else {
+    record("F27-perm", "regression", f27Perm, "缺 debugger 权限");
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F27-bugfix: detach 时序 — 必须在 readOneResponse 完成之后
+  // 场景：DeepSeek/千问 popup 已显示"已完成"+ 文本，但辩论时报"回答不足"
+  // 根因：完成判定后立即 releaseCDPFor detach → readOneResponse 在 throttle 下读不到 DOM
+  //       → sanity check 拒绝 → setParticipantResponse 不调 → p.response 仍空
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F27-bugfix: detach 时序保证 readOneResponse 写 p.response ===");
+  const f27bug = await sw.evaluate(async () => {
+    return new Promise(async (resolve) => {
+      StateMachine.hardReset();
+      const TAB_ID = 88001;
+      const PID = "pF27bug";
+      const SVC = "ai_f27bug";
+      const FINAL_TEXT = "DeepSeek 完成的最终回答内容";
+      StateMachine.participants = [{
+        id: PID, service: SVC, tabId: TAB_ID,
+        name: "DeepSeek", response: null, responsePreview: null,
+      }];
+
+      // 跟踪 readOneResponse 是否被调 + detach 顺序
+      const order = [];
+      const origDetach = self.CDPExtractor?.detach;
+      if (origDetach) {
+        self.CDPExtractor.detach = async function(tabId) {
+          order.push({ event: "detach", tabId, t: Date.now() });
+          return origDetach.call(this, tabId);
+        };
+      }
+
+      // mock readResponse: 返回稳定文本，触发 polling 完成判定
+      const origSend = chrome.tabs.sendMessage;
+      chrome.tabs.sendMessage = async (tabId, msg) => {
+        if (tabId === TAB_ID && msg.action === "readResponse") {
+          order.push({ event: "readResponse_called", t: Date.now() });
+          return { text: FINAL_TEXT, isStreaming: false, imagesPending: 0 };
+        }
+        return origSend.call(chrome.tabs, tabId, msg);
+      };
+
+      // 启动 polling 直接走 notifyRoundStart 路径
+      ChatBus.notifyRoundStart("test", [SVC]);
+
+      // 等 polling 完成（3 次相同 + readOneResponse + detach）
+      // POLL_INTERVAL_MS=1500，3 次 ≈ 4.5s + readOneResponse 同步 + finally detach
+      await new Promise(r => setTimeout(r, 8000));
+
+      const p = StateMachine.participants.find(x => x.id === PID);
+      const readIdx = order.findIndex(e => e.event === "readResponse_called");
+      const detachIdx = order.findIndex(e => e.event === "detach");
+
+      chrome.tabs.sendMessage = origSend;
+      if (origDetach) self.CDPExtractor.detach = origDetach;
+
+      resolve({
+        p_response_written: !!p?.response,
+        p_response_text: (p?.response || "").slice(0, 60),
+        readCalled_count: order.filter(e => e.event === "readResponse_called").length,
+        detach_called: detachIdx >= 0,
+        // 关键防回归：readResponse 调用次数应 ≥ 4（polling 3 次稳定 + readOneResponse 1 次）
+        // 之前 bug：readOneResponse 那次因为 detach 提前可能 throw / 读到空
+        order_summary: order.map(e => e.event).join(" → "),
+      });
+    });
+  });
+  const f27bug_ok = f27bug.p_response_written &&
+    f27bug.p_response_text === "DeepSeek 完成的最终回答内容" &&
+    f27bug.readCalled_count >= 4;
+  if (f27bug_ok) {
+    record("F27-bugfix", "fixed", f27bug,
+      `p.response 被写入（${f27bug.p_response_text}）；readResponse 调 ${f27bug.readCalled_count} 次（polling+readOneResponse）`);
+  } else {
+    record("F27-bugfix", "regression", f27bug,
+      `p.response_written=${f27bug.p_response_written} text=${f27bug.p_response_text} readCalls=${f27bug.readCalled_count} order=${f27bug.order_summary}`);
   }
 
   // ════════════════════════════════════════════════════════

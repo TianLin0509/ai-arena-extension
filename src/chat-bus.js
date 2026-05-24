@@ -186,17 +186,30 @@ const ChatBus = (() => {
         participantId: p.service, text: "", isDone: false,
       });
       // 启动该 participant 的 polling（不 inject）
-      if (pollers.has(p.service)) clearInterval(pollers.get(p.service).intervalId);
+      if (pollers.has(p.service)) {
+        const old = pollers.get(p.service);
+        clearInterval(old.intervalId);
+        releaseCDPFor(old, p.tabId);
+      }
       // v4.5.6 F11: 记录上一轮已采纳回答 → pollOnce 拒绝残留
       const state = {
         lastText: "", sameCount: 0, msgId,
         prevAccepted: StateMachine.lastAcceptedByPid?.[p.id] || "",
+        cdpAttached: false,
       };
+      tryAttachCDPForPolling(state, p.tabId);
       state.intervalId = setInterval(() => pollOnce(p, state), POLL_INTERVAL_MS);
       pollers.set(p.service, state);
     }
     return { ok: true, msgId };
   }
+
+  // v4.8.13 F28: polling 不再 attach/detach CDP — attach 改在 addParticipant 持久挂住
+  // 老逻辑每次 polling 启动 attach、完成 detach 让黄条频繁弹出 / 消失
+  // 现在 CDP attach 由 background.js addParticipant 触发，移除 AI 时才 detach
+  // 这两个函数保留 no-op 以兼容旧代码路径，不再做实际工作
+  function releaseCDPFor(_state, _tabId) { /* no-op (F28) */ }
+  async function tryAttachCDPForPolling(_state, _tabId) { /* no-op (F28) */ }
 
   async function injectAndPoll(participant, msgId, text) {
     const { tabId, service } = participant;
@@ -211,12 +224,18 @@ const ChatBus = (() => {
       return;
     }
     // 启动 polling
-    if (pollers.has(service)) clearInterval(pollers.get(service).intervalId);
+    if (pollers.has(service)) {
+      const old = pollers.get(service);
+      clearInterval(old.intervalId);
+      releaseCDPFor(old, tabId);
+    }
     // v4.5.6 F11: 记录上一轮已采纳回答 → pollOnce 拒绝残留
     const state = {
       lastText: "", sameCount: 0, msgId,
       prevAccepted: StateMachine.lastAcceptedByPid?.[participant.id] || "",
+      cdpAttached: false,
     };
+    tryAttachCDPForPolling(state, tabId);
     state.intervalId = setInterval(() => pollOnce(participant, state), POLL_INTERVAL_MS);
     pollers.set(service, state);
   }
@@ -229,6 +248,7 @@ const ChatBus = (() => {
       if (state.totalTicks >= MAX_POLL_TICKS) {
         clearInterval(state.intervalId);
         pollers.delete(service);
+        releaseCDPFor(state, tabId);
         const finalText = state.lastText || "⚠ 超时 5 分钟未完成，已按当前内容强制结束";
         pushLog({
           role: "ai", msgId: state.msgId, participantId: service,
@@ -257,6 +277,7 @@ const ChatBus = (() => {
         if (state.emptyCount >= EMPTY_TIMEOUT_TICKS) {
           clearInterval(state.intervalId);
           pollers.delete(service);
+          releaseCDPFor(state, tabId);
           const fallbackText = "⚠ 未提取到内容，请点击气泡的 🔄 重新提取或 ⏭ 跳过本轮。";
           pushLog({
             role: "ai", msgId: state.msgId, participantId: service,
@@ -313,8 +334,18 @@ const ChatBus = (() => {
             participantId: service, text, isDone: true,
             hasRichContent: hasRich, richTypes,
           });
+          // v4.8.10 F27-bugfix: 必须等 readOneResponse 写入 p.response 再 detach CDP
+          // 之前立即 releaseCDPFor → readOneResponse 在 background throttle 下读到旧/空 DOM
+          // → sanity check 拒绝 → setParticipantResponse 不被调 → p.response 仍为空
+          // → handleDebateRound 检查 `if (p.response)` 全空 → 报"回答不足"
+          // 截图证据：DeepSeek/千问 popup 显示"已完成"+ 文本（sendToPopup 路径），
+          //          但 p.response 空（readOneResponse 失败），用户辩论时报错
           if (typeof readOneResponse === "function") {
-            readOneResponse(participant.id).catch(() => {});
+            readOneResponse(participant.id)
+              .catch(() => {})
+              .finally(() => releaseCDPFor(state, tabId));
+          } else {
+            releaseCDPFor(state, tabId);
           }
           // v4.4.0: 如果当前 polling 完成的 AI 是 pendingSummary 的裁判，触发 finalize
           try {
@@ -342,6 +373,7 @@ const ChatBus = (() => {
       // tab 关闭或 content script 失联
       clearInterval(state.intervalId);
       pollers.delete(service);
+      releaseCDPFor(state, tabId);
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
         participantId: service, text: `⚠ ${participant.name} 已断开`,
@@ -365,6 +397,10 @@ const ChatBus = (() => {
       try { clearInterval(state.intervalId); } catch (_) {}
     }
     watchers.clear();
+    // v4.8.9 F27: 全部 CDP attach 一并 detach
+    if (self.CDPExtractor) {
+      self.CDPExtractor.detachAll().catch(() => {});
+    }
   }
 
   // v4.6.9 F19: polling 判完成后启动兜底 watcher
@@ -433,8 +469,12 @@ const ChatBus = (() => {
   function skipParticipant(participantId, msgId) {
     const service = participantId;
     if (pollers.has(service)) {
-      try { clearInterval(pollers.get(service).intervalId); } catch (_) {}
+      const state = pollers.get(service);
+      try { clearInterval(state.intervalId); } catch (_) {}
       pollers.delete(service);
+      // v4.8.9 F27: 跳过本轮也要 detach CDP
+      const p = (StateMachine.participants || []).find(x => x.service === service);
+      releaseCDPFor(state, p?.tabId);
     }
     // 通知 popup（保险：popup 主动改 UI 已经做过，这里是兜底广播）
     sendToPopup({

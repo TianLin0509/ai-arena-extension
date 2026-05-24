@@ -33,6 +33,31 @@
     return TEMPLATE_PLACEHOLDER_HINTS.some(h => blob.includes(h));
   }
 
+  // v4.8.13 F29: 自动补齐截断 JSON 的未闭合括号
+  // 截图证据：AI 流式输出未完成时 readResponse 抓到 DOM，结尾 `}]` 但缺最外层 `]}`
+  // 老逻辑只修尾随逗号 + 中文引号，截断 JSON 直接抛错 → 用户看到长串原文
+  function tryRepairTruncatedJson(s) {
+    const stack = [];
+    let inString = false, escape = false;
+    for (const c of s) {
+      if (escape) { escape = false; continue; }
+      if (c === "\\") { escape = true; continue; }
+      if (c === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (c === "{") stack.push("}");
+      else if (c === "[") stack.push("]");
+      else if (c === "}" || c === "]") {
+        if (stack[stack.length - 1] === c) stack.pop();
+      }
+    }
+    if (stack.length === 0) return s;
+    // 若结尾正处于一个未闭合 string 值里（如 "text":"未完...），先补 " 闭合
+    const needCloseString = inString ? '"' : "";
+    // 若结尾有半截 key/value 后悬挂的逗号，先去掉
+    let body = s.replace(/,\s*$/g, "");
+    return body + needCloseString + stack.reverse().join("");
+  }
+
   function parseDebateSummaryJson(text) {
     // 容错解析：AI 可能加 ```json 围栏 / 前后文字 / 不完整 JSON
     if (!text || typeof text !== "string") return null;
@@ -42,20 +67,26 @@
     // 找第一个 { 到最后一个 } 之间的内容
     const start = t.indexOf("{");
     const end = t.lastIndexOf("}");
-    if (start < 0 || end < 0 || end <= start) return null;
-    const candidate = t.slice(start, end + 1);
+    if (start < 0) return null;
+    // v4.8.13 F29: 若没有任何 `}` 也可能是被截断到 string 中间 — 用全 tail
+    const candidate = end > start ? t.slice(start, end + 1) : t.slice(start);
     let parsed = null;
     try {
       parsed = JSON.parse(candidate);
     } catch (e) {
-      // 失败：尝试修复常见 JSON 错误（尾随逗号、单引号）
+      // 失败：尝试修复常见 JSON 错误（尾随逗号、单引号、中文引号）
+      const basicFixed = candidate
+        .replace(/,(\s*[}\]])/g, "$1")  // 尾随逗号
+        .replace(/[‘’]/g, "'") // 中文单引号
+        .replace(/[“”]/g, '"'); // 中文双引号
       try {
-        const fixed = candidate
-          .replace(/,(\s*[}\]])/g, "$1")  // 尾随逗号
-          .replace(/[‘’]/g, "'") // 中文单引号
-          .replace(/[“”]/g, '"'); // 中文双引号
-        parsed = JSON.parse(fixed);
-      } catch { return null; }
+        parsed = JSON.parse(basicFixed);
+      } catch {
+        // F29: 再尝试自动补齐截断的括号
+        try {
+          parsed = JSON.parse(tryRepairTruncatedJson(basicFixed));
+        } catch { return null; }
+      }
     }
     if (looksLikeTemplatePlaceholder(parsed)) return null;
     return parsed;
