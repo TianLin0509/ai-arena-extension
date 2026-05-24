@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.31-beta", manifest.version_name === "4.8.31-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.32-beta", manifest.version_name === "4.8.32-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.31-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.32-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.31-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.32-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.31-beta", popupVersion === "v4.8.31-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.32-beta", popupVersion === "v4.8.32-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -599,6 +599,41 @@ try {
   check("v4.8.2: sidebar 跳过 pending 占位（3 turns 不含'正在发起'）",
     pendingFilter.turnCount === 3 && !pendingFilter.hasPending,
     JSON.stringify(pendingFilter));
+
+  // v4.8.32: sidebar 跳过"🔄 重发原题"/"🔄 重发" 占位 — AI 回答合入第一次发送的 turn
+  const resendFilter = await popupPage.evaluate(() => {
+    const now = Date.now();
+    const log = [
+      { role: "user", msgId: "u1", text: "天线方向重构方案", ts: now - 10000 },
+      { role: "ai", msgId: "u1", participantId: "claude", text: "答案 1", ts: now - 9500 },
+      { role: "user", msgId: "u2", text: "⚔️ 第1轮辩论·群策群力", ts: now - 8000 },
+      { role: "ai", msgId: "u2", participantId: "gemini", text: "辩论答案", ts: now - 7500 },
+      // 重发原题占位 + AI 重答
+      { role: "user", msgId: "r1", text: "🔄 重发原题：天线方向重构方案", ts: now - 6000 },
+      { role: "ai", msgId: "r1", participantId: "claude", text: "重新回答", ts: now - 5500 },
+      // 重发占位（非原题）
+      { role: "user", msgId: "r2", text: "🔄 重发：天线方向重构方案", ts: now - 4000 },
+      { role: "ai", msgId: "r2", participantId: "gemini", text: "重发答案", ts: now - 3500 },
+    ];
+    window.ChatHistory?.renderAll(log);
+    const turns = document.querySelectorAll("#sidebar-list .sidebar-turn");
+    const texts = [...turns].map(t => t.querySelector(".sidebar-item-text")?.textContent || "");
+    // 同时确认重发的 AI replies 数量被合并到上个真实 turn（重发后 ai count ≥ 原始）
+    const replyCounts = [...turns].map(t => {
+      const num = t.querySelector(".sidebar-item-replies")?.textContent || "";
+      const m = /(\d+)/.exec(num);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    return {
+      turnCount: turns.length,
+      texts,
+      hasResend: texts.some(t => t.includes("🔄") || t.includes("重发")),
+      replyCounts,
+    };
+  });
+  check("v4.8.32: sidebar 跳过'🔄 重发'占位（2 turns 不含重发文本，AI replies 合入上个 turn）",
+    resendFilter.turnCount === 2 && !resendFilter.hasResend,
+    JSON.stringify(resendFilter));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

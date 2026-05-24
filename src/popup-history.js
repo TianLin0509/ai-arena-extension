@@ -75,7 +75,10 @@
       if (m.role === "user") {
         // v4.8.2: 跳过 F20/F21 的 pending 占位（background.js 推的"· 正在发起..."文本）
         //         真实辩论/总结 user msg 随后会到达，时间轴只显示一条
-        if (typeof m.text === "string" && /·\s*正在发起\.\.\.$/.test(m.text)) {
+        // v4.8.32: 跳过"🔄 重发原题：..." / "🔄 重发：..." 占位 — 重发的 AI 回答应合入第一次发送的 turn，
+        //          不应单独占用时间轴条目
+        if (typeof m.text === "string" &&
+            (/·\s*正在发起\.\.\.$/.test(m.text) || /^🔄\s*重发(?:原题)?\s*[:：]/.test(m.text))) {
           continue;
         }
         cur = { user: m, replies: [] };
