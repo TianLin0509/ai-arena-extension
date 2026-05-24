@@ -191,29 +191,79 @@ async function readLatestResponse() {
   return text;
 }
 
+// v4.8.27 F35: 清理 Claude 回答的 sr-only / thinking 噪音
+// 截图证据："Claude responded: 1+1=2Thinking about...1+1=2" 三段被拼一起
+// 1. "Claude responded:" 是 sr-only 截图 aria-label，应剥离
+// 2. thinking summary 是 Claude 思考过程，用户不需要看（默认折叠在 UI 上）
+// 3. 真正回答可能在 .prose 或某个 final 容器
+function cleanClaudeText(raw) {
+  if (!raw) return "";
+  let t = raw;
+  // 剥离开头的 sr-only "Claude responded:" / "Reply:" / 类似前缀
+  t = t.replace(/^(Claude\s+(responded|replied|said|response):?\s*|Reply\s*:?\s*)/i, "");
+  return t.trim();
+}
+
+// 在 .font-claude-message 容器内提取真正回答，跳过 thinking 折叠块
+function _extractClaudeResponse(container) {
+  if (!container) return "";
+  // Claude UI 把 thinking 放在 <details> 或 [data-state="open"] 折叠区
+  // 复制一份 DOM，剥离 thinking 节点后再 innerText
+  const clone = container.cloneNode(true);
+  // 移除 thinking summary（多种可能选择器）
+  clone.querySelectorAll([
+    "details",
+    "[aria-label*='Thinking' i]",
+    "[aria-label*='思考' i]",
+    "[data-testid*='thinking' i]",
+    "button[aria-expanded]",  // 折叠展开按钮
+    ".sr-only",  // 屏幕阅读器专用文本（含 "Claude responded:" 等）
+    "[aria-hidden='false'].sr-only",
+  ].join(", ")).forEach(el => el.remove());
+
+  // 也移除带 "Thinking about" 文本开头的标题/按钮
+  clone.querySelectorAll("h1, h2, h3, h4, button, summary").forEach(el => {
+    const t = (el.innerText || "").trim();
+    if (/^(Thinking|思考|Pondering|Considering)\b/i.test(t)) el.remove();
+  });
+
+  const text = typeof extractTextWithFences === "function"
+    ? extractTextWithFences(clone)
+    : (clone.innerText || clone.textContent || "");
+  return cleanClaudeText(text);
+}
+
 function getLastAssistantText() {
-  const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]).trim();
+  // 优先策略：用容器 + cleanup（剥 thinking 和 sr-only）
+  const claudeMsgs = document.querySelectorAll(".font-claude-message");
+  if (claudeMsgs.length > 0) {
+    const r = _extractClaudeResponse(claudeMsgs[claudeMsgs.length - 1]);
+    if (r) return r;
+  }
 
   const testIdMsgs = document.querySelectorAll("[data-testid='chat-message-content']");
-  if (testIdMsgs.length > 0) return _extractEl(testIdMsgs[testIdMsgs.length - 1]).trim();
+  if (testIdMsgs.length > 0) {
+    const r = _extractClaudeResponse(testIdMsgs[testIdMsgs.length - 1]);
+    if (r) return r;
+  }
 
-  const claudeMsgs = document.querySelectorAll(".font-claude-message");
-  if (claudeMsgs.length > 0) return _extractEl(claudeMsgs[claudeMsgs.length - 1]).trim();
+  // 选择器配置兜底
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return cleanClaudeText(_extractEl(responses[responses.length - 1]));
 
   const streamContainers = document.querySelectorAll("[data-is-streaming]");
   if (streamContainers.length > 0) {
     const last = streamContainers[streamContainers.length - 1];
-    const text = _extractEl(last).trim();
-    if (text) return text;
+    const r = _extractClaudeResponse(last);
+    if (r) return r;
   }
 
   const proseBlocks = document.querySelectorAll(".prose, .markdown");
-  if (proseBlocks.length > 0) return _extractEl(proseBlocks[proseBlocks.length - 1]).trim();
+  if (proseBlocks.length > 0) return cleanClaudeText(_extractEl(proseBlocks[proseBlocks.length - 1]));
 
   const allBlocks = document.querySelectorAll('[class*="message"], [class*="response"], [class*="assistant"]');
   for (let i = allBlocks.length - 1; i >= 0; i--) {
-    const text = _extractEl(allBlocks[i]).trim();
+    const text = cleanClaudeText(_extractEl(allBlocks[i]));
     if (text.length > 50) return text;
   }
 

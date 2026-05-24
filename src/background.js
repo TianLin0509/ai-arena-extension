@@ -626,6 +626,7 @@ async function retryInjectParticipant(id) {
       const ready = await waitForContentScript(p.tabId);
       if (!ready) {
         lastError = "页面未就绪 (content script 失联)";
+        console.warn(`[F35] retryInject ${p.service} attempt ${attempt + 1}/${MAX_TRIES}: ${lastError}`);
       } else {
         StateMachine.setLastSent(p.id, text);
         const result = await sendMessageWithTimeout(p.tabId, { action: "inject", text }, 15000);
@@ -634,9 +635,11 @@ async function retryInjectParticipant(id) {
           break;
         }
         lastError = result?.error || `inject 异常状态: ${result?.status}`;
+        console.warn(`[F35] retryInject ${p.service} attempt ${attempt + 1}/${MAX_TRIES}: status=${result?.status} err=${result?.error}`);
       }
     } catch (e) {
       lastError = e?.message || lastError;
+      console.warn(`[F35] retryInject ${p.service} attempt ${attempt + 1}/${MAX_TRIES} EXCEPTION:`, e?.message);
     }
     if (attempt < MAX_TRIES - 1) {
       await new Promise(r => setTimeout(r, 1500));
