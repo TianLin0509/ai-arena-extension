@@ -120,6 +120,9 @@ const StateMachine = {
     this.markerRound = 0;
     this.lastSentByPid = {};
     this.lastAcceptedByPid = {};
+    // v4.6.6 F13: 清 pendingSummary — 防重置后 nextId 重排 → 新 p3 完成回答
+    // 被误判为旧 pendingSummary.judgeId="p3" 触发 → 普通气泡被当裁判总结渲染 HTML 报告
+    this.pendingSummary = null;
     this.save();
   },
 

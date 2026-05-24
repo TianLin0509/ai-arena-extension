@@ -198,7 +198,13 @@
   }
 
   function addParticipant(service) {
-    chrome.runtime.sendMessage({ type: "addParticipant", service }, () => refresh());
+    // v4.6.6 F15: 在用户手势 context 内直接调 window.focus()，把 popup 自己拉前台
+    // Chrome 88+ 收紧 SW 内 chrome.windows.update({focused:true}) 政策（被静默拒绝），
+    // popup 端用 window.focus() 保留用户手势链条，比 background.focusPopup 更可靠
+    chrome.runtime.sendMessage({ type: "addParticipant", service }, () => {
+      try { window.focus(); } catch (_) {}
+      refresh();
+    });
   }
 
   function removeParticipant(pid) {

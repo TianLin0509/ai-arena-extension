@@ -190,14 +190,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           break;
         case "hardReset":
           // v4.3.6: hardReset 之前关闭所有 AI 网页 tab
+          // v4.6.6 F14: 提前批量加入 _removingTabs 防 chrome.tabs.onRemoved 监听器
+          // 对每个 tab 触发一次 removeParticipant + _broadcastStateUpdate + notifyStatus
+          // （N 次重复噪音 + 给 popup-members 推 N+1 次 stateUpdate 抖动）
           try {
             const tabIds = (StateMachine.participants || [])
               .map(p => p.tabId)
               .filter(id => typeof id === "number");
             if (tabIds.length) {
+              tabIds.forEach(id => _removingTabs.add(id));
               await chrome.tabs.remove(tabIds).catch(() => {});
             }
           } catch (_) {}
+          // v4.6.6 F13: 清 polling — 防旧 polling 下个 tick 调失效 tabId 触发 catch
+          // 推送"⚠ XX 已断开"残留消息到 popup（用户报"重置后不再同步问答"主因）
+          try { ChatBus.clearAllPollers(); } catch (_) {}
           StateMachine.hardReset();
           try { ChatBus.clearLog(); } catch (_) {}
           // v4.5.4 F8: 主动广播 hardReset 让 popup-members 清空 streamStatus，

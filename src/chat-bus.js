@@ -325,6 +325,15 @@ const ChatBus = (() => {
 
   function getLog() { return chatLog.slice(); }
   function clearLog() { chatLog.length = 0; chrome.storage.local.remove(STORAGE_KEYS.log); }
+
+  // v4.6.6 F13: hardReset 时清所有 polling — 防旧 polling 下个 tick 调失效 tabId
+  // 走 catch 分支推 "⚠ XX 已断开" 残留消息到 popup，造成"重置后不再同步"假象
+  function clearAllPollers() {
+    for (const [, state] of pollers) {
+      try { clearInterval(state.intervalId); } catch (_) {}
+    }
+    pollers.clear();
+  }
   async function jumpToOrigin(participantId) {
     const p = (StateMachine.participants || []).find(x => x.service === participantId);
     if (!p || !p.tabId) return { ok: false, error: "未找到参与者标签页" };
@@ -398,10 +407,12 @@ const ChatBus = (() => {
   }
 
   // v4.3.0：把 popup 窗口拉回前端（添加 AI 窗口/排列窗口后调用，防止 popup 失焦）
+  // v4.6.6 F15: drawAttention:true 强提示 — Chrome 88+ 收紧 SW 内 focused:true 政策
+  // 没有强用户手势会被静默拒绝，drawAttention:true 至少让 taskbar 闪烁提示用户切回
   async function focusPopup() {
     if (popupWindowId == null) return { ok: false, error: "popup not open" };
     try {
-      await chrome.windows.update(popupWindowId, { focused: true, drawAttention: false });
+      await chrome.windows.update(popupWindowId, { focused: true, drawAttention: true });
       return { ok: true };
     } catch (e) {
       popupWindowId = null;
@@ -419,6 +430,7 @@ const ChatBus = (() => {
     notifyRoundStart,
     getLog,
     clearLog,
+    clearAllPollers,
     jumpToOrigin,
     reextractOne,
     skipParticipant,

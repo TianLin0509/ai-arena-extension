@@ -126,6 +126,42 @@ function staticCheck() {
       pattern: /正在生成图片/,
       desc: "F12 canvas-only 兜底占位",
     },
+    {
+      id: "F13-clearAllPollers",
+      file: "src/chat-bus.js",
+      pattern: /function clearAllPollers\(\)/,
+      desc: "F13 ChatBus.clearAllPollers helper",
+    },
+    {
+      id: "F13-pendingSummary",
+      file: "src/state-machine.js",
+      pattern: /v4\.6\.6 F13.*pendingSummary = null/s,
+      desc: "F13 hardReset 清 pendingSummary",
+    },
+    {
+      id: "F13-bgWiring",
+      file: "src/background.js",
+      pattern: /ChatBus\.clearAllPollers\(\)/,
+      desc: "F13 hardReset case 调 clearAllPollers",
+    },
+    {
+      id: "F14-removingTabs",
+      file: "src/background.js",
+      pattern: /tabIds\.forEach\(id => _removingTabs\.add\(id\)\)/,
+      desc: "F14 hardReset 批量 _removingTabs.add 防 onRemoved 噪音",
+    },
+    {
+      id: "F15-drawAttention",
+      file: "src/chat-bus.js",
+      pattern: /drawAttention:\s*true/,
+      desc: "F15 focusPopup 用 drawAttention:true 提示用户",
+    },
+    {
+      id: "F15-popupFocus",
+      file: "src/popup-members.js",
+      pattern: /window\.focus\(\)/,
+      desc: "F15 popup addParticipant 调 window.focus() 保留用户手势",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
@@ -319,6 +355,139 @@ try {
     record("F11-fix", "fixed", f11, "residue 判定逻辑正确：相同/head 匹配视为残留；新回答/空/无 prev 视为非残留。pollOnce 端到端行为靠手动测试 Kimi 实测验证（截图场景）");
   } else {
     record("F11-fix", "regression", f11, "residue 判定逻辑异常");
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F13-fix: hardReset 清 pendingSummary + ChatBus.clearAllPollers
+  // 用户报 bug "重置后不再同步问答" — 主因是旧 polling 残留下个 tick 推
+  // "⚠ XX 已断开" 残留消息给 popup，造成视觉错乱
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F13-fix: hardReset 清 pollers + pendingSummary ===");
+  const f13 = await sw.evaluate(async () => {
+    return new Promise(async (resolve) => {
+      // 重置干净
+      StateMachine.hardReset();
+
+      // mock chrome.tabs.remove 防真关闭
+      const origTabsRemove = chrome.tabs.remove;
+      chrome.tabs.remove = async () => undefined;
+
+      // mock chrome.tabs.sendMessage 让 polling 调时返回成功
+      const origTabsSend = chrome.tabs.sendMessage;
+      let postResetTabSends = 0;
+      chrome.tabs.sendMessage = async (tid, msg) => {
+        // hardReset 前后 polling 发起的 readResponse — 模拟 tabId 失效 throw
+        if (msg.action === "readResponse") {
+          postResetTabSends++;
+          throw new Error("Tab ID does not exist: " + tid);
+        }
+        return { status: "sent" };
+      };
+
+      // 捕获 hardReset 后 sendToPopup 推的"已断开"残留
+      let disconnectMessages = [];
+      const origRuntimeSend = chrome.runtime.sendMessage;
+      chrome.runtime.sendMessage = (m) => {
+        if (m?.type === "chatStreamUpdate" && m?.text && m.text.includes("已断开")) {
+          disconnectMessages.push(m.text);
+        }
+        return Promise.resolve();
+      };
+
+      // 步骤 1: 注入 fake participants + 启动 polling
+      StateMachine.participants = [
+        { id: "p1", service: "ai_a", tabId: 91001, name: "A", response: null, responsePreview: null },
+        { id: "p2", service: "ai_b", tabId: 91002, name: "B", response: null, responsePreview: null },
+      ];
+      ChatBus.notifyRoundStart("test", ["ai_a", "ai_b"]);
+
+      // 步骤 2: 设 pendingSummary 模拟"等裁判总结中"
+      StateMachine.setPendingSummary({
+        judgeId: "p3", judgeName: "Old Judge", judgeService: "ai_old",
+        topic: "old", rounds: 1, participants: ["A", "B"], ts: Date.now(),
+      });
+
+      // 步骤 3: 等 200ms 让 polling 跑一两个 tick
+      await new Promise(r => setTimeout(r, 200));
+      const beforeReset_tabSends = postResetTabSends;
+
+      // 步骤 4: 执行 hardReset 流程（直接模拟 background.js hardReset case 关键步骤）
+      const tabIds = (StateMachine.participants || []).map(p => p.tabId).filter(id => typeof id === "number");
+      if (typeof _removingTabs !== "undefined" && _removingTabs.add) {
+        tabIds.forEach(id => _removingTabs.add(id));
+      }
+      try { ChatBus.clearAllPollers(); } catch (_) {}
+      StateMachine.hardReset();
+      try { ChatBus.clearLog(); } catch (_) {}
+
+      // 步骤 5: 重置后再等 2 秒（>1.5s polling 间隔），看是否有"已断开"残留消息
+      await new Promise(r => setTimeout(r, 2200));
+
+      // 步骤 6: 再加 fake participant 看新 polling 启动是否正常
+      StateMachine.participants = [
+        { id: "p1", service: "ai_a", tabId: 92001, name: "A new", response: null, responsePreview: null },
+      ];
+      // 还原 tabs.sendMessage 让新 polling 成功
+      chrome.tabs.sendMessage = origTabsSend;
+
+      // 还原 hooks
+      const result = {
+        pendingSummary_afterReset: StateMachine.pendingSummary,
+        disconnectMessageCount: disconnectMessages.length,
+        disconnectMessages: disconnectMessages.slice(0, 3),
+        tabSendsBefore: beforeReset_tabSends,
+        tabSendsAfterReset: postResetTabSends - beforeReset_tabSends,
+      };
+      chrome.tabs.remove = origTabsRemove;
+      chrome.runtime.sendMessage = origRuntimeSend;
+      resolve(result);
+    });
+  });
+  const f13Pass = f13.pendingSummary_afterReset === null
+                && f13.disconnectMessageCount === 0;
+  if (f13Pass) {
+    record("F13-fix", "fixed", f13,
+      `pendingSummary 清空 + 重置后 ${(2200/1500).toFixed(1)}s 内零"已断开"残留消息（旧 polling 已 stop）`);
+  } else {
+    record("F13-fix", "regression", f13,
+      `pendingSummary=${JSON.stringify(f13.pendingSummary_afterReset)} disconnectCount=${f13.disconnectMessageCount}`);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F15-fix: focusPopup 用 drawAttention:true
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F15-fix: focusPopup 加 drawAttention:true ===");
+  const f15 = await sw.evaluate(async () => {
+    // mock chrome.windows.update 捕获参数
+    let captured = null;
+    const origUpdate = chrome.windows.update;
+    chrome.windows.update = async (winId, opts) => {
+      captured = { winId, opts };
+      return { id: winId };
+    };
+
+    // mock 一个 popupWindowId — 需要先调 openChatPopup 让 ChatBus 内部记一个
+    // 但 openChatPopup 会真创建 window，这里我们 mock chrome.windows.create
+    const origCreate = chrome.windows.create;
+    let createdId = 88888;
+    chrome.windows.create = async () => ({ id: createdId, tabs: [{ id: 99999 }] });
+    // 让 ChatBus 内部记下 popupWindowId
+    await ChatBus.openChatPopup();
+    // 现在调 focusPopup
+    const r = await ChatBus.focusPopup();
+
+    chrome.windows.update = origUpdate;
+    chrome.windows.create = origCreate;
+    return {
+      focusOk: r?.ok === true,
+      capturedFocused: captured?.opts?.focused === true,
+      capturedDrawAttention: captured?.opts?.drawAttention === true,
+    };
+  });
+  if (f15.capturedFocused && f15.capturedDrawAttention) {
+    record("F15-fix", "fixed", f15, "focusPopup 调 chrome.windows.update 携带 focused:true + drawAttention:true");
+  } else {
+    record("F15-fix", "regression", f15, "focusPopup 参数不符预期");
   }
 
   // ════════════════════════════════════════════════════════
