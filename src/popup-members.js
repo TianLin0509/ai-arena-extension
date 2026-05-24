@@ -94,6 +94,9 @@
   // v4.3.11: 成员状态直接跟主区气泡同步，不依赖 StateMachine 字段更新
   // key=service, value="busy"|"ready"|"error"|"skipped"
   const streamStatus = new Map();
+  // v4.8.1: 跟踪上次渲染时的 participant ids — 用于识别"新添加"，给 .just-added 加炫酷动画
+  // 已经存在的 AI 不会再跑动画（解决"对话中卡槽持续跳动"喧宾夺主问题）
+  let _lastPidSet = new Set();
   // v4.3.15: 排行榜折叠状态（持久化）
   let lbCollapsed = false;
 
@@ -132,15 +135,18 @@
     const remaining = ALL_SERVICES.filter(s => !joinedIds.has(s.id));
 
     // v4.8.0: 王者风 3 卡槽 — 替代逐行卡片列表
-    // 槽位顺序固定（slot 0/1/2），按 joined 数组顺序填，空位显示 +
+    // v4.8.1: 只对"新出现的 pid"加 .just-added（含 bounce 进场 + 流光 2 圈）；已存在的不动
     const MAX_SLOTS = 3;
+    const currentPidSet = new Set(joined.map(p => p.id));
+    const newPids = [...currentPidSet].filter(pid => !_lastPidSet.has(pid));
     const slotsHtml = Array.from({ length: MAX_SLOTS }, (_, i) => {
       const p = joined[i];
       if (p) {
         const meta = SERVICE_MAP[p.service] || { name: p.service, logo: null };
         const status = statusOf(p);
+        const isNew = newPids.includes(p.id);
         return `
-          <div class="hero-slot filled status-${status || 'idle'}" data-pid="${escapeHtml(p.id)}" data-slot="${i}" title="${escapeHtml(p.name || meta.name)} · ${statusTextOf(p)}">
+          <div class="hero-slot filled status-${status || 'idle'}${isNew ? ' just-added' : ''}" data-pid="${escapeHtml(p.id)}" data-slot="${i}" title="${escapeHtml(p.name || meta.name)} · ${statusTextOf(p)}">
             <div class="hero-slot-bg"></div>
             <div class="hero-slot-glow"></div>
             ${meta.logo
@@ -154,6 +160,7 @@
       }
       return `<div class="hero-slot empty" data-slot="${i}" title="空位 — 在下方选择 AI 添加"><div class="hero-slot-plus">＋</div><div class="hero-slot-empty-lbl">空位</div></div>`;
     }).join("");
+    _lastPidSet = currentPidSet;
 
     root.innerHTML = `
       <div class="rp-section-title">已加入 <span class="rp-count">${joined.length}/${MAX_SLOTS}</span></div>
@@ -187,6 +194,12 @@
     });
     // v4.3.15: 排行榜折叠按钮
     root.querySelector("#rp-lb-toggle")?.addEventListener("click", toggleLeaderboard);
+    // v4.8.1: 800ms 后移除 .just-added，避免下次 render 重启动画（用户 hover 仍能触发短暂流光）
+    // animation 时长 0.45s bounce + 2*2.6s shimmer = 5.65s 但 CSS animation 只跑 1 次后保持终态，
+    // 这里只需保证 class 在下次 render 前能消失即可
+    setTimeout(() => {
+      root.querySelectorAll(".hero-slot.just-added").forEach(el => el.classList.remove("just-added"));
+    }, 6000);
   }
 
   async function refresh() {
