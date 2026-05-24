@@ -29,7 +29,7 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v4.8.11-beta</span>
+        <span class="chat-version">v4.8.13-beta</span>
       </div>
       <div class="chat-actions">
         <div class="hdr-mode-toggle" id="hdr-mode-toggle" role="group" aria-label="AI 窗口布局">
@@ -52,8 +52,20 @@
     </header>
     <main class="chat-messages" id="chat-messages">
       <div class="empty-state" id="empty-state">
-        <!-- v4.8.11: 整页换成单张 AI 小队海报（自带标题+副文案） -->
-        <img class="es-poster" src="icons/poster-ai-team.webp" alt="AI 小队集合 — 选择你的 AI 搭档小队，让答案在讨论中升级">
+        <!-- v4.8.12: 上 2/3 横版海报 + 下 1/3 自定义文案（标题 + 6 大功能 + CTA） -->
+        <img class="es-poster" src="icons/poster-ai-team.webp" alt="AI Arena — 让 AI 同台辩论，逼近真相">
+        <div class="es-pitch">
+          <h2 class="es-pitch-title">让 <span class="es-pitch-em">AI 同台辩论</span>，逼近真相</h2>
+          <div class="es-pitch-features">
+            <span class="es-feat"><span class="es-feat-em">⚔️</span> 自由辩论</span>
+            <span class="es-feat"><span class="es-feat-em">🤝</span> 群策群力</span>
+            <span class="es-feat"><span class="es-feat-em">📋</span> 裁判总结</span>
+            <span class="es-feat"><span class="es-feat-em">🎭</span> 角色分工</span>
+            <span class="es-feat"><span class="es-feat-em">📐</span> 任务模板</span>
+            <span class="es-feat"><span class="es-feat-em">📊</span> PPT 工坊</span>
+          </div>
+          <div class="es-pitch-cta">→ 在右侧添加至少 2 个 AI 选手开始</div>
+        </div>
       </div>
     </main>
     <div class="chat-roster" id="chat-roster">

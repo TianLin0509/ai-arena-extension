@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.11-beta", manifest.version_name === "4.8.11-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.13-beta", manifest.version_name === "4.8.13-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.11-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.13-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.11-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.13-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.11-beta", popupVersion === "v4.8.11-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.13-beta", popupVersion === "v4.8.13-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1413,6 +1413,49 @@ try {
   check("v4.8.11: poster-ai-team.webp 资源加载成功 (压缩后 ~170KB)",
     posterCheck.assetOk && posterCheck.assetSizeKB > 50 && posterCheck.assetSizeKB < 400,
     JSON.stringify(posterCheck));
+
+  // ========== v4.8.12: 上 2/3 海报 + 下 1/3 自定义文案 ==========
+  console.log("\n[smoke] === v4.8.12 海报 + 文案 ===");
+  const pitchCheck = await posterPage.evaluate(() => {
+    const empty = document.getElementById("empty-state");
+    const poster = empty?.querySelector(".es-poster");
+    const pitch = empty?.querySelector(".es-pitch");
+    const title = pitch?.querySelector(".es-pitch-title");
+    const feats = [...(pitch?.querySelectorAll(".es-feat") || [])];
+    const cta = pitch?.querySelector(".es-pitch-cta");
+    const posterCs = poster ? getComputedStyle(poster) : null;
+    const pitchCs = pitch ? getComputedStyle(pitch) : null;
+    return {
+      hasPitch: !!pitch,
+      titleText: title?.textContent?.trim() || null,
+      featCount: feats.length,
+      featTexts: feats.map(f => f.textContent.trim()),
+      ctaText: cta?.textContent?.trim() || null,
+      posterFlexGrow: posterCs?.flexGrow,   // 期望 "2"
+      pitchFlexGrow: pitchCs?.flexGrow,     // 期望 "1"
+      posterObjectFit: posterCs?.objectFit, // 期望 "contain"
+    };
+  });
+  check("v4.8.12: .es-pitch 含标题 '让 AI 同台辩论，逼近真相'",
+    pitchCheck.hasPitch && pitchCheck.titleText?.includes("AI 同台辩论") && pitchCheck.titleText?.includes("逼近真相"),
+    JSON.stringify(pitchCheck));
+  check("v4.8.12: 6 个 .es-feat 功能 chip (⚔️自由辩论/🤝群策群力/📋裁判总结/🎭角色分工/📐任务模板/📊PPT工坊)",
+    pitchCheck.featCount === 6
+      && pitchCheck.featTexts.some(t => t.includes("自由辩论"))
+      && pitchCheck.featTexts.some(t => t.includes("群策群力"))
+      && pitchCheck.featTexts.some(t => t.includes("裁判总结"))
+      && pitchCheck.featTexts.some(t => t.includes("角色分工"))
+      && pitchCheck.featTexts.some(t => t.includes("任务模板"))
+      && pitchCheck.featTexts.some(t => t.includes("PPT")),
+    JSON.stringify(pitchCheck));
+  check("v4.8.12: CTA 文案含 '右侧添加' + '2 个 AI'",
+    pitchCheck.ctaText?.includes("右侧") && pitchCheck.ctaText?.includes("AI"),
+    JSON.stringify(pitchCheck));
+  check("v4.8.12: poster flex:2 / pitch flex:1 (上 2/3 + 下 1/3) + poster contain",
+    pitchCheck.posterFlexGrow === "2"
+      && pitchCheck.pitchFlexGrow === "1"
+      && pitchCheck.posterObjectFit === "contain",
+    JSON.stringify(pitchCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);
