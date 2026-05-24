@@ -1,13 +1,14 @@
 // popup-settings.js — 设置 Tab：主题 + 快捷键
 // v4.6.9: 状态日志已抽到 popup-log.js（右栏下半部分固定区），本文件不再含 log 逻辑
 (function () {
+  // v4.8.18: 主题中文化（参考"湛蓝陨石"风格 — 4 字诗意命名，跟卡牌风格统一）
   const THEMES = [
-    { id: "C", name: "Aurora",  gradient: "linear-gradient(135deg,#5eead4,#a78bfa)" },
-    { id: "A", name: "Dark",    gradient: "linear-gradient(135deg,#4f8cff,#6ee7ff)" },
-    { id: "B", name: "Warm",    gradient: "linear-gradient(135deg,#b85c38,#e6d7c8)" },
-    { id: "D", name: "Neon",    gradient: "linear-gradient(135deg,#ff2d95,#00f0ff)" },
-    { id: "E", name: "Light",   gradient: "linear-gradient(135deg,#1a1a2e,#fff)" },
-    { id: "F", name: "Sunset",  gradient: "linear-gradient(135deg,#ff8c42,#e84393)" },
+    { id: "C", name: "极光琉璃",  gradient: "linear-gradient(135deg,#5eead4,#a78bfa)" },
+    { id: "A", name: "深海指挥",  gradient: "linear-gradient(135deg,#4f8cff,#6ee7ff)" },
+    { id: "B", name: "暖橙书页",  gradient: "linear-gradient(135deg,#b85c38,#e6d7c8)" },
+    { id: "D", name: "霓虹赛博",  gradient: "linear-gradient(135deg,#ff2d95,#00f0ff)" },
+    { id: "E", name: "月白极简",  gradient: "linear-gradient(135deg,#1a1a2e,#fff)" },
+    { id: "F", name: "落日熔金",  gradient: "linear-gradient(135deg,#ff8c42,#e84393)" },
   ];
   const THEME_KEY = "uiTheme";
 
