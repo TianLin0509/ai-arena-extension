@@ -400,16 +400,16 @@ body {
   max-width: 460px;
   padding: 24px 20px;
 }
-.empty-state .es-hero-icon {
-  width: 84px; height: 84px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b6b, #ffa94d);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  margin-bottom: 20px;
-  box-shadow: 0 6px 24px rgba(255, 107, 107, 0.28);
+/* v4.8.2: hero 图换成 AI 群英二次元卡通图 — 不再用渐变 emoji 圆形 */
+.empty-state .es-hero-img {
+  width: 220px;
+  max-width: 80%;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px;
+  /* 让暗背景下边缘融合一些，不要硬白边 */
+  border-radius: 16px;
+  filter: drop-shadow(0 8px 28px rgba(255, 175, 80, 0.18));
 }
 .empty-state .es-title {
   font-size: 24px;
