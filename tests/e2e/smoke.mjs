@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.6.4-beta", manifest.version_name === "4.6.4-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.6.5-beta", manifest.version_name === "4.6.5-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.6.4-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.6.5-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.6.4-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.6.5-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.6.4-beta", popupVersion === "v4.6.4-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.6.5-beta", popupVersion === "v4.6.5-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -224,6 +224,73 @@ try {
   check("popup renderMarkdown available", mdResult.hasFunc);
   check("popup renderMarkdown handles bold", mdResult.bold === true);
   check("popup renderMarkdown XSS-safe", mdResult.xssSafe === true);
+
+  // v4.6.5: LaTeX 公式渲染（KaTeX 抽取 + LaTeX→Unicode）
+  const mathResult = await popupPage.evaluate(() => {
+    const r = (s) => renderMarkdown(s);
+    return {
+      // 行内 LaTeX
+      inlineTheta: r("公式 $E(\\theta,t)$ 是动态的"),
+      // 块级 LaTeX
+      blockFx: r("总方向图：\n$$F(\\theta)=E(\\theta)\\cdot AF(\\theta)$$"),
+      // 上下标
+      subSup: r("$w_n e^{j2\\pi}$"),
+      // 求和 + 上下标
+      sumIdx: r("$\\sum_{i=0}^{N}$"),
+      // 不破坏行内代码
+      codeNotMath: r("反引号 `$x = 1$` 内的不算公式"),
+      // 不破坏代码块
+      codeBlockSafe: r("```\n$ npm install\n$$ test\n```")
+    };
+  });
+  // 行内：θ + 包含 .md-math span（title=原 LaTeX）
+  check("v4.6.5: LaTeX 行内 $E(\\theta,t)$ → 渲染含 θ",
+    mathResult.inlineTheta.includes('class="md-math"')
+      && mathResult.inlineTheta.includes("θ"),
+    mathResult.inlineTheta.slice(0, 200));
+  check("v4.6.5: LaTeX 块级 $$F(θ)=E(θ)·AF(θ)$$",
+    mathResult.blockFx.includes('class="md-math-block"')
+      && mathResult.blockFx.includes("θ")
+      && mathResult.blockFx.includes("·"),
+    mathResult.blockFx.slice(0, 200));
+  // 上下标：w_n → wₙ, e^{j2π} → eʲ²π
+  check("v4.6.5: 上下标 w_n e^{j2\\pi} → wₙ eʲ²ᵖⁱ 或类似",
+    mathResult.subSup.includes("ₙ") && mathResult.subSup.includes("²"),
+    mathResult.subSup.slice(0, 200));
+  // 求和 + 索引：∑ + 上下标
+  check("v4.6.5: \\sum_{i=0}^{N} → ∑ᵢ₌₀ᴺ 或类似",
+    mathResult.sumIdx.includes("∑"),
+    mathResult.sumIdx.slice(0, 200));
+  // 安全：反引号内的 $ 不被解析
+  check("v4.6.5: 反引号 inline code 内的 $ 不被当作 LaTeX",
+    !mathResult.codeNotMath.includes('class="md-math"'),
+    mathResult.codeNotMath.slice(0, 200));
+  // 代码块内的 $ 不被解析
+  check("v4.6.5: 代码块内的 $ / $$ 不被当作 LaTeX",
+    !mathResult.codeBlockSafe.includes('class="md-math"'),
+    mathResult.codeBlockSafe.slice(0, 200));
+
+  // v4.6.5: KaTeX DOM 抽取去重（模拟 ChatGPT katex span）
+  const katexSanitize = await popupPage.evaluate(() => {
+    // 注入仿 ChatGPT KaTeX 渲染的 DOM
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `公式 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\\theta</annotation></semantics></math></span><span class="katex-html">θ</span></span> 后续文本`;
+    // 不依赖 inject-images.js 的全局函数（content-script only），直接调底层
+    // 这里只验证 popup-markdown.js 不会把已经 sanitize 的 `$\theta$` 渲染错
+    const txt = "公式 $\\theta$ 后续文本";
+    const html = renderMarkdown(txt);
+    // title 属性保留原 LaTeX 源码（hover 提示）是设计，noRawCommand 只检查可见文本区
+    const visibleSpan = html.match(/<span class="md-math"[^>]*>([\s\S]*?)<\/span>/);
+    const visibleText = visibleSpan ? visibleSpan[1] : "";
+    return {
+      rendered: html.includes("θ"),
+      noRawCommandInVisible: !visibleText.includes("\\theta"),
+      hasInline: html.includes('class="md-math"')
+    };
+  });
+  check("v4.6.5: $\\theta$ → θ（KaTeX sanitize 后的干净 LaTeX）",
+    katexSanitize.rendered && katexSanitize.noRawCommandInVisible && katexSanitize.hasInline,
+    JSON.stringify(katexSanitize));
 
   // 6) 任务模式 hover 子菜单验证（DOM 存在性）
   const debateSubItems = await popupPage.locator('.menu-item.has-sub:has(span:text("辩论")) .sub-menu .menu-item').count();

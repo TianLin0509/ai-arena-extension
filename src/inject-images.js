@@ -281,6 +281,65 @@ function _doExtractWithFences(clone) {
     '[class*="discover"]',
   ].join(",");
   try { clone.querySelectorAll(NOISE_SEL).forEach(el => el.remove()); } catch {}
+
+  // v4.6.5: KaTeX / MathJax 数学公式去重 + 输出干净 LaTeX 源码
+  // ChatGPT / Claude / Gemini 等 AI 网页用 KaTeX 渲染公式，典型 DOM 结构：
+  //   <span class="katex">
+  //     <span class="katex-mathml"><math>...<annotation encoding="application/x-tex">\theta</annotation></math></span>
+  //     <span class="katex-html">θ</span>     ← visible 渲染
+  //   </span>
+  // innerText 会拼接 mathml + html-render + annotation，导致 "θ\thetaθ" 三段重复。
+  // 修复：找 .katex 节点 → 提取 annotation 里的 LaTeX 源码 → 用 $LaTeX$ 文本替换整段。
+  try {
+    // 块级 .katex-display 先处理（含子 .katex），整段替换为 $$LaTeX$$
+    clone.querySelectorAll(".katex-display").forEach(blockEl => {
+      const ann = blockEl.querySelector('annotation[encoding="application/x-tex"]');
+      let latex = "";
+      if (ann) latex = (ann.textContent || "").trim();
+      else {
+        const visible = blockEl.querySelector(".katex-html") || blockEl.querySelector(".katex");
+        latex = (visible?.textContent || blockEl.textContent || "").trim();
+      }
+      const wrapped = latex ? `\n\n$$${latex}$$\n\n` : "";
+      blockEl.parentNode?.replaceChild(document.createTextNode(wrapped), blockEl);
+    });
+    // 行内 .katex（剩下的非块级）
+    clone.querySelectorAll(".katex").forEach(k => {
+      const ann = k.querySelector('annotation[encoding="application/x-tex"]');
+      let latex = "";
+      if (ann) latex = (ann.textContent || "").trim();
+      else {
+        const visible = k.querySelector(".katex-html");
+        latex = (visible?.textContent || k.textContent || "").trim();
+      }
+      const wrapped = latex ? `$${latex}$` : "";
+      k.parentNode?.replaceChild(document.createTextNode(wrapped), k);
+    });
+    // MathJax 备用（Claude / 部分页面用 mjx-container）
+    clone.querySelectorAll("mjx-container").forEach(m => {
+      const isBlock = m.getAttribute("display") === "true" || m.getAttribute("ctxtmenu_counter") || /block/i.test(m.getAttribute("display") || "");
+      const script = m.querySelector('script[type^="math/tex"]');
+      let latex = script?.textContent?.trim() || "";
+      if (!latex) {
+        const mathEl = m.querySelector("math");
+        const ann2 = mathEl?.querySelector('annotation[encoding="application/x-tex"]');
+        if (ann2) latex = (ann2.textContent || "").trim();
+        else latex = (m.textContent || "").trim();
+      }
+      const wrapped = latex ? (isBlock ? `\n\n$$${latex}$$\n\n` : `$${latex}$`) : "";
+      m.parentNode?.replaceChild(document.createTextNode(wrapped), m);
+    });
+    // 裸 MathML（无 katex 包装）
+    clone.querySelectorAll("math").forEach(mathEl => {
+      if (mathEl.closest("script") || mathEl.parentElement?.tagName === "ANNOTATION") return;
+      const ann3 = mathEl.querySelector('annotation[encoding="application/x-tex"]');
+      const latex = ann3?.textContent?.trim() || mathEl.textContent?.trim() || "";
+      const isBlock = mathEl.getAttribute("display") === "block";
+      const wrapped = latex ? (isBlock ? `\n\n$$${latex}$$\n\n` : `$${latex}$`) : "";
+      mathEl.parentNode?.replaceChild(document.createTextNode(wrapped), mathEl);
+    });
+  } catch (e) { /* sanitize 失败不阻塞主提取流程 */ }
+
   const imgs = clone.querySelectorAll("img");
   const seenSrcs = new Set();  // v4.3.3: 按 src 去重，避免 ChatGPT 等嵌套渲染同图多副本
   // v4.3.7: 引用源 / 搜索结果 / link card 容器内的图视为装饰，跳过

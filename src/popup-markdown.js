@@ -2,6 +2,108 @@
 // 支持：标题 h1-h6 / 粗斜体 / 删除线 / 行内 code / 代码块 / 链接 /
 //       图片 / 无序+有序+任务列表（可嵌套） / 引用 / 表格 / 分割线
 (function (global) {
+  // v4.6.5: 简易 LaTeX → Unicode（覆盖通信 / 信号处理常用符号；不引 KaTeX 库 ~500KB bundle）
+  const LATEX_SYMBOLS = {
+    // 希腊小写
+    alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", varepsilon: "ε",
+    zeta: "ζ", eta: "η", theta: "θ", vartheta: "ϑ", iota: "ι", kappa: "κ",
+    lambda: "λ", mu: "μ", nu: "ν", xi: "ξ", omicron: "ο",
+    pi: "π", varpi: "ϖ", rho: "ρ", varrho: "ϱ",
+    sigma: "σ", varsigma: "ς", tau: "τ", upsilon: "υ",
+    phi: "φ", varphi: "ϕ", chi: "χ", psi: "ψ", omega: "ω",
+    // 希腊大写
+    Alpha: "Α", Beta: "Β", Gamma: "Γ", Delta: "Δ", Epsilon: "Ε", Zeta: "Ζ",
+    Eta: "Η", Theta: "Θ", Iota: "Ι", Kappa: "Κ", Lambda: "Λ", Mu: "Μ",
+    Nu: "Ν", Xi: "Ξ", Omicron: "Ο", Pi: "Π", Rho: "Ρ", Sigma: "Σ",
+    Tau: "Τ", Upsilon: "Υ", Phi: "Φ", Chi: "Χ", Psi: "Ψ", Omega: "Ω",
+    // 运算
+    times: "×", div: "÷", cdot: "·", pm: "±", mp: "∓",
+    leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠",
+    ll: "≪", gg: "≫", approx: "≈", equiv: "≡", sim: "∼", simeq: "≃", cong: "≅", propto: "∝",
+    // 集合 / 逻辑
+    in: "∈", notin: "∉", ni: "∋", subset: "⊂", supset: "⊃",
+    subseteq: "⊆", supseteq: "⊇", cup: "∪", cap: "∩",
+    setminus: "∖", emptyset: "∅", varnothing: "∅",
+    forall: "∀", exists: "∃", nexists: "∄",
+    land: "∧", lor: "∨", lnot: "¬", neg: "¬",
+    // 箭头
+    rightarrow: "→", to: "→", leftarrow: "←", gets: "←", leftrightarrow: "↔",
+    Rightarrow: "⇒", Leftarrow: "⇐", Leftrightarrow: "⇔",
+    longrightarrow: "⟶", longleftarrow: "⟵", mapsto: "↦",
+    uparrow: "↑", downarrow: "↓", Uparrow: "⇑", Downarrow: "⇓",
+    // 微积分 / 求和 / 积分
+    sum: "∑", prod: "∏", coprod: "∐",
+    int: "∫", iint: "∬", iiint: "∭", oint: "∮",
+    partial: "∂", nabla: "∇",
+    // 极限 / 常数
+    infty: "∞", infin: "∞", aleph: "ℵ", hbar: "ℏ", ell: "ℓ",
+    Re: "ℜ", Im: "ℑ", wp: "℘",
+    // 几何
+    angle: "∠", perp: "⊥", parallel: "∥", triangle: "△", square: "□",
+    // 杂项
+    dots: "…", ldots: "…", cdots: "⋯", vdots: "⋮", ddots: "⋱",
+    deg: "°", prime: "′", dagger: "†", ddagger: "‡",
+    bullet: "•", star: "★", ast: "∗", oplus: "⊕", otimes: "⊗",
+    // 通信信号常用
+    mathcal: "", boldsymbol: "", mathbf: "", mathit: ""
+  };
+  const SUB_MAP = {
+    "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉",
+    "+":"₊","-":"₋","=":"₌","(":"₍",")":"₎",
+    a:"ₐ", e:"ₑ", h:"ₕ", i:"ᵢ", j:"ⱼ", k:"ₖ", l:"ₗ",
+    m:"ₘ", n:"ₙ", o:"ₒ", p:"ₚ", r:"ᵣ", s:"ₛ", t:"ₜ",
+    u:"ᵤ", v:"ᵥ", x:"ₓ"
+  };
+  const SUP_MAP = {
+    "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",
+    "+":"⁺","-":"⁻","=":"⁼","(":"⁽",")":"⁾",
+    a:"ᵃ", b:"ᵇ", c:"ᶜ", d:"ᵈ", e:"ᵉ", f:"ᶠ", g:"ᵍ", h:"ʰ", i:"ⁱ",
+    j:"ʲ", k:"ᵏ", l:"ˡ", m:"ᵐ", n:"ⁿ", o:"ᵒ", p:"ᵖ", r:"ʳ", s:"ˢ",
+    t:"ᵗ", u:"ᵘ", v:"ᵛ", w:"ʷ", x:"ˣ", y:"ʸ", z:"ᶻ",
+    H:"ᴴ", T:"ᵀ"
+  };
+  function _toSubscript(str) {
+    return String(str).split("").map(c => SUB_MAP[c] !== undefined ? SUB_MAP[c] : c).join("");
+  }
+  function _toSuperscript(str) {
+    return String(str).split("").map(c => SUP_MAP[c] !== undefined ? SUP_MAP[c] : c).join("");
+  }
+  // 简化的 LaTeX → Unicode（不解析复杂嵌套；覆盖 80% 通信场景）
+  function latexToUnicode(tex) {
+    if (!tex) return "";
+    let s = String(tex).trim();
+    // 移除 \left \right
+    s = s.replace(/\\left|\\right/g, "");
+    // \\ → 换行（多行公式分隔），但行内场景少见
+    s = s.replace(/\\\\/g, " ");
+    // 多 pass 处理嵌套 / 反复展开命令
+    let prev;
+    let iter = 0;
+    do {
+      prev = s;
+      s = s.replace(/\\mathbb\s*\{\s*([A-Za-z])\s*\}/g, (m, c) => {
+        const map = { R: "ℝ", N: "ℕ", Z: "ℤ", Q: "ℚ", C: "ℂ", P: "ℙ", F: "𝔽", E: "𝔼", H: "ℍ" };
+        return map[c] || c;
+      });
+      s = s.replace(/\\(?:text|mathrm|operatorname|mathit|mathbf|boldsymbol|mathcal)\s*\{([^{}]*)\}/g, "$1");
+      s = s.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "$1/$2");
+      s = s.replace(/\\sqrt\s*\{([^{}]+)\}/g, "√($1)");
+      s = s.replace(/\\sqrt\s+(\w)/g, "√$1");
+      // 命名符号
+      s = s.replace(/\\([a-zA-Z]+)/g, (m, name) =>
+        LATEX_SYMBOLS[name] !== undefined ? LATEX_SYMBOLS[name] : m);
+      iter++;
+    } while (s !== prev && iter < 6);
+    // 上下标（命令展开后做）
+    s = s.replace(/\^\{([^{}]+)\}/g, (m, c) => _toSuperscript(c));
+    s = s.replace(/\^(\S)/g, (m, c) => _toSuperscript(c));
+    s = s.replace(/_\{([^{}]+)\}/g, (m, c) => _toSubscript(c));
+    s = s.replace(/_(\S)/g, (m, c) => _toSubscript(c));
+    // 多余空格压缩
+    s = s.replace(/\s+/g, " ").trim();
+    return s;
+  }
+
   function escapeHtml(s) {
     return String(s ?? "")
       .replace(/&/g, "&amp;")
@@ -122,8 +224,21 @@
       return `\x01CODE${idx}\x01`;
     });
 
-    // 2) 行内 code 占位
-    src = src.replace(/`([^`\n]+)`/g, (m, c) => `\x02INLINE${escapeHtml(c)}\x02`);
+    // 2) 行内 code 占位 — v4.6.5: 同时把内部 $ 替换为 sentinel 防止被后续 LaTeX 正则误匹配
+    src = src.replace(/`([^`\n]+)`/g, (m, c) => `\x02INLINE${escapeHtml(c).replace(/\$/g, "\x06DLR\x06")}\x02`);
+
+    // 2.5) v4.6.5: LaTeX 占位（$$...$$ 块级 + $...$ 行内）— 必须在 escapeHtml 之前，否则
+    //        LaTeX 里的 \, {, }, < 等会被转义影响后续 latexToUnicode 转换
+    const mathBlocks = [];
+    src = src.replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
+      const idx = mathBlocks.push({ block: true, tex: tex.trim() }) - 1;
+      return `\x04MATH${idx}\x04`;
+    });
+    // 行内 $...$（避免误伤美元金额：要求 $ 后非空白 + 内部不含换行）
+    src = src.replace(/\$([^\s$][^\n$]*?[^\s$]|[^\s$])\$/g, (m, tex) => {
+      const idx = mathBlocks.push({ block: false, tex: tex.trim() }) - 1;
+      return `\x04MATH${idx}\x04`;
+    });
 
     // 3) 转义其它 HTML
     src = escapeHtml(src);
@@ -273,6 +388,19 @@
 <div class="code-block-pane code-block-pane-preview" data-html-b64="${b64}" hidden></div>
 </div>`;
     });
+
+    // v4.6.5: 回填 LaTeX 占位 → latexToUnicode 转 Unicode → 包 HTML
+    result = result.replace(/\x04MATH(\d+)\x04/g, (m, i) => {
+      const mb = mathBlocks[Number(i)];
+      if (!mb) return m;
+      const rendered = escapeHtml(latexToUnicode(mb.tex));
+      return mb.block
+        ? `<div class="md-math-block" title="${escapeHtml(mb.tex)}">${rendered}</div>`
+        : `<span class="md-math" title="${escapeHtml(mb.tex)}">${rendered}</span>`;
+    });
+
+    // v4.6.5: 回填 inline code 内的 $ sentinel（step 2 保护过）
+    result = result.replace(/\x06DLR\x06/g, "$");
 
     return result;
   }

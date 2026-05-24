@@ -2155,3 +2155,38 @@ body { letter-spacing: -0.01em; }
   padding: 1px 6px;
   border-radius: 4px;
 }
+
+/* v4.6.5: LaTeX 公式渲染（轻量 LaTeX→Unicode，无 KaTeX 库）
+   - 行内 $...$：默认 italic + 等宽数字字距；title 属性显示原 LaTeX 源码 */
+.md-math {
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math",
+               "Times New Roman", "Georgia", serif;
+  font-style: italic;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+  padding: 0 1px;
+  border-radius: 3px;
+  cursor: help;
+}
+.md-math:hover { background: rgba(10,132,255,0.08); }
+
+/* 块级 $$...$$：居中 + 留白 + hover 显示原 LaTeX */
+.md-math-block {
+  display: block;
+  margin: 12px auto;
+  padding: 10px 16px;
+  text-align: center;
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math",
+               "Times New Roman", "Georgia", serif;
+  font-style: italic;
+  font-size: 1.05em;
+  line-height: 1.8;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: help;
+  overflow-x: auto;
+}
+.md-math-block:hover { border-color: var(--accent); }
+@media (prefers-color-scheme: dark) {
+  .md-math:hover { background: rgba(10,132,255,0.15); }
+}
