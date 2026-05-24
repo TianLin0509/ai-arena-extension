@@ -359,8 +359,20 @@ function staticCheck() {
     {
       id: "F32-reinject-existing-tabs",
       file: "src/background.js",
-      pattern: /injectBootstrapToExistingTabs[\s\S]*?chrome\.scripting\.executeScript[\s\S]*?world:\s*["']MAIN["']/,
+      pattern: /injectBootstrapToTab[\s\S]*?chrome\.scripting\.executeScript[\s\S]*?world:\s*["']MAIN["']/,
       desc: "F32+ 扩展启动时主动注入 bootstrap 到现有 AI tab",
+    },
+    {
+      id: "F32-inject-retry",
+      file: "src/background.js",
+      pattern: /BOOTSTRAP_INJECT_COOLDOWN_MS[\s\S]*?error page/,
+      desc: "F32+ inject 失败重试 + cooldown 防重复",
+    },
+    {
+      id: "F32-inject-on-navigation",
+      file: "src/background.js",
+      pattern: /onUpdated\.addListener[\s\S]*?isAiUrl[\s\S]*?injectBootstrapToTab/,
+      desc: "F32+ tabs.onUpdated complete 时 inject 兜底",
     },
     {
       id: "F32-no-debugger-perm",

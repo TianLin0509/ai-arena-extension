@@ -98,29 +98,78 @@ const AI_URL_PATTERNS = [
   "https://yuanbao.tencent.com/*",
   "https://grok.com/*",
 ];
+// v4.8.21 F32+: cooldown + 失败重试 + onUpdated 兜底
+const _lastBootstrapInject = new Map();  // tabId -> timestamp
+const BOOTSTRAP_INJECT_COOLDOWN_MS = 5000;
+
+async function injectBootstrapToTab(tabId, url, reason) {
+  const last = _lastBootstrapInject.get(tabId);
+  if (last && Date.now() - last < BOOTSTRAP_INJECT_COOLDOWN_MS) {
+    return { ok: true, skipped: "cooldown" };
+  }
+  // 失败重试 1 次（针对 "Frame is showing error page" 这种 navigation 瞬态）
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        world: "MAIN",
+        files: ["bootstrap-main-world.js"],
+      });
+      _lastBootstrapInject.set(tabId, Date.now());
+      console.log(`[F32+] ✅ inject tab=${tabId} reason=${reason}${attempt > 0 ? ` retry=${attempt}` : ""} url=${url?.slice(0, 50)}`);
+      return { ok: true };
+    } catch (e) {
+      const msg = e?.message || String(e);
+      // 第一次失败若是 navigation 瞬态错误，延迟 1.5s 重试
+      if (attempt === 0 && /error page|cannot access|no tab|frame.*error/i.test(msg)) {
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
+      console.warn(`[F32+] ❌ inject tab=${tabId} reason=${reason} attempt=${attempt} url=${url?.slice(0, 50)}: ${msg}`);
+      return { ok: false, error: msg };
+    }
+  }
+}
+
 async function injectBootstrapToExistingTabs() {
-  let count = 0;
+  console.log("[F32+] scan existing AI tabs");
+  let injected = 0, failed = 0, totalMatched = 0;
   for (const pattern of AI_URL_PATTERNS) {
     try {
       const tabs = await chrome.tabs.query({ url: pattern });
+      totalMatched += tabs.length;
       for (const tab of tabs) {
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            world: "MAIN",
-            files: ["bootstrap-main-world.js"],
-          });
-          count++;
-        } catch (_) {}
+        const r = await injectBootstrapToTab(tab.id, tab.url, "startup");
+        if (r.ok && !r.skipped) injected++;
+        else if (!r.ok) failed++;
       }
-    } catch (_) {}
+    } catch (e) {
+      console.warn(`[F32+] query fail pattern=${pattern}:`, e?.message);
+    }
   }
-  if (count > 0) console.log(`[F32+] re-injected bootstrap to ${count} existing AI tab(s)`);
+  console.log(`[F32+] scan DONE matched=${totalMatched} injected=${injected} failed=${failed}`);
 }
+
+// 触发 1: 安装 / 启动 / SW 唤醒
 chrome.runtime.onInstalled.addListener(() => { injectBootstrapToExistingTabs(); });
 chrome.runtime.onStartup.addListener(() => { injectBootstrapToExistingTabs(); });
-// service worker 启动时也跑一次（cover reload 扩展场景，onInstalled 不一定触发）
 injectBootstrapToExistingTabs();
+
+// 触发 2: AI tab navigation 完成时兜底（最可靠的时机，error page 瞬态已过）
+function isAiUrl(url) {
+  if (!url) return false;
+  return AI_URL_PATTERNS.some(p => {
+    try {
+      const re = new RegExp("^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$");
+      return re.test(url);
+    } catch { return false; }
+  });
+}
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "complete") return;
+  if (!isAiUrl(tab.url)) return;
+  injectBootstrapToTab(tabId, tab.url, "navigation");
+});
 
 // 页面导航后自动重连 content script
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
