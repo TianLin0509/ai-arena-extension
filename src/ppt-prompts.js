@@ -72,42 +72,27 @@ function buildDiscussionFromContext(ctx) {
 
 function buildCopyPrompt(ctx) {
   const source = buildDiscussionFromContext(ctx || {});
+  // v4.5.1: 主体从模板库取，含 {{SOURCE}} 占位符 → 用 ctx 讨论摘录替换
+  const store = (typeof self !== "undefined" ? self : globalThis).ArenaTemplateStore;
+  const tpl = store ? store.resolve("ppt", "copy") : "";
+  if (tpl) {
+    const result = tpl.replace(/\{\{SOURCE\}\}/g, source);
+    // P1 fix: 用户编辑模板时若误删 {{SOURCE}} 占位，ctx 讨论上下文会静默丢失 → warn
+    if (source && source.length > 20 && result === tpl) {
+      console.warn("[PptPrompts] buildCopyPrompt: 模板中 {{SOURCE}} 占位符缺失，讨论上下文未被插入。请到右栏 📋 模板 → 📊 PPT 风格 → 文案生成 字段恢复 {{SOURCE}} 或重置该字段。");
+    }
+    return result;
+  }
+  // 兜底（store 未 ready）：保留旧硬编码
   return `你是华为风格企业技术汇报 PPT 的内容编译器。请把我们在本 AI Web 网页中已经展开的长期讨论，整理成后续"生成单页 PPT 效果图"可直接使用的"材料池 + 单页视觉 brief"。
 
 当前阶段：第 1 步 / 3 步：文案生成 → 图片生成 → PPT生成
 本步只做内容编译，不生成图片，不生成 PPTX，不写代码。
 
-上下文使用方式：
-- 默认你已经能看到本网页上方几十轮讨论、AI 回复和我补充的追问，请优先基于"我们的讨论内容"进行整理。
-- 下面的"补充摘录"只是为了防止网页上下文遗漏；如果它和上文不一致，以上文最近讨论为准。
-- 不要把本条 prompt、按钮名称、工作流说明当成 PPT 内容主题；它们只是操作指令。
-- 如果你完全看不到上文，也无法从补充摘录判断主题，请先向我索要讨论材料，不要凭空编造。
-
 补充摘录：
 ${source}
 
-核心目标：
-1. 先建立高密度 material-pool，再确定 slide thesis、template fit、content slots、word-budget、negative constraints。
-2. 把几十轮讨论压缩成"单页华为式技术评审图"需要的高密度材料。
-3. 为后续 5 类模板都准备可选择的论点和内容槽，但最后给出一段最推荐的【图片生成输入文案】。
-
-生成要求：
-1. 先生成 5000-10000 字【material-pool 内容素材池】。
-2. material-pool 至少覆盖：背景与问题、用户目标、对象定义、关键机制、技术路线、对比维度、数据指标、证据链、风险约束、应用场景、落地路径、反方观点、可视化元素。
-3. 生成【template fit / scenario pick】：对 5 个模板逐一评分，说明推荐模板和备用模板。
-4. 生成【candidate slide theses】：3-5 个结论型标题。
-5. 生成【recommended content slots】：3-5 个主模块。
-6. 最后输出【图片生成输入文案】：500-900 字。
-
-请严格按以下结构输出：
-【0. User brief】
-【1. material-pool 内容素材池：5000-10000字】
-【2. 共识 / 分歧 / 待验证假设】
-【3. template fit / scenario pick】
-【4. candidate slide theses】
-【5. content slots + word-budget】
-【6. negative constraints】
-【7. 图片生成输入文案】`;
+请输出 material-pool + slide theses + content slots + 图片生成输入文案。`;
 }
 
 function buildImagePrompt(ctx, templateKey) {
@@ -147,28 +132,12 @@ ${seed}
 }
 
 function buildPptxPrompt() {
-  return `你是图片转 PowerPoint 的语义重建工程师。请将我们刚生成的 PPT 效果图，或我随后上传的 PNG/JPG，重建为一份可编辑的 PowerPoint PPTX。
-
-当前阶段：第 3 步 / 3 步：文案生成 → 图片生成 → PPT生成
-
-重建原则：
-- 视觉 1:1 优先：先保持上一步效果图的整体视觉、布局、层级、配色、密度和 Huawei 技术评审页质感。
-- 再恢复可编辑性：标题、正文、表格、图表标签、流程节点、指标数字、箭头尽量使用 PowerPoint 原生对象。
-- 可采用"视觉优先 + 可编辑对象覆盖"的混合重建：必要时用小面积 PNG/SVG fallback 保住复杂纹理。
-- 如果可以执行文件生成，请按闭环思路完成：源图 → 结构化页面规格 → PPTX → 渲染预览 → 评分 → 差异修正。
-
-重建流程：
-1. 识别语义结构：标题区、页眉页脚、主模块、证据图、表格/图表、流程箭头、指标标签。
-2. 为每个语义单元建立对象清单，标注 role、bbox、style、native text / native shape / native chart / small fallback。
-3. 元素路由：标题、正文、表格、图表轴/标签为 whitelist 必须 native；小箭头、徽标可 native 或小 fallback；复杂纹理、微小 logo 可 fallback。
-4. 按视觉层级重建：背景与分区 → 主体模块 → 图表/流程 → 文字与指标 → 标注与细节。
-5. 中文字体优先使用微软雅黑；英文和数字使用 Arial。
-6. fallback 图片总面积尽量控制在 5% 以内。
-
-交付要求：
-- 如果可以直接生成文件，请输出 PPTX。
-- 必须检查中文文本是否乱码或异常问号。
-- 如果当前环境不能直接产出 PPTX，请先输出可执行的重建方案、对象清单、页面尺寸、颜色/字体规范。`;
+  // v4.5.1: 从模板库取（用户可在 📋 模板 → 📊 PPT 风格 → PPT 生成 字段编辑）
+  const store = (typeof self !== "undefined" ? self : globalThis).ArenaTemplateStore;
+  const tpl = store ? store.resolve("ppt", "pptx") : "";
+  if (tpl) return tpl;
+  // 兜底
+  return `你是图片转 PowerPoint 的语义重建工程师。请将我们刚生成的 PPT 效果图，或我随后上传的 PNG/JPG，重建为一份可编辑的 PowerPoint PPTX。视觉 1:1 优先 + 文字/表格/图表用 native 对象覆盖。`;
 }
 
 // 全局暴露给 background.js importScripts 后使用

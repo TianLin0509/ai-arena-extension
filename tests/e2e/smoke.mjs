@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.5.0-beta", manifest.version_name === "4.5.0-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.5.1-beta", manifest.version_name === "4.5.1-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.5.0-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.5.1-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.5.0-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.5.1-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.5.0-beta", popupVersion === "v4.5.0-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.5.1-beta", popupVersion === "v4.5.1-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -395,6 +395,22 @@ try {
   });
   check("v4.5.0: 编辑器打开（debate.free 有 4 字段 tab）",
     editorTest.open === true && editorTest.fieldTabs === 4, JSON.stringify(editorTest));
+
+  // 15b) v4.5.1: PPT 模板 7 字段（5 风格 + copy + pptx）
+  const pptFieldCount = await popupPage.evaluate(() =>
+    window.ArenaBuiltinTemplates.ppt.fields.length);
+  check("v4.5.1: ppt 模板 7 字段（5 风格 + copy + pptx）",
+    pptFieldCount === 7, `actual: ${pptFieldCount}`);
+  // 15c) v4.5.1: summary 模板 2 字段（JSON + 文本）
+  const summaryFieldCount = await popupPage.evaluate(() =>
+    window.ArenaBuiltinTemplates.summary.fields.length);
+  check("v4.5.1: summary 模板 2 字段（JSON + 文本）",
+    summaryFieldCount === 2, `actual: ${summaryFieldCount}`);
+  const summaryKeys = await popupPage.evaluate(() =>
+    window.ArenaBuiltinTemplates.summary.fields.map(f => f.key).sort());
+  check("v4.5.1: summary 字段 key (instruction_json + instruction_text)",
+    summaryKeys.join(",") === "instruction_json,instruction_text",
+    JSON.stringify(summaryKeys));
   check("v4.5.0: 编辑器取消按钮关闭弹层", editorTest.closed === true);
 
   // 16) resetAllOverrides 清空所有 overrides
@@ -438,18 +454,60 @@ try {
   check("v4.5.0: buildImagePrompt 使用 override 后的 seed",
     pptBuildResult.containsOverride === true, JSON.stringify(pptBuildResult));
 
-  // 19) summary instruction 也走模板
+  // 19) buildSummaryPrompt 走 summary.instruction_json
   const summaryBuildResult = await serviceWorker.evaluate(async () => {
-    await self.ArenaTemplateStore.saveOverride("summary", "instruction", "OVERRIDE_SUMMARY_INSTRUCTION");
+    await self.ArenaTemplateStore.saveOverride("summary", "instruction_json", "OVERRIDE_SUMMARY_JSON");
     await new Promise(r => setTimeout(r, 100));
     const prompt = self.DebateEngine.buildSummaryPrompt("q", [], {
       "claude": { name: "Claude", text: "c" }
     }, "");
-    await self.ArenaTemplateStore.resetOverride("summary", "instruction");
-    return { containsOverride: prompt.includes("OVERRIDE_SUMMARY_INSTRUCTION") };
+    await self.ArenaTemplateStore.resetOverride("summary", "instruction_json");
+    return { containsOverride: prompt.includes("OVERRIDE_SUMMARY_JSON") };
   }).catch(e => ({ err: e.message }));
-  check("v4.5.0: buildSummaryPrompt 使用 override 后的 instruction",
+  check("v4.5.0: buildSummaryPrompt 使用 override 后的 instruction_json",
     summaryBuildResult.containsOverride === true, JSON.stringify(summaryBuildResult));
+
+  // 20) v4.5.1: buildSummaryPromptText 走 summary.instruction_text
+  const summaryTextBuildResult = await serviceWorker.evaluate(async () => {
+    await self.ArenaTemplateStore.saveOverride("summary", "instruction_text", "OVERRIDE_SUMMARY_TEXT");
+    await new Promise(r => setTimeout(r, 100));
+    const prompt = self.DebateEngine.buildSummaryPromptText("q", [], {
+      "claude": { name: "Claude", text: "c" }
+    }, "");
+    await self.ArenaTemplateStore.resetOverride("summary", "instruction_text");
+    return { containsOverride: prompt.includes("OVERRIDE_SUMMARY_TEXT") };
+  }).catch(e => ({ err: e.message }));
+  check("v4.5.1: buildSummaryPromptText 使用 override 后的 instruction_text",
+    summaryTextBuildResult.containsOverride === true, JSON.stringify(summaryTextBuildResult));
+
+  // 21) v4.5.1: buildCopyPrompt 走 ppt.copy + {{SOURCE}} 占位符替换
+  const copyBuildResult = await serviceWorker.evaluate(async () => {
+    await self.ArenaTemplateStore.saveOverride("ppt", "copy", "PPT_COPY_OVERRIDE_HEAD\n{{SOURCE}}\nPPT_COPY_OVERRIDE_TAIL");
+    await new Promise(r => setTimeout(r, 100));
+    const prompt = self.PptPrompts.buildCopyPrompt({ question: "Q_TEST", responses: [{ name: "Claude", text: "A_TEST" }] });
+    await self.ArenaTemplateStore.resetOverride("ppt", "copy");
+    return {
+      containsHead: prompt.includes("PPT_COPY_OVERRIDE_HEAD"),
+      containsTail: prompt.includes("PPT_COPY_OVERRIDE_TAIL"),
+      containsCtx: prompt.includes("Q_TEST") && prompt.includes("A_TEST"),
+      noPlaceholderLeft: !prompt.includes("{{SOURCE}}")
+    };
+  }).catch(e => ({ err: e.message }));
+  check("v4.5.1: buildCopyPrompt 使用 override 模板 + 替换 {{SOURCE}}",
+    copyBuildResult.containsHead && copyBuildResult.containsTail
+      && copyBuildResult.containsCtx && copyBuildResult.noPlaceholderLeft,
+    JSON.stringify(copyBuildResult));
+
+  // 22) v4.5.1: buildPptxPrompt 走 ppt.pptx
+  const pptxBuildResult = await serviceWorker.evaluate(async () => {
+    await self.ArenaTemplateStore.saveOverride("ppt", "pptx", "OVERRIDE_PPTX_REBUILD_INSTRUCTION");
+    await new Promise(r => setTimeout(r, 100));
+    const prompt = self.PptPrompts.buildPptxPrompt();
+    await self.ArenaTemplateStore.resetOverride("ppt", "pptx");
+    return { containsOverride: prompt.includes("OVERRIDE_PPTX_REBUILD_INSTRUCTION") };
+  }).catch(e => ({ err: e.message }));
+  check("v4.5.1: buildPptxPrompt 使用 override 后的 pptx",
+    pptxBuildResult.containsOverride === true, JSON.stringify(pptxBuildResult));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);

@@ -238,11 +238,11 @@
       body.innerHTML = `
         <div class="tpl-field-row">
           <label>名字</label>
-          <input id="tpl-u-name" type="text" value="${escapeHtml(tpl?.name || "")}" placeholder="如：📈 A股Top10 模板">
+          <input id="tpl-u-name" type="text" value="${escapeHtml(tpl?.name || "")}" placeholder="如：5G 优化方向评估">
         </div>
         <div class="tpl-field-row">
           <label>正文</label>
-          <textarea id="tpl-u-body" placeholder="单击该模板会插入到群聊输入框">${escapeHtml(tpl?.body || "")}</textarea>
+          <textarea id="tpl-u-body" placeholder="如：请站在华为 5G 产品规划的角度，对比下面 N 个候选优化方向（按 [业务价值] / [技术复杂度] / [落地风险] 三维度评分），用表格输出，最后给一句话推荐。&#10;&#10;候选方向：&#10;1. ...&#10;2. ...">${escapeHtml(tpl?.body || "")}</textarea>
         </div>
       `;
       footer.innerHTML = `
@@ -275,18 +275,16 @@
     if (editorCtx.kind === "builtin") {
       const binding = editorCtx.binding;
       const builtin = window.ArenaBuiltinTemplates[binding];
-      const tasks = [];
+      // v4.5.1 P0 fix: 批量一次写，避免并发 Promise.all 触发多次 storage.set + N 次重渲染
+      const patches = {};
       document.querySelectorAll("#tpl-modal-body textarea[data-field-key]").forEach(ta => {
         const key = ta.dataset.fieldKey;
         const orig = builtin.fields.find(f => f.key === key)?.value;
         const val = ta.value;
-        if (val === orig) {
-          tasks.push(Store.resetOverride(binding, key));
-        } else {
-          tasks.push(Store.saveOverride(binding, key, val));
-        }
+        // val === orig 视为重置（null 在 batch API 里表示删 override）
+        patches[key] = (val === orig) ? null : val;
       });
-      await Promise.all(tasks);
+      await Store.applyOverridesBatch(binding, patches);
     } else {
       const name = document.getElementById("tpl-u-name").value.trim();
       const body = document.getElementById("tpl-u-body").value.trim();

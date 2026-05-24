@@ -119,6 +119,29 @@
     _notify();
   }
 
+  // v4.5.1: 批量 patch 一个 binding 的多个字段，单次 _persist + 单次 _notify。
+  // patches 形如 { fieldKey: value | null }，value=null 表示重置该字段（删 override）。
+  // 修复 P0：避免 saveEditor 并发 Promise.all 触发多次 storage.set 和 N 次重渲染。
+  async function applyOverridesBatch(binding, patches) {
+    if (!patches || typeof patches !== "object") return;
+    const keys = Object.keys(patches);
+    if (keys.length === 0) return;
+    if (!_cache.overrides[binding]) _cache.overrides[binding] = {};
+    for (const k of keys) {
+      const v = patches[k];
+      if (v === null || v === undefined) {
+        delete _cache.overrides[binding][k];
+      } else {
+        _cache.overrides[binding][k] = v;
+      }
+    }
+    if (Object.keys(_cache.overrides[binding]).length === 0) {
+      delete _cache.overrides[binding];
+    }
+    await _persist();
+    _notify();
+  }
+
   async function resetOverride(binding, fieldKey) {
     if (!_cache.overrides[binding]) return;
     if (fieldKey === undefined) {
@@ -199,6 +222,7 @@
     listBuiltinBindings,
     listBuiltinTemplates,
     saveOverride,
+    applyOverridesBatch,
     resetOverride,
     resetAllOverrides,
     listUserTemplates,

@@ -45,40 +45,24 @@ const DebateEngine = {
   },
 
   // v4.4.1: 文本版 prompt（老格式 markdown 散文）— "输出文本总结"按钮用
-  // 该函数不进入模板库（属于二级总结入口，保持硬编码）
+  // v4.5.1: 后半段（## 共识结论 / 分歧 / 裁定 / 建议 / 标注规则）改为从模板库取，
+  //         可在右栏 📋 模板 → ⚖️ 裁判总结 → 文本总结 字段编辑/重置。
   buildSummaryPromptText(originalQuestion, rounds, responses, customInstruction) {
     const allText = Object.values(responses)
       .filter(r => r.text)
       .map(r => `【${r.name} 的观点】:\n${r.text}`)
       .join("\n\n");
 
-    let prompt = `你是一场多 AI 辩论的最终裁判。${originalQuestion ? `原始问题是：「${originalQuestion}」\n` : ""}以下是各 AI 经过 ${rounds.length} 轮辩论的最终观点：
+    const header = `你是一场多 AI 辩论的最终裁判。${originalQuestion ? `原始问题是：「${originalQuestion}」\n` : ""}以下是各 AI 经过 ${rounds.length} 轮辩论的最终观点：
 
 ${allText}
 
-请你作为裁判，给出结构化的最终总结：
+`;
 
-## 共识结论
-各方一致认同的核心观点
+    const store = _store();
+    const instruction = store ? store.resolve("summary", "instruction_text") : "";
 
-## 分歧焦点
-仍存在争议的地方，列出各方立场
-
-## 最终裁定
-综合各方观点后，你认为最准确、最完整的结论是什么
-
-## 实操建议
-基于以上讨论，给出可落地的建议
-
-## 标注规则
-请对每个结论标注共识度：
-- 🟢 全员共识：所有参与者都明确支持此观点
-- 🟡 多数认同：多数参与者支持，少数持保留意见
-- 🔴 存在争议：参与者之间有明确分歧，列出各方立场
-- 💡 独家洞察：仅一方提出但有价值的独特视角
-
-要求：客观公正，不偏袒任何一方，重点是综合各家之长得出最优答案。`;
-
+    let prompt = header + instruction;
     if (customInstruction?.trim()) prompt += `\n\n## 额外要求\n${customInstruction.trim()}`;
     return prompt;
   },
@@ -110,7 +94,7 @@ ${allText}
 `;
 
     const store = _store();
-    const instruction = store ? store.resolve("summary", "instruction") : "";
+    const instruction = store ? store.resolve("summary", "instruction_json") : "";
 
     let prompt = header + instruction;
     if (customInstruction?.trim()) prompt += `\n\n额外要求：${customInstruction.trim()}`;
