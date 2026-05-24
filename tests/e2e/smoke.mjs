@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.22-beta", manifest.version_name === "4.8.22-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.23-beta", manifest.version_name === "4.8.23-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.22-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.23-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.22-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.23-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.22-beta", popupVersion === "v4.8.22-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.23-beta", popupVersion === "v4.8.23-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1772,9 +1772,9 @@ try {
         sendAura: src.includes("@keyframes btn-send-aura"),
       }));
   });
-  check("v4.8.22 C2: 输入框 conic 跑光 + roster-label 胶囊 + 闪烁圆点 + btn-send 青紫渐变 + 光晕",
-    c2Check.inputFlow && c2Check.inputConicMask
-      && c2Check.rosterLabelChip && c2Check.rosterDot
+  // v4.8.23: 旋转流光 inputFlow 已删（用户反馈不要旋转），改 linear 静态边框；conic 检查放宽
+  check("v4.8.22 C2: roster-label 胶囊 + 闪烁圆点 + btn-send 青紫渐变 + 光晕（v4.8.23 后流光改静态）",
+    c2Check.rosterLabelChip && c2Check.rosterDot
       && c2Check.sendNeon && c2Check.sendAura,
     JSON.stringify(c2Check));
 
@@ -1791,6 +1791,73 @@ try {
   check("v4.8.22: 清空按钮 = 扫帚 SVG + 重置按钮 = 圆环 + 闪电 polygon（替代旧垃圾桶 + 单闪电）",
     svgCheck.broomSvg && svgCheck.resetCircle && svgCheck.boltPolygon,
     JSON.stringify(svgCheck));
+
+  // ========== v4.8.23: 输入框光环静态 + task-picker 彩色胶囊 + AI 卡片 3 列 ==========
+  console.log("\n[smoke] === v4.8.23 抛光 ===");
+
+  // ① 输入框 conic 流光改为 linear 静态边框（不再旋转）
+  const inputStaticCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => {
+        const wrapMatch = /chat-input-wrap::before\s*\{[^}]+\}/.exec(src);
+        const block = wrapMatch?.[0] || "";
+        return {
+          hasLinear: block.includes("linear-gradient"),
+          noConicAnim: !block.includes("animation"),
+          noFlowKeyframe: !src.includes("@keyframes chat-input-flow"),
+          focusGlow: /chat-input-wrap:focus-within\s*\{[^}]*box-shadow/.test(src),
+        };
+      });
+  });
+  check("v4.8.23 ①: 输入框边框改为 linear-gradient 静态（删 conic + rotate animation）",
+    inputStaticCheck.hasLinear
+      && inputStaticCheck.noConicAnim
+      && inputStaticCheck.noFlowKeyframe
+      && inputStaticCheck.focusGlow,
+    JSON.stringify(inputStaticCheck));
+
+  // ② task-picker 彩色胶囊 + 按 data-mode 切色
+  const pickerCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        pickerPill: /\.task-picker\s*\{[^}]*border-radius:\s*999px/.test(src),
+        pickerGradient: /\.task-picker\s*\{[^}]*linear-gradient[^}]*5eead4/.test(src),
+        debateMode: /\.task-picker\[data-mode="debate"\]/.test(src),
+        summaryMode: /\.task-picker\[data-mode="summary"\]/.test(src),
+        pptMode: /\.task-picker\[data-mode="ppt"\]/.test(src),
+      }));
+  });
+  const pickerJsCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-task-menu.js"))
+      .then(r => r.text())
+      .then(src => ({
+        setsDataMode: src.includes("$picker.dataset.mode"),
+      }));
+  });
+  check("v4.8.23 ②: task-picker 999px 胶囊 + 默认青绿渐变 + 3 个模式变体（debate/summary/ppt）+ JS 写 data-mode",
+    pickerCheck.pickerPill && pickerCheck.pickerGradient
+      && pickerCheck.debateMode && pickerCheck.summaryMode && pickerCheck.pptMode
+      && pickerJsCheck.setsDataMode,
+    JSON.stringify({ ...pickerCheck, ...pickerJsCheck }));
+
+  // ③ AI 卡片 3 列 + 字号紧缩
+  const addGridCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        threeCols: /\.rp-add-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,/.test(src),
+        nameSize: /\.rp-add-name\s*\{[^}]*font-size:\s*11px/.test(src),
+        descSize: /\.rp-add-desc\s*\{[^}]*font-size:\s*9px/.test(src),
+        // 旧 14×14 logo 已删
+        noOldLogo: !/\.rp-add-logo\s*\{[^}]*width:\s*14px/.test(src),
+      }));
+  });
+  check("v4.8.23 ③: AI 卡片 3 列网格 + name 11px + desc 9px + 删除旧 14×14 logo override",
+    addGridCheck.threeCols && addGridCheck.nameSize
+      && addGridCheck.descSize && addGridCheck.noOldLogo,
+    JSON.stringify(addGridCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);

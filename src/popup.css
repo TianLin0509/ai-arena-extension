@@ -851,12 +851,12 @@ body {
   display: flex; gap: 10px; align-items: flex-end;
   padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border);
 }
-/* v4.8.22 C2: 输入框边缘 conic-gradient 跑光（focus 时跑得快，平时慢） */
+/* v4.8.22 C2: 输入框彩虹边框（v4.8.23: 改为静态固定边框，不再旋转） */
 .chat-input-wrap {
   flex: 1;
   position: relative;
   border-radius: 10px;
-  padding: 1px;                    /* 给伪元素留 1px 流光宽度 */
+  padding: 1px;                    /* 给伪元素留 1px 边框宽度 */
   isolation: isolate;
 }
 .chat-input-wrap::before {
@@ -865,25 +865,22 @@ body {
   inset: 0;
   border-radius: 10px;
   padding: 1px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(94,234,212,0.6) 60deg,
-    rgba(167,139,250,0.6) 120deg,
-    rgba(251,113,133,0.5) 180deg,
-    transparent 240deg,
-    transparent 360deg
-  );
+  /* v4.8.23: linear-gradient 静态边框，不再 conic-gradient + rotate */
+  background: linear-gradient(135deg,
+    rgba(94,234,212,0.55) 0%,
+    rgba(167,139,250,0.55) 50%,
+    rgba(251,113,133,0.55) 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: chat-input-flow 6s linear infinite;
-  opacity: 0.55;
+  opacity: 0.7;
   pointer-events: none;
   z-index: 0;
+  transition: opacity 0.25s;
 }
-.chat-input-wrap:focus-within::before { animation-duration: 2.4s; opacity: 0.9; }
-@keyframes chat-input-flow { to { transform: rotate(360deg); } }
+/* focus 时光晕加深 */
+.chat-input-wrap:focus-within::before { opacity: 1; }
+.chat-input-wrap:focus-within { box-shadow: 0 0 14px rgba(94,234,212,0.25); }
 .chat-input {
   min-height: 36px; max-height: 120px; overflow-y: auto;
   background: var(--bg); border-radius: 9px; padding: 8px 12px;
@@ -1329,26 +1326,80 @@ body {
 }
 
 /* ── 任务模式选择器 ── */
+/* v4.8.23: task-picker 整体胶囊化 + 按 data-mode 切配色 + 发光呼吸 */
 .task-picker-wrap { position: relative; }
 .task-picker {
-  background: var(--bg); color: var(--ink);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 7px 11px; cursor: pointer;
-  font-size: 11px; display: flex; align-items: center; gap: 5px;
-  transition: all 0.15s;
+  /* 默认: ask 同时提问 — 青绿渐变 */
+  background: linear-gradient(135deg, #5eead4, #34c759);
+  color: #0a1024;
+  border: 1px solid rgba(94,234,212,0.35);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+  box-shadow: 0 0 0 1px rgba(94,234,212,0.30), 0 4px 12px rgba(94,234,212,0.25), 0 0 14px rgba(94,234,212,0.18);
+  letter-spacing: 0.02em;
 }
-.task-picker:hover { background: rgba(0,0,0,0.04); }
-@media (prefers-color-scheme: dark) {
-  .task-picker:hover { background: rgba(255,255,255,0.06); }
+.task-picker:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(94,234,212,0.5), 0 6px 18px rgba(94,234,212,0.4), 0 0 22px rgba(94,234,212,0.30);
 }
+.task-picker:active { transform: translateY(0) scale(0.97); }
 .task-picker .icon { font-size: 13px; }
+/* 内嵌 .picked 不再有独立背景 — 文字直接在 picker 上 */
 .task-picker .picked {
-  background: var(--accent); color: #fff;
-  padding: 2px 6px; border-radius: 4px;
-  font-size: 9.5px;
-  margin-left: 2px;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
 }
-.task-picker .caret { color: var(--ink-soft); font-size: 9px; }
+.task-picker .caret {
+  color: rgba(10,16,36,0.65);
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+.task-picker:hover .caret { transform: translateY(1px); }
+
+/* 模式切换配色 — 通过 popup-task-menu.js refreshPill 写入 data-mode */
+.task-picker[data-mode="debate"] {
+  background: linear-gradient(135deg, #ff8c42, #fb7185);
+  color: #fff;
+  border-color: rgba(255,140,66,0.4);
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.35), 0 4px 12px rgba(255,94,58,0.30), 0 0 14px rgba(255,140,66,0.22);
+}
+.task-picker[data-mode="debate"]:hover {
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.55), 0 6px 18px rgba(255,94,58,0.45), 0 0 22px rgba(255,140,66,0.35);
+}
+.task-picker[data-mode="debate"] .caret { color: rgba(255,255,255,0.85); }
+
+.task-picker[data-mode="summary"] {
+  background: linear-gradient(135deg, #fbbf24, #ff9f0a);
+  color: #1a1024;
+  border-color: rgba(251,191,36,0.4);
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.35), 0 4px 12px rgba(255,159,10,0.30), 0 0 14px rgba(251,191,36,0.22);
+}
+.task-picker[data-mode="summary"]:hover {
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.55), 0 6px 18px rgba(255,159,10,0.45), 0 0 22px rgba(251,191,36,0.35);
+}
+
+.task-picker[data-mode="ppt"] {
+  background: linear-gradient(135deg, #a78bfa, #4f8cff);
+  color: #fff;
+  border-color: rgba(167,139,250,0.4);
+  box-shadow: 0 0 0 1px rgba(167,139,250,0.35), 0 4px 12px rgba(79,140,255,0.30), 0 0 14px rgba(167,139,250,0.22);
+}
+.task-picker[data-mode="ppt"]:hover {
+  box-shadow: 0 0 0 1px rgba(167,139,250,0.55), 0 6px 18px rgba(79,140,255,0.45), 0 0 22px rgba(167,139,250,0.35);
+}
+.task-picker[data-mode="ppt"] .caret { color: rgba(255,255,255,0.85); }
 .task-menu {
   position: absolute; bottom: calc(100% + 6px); left: 0;
   background: var(--card); border: 1px solid var(--border);
@@ -1595,22 +1646,23 @@ body { letter-spacing: -0.01em; }
   user-select: none;
 }
 .rp-more:hover { background: var(--card); color: var(--accent); }
-/* v4.8.22 B2: 添加 AI 按钮 — 微卡片 + 副标题（厂商·定位） */
+/* v4.8.22 B2: 添加 AI 按钮 — 微卡片 + 副标题（厂商·定位）
+   v4.8.23: 改 3 列 + 字号紧缩，一行放 3 个 AI（9 个 AI 占 3 行 vs 之前 5 行） */
 .rp-add-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px;
 }
 .rp-add-btn {
   background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 12px;
+  border-radius: 9px;
+  padding: 6px 7px;
+  font-size: 11px;
   cursor: pointer;
   color: var(--ink);
   font-family: inherit;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   align-items: flex-start;
   text-align: left;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1636,18 +1688,26 @@ body { letter-spacing: -0.01em; }
 .rp-add-head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-weight: 700;
+}
+.rp-add-logo {
+  width: 12px; height: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .rp-add-name {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rp-add-desc {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--ink-soft);
-  margin-left: 21px;
+  margin-left: 17px;
   letter-spacing: 0.02em;
   font-weight: 500;
   line-height: 1.3;
@@ -1983,25 +2043,7 @@ body { letter-spacing: -0.01em; }
   letter-spacing: 0.01em;
 }
 
-/* 添加按钮：logo + 文字 */
-.rp-add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  padding: 6px 8px !important;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-.rp-add-logo {
-  width: 14px; height: 14px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.rp-add-btn:hover {
-  background: rgba(10,132,255,0.06);
-  transform: translateY(-1px);
-}
+/* 添加按钮 — v4.3.x 老定义被 v4.8.22/23 微卡片版（line 1649-1720）取代，整段移除避免 cascade 覆盖 */
 
 /* 跳过气泡 */
 .msg-skipped {
@@ -3093,14 +3135,9 @@ body { letter-spacing: -0.01em; }
   background: linear-gradient(90deg, rgba(10,132,255,0.06), transparent 70%) !important;
 }
 
-/* ============ ③ 极简任务 picker（CSS 微调让 pill 居中） ============ */
-.task-picker {
-  gap: 6px !important;
-}
-.task-picker .picked {
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
+/* ============ ③ 极简任务 picker（v4.8.23 重写为彩色胶囊，此处微调失效）============
+   原 v4.8.0 微调（gap !important + picked font-weight 600）已被 v4.8.23 主体定义覆盖，
+   保留空块占位避免后续 grep diff 噪音 — 无实际样式输出 */
 
 /* ============================================================
    v4.8.15 F30: 简洁模式（Mini Bar）

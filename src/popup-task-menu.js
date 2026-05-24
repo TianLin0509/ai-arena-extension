@@ -19,7 +19,11 @@
     }
     return "?";
   }
-  function refreshPill() { $pickedPill.textContent = labelOf(current); }
+  // v4.8.23: refreshPill 同时把当前任务 task 写到 data-mode，让 CSS 按模式换配色
+  function refreshPill() {
+    $pickedPill.textContent = labelOf(current);
+    if ($picker) $picker.dataset.mode = current.task || "ask";
+  }
 
   function close() { $menu.hidden = true; }
   function open() {
