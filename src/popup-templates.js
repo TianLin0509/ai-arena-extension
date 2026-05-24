@@ -20,12 +20,14 @@
     const root = document.getElementById("rp-panel-templates");
     if (!root) return;
 
-    // v4.5.2: 内置模板按 clickAction 拆 2 区
-    //   - 任务模板（clickAction="preview"，绑定到任务按钮）
-    //   - 场景预设（clickAction="insert"，单击插入输入框）
+    // v4.5.2 / v4.6.0: 内置模板按 category 拆 3 区
+    //   - 任务模板（辩论/总结/PPT，绑定到任务按钮，单击展开预览）
+    //   - 场景预设（场景，clickAction="insert"，单击插入输入框）
+    //   - 角色帽（角色帽，主入口在成员栏；模板库这里仅供编辑/重置）
     const allBuiltins = Store.listBuiltinTemplates();
-    const taskBuiltins = allBuiltins.filter(t => (t.clickAction || "preview") === "preview");
-    const scenarioBuiltins = allBuiltins.filter(t => t.clickAction === "insert");
+    const taskBuiltins = allBuiltins.filter(t => t.category !== "场景" && t.category !== "角色帽");
+    const scenarioBuiltins = allBuiltins.filter(t => t.category === "场景");
+    const roleBuiltins = allBuiltins.filter(t => t.category === "角色帽");
     const users = Store.listUserTemplates().slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
     root.innerHTML = `
@@ -43,6 +45,16 @@
       </div>
       <div class="tpl-list" id="tpl-scenario-list">
         ${scenarioBuiltins.map(renderBuiltinItem).join("")}
+      </div>
+
+      <div class="rp-section-title" style="margin-top:14px">
+        <span>角色帽</span>
+        <span class="tpl-count" id="tpl-role-count">${roleBuiltins.length}</span>
+        <span class="tpl-spacer"></span>
+        <span class="tpl-hint-text">使用入口：成员 Tab</span>
+      </div>
+      <div class="tpl-list" id="tpl-role-list">
+        ${roleBuiltins.map(renderBuiltinItem).join("")}
       </div>
 
       <div class="rp-section-title" style="margin-top:14px">
@@ -106,6 +118,11 @@
     // v4.5.2: 场景预设：单击行 = 插入输入框；按钮 = edit/reset
     root.querySelector("#tpl-scenario-list").addEventListener("click", (e) => {
       handleBuiltinClick(e, "insert");
+    });
+
+    // v4.6.0: 角色帽：单击行 = 展开预览（编辑入口在这里；触发入口在成员 Tab）
+    root.querySelector("#tpl-role-list").addEventListener("click", (e) => {
+      handleBuiltinClick(e, "preview");
     });
 
     // 用户模板：单击行 = 插入输入框；按钮 = edit/delete

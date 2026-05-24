@@ -319,6 +319,63 @@
         }
       ]
     },
+
+    // ============================================================
+    // v4.6.0: 角色帽 — 通用 5 顶（参考 Hub 群聊职责帽机制）
+    // 模板库里 clickAction="preview"（展开预览/编辑）
+    // 成员栏里独立 UI 触发 → 选 AI → 拼 prompt 入输入框（popup-role-hats.js）
+    // ============================================================
+    "role.clarifier": {
+      binding: "role.clarifier",
+      emoji: "❓",
+      name: "问题澄清员",
+      category: "角色帽",
+      fields: [
+        { key: "duty",   label: "职责",     value: "负责拆解用户问题、补齐前提、指出会改变答案的关键缺口；不要直接替其他角色下结论。" },
+        { key: "format", label: "输出格式", value: "问题拆解 / 已知前提 / 缺失信息 / 关键追问 / 默认假设" }
+      ]
+    },
+    "role.fact_check": {
+      binding: "role.fact_check",
+      emoji: "🔍",
+      name: "事实核验员",
+      category: "角色帽",
+      fields: [
+        { key: "duty",   label: "职责",     value: "负责核验关键事实、数字、引用、时间点与来源；不确定内容必须明确标注「未核验」。" },
+        { key: "format", label: "输出格式", value: "已确认事实 / 来源与时间 / 不确定项 / 冲突口径 / 需补查" }
+      ]
+    },
+    "role.critic": {
+      binding: "role.critic",
+      emoji: "⚠️",
+      name: "反方挑战者",
+      category: "角色帽",
+      fields: [
+        { key: "duty",   label: "职责",     value: "负责寻找遗漏、反例、逻辑跳跃和失败路径；避免复述方案优点，避免礼貌性表扬。" },
+        { key: "format", label: "输出格式", value: "最大风险 / 反例 / 隐含假设 / 失败信号 / 修正建议" }
+      ]
+    },
+    "role.judge": {
+      binding: "role.judge",
+      emoji: "🎯",
+      name: "综合裁判",
+      category: "角色帽",
+      fields: [
+        { key: "duty",   label: "职责",     value: "负责收敛共识与分歧、给可执行结论和取舍理由；不做无差别折中，不和稀泥。" },
+        { key: "format", label: "输出格式", value: "结论 / 取舍理由 / 主要分歧 / 决策条件 / 下一步" }
+      ]
+    },
+    "role.action": {
+      binding: "role.action",
+      emoji: "✅",
+      name: "行动拆解员",
+      category: "角色帽",
+      fields: [
+        { key: "duty",   label: "职责",     value: "负责把结论拆成下一步动作、负责人、验证方式和截止条件；不要再做分析，只输出 actionable 项。" },
+        { key: "format", label: "输出格式", value: "下一步 / 优先级 / 负责人或角色 / 验证标准 / 截止条件" }
+      ]
+    },
+
     "scenario.code_review": {
       binding: "scenario.code_review",
       emoji: "🔍",

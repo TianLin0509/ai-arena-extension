@@ -1999,3 +1999,103 @@ body { letter-spacing: -0.01em; }
   0%   { background: rgba(255,243,205,0.7); }
   100% { background: var(--bg); }
 }
+
+/* ========================================================================
+ *  v4.6.0 · 角色帽（成员 Tab 入口 + AI 选择 picker）
+ * ====================================================================== */
+.rp-hat-section { margin: 16px 0 6px; }
+.rp-hat-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  font-size: 10px;
+  margin-left: 6px;
+}
+.rp-hat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.rp-hat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rp-hat-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(10,132,255,0.06);
+}
+.rp-hat-em { font-size: 13px; }
+.rp-hat-label { line-height: 1; }
+
+/* AI 选择菜单（点角色帽后弹出） */
+.rp-hat-picker {
+  z-index: 900;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  padding: 6px;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  animation: rp-hat-picker-in 0.12s ease-out;
+}
+@keyframes rp-hat-picker-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rp-hat-picker-header {
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding: 6px 10px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.rp-hat-picker-empty {
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding: 12px 10px;
+  text-align: center;
+}
+.rp-hat-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.rp-hat-picker-item:hover {
+  background: var(--bg);
+  color: var(--accent);
+}
+.rp-hat-pi-em { font-size: 14px; }
+
+/* 模板库里"使用入口：成员 Tab" 小提示 */
+.tpl-hint-text {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  font-size: 10px;
+}

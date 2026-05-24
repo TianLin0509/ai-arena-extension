@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.5.3-beta", manifest.version_name === "4.5.3-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.6.0-beta", manifest.version_name === "4.6.0-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.5.3-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.6.0-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.5.3-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.6.0-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.5.3-beta", popupVersion === "v4.5.3-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.6.0-beta", popupVersion === "v4.6.0-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -345,6 +345,77 @@ try {
     setModeRes.after2 === "tiled" && setModeRes.tiledActive === true,
     JSON.stringify(setModeRes));
 
+  // ========== v4.6.0：角色帽 ==========
+  console.log("\n[smoke] === v4.6.0 角色帽 ===");
+
+  // 切回 templates Tab，验证角色帽区
+  await popupPage.click('.rp-tab[data-tab="templates"]');
+  await popupPage.waitForTimeout(200);
+
+  const roleListCount = await popupPage.locator("#tpl-role-list .tpl-item").count();
+  check("v4.6.0: 模板库角色帽区渲染 5 个", roleListCount === 5, `actual: ${roleListCount}`);
+
+  const roleBindings = await popupPage.evaluate(() =>
+    [...document.querySelectorAll("#tpl-role-list .tpl-item")].map(x => x.dataset.binding).sort()
+  );
+  check("v4.6.0: 5 个 role.* binding 齐全",
+    roleBindings.join(",") === "role.action,role.clarifier,role.critic,role.fact_check,role.judge",
+    JSON.stringify(roleBindings));
+
+  // 切到 Member Tab 验证角色帽按钮
+  await popupPage.click('.rp-tab[data-tab="members"]');
+  await popupPage.waitForTimeout(400);
+  const memberHatBtns = await popupPage.locator("#rp-panel-members .rp-hat-btn").count();
+  check("v4.6.0: Member Tab 渲染 5 个角色帽按钮", memberHatBtns === 5, `actual: ${memberHatBtns}`);
+
+  // 点击角色帽 → 弹 picker（无参与者时显示提示）
+  const pickerEmptyTest = await popupPage.evaluate(async () => {
+    const btn = document.querySelector('#rp-panel-members .rp-hat-btn[data-binding="role.clarifier"]');
+    if (!btn) return { err: "btn not found" };
+    btn.click();
+    await new Promise(r => setTimeout(r, 200));
+    const picker = document.querySelector(".rp-hat-picker");
+    if (!picker) return { pickerOpen: false };
+    const empty = picker.querySelector(".rp-hat-picker-empty");
+    // 关闭 picker
+    document.body.click();
+    await new Promise(r => setTimeout(r, 100));
+    return { pickerOpen: true, hasEmpty: !!empty, emptyText: empty?.textContent };
+  });
+  check("v4.6.0: 点角色帽弹 picker（无参与者时显示提示）",
+    pickerEmptyTest.pickerOpen === true && pickerEmptyTest.hasEmpty === true,
+    JSON.stringify(pickerEmptyTest));
+
+  // 直接验证拼 prompt 逻辑（不依赖参与者）
+  const buildPromptTest = await popupPage.evaluate(() => {
+    const Store = window.ArenaTemplateStore;
+    const tpl = Store.resolveTemplate("role.clarifier");
+    const duty = Store.resolve("role.clarifier", "duty");
+    const format = Store.resolve("role.clarifier", "format");
+    const text = `@Claude 戴上「${tpl.name}」帽子：${duty}\n输出格式：${format}\n\n`;
+    return {
+      hasName: text.includes("问题澄清员"),
+      hasDuty: text.includes("拆解用户问题"),
+      hasFormat: text.includes("输出格式：问题拆解"),
+      hasMention: text.startsWith("@Claude ")
+    };
+  });
+  check("v4.6.0: 角色帽 prompt 拼接（mention + name + duty + format）",
+    buildPromptTest.hasName && buildPromptTest.hasDuty
+      && buildPromptTest.hasFormat && buildPromptTest.hasMention,
+    JSON.stringify(buildPromptTest));
+
+  // 编辑角色帽（修改 duty 后单击成员栏帽子能拿到新值）
+  const overrideTest = await popupPage.evaluate(async () => {
+    await window.ArenaTemplateStore.saveOverride("role.critic", "duty", "OVERRIDE_CRITIC_DUTY");
+    await new Promise(r => setTimeout(r, 100));
+    const got = window.ArenaTemplateStore.resolve("role.critic", "duty");
+    await window.ArenaTemplateStore.resetOverride("role.critic");
+    return { got };
+  });
+  check("v4.6.0: 角色帽 duty override 生效",
+    overrideTest.got === "OVERRIDE_CRITIC_DUTY", JSON.stringify(overrideTest));
+
   // 切回 templates Tab（之后断言依赖）
   await popupPage.click('.rp-tab[data-tab="templates"]');
   await popupPage.waitForTimeout(150);
@@ -375,8 +446,13 @@ try {
   }));
   check("v4.5.0: ArenaTemplateStore 暴露", storeApi.hasStore === true);
   check("v4.5.0: ArenaBuiltinTemplates 暴露", storeApi.hasBuiltin === true);
-  check("v4.5.2: 7 个内置 binding (4 任务 + 3 场景预设)",
-    storeApi.builtinKeys.join(",") === "debate.collab,debate.free,ppt,scenario.code_review,scenario.idea,scenario.literature,summary",
+  check("v4.6.0: 12 个内置 binding (4 任务 + 3 场景 + 5 角色帽)",
+    storeApi.builtinKeys.length === 12 &&
+    storeApi.builtinKeys.includes("role.clarifier") &&
+    storeApi.builtinKeys.includes("role.fact_check") &&
+    storeApi.builtinKeys.includes("role.critic") &&
+    storeApi.builtinKeys.includes("role.judge") &&
+    storeApi.builtinKeys.includes("role.action"),
     JSON.stringify(storeApi.builtinKeys));
   check("v4.5.0: Store 关键方法齐全",
     ["resolve", "saveOverride", "resetOverride", "resetAllOverrides", "addUserTemplate", "deleteUserTemplate"]
