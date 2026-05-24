@@ -264,6 +264,18 @@ function staticCheck() {
       pattern: /F20.*同 msgId 已存在.*更新文本/s,
       desc: "F20 popup appendUserMessage 同 msgId 更新",
     },
+    {
+      id: "F21-pending",
+      file: "src/background.js",
+      pattern: /F21.*立刻推 pending 占位气泡/s,
+      desc: "F21 handleSummary 入口立刻推占位",
+    },
+    {
+      id: "F21-msgId-reuse",
+      file: "src/background.js",
+      pattern: /F21.*复用 pendingMsgId/s,
+      desc: "F21 handleSummary 完成时复用 pendingMsgId",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
@@ -628,6 +640,87 @@ try {
     record("F20-fix", "regression", f20, "500ms 内未收到 pending 占位 — 仍是老的等 inject 完成才出气泡");
   } else {
     record("F20-fix", "partial", f20, `pending 收到但 msgId 复用失败 — 会变成两条 user 消息`);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F21-fix: 总结按下立刻显示 pending 占位气泡（与 F20 同模式但 handleSummary 路径）
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F21-fix: 总结 pending 占位气泡 ===");
+  const f21 = await sw.evaluate(async () => {
+    return new Promise(async (resolve) => {
+      StateMachine.hardReset();
+      StateMachine.participants = [
+        { id: "j1", service: "ai_judge", tabId: 62001, name: "Judge", response: "Judge 的初次回答", responsePreview: "J" },
+        { id: "p2", service: "ai_b", tabId: 62002, name: "B", response: "B 的初次回答", responsePreview: "B" },
+      ];
+
+      // mock inject 慢 2 秒
+      const origTabsSend = chrome.tabs.sendMessage;
+      chrome.tabs.sendMessage = async (tid, msg) => {
+        if (msg.action === "inject") {
+          await new Promise(r => setTimeout(r, 2000));
+          return { site: "test", status: "sent" };
+        }
+        if (msg.action === "readResponse") {
+          return { text: "", isStreaming: true, hasRichContent: false, richTypes: [], imagesPending: 0 };
+        }
+        return { status: "sent" };
+      };
+
+      // mock chrome.tabs.get / chrome.tabs.update / chrome.windows.update（handleSummary 内调）
+      const origTabsGet = chrome.tabs.get;
+      chrome.tabs.get = async () => ({ id: 62001, windowId: 999 });
+      const origTabsUpdate = chrome.tabs.update;
+      chrome.tabs.update = async () => undefined;
+      const origWinUpdate = chrome.windows.update;
+      chrome.windows.update = async () => undefined;
+
+      const userMsgs = [];
+      const origRuntime = chrome.runtime.sendMessage;
+      chrome.runtime.sendMessage = (m) => {
+        if (m?.type === "chatStreamUpdate" && m?.role === "user") {
+          userMsgs.push({ ts: Date.now(), msgId: m.msgId, text: m.text });
+        }
+        return Promise.resolve();
+      };
+
+      const t0 = Date.now();
+      const summaryPromise = (typeof self.handleSummary === "function")
+        ? self.handleSummary("j1", "", "html")
+        : handleSummary("j1", "", "html");
+
+      // 等 500ms 看占位
+      await new Promise(r => setTimeout(r, 500));
+      const pendingAt500ms = userMsgs.find(m => m.text.includes("正在发起"));
+
+      await summaryPromise.catch(() => {});
+
+      chrome.tabs.sendMessage = origTabsSend;
+      chrome.runtime.sendMessage = origRuntime;
+      chrome.tabs.get = origTabsGet;
+      chrome.tabs.update = origTabsUpdate;
+      chrome.windows.update = origWinUpdate;
+
+      const finalMsg = userMsgs.find(m => !m.text.includes("正在发起") && m.text.includes("裁判总结"));
+      resolve({
+        totalUserMsgs: userMsgs.length,
+        pending_at_500ms_arrived: !!pendingAt500ms,
+        pending_text: pendingAt500ms?.text || null,
+        pending_msgId: pendingAt500ms?.msgId || null,
+        final_text: finalMsg?.text || null,
+        final_msgId: finalMsg?.msgId || null,
+        same_msgId: pendingAt500ms && finalMsg && pendingAt500ms.msgId === finalMsg.msgId,
+        time_to_pending_ms: pendingAt500ms ? pendingAt500ms.ts - t0 : -1,
+      });
+    });
+  });
+  if (f21.pending_at_500ms_arrived && f21.same_msgId && f21.time_to_pending_ms < 500) {
+    record("F21-fix", "fixed", f21,
+      `按下后 ${f21.time_to_pending_ms}ms 内立刻收到 pending 占位（含"正在发起..."），inject 完成后同 msgId 替换为正式显示文本`);
+  } else if (!f21.pending_at_500ms_arrived) {
+    record("F21-fix", "regression", f21, "500ms 内未收到 pending 占位");
+  } else {
+    record("F21-fix", "partial", f21, `pending 收到但 msgId 复用失败 — 会变成两条 user 消息`);
   }
 
   // ════════════════════════════════════════════════════════

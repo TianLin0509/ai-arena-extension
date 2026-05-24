@@ -634,6 +634,24 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
     ts: Date.now(),
   } : null);
   notifyStatus(`正在由 ${judge.name} 总结...`);
+
+  // v4.6.14 F21: 立刻推 pending 占位气泡 — 同 F20 模式，inject 1-3s 等待前先反馈
+  // 避免用户按下"裁判总结"后觉得卡住。inject 完成后用同 msgId 替换为正式 displayText。
+  const displayText = `📋 裁判总结请求 → ${judge.name}${customInstruction ? '：' + customInstruction : ''}`;
+  const pendingMsgId = `m${Date.now()}_s${judge.id}`;
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "user",
+      msgId: pendingMsgId,
+      text: `${displayText} · 正在发起...`,
+    }).catch(() => {});
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "ai",
+      msgId: pendingMsgId, participantId: judge.service,
+      text: "", isDone: false,
+    }).catch(() => {});
+  } catch (_) {}
+
   try {
     StateMachine.setLastSent(judge.id, prompt);
     const result = await chrome.tabs.sendMessage(judge.tabId, { action: "inject", text: prompt });
@@ -648,8 +666,8 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
     await chrome.windows.update(tab.windowId, { focused: true });
     notifyStatus(`总结已发送给 ${judge.name}`);
     try {
-      const displayText = `📋 裁判总结请求 → ${judge.name}${customInstruction ? '：' + customInstruction : ''}`;
-      ChatBus.notifyRoundStart(displayText, [judge.service]);
+      // v4.6.14 F21: 复用 pendingMsgId 让 popup 更新原占位气泡（不新增）
+      ChatBus.notifyRoundStart(displayText, [judge.service], pendingMsgId);
     } catch (e) { console.warn("[chat-bus] notifyRoundStart failed:", e.message); }
     return { ok: true, result };
   } catch (e) {
