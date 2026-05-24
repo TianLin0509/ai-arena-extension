@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.19-beta", manifest.version_name === "4.8.19-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.20-beta", manifest.version_name === "4.8.20-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.19-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.20-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.19-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.20-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.19-beta", popupVersion === "v4.8.19-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.20-beta", popupVersion === "v4.8.20-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1623,6 +1623,89 @@ try {
     .every(zh => sidepanelThemeCheck.some(t => t.includes(zh)));
   check("v4.8.18: sidepanel 主题菜单也中文化",
     sidepanelHasZh, JSON.stringify(sidepanelThemeCheck));
+
+  // ========== v4.8.20: 竞技场化升级（5 项 P0/P1）==========
+  console.log("\n[smoke] === v4.8.20 竞技场化升级 ===");
+
+  // ① 出战动画 sparks — popup-members.js 渲染 isNew 时注入 6 个 .hero-slot-spark
+  const sparkCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-members.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasSparkInject: src.includes('hero-slot-spark'),
+        sparksOnlyOnNew: src.includes('isNew ? Array(6)'),
+      }));
+  });
+  check("v4.8.20 ①: popup-members.js 在 isNew 时注入 6 个 .hero-slot-spark",
+    sparkCheck.hasSparkInject && sparkCheck.sparksOnlyOnNew,
+    JSON.stringify(sparkCheck));
+
+  // ② 流光描边 + ① CSS keyframes 都在 popup.css
+  const vibeCssCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        hasSparkOut: src.includes("@keyframes hero-slot-spark-out"),
+        hasRainbow:  src.includes("@keyframes hero-slot-rainbow"),
+        hasMsgArrive: src.includes("@keyframes msg-arrive"),
+        hasMsgAvatarBounce: src.includes("@keyframes msg-avatar-bounce"),
+        hasTwinkle: src.includes("@keyframes es-twinkle"),
+        hasBadgeShine: src.includes("@keyframes arena-badge-shine"),
+      }));
+  });
+  check("v4.8.20 ②: 6 个新 @keyframes 全部存在（sparkOut/rainbow/msgArrive/avatarBounce/twinkle/badgeShine）",
+    vibeCssCheck.hasSparkOut && vibeCssCheck.hasRainbow
+      && vibeCssCheck.hasMsgArrive && vibeCssCheck.hasMsgAvatarBounce
+      && vibeCssCheck.hasTwinkle && vibeCssCheck.hasBadgeShine,
+    JSON.stringify(vibeCssCheck));
+
+  // ③ 辩论轮次徽章 — popup-arena-badge.js 暴露 + parse 解析正确
+  const badgeCheck = await popupPage.evaluate(() => {
+    const api = window.ArenaBadge;
+    if (!api) return { hasApi: false };
+    return {
+      hasApi: true,
+      parseDebate: api._parse("⚔️ 第3轮辩论·自由辩论"),
+      parseSummary: api._parse("📋 裁判总结·Claude"),
+      parseInvalid: api._parse("普通消息"),
+      hasBadgeDom: !!document.getElementById("arena-badge"),
+      hasBadgeText: !!document.getElementById("arena-badge-text"),
+      hasBadgeMode: !!document.getElementById("arena-badge-mode"),
+    };
+  });
+  check("v4.8.20 ③: ArenaBadge API 暴露 + 解析 debate/summary/无效文本",
+    badgeCheck.hasApi
+      && badgeCheck.parseDebate?.kind === "debate"
+      && badgeCheck.parseDebate?.round === 3
+      && badgeCheck.parseDebate?.mode === "自由辩论"
+      && badgeCheck.parseSummary?.kind === "summary"
+      && badgeCheck.parseSummary?.judge === "Claude"
+      && badgeCheck.parseInvalid === null
+      && badgeCheck.hasBadgeDom && badgeCheck.hasBadgeText && badgeCheck.hasBadgeMode,
+    JSON.stringify(badgeCheck));
+
+  // ④ 消息进场动画 — popup.js append* 加 just-arrived
+  const msgArriveCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.js"))
+      .then(r => r.text())
+      .then(src => ({
+        userMsgArrive: src.includes('"msg me just-arrived"'),
+        aiMsgArrive: src.includes("just-arrived"),
+        autoRemove: src.includes('classList.remove("just-arrived")'),
+      }));
+  });
+  check("v4.8.20 ④: popup.js user/AI 气泡入场加 just-arrived class + 700ms 后移除",
+    msgArriveCheck.userMsgArrive && msgArriveCheck.aiMsgArrive && msgArriveCheck.autoRemove,
+    JSON.stringify(msgArriveCheck));
+
+  // ⑤ 海报星空 — empty-state 内 12 个 .es-star
+  const starCheck = await popupPage.evaluate(async () => {
+    const newPopup = await fetch(chrome.runtime.getURL("popup.html")).then(r => r.text());
+    const matchCount = (newPopup.match(/class="es-star/g) || []).length;
+    return { starCount: matchCount };
+  });
+  check("v4.8.20 ⑤: empty-state 含 12 颗 .es-star 星点",
+    starCheck.starCount === 12, JSON.stringify(starCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);

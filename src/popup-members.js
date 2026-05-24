@@ -150,6 +150,8 @@
         // v4.8.7: 优先用卡牌版 heroLogo；旧 svg 作为兜底
         // v4.8.14: heroLogo 走 ArenaLogoStyle.heroPath() 动态切换风格（classic/anime）
         const heroSrc = (window.ArenaLogoStyle?.heroPath(p.service)) || meta.heroLogo || meta.logo;
+        // v4.8.20 ① 出战动画：新加入时注入 6 颗星芒，CSS sparkOut 让它们散开
+        const sparks = isNew ? Array(6).fill('<span class="hero-slot-spark"></span>').join("") : "";
         return `
           <div class="hero-slot filled status-${status || 'idle'}${isNew ? ' just-added' : ''}" data-pid="${escapeHtml(p.id)}" data-slot="${i}" title="${escapeHtml(p.name || meta.name)} · ${statusTextOf(p)}">
             <div class="hero-slot-bg"></div>
@@ -161,6 +163,7 @@
             <div class="hero-slot-status"><span class="rp-status-dot ${status}"></span></div>
             <span class="hero-slot-check">✓</span>
             <button class="hero-slot-more" data-pid="${escapeHtml(p.id)}" title="操作">⋯</button>
+            ${sparks}
           </div>`;
       }
       return `<div class="hero-slot empty" data-slot="${i}" title="空位 — 在下方选择 AI 添加"><div class="hero-slot-plus">＋</div><div class="hero-slot-empty-lbl">空位</div></div>`;

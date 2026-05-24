@@ -80,7 +80,8 @@
     }
     const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
-    row.className = "msg me";
+    // v4.8.20 ④ 消息进场动画：just-arrived class 跑 0.5s 入场后移除（避免 hover/重渲染时再跑）
+    row.className = "msg me just-arrived";
     row.dataset.msgId = msgId;
     row.innerHTML = `
       <div class="msg-body">
@@ -94,6 +95,7 @@
       </div>
       <div class="msg-avatar huawei">${brandLogoHtml('huawei')}</div>`;
     $messages.appendChild(row);
+    setTimeout(() => row.classList.remove("just-arrived"), 700);
     // 用户自己发的消息：强制跳底（即使之前在浏览历史也跳到自己刚发的消息）
     scrollToBottomForce();
     autoFollow = true; // 用户主动发送 → 恢复 follow 模式
@@ -103,7 +105,9 @@
     ensureEmptyHidden();
     const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
-    row.className = "msg ai";
+    // v4.8.20 ④ 消息进场动画 — typing 初次入场跑动画，restoreLog 重放不跑（避免历史消息一次性跳动）
+    row.className = `msg ai${isTyping ? " just-arrived" : ""}`;
+    if (isTyping) setTimeout(() => row.classList.remove("just-arrived"), 700);
     row.dataset.msgId = msgId;
     row.dataset.participantId = participantId;
     const avatarClass = AVATAR_CLASS[participantId] || "";
