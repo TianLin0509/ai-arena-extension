@@ -1,22 +1,22 @@
-// AI Arena — MAIN world visibility patch (v4.8.19 F32)
-// 在 document_start 注入到 AI 网页的 MAIN world，让网页永远以为自己在前台
-// 替代之前 chrome.debugger.attach（避免顶部通知条，删 debugger 权限）
+// AI Arena — MAIN world anti-throttle patch (v4.8.20 F32+)
+// 在 document_start 注入到 AI 网页的 MAIN world，让网页完全不受 background throttle 影响
 //
-// 关键洞察：React 18 的 fiber scheduler 走 MessageChannel.postMessage 不是 rAF，
-// MessageChannel 不被 Chrome throttle。所以 background tab 时 DOM 树本来就在
-// 正常更新，只是视觉 paint 停了。但 content script 读 innerText/querySelector
-// 读的是 DOM 状态不是像素，所以根本不需要解 throttle。
-// 唯一需要的：让 SPA 内部基于 document.visibilityState/hidden/blur 等做的
-// "暂停"逻辑（如 ChatGPT 的某些 idle 检测）失效。
+// 加强版（v4.8.20）：用 Web Worker 接管 setTimeout/setInterval
+// Web Worker 跑在独立线程，Chrome **不对 worker 内的 setTimeout 节流**
+// → SPA 内部的 chunk-loop setTimeout(pump, 16) 完全不受影响
+// → 流式回答速度和前台一致
 //
-// 工业实践：Sider / Glasp / Monica / HARPA AI（4 个百万级 AI 抓取扩展）
-// 都是这套路线，无一用 chrome.debugger。
+// 完整 patch 清单：
+// 1. document.visibilityState / hidden 锁死 (JS 层 + prototype)
+// 2. visibility/blur/pagehide 事件拦截
+// 3. document.hasFocus() = true
+// 4. requestAnimationFrame fallback (MessageChannel)
+// 5. setTimeout/setInterval 转发到 Web Worker
 (() => {
   if (window.__arenaMainWorldPatched) return;
   window.__arenaMainWorldPatched = true;
 
-  // ── 1. document.visibilityState / hidden 锁死 ──
-  // 同时 patch Document.prototype（防 SPA 直接读 prototype 属性）+ document 实例
+  // ──────── 1. visibilityState / hidden 锁死 ────────
   const visibleDesc = { get: () => "visible", configurable: true };
   const hiddenDesc = { get: () => false, configurable: true };
   try {
@@ -27,30 +27,21 @@
     Object.defineProperty(document, "visibilityState", visibleDesc);
     Object.defineProperty(document, "hidden", hiddenDesc);
   } catch (_) {}
-
-  // webkit 兼容字段
   try {
     Object.defineProperty(document, "webkitVisibilityState", visibleDesc);
     Object.defineProperty(document, "webkitHidden", hiddenDesc);
   } catch (_) {}
 
-  // ── 2. 拦截所有 visibility / focus 相关事件（capture 阶段最优先）──
-  const blockedEvents = [
-    "visibilitychange", "webkitvisibilitychange",
-    "blur", "pagehide", "freeze",
-  ];
-  blockedEvents.forEach(type => {
-    document.addEventListener(type, e => e.stopImmediatePropagation(), true);
-    window.addEventListener(type, e => e.stopImmediatePropagation(), true);
+  // ──────── 2. visibility/focus 事件拦截 ────────
+  ["visibilitychange", "webkitvisibilitychange", "blur", "pagehide", "freeze"].forEach(t => {
+    document.addEventListener(t, e => e.stopImmediatePropagation(), true);
+    window.addEventListener(t, e => e.stopImmediatePropagation(), true);
   });
 
-  // ── 3. document.hasFocus() 永远 true ──
-  try {
-    document.hasFocus = () => true;
-  } catch (_) {}
+  // ──────── 3. document.hasFocus 锁死 ────────
+  try { document.hasFocus = () => true; } catch (_) {}
 
-  // ── 4. rAF polyfill：document.hidden 时（虽然我们已经 patch 但兜底）走 MessageChannel ──
-  // React 18 scheduler 自己走 MessageChannel 不依赖 rAF，但老 Angular zone / 动画库可能依赖
+  // ──────── 4. requestAnimationFrame MessageChannel fallback ────────
   try {
     const origRAF = window.requestAnimationFrame.bind(window);
     const origCAF = window.cancelAnimationFrame.bind(window);
@@ -59,19 +50,12 @@
     let nextId = 1 << 30;
     ch.port1.onmessage = () => {
       const t = performance.now();
-      const callbacks = [...queue.values()];
+      const callbacks = [...queue.entries()];
       queue.clear();
-      for (const cb of callbacks) {
-        try { cb(t); } catch (_) {}
-      }
+      for (const [, cb] of callbacks) { try { cb(t); } catch (_) {} }
     };
     window.requestAnimationFrame = function (cb) {
-      // 因为我们 patch 了 document.hidden 永远 false，原生 rAF 应该总能跑
-      // 但如果浏览器内部走的不是 JS 层 document.hidden，仍可能被节流——兜底走 MessageChannel
-      try {
-        const id = origRAF(cb);
-        if (id) return id;
-      } catch (_) {}
+      try { const id = origRAF(cb); if (id) return id; } catch (_) {}
       const id = nextId++;
       queue.set(id, cb);
       ch.port2.postMessage(0);
@@ -83,38 +67,96 @@
     };
   } catch (_) {}
 
-  // ── 5. setTimeout 极短延时映射到 MessageChannel（兜底 Angular zone）──
-  // Chrome 对 hidden tab 的 setTimeout 节流到 1Hz，影响某些 SPA 内部 polling
-  // 把 < 4ms 的 setTimeout 改走 MessageChannel（不被节流），保持原行为兼容
+  // ──────── 5. setTimeout/setInterval 走 Web Worker（重磅 anti-throttle） ────────
+  // Chrome 对 background tab 节流 setTimeout/setInterval 到 1Hz，影响 SPA 内部
+  // chunk-loop（如 setTimeout(pump, 16) 串联 ReadableStream chunk 处理）
+  // Web Worker 跑独立线程，setTimeout 不被节流 → 直接 bypass
   try {
-    const origSetTimeout = window.setTimeout.bind(window);
-    const origClearTimeout = window.clearTimeout.bind(window);
-    const fastCh = new MessageChannel();
-    const fastQueue = new Map();
-    let fastId = 2 << 30;
-    fastCh.port1.onmessage = (e) => {
+    const workerCode = `
+      const timers = new Map();
+      self.onmessage = (e) => {
+        const { type, id, delay } = e.data;
+        if (type === 'set') {
+          const tid = setTimeout(() => {
+            timers.delete(id);
+            self.postMessage(id);
+          }, delay);
+          timers.set(id, tid);
+        } else if (type === 'clear') {
+          const tid = timers.get(id);
+          if (tid != null) { clearTimeout(tid); timers.delete(id); }
+        }
+      };
+    `;
+    const blob = new Blob([workerCode], { type: "application/javascript" });
+    const workerUrl = URL.createObjectURL(blob);
+    const worker = new Worker(workerUrl);
+
+    const stCallbacks = new Map();  // setTimeout
+    const intervalCfg = new Map();  // setInterval { cb, delay, active }
+    let wid = 2 << 30;
+
+    worker.onmessage = (e) => {
       const id = e.data;
-      const cb = fastQueue.get(id);
+      // setInterval: 用 active 标记防 clearInterval 后 cb 仍触发
+      if (intervalCfg.has(id)) {
+        const cfg = intervalCfg.get(id);
+        if (cfg.active) {
+          try { cfg.cb(); } catch (_) {}
+          if (intervalCfg.has(id) && intervalCfg.get(id).active) {
+            worker.postMessage({ type: "set", id, delay: cfg.delay });
+          }
+        }
+        return;
+      }
+      // setTimeout: 一次性
+      const cb = stCallbacks.get(id);
       if (cb) {
-        fastQueue.delete(id);
+        stCallbacks.delete(id);
         try { cb(); } catch (_) {}
       }
     };
+
+    const origSetTimeout = window.setTimeout.bind(window);
+    const origClearTimeout = window.clearTimeout.bind(window);
     window.setTimeout = function (cb, delay, ...args) {
-      // 只接管极短延时 + 函数回调（字符串 eval 走原生）
-      if (typeof cb === "function" && (delay == null || delay <= 4)) {
-        const id = fastId++;
-        fastQueue.set(id, args.length ? () => cb(...args) : cb);
-        fastCh.port2.postMessage(id);
-        return id;
-      }
-      return origSetTimeout(cb, delay, ...args);
+      if (typeof cb !== "function") return origSetTimeout(cb, delay, ...args);
+      const id = wid++;
+      stCallbacks.set(id, args.length ? () => cb(...args) : cb);
+      worker.postMessage({ type: "set", id, delay: Math.max(0, delay || 0) });
+      return id;
     };
     window.clearTimeout = function (id) {
-      if (fastQueue.has(id)) { fastQueue.delete(id); return; }
+      if (stCallbacks.has(id)) {
+        stCallbacks.delete(id);
+        worker.postMessage({ type: "clear", id });
+        return;
+      }
       origClearTimeout(id);
     };
-  } catch (_) {}
 
-  console.log("[AI Arena] MAIN world visibility patch applied");
+    const origSetInterval = window.setInterval.bind(window);
+    const origClearInterval = window.clearInterval.bind(window);
+    window.setInterval = function (cb, delay, ...args) {
+      if (typeof cb !== "function") return origSetInterval(cb, delay, ...args);
+      const id = wid++;
+      const tickFn = args.length ? () => cb(...args) : cb;
+      intervalCfg.set(id, { cb: tickFn, delay: Math.max(0, delay || 0), active: true });
+      worker.postMessage({ type: "set", id, delay: Math.max(0, delay || 0) });
+      return id;
+    };
+    window.clearInterval = function (id) {
+      if (intervalCfg.has(id)) {
+        intervalCfg.get(id).active = false;
+        intervalCfg.delete(id);
+        worker.postMessage({ type: "clear", id });
+        return;
+      }
+      origClearInterval(id);
+    };
+  } catch (e) {
+    console.warn("[AI Arena] Worker timer patch failed:", e);
+  }
+
+  console.log("[AI Arena] MAIN world anti-throttle patch applied (v4.8.20 F32+)");
 })();

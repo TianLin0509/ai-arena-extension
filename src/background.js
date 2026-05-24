@@ -81,6 +81,47 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // v4.8.19 F32: 旧 injectVisibilityOverride 已删除 — manifest content_scripts
 // bootstrap-main-world.js 在 document_start 即注入完整 visibility patch（更早、更全）
 
+// v4.8.20 F32+: 扩展启动时主动注入 bootstrap-main-world.js 到现有 AI tab
+// 原因：manifest content_scripts 只对 navigation 时生效。用户 reload 扩展但
+// AI tab 没刷新时，bootstrap 不会注入 → 仍被 background throttle。
+// 这里 onInstalled / onStartup 主动给所有 AI tab 注入一次。
+const AI_URL_PATTERNS = [
+  "https://claude.ai/*",
+  "https://gemini.google.com/*",
+  "https://chatgpt.com/*",
+  "https://chat.deepseek.com/*",
+  "https://www.doubao.com/*",
+  "https://tongyi.aliyun.com/*",
+  "https://www.qianwen.com/*",
+  "https://kimi.moonshot.cn/*",
+  "https://www.kimi.com/*",
+  "https://yuanbao.tencent.com/*",
+  "https://grok.com/*",
+];
+async function injectBootstrapToExistingTabs() {
+  let count = 0;
+  for (const pattern of AI_URL_PATTERNS) {
+    try {
+      const tabs = await chrome.tabs.query({ url: pattern });
+      for (const tab of tabs) {
+        try {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            world: "MAIN",
+            files: ["bootstrap-main-world.js"],
+          });
+          count++;
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+  if (count > 0) console.log(`[F32+] re-injected bootstrap to ${count} existing AI tab(s)`);
+}
+chrome.runtime.onInstalled.addListener(() => { injectBootstrapToExistingTabs(); });
+chrome.runtime.onStartup.addListener(() => { injectBootstrapToExistingTabs(); });
+// service worker 启动时也跑一次（cover reload 扩展场景，onInstalled 不一定触发）
+injectBootstrapToExistingTabs();
+
 // 页面导航后自动重连 content script
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status !== 'complete') return;

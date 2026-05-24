@@ -351,6 +351,18 @@ function staticCheck() {
       desc: "F32 bootstrap-main-world.js 实施完整 visibility patch + rAF/setTimeout polyfill",
     },
     {
+      id: "F32-worker-timer",
+      file: "src/bootstrap-main-world.js",
+      pattern: /new Worker[\s\S]*?setTimeout[\s\S]*?setInterval/,
+      desc: "F32+ Web Worker 接管 setTimeout/setInterval 彻底 bypass throttle",
+    },
+    {
+      id: "F32-reinject-existing-tabs",
+      file: "src/background.js",
+      pattern: /injectBootstrapToExistingTabs[\s\S]*?chrome\.scripting\.executeScript[\s\S]*?world:\s*["']MAIN["']/,
+      desc: "F32+ 扩展启动时主动注入 bootstrap 到现有 AI tab",
+    },
+    {
       id: "F32-no-debugger-perm",
       file: "src/manifest.json",
       // 关键：debugger 权限必须删除（否则用户 install 仍会看到敏感权限提示）
