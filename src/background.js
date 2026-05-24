@@ -266,6 +266,43 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true;
 });
 
+// ── v4.7.2 F22: 添加 AI 时检测登录状态 ──
+// 用 chrome.scripting.executeScript 在 AI tab 跑通用启发式：DOM 含登录关键字 +
+// 没有对话输入框 → 未登录。比依赖每个 content-*.js 的 isLoginBlocked 更通用。
+async function checkLoginStatus(tabId, displayName, service) {
+  try {
+    // 等页面初步加载（DOM ready），但不强求 complete（部分 SPA 永远不到 complete）
+    await new Promise(r => setTimeout(r, 3500));
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const text = document.body?.innerText || "";
+        const hasLoginText = /登录|未登录|请登录|账号登录|微信登录|扫码登录|Sign in|Sign up|Log in|Login/i.test(text);
+        const hasInput = !!document.querySelector(
+          "textarea, [contenteditable='true'], [role='textbox'], rich-textarea .ql-editor"
+        );
+        // 启发式：有登录文案 + 找不到输入框 → 大概率未登录
+        return { loggedIn: !(hasLoginText && !hasInput), hasInput, hasLoginText };
+      },
+    }).catch(() => null);
+    const r = results?.[0]?.result;
+    if (r && r.loggedIn === false) {
+      const tipMsgId = `m${Date.now()}_login_${service}`;
+      // 用同一个 chatStreamUpdate 通道推一条 ai 警告气泡（popup updateAIBubble 自动按 service 加头像）
+      chrome.runtime.sendMessage({
+        type: "chatStreamUpdate", role: "ai",
+        msgId: tipMsgId, participantId: service,
+        text: `⚠ ${displayName} 似乎未登录。请到 ${displayName} 网页登录后，点击气泡 🔄 重试 / 重新加入。`,
+        isDone: true,
+        loginWarning: true,
+      }).catch(() => {});
+      notifyStatus(`⚠ ${displayName} 未登录，提问前请先登录`);
+    }
+  } catch (_) {
+    // 检测失败（tab 已关 / 没 scripting 权限等）不影响添加
+  }
+}
+
 // ── 参与者管理 ──
 
 async function addParticipant(service) {
@@ -302,6 +339,8 @@ async function addParticipant(service) {
   StateMachine.addParticipant(id, service, tabId, `${info.name}-${count}`);
   notifyStatus(`已添加 ${info.name}-${count}`);
   StateMachine._broadcastStateUpdate();
+  // v4.7.2 F22: 异步检测登录态，未登录推 popup 警告气泡（不阻塞 addParticipant 返回）
+  checkLoginStatus(tabId, `${info.name}-${count}`, service).catch(() => {});
 
   // 并列模式下自动排列窗口
   if (windowMode === "tiled") {

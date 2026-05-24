@@ -276,6 +276,18 @@ function staticCheck() {
       pattern: /F21.*复用 pendingMsgId/s,
       desc: "F21 handleSummary 完成时复用 pendingMsgId",
     },
+    {
+      id: "F22-checkLogin",
+      file: "src/background.js",
+      pattern: /async function checkLoginStatus/,
+      desc: "F22 checkLoginStatus 登录态检测",
+    },
+    {
+      id: "F22-trigger",
+      file: "src/background.js",
+      pattern: /F22:\s*异步检测登录态/,
+      desc: "F22 addParticipant 后触发检测",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
