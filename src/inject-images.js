@@ -389,6 +389,93 @@ function _doExtractWithFences(clone) {
     if (!t) return;
     c.parentNode.replaceChild(document.createTextNode("`" + t + "`"), c);
   });
+
+  // v4.8.26: 提取 markdown 结构（标题/列表/加粗/斜体/链接/表格/分隔符）
+  // 之前 clone.innerText 把 <h3>核心共识</h3> 平铺成"核心共识"，丢了 ### 标记；
+  // <ul><li> 列表平铺成单行段落；<strong> 也丢了 **。
+  // 修复：在 cloneNode 上按 DOM 类型替换成对应 markdown text node，让 popup-markdown.js 能重渲染。
+  try {
+    // ---- 行内级先处理：strong/em/del/a — text node 替换后嵌套容器 innerText 仍能拿到带标记的内容 ----
+    clone.querySelectorAll("strong, b").forEach(el => {
+      const t = (el.innerText || el.textContent || "").trim();
+      if (!t || el.dataset?.mdDone) return;
+      el.parentNode?.replaceChild(document.createTextNode(`**${t}**`), el);
+    });
+    clone.querySelectorAll("em, i").forEach(el => {
+      const t = (el.innerText || el.textContent || "").trim();
+      if (!t) return;
+      el.parentNode?.replaceChild(document.createTextNode(`*${t}*`), el);
+    });
+    clone.querySelectorAll("del, s, strike").forEach(el => {
+      const t = (el.innerText || el.textContent || "").trim();
+      if (!t) return;
+      el.parentNode?.replaceChild(document.createTextNode(`~~${t}~~`), el);
+    });
+    clone.querySelectorAll("a[href]").forEach(a => {
+      const href = a.getAttribute("href") || "";
+      const t = (a.innerText || a.textContent || "").trim();
+      if (!href || !t || href.startsWith("javascript:")) return;
+      // 内部锚点（#anchor）保留纯文本即可
+      if (href.startsWith("#")) {
+        a.parentNode?.replaceChild(document.createTextNode(t), a);
+        return;
+      }
+      a.parentNode?.replaceChild(document.createTextNode(`[${t}](${href})`), a);
+    });
+
+    // ---- 块级再处理：h1-h6 / ul / ol / blockquote / hr / table ----
+    // 标题：从 h6 反向到 h1（避免外层 h1 替换前 querySelectorAll 已经扫到内嵌的 h3）
+    for (let lvl = 6; lvl >= 1; lvl--) {
+      clone.querySelectorAll(`h${lvl}`).forEach(h => {
+        const t = (h.innerText || h.textContent || "").trim();
+        if (!t) return;
+        const hashes = "#".repeat(lvl);
+        h.parentNode?.replaceChild(document.createTextNode(`\n\n${hashes} ${t}\n\n`), h);
+      });
+    }
+    // 列表（嵌套支持：每个 ul/ol 独立处理，内层先被外层 :scope > li 的 innerText 包含）
+    clone.querySelectorAll("ul, ol").forEach(list => {
+      // 跳过已被外层处理过的（parentNode 是 text node 时跳过）
+      if (!list.parentNode || list.parentNode.nodeType !== 1) return;
+      const isOl = list.tagName === "OL";
+      const items = [...list.children].filter(c => c.tagName === "LI");
+      if (!items.length) return;
+      const lines = items.map((li, idx) => {
+        const text = (li.innerText || li.textContent || "").trim().replace(/\n+/g, " ");
+        const prefix = isOl ? `${idx + 1}. ` : "- ";
+        return prefix + text;
+      });
+      list.parentNode.replaceChild(document.createTextNode(`\n\n${lines.join("\n")}\n\n`), list);
+    });
+    // blockquote
+    clone.querySelectorAll("blockquote").forEach(bq => {
+      const txt = (bq.innerText || bq.textContent || "").trim();
+      if (!txt) return;
+      const md = txt.split("\n").map(l => (l.trim() ? `> ${l}` : "")).join("\n");
+      bq.parentNode?.replaceChild(document.createTextNode(`\n\n${md}\n\n`), bq);
+    });
+    // hr
+    clone.querySelectorAll("hr").forEach(hr => {
+      hr.parentNode?.replaceChild(document.createTextNode("\n\n---\n\n"), hr);
+    });
+    // table
+    clone.querySelectorAll("table").forEach(table => {
+      const rows = [...table.querySelectorAll("tr")];
+      if (rows.length < 2) return;
+      const cells = rows.map(tr =>
+        [...tr.querySelectorAll("th, td")].map(c =>
+          (c.innerText || c.textContent || "").trim().replace(/\|/g, "\\|").replace(/\n+/g, " ")
+        )
+      );
+      if (!cells[0]?.length) return;
+      const headers = cells[0];
+      const body = cells.slice(1);
+      const md = `\n\n| ${headers.join(" | ")} |\n|${headers.map(() => "---").join("|")}|\n` +
+                 body.map(r => `| ${r.join(" | ")} |`).join("\n") + "\n\n";
+      table.parentNode?.replaceChild(document.createTextNode(md), table);
+    });
+  } catch (e) { /* markdown 结构提取失败不阻塞主流程 */ }
+
   // v4.3.8: cloneNode 后游离的 DOM 上 innerText 在 Chrome 上不可靠（嵌套结构
   // 经常返回空字符串），优先用 innerText，fallback 到 textContent。
   // 这是 Kimi 等深嵌套布局抓不到内容的根因。

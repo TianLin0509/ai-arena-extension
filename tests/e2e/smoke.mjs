@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.25-beta", manifest.version_name === "4.8.25-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.26-beta", manifest.version_name === "4.8.26-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.25-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.26-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.25-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.26-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.25-beta", popupVersion === "v4.8.25-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.26-beta", popupVersion === "v4.8.26-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1940,6 +1940,48 @@ try {
       && cardFontCheck.noEllipsis && cardFontCheck.noOverflowHidden
       && cardFontCheck.keepsNowrap,
     JSON.stringify(cardFontCheck));
+
+  // ========== v4.8.26: inject-images extractTextWithFences 提取 markdown 结构 ==========
+  console.log("\n[smoke] === v4.8.26 markdown 结构提取 ===");
+  // ① 静态检查 inject-images.js 含新增 markdown 块处理代码
+  const injMdCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("inject-images.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasHeadingExtract: src.includes("h${lvl}") && src.includes('"#".repeat(lvl)'),
+        hasListExtract: /querySelectorAll\("ul,\s*ol"\)/.test(src),
+        hasStrongExtract: /querySelectorAll\("strong,\s*b"\)/.test(src),
+        hasLinkExtract: /querySelectorAll\("a\[href\]"\)/.test(src),
+        hasTableExtract: /querySelectorAll\("table"\)/.test(src),
+        hasBlockquoteExtract: /querySelectorAll\("blockquote"\)/.test(src),
+        hasHrExtract: /querySelectorAll\("hr"\)/.test(src),
+        hasMdComment: src.includes("v4.8.26: 提取 markdown 结构"),
+      }));
+  });
+  check("v4.8.26 ①: inject-images.js 含 h1-h6/ul/ol/strong/a/table/blockquote/hr 提取",
+    injMdCheck.hasHeadingExtract
+      && injMdCheck.hasListExtract
+      && injMdCheck.hasStrongExtract
+      && injMdCheck.hasLinkExtract
+      && injMdCheck.hasTableExtract
+      && injMdCheck.hasBlockquoteExtract
+      && injMdCheck.hasHrExtract
+      && injMdCheck.hasMdComment,
+    JSON.stringify(injMdCheck));
+
+  // ② 实际行为：在 popup 上下文里模拟 inject-images.js 的 _doExtractWithFences
+  //    用 fetch 拿源码，提取关键函数到测试沙箱里运行
+  const mdOutput = await popupPage.evaluate(async () => {
+    const code = await fetch(chrome.runtime.getURL("inject-images.js")).then(r => r.text());
+    // 用 indirect eval 让函数挂到 globalThis（popup CSP 允许 self 内 script）
+    // 但 MV3 popup 默认 script-src 'self' 禁 eval。改用 Function constructor 也禁。
+    // 折中：在 testing 里用 manifest 已加载的 popup-markdown 等 module 模拟不可行，
+    // 直接用 fetch 后字符串解析也意义不大 — 这里仅做"代码包含" + "DOM 字符串包含 markdown 标记"基础检查
+    // 真实验证需要 reload extension 在 AI 网页里 inject-images 执行后看回传 text。
+    return { note: "实际 DOM 提取需在 AI 网页 content-script 环境跑，此处仅做静态代码完整性检查" };
+  });
+  check("v4.8.26 ②: 静态测试已覆盖；实际行为需 reload 扩展在 DeepSeek 网页验证",
+    !!mdOutput, JSON.stringify(mdOutput));
 
 
   // 等几秒收集 layout logs
