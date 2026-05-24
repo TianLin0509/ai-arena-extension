@@ -2530,10 +2530,14 @@ body { letter-spacing: -0.01em; }
 
 .hero-slot.filled {
   border-color: #5eead4;
+  /* v4.8.1: 默认更柔和的边光（比 v4.8.0 弱一半），平时静态不抖 */
   box-shadow:
-    0 0 14px rgba(94,234,212,0.35),
-    inset 0 0 14px rgba(94,234,212,0.10),
+    0 0 8px rgba(94,234,212,0.20),
+    inset 0 0 8px rgba(94,234,212,0.06),
     0 1px 3px rgba(0,0,0,0.25);
+}
+/* v4.8.1: bounce 进场只在新添加时跑（.just-added），正常渲染时不抖 */
+.hero-slot.filled.just-added {
   animation: hero-slot-fill-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes hero-slot-fill-in {
@@ -2543,7 +2547,7 @@ body { letter-spacing: -0.01em; }
 }
 .hero-slot.filled:hover { transform: translateY(-2px) scale(1.02); }
 
-/* 流光特效（顶角斜光） */
+/* v4.8.1: 流光默认隐藏 — 只在添加 (2 圈) 和 hover (1 圈) 时短暂跑 */
 .hero-slot.filled .hero-slot-glow {
   position: absolute;
   top: -50%; left: -50%;
@@ -2554,24 +2558,32 @@ body { letter-spacing: -0.01em; }
     rgba(167,139,250,0.18) 50%,
     transparent 60%);
   pointer-events: none;
-  animation: hero-slot-shimmer 2.6s ease-in-out infinite;
+  opacity: 0;
   z-index: 1;
 }
+.hero-slot.filled.just-added .hero-slot-glow {
+  animation: hero-slot-shimmer 2.6s ease-in-out 2;
+}
+.hero-slot.filled:hover .hero-slot-glow {
+  animation: hero-slot-shimmer 2.6s ease-in-out 1;
+}
 @keyframes hero-slot-shimmer {
-  0%, 100% { transform: translate(-30%, -30%); opacity: 0.5; }
+  0%, 100% { transform: translate(-30%, -30%); opacity: 0; }
+  20%, 80% { opacity: 0.7; }
   50% { transform: translate(30%, 30%); opacity: 1; }
 }
 
-/* 状态变体 — 输出中、就绪、错误 */
-.hero-slot.status-busy { border-color: #ff9f0a; }
-.hero-slot.status-busy .hero-slot-glow {
-  background: linear-gradient(115deg, transparent 30%, rgba(255,159,10,0.25) 50%, transparent 60%);
+/* 状态变体 — 仅换边色 + busy 柔和呼吸（无前景流光，更克制） */
+.hero-slot.status-busy {
+  border-color: #ff9f0a;
+  animation: hero-slot-busy-breathe 2.4s ease-in-out infinite;
+}
+@keyframes hero-slot-busy-breathe {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,159,10,0.22), inset 0 0 8px rgba(255,159,10,0.06), 0 1px 3px rgba(0,0,0,0.25); }
+  50%      { box-shadow: 0 0 14px rgba(255,159,10,0.42), inset 0 0 12px rgba(255,159,10,0.12), 0 1px 3px rgba(0,0,0,0.25); }
 }
 .hero-slot.status-ready { border-color: #34c759; }
 .hero-slot.status-error { border-color: #ff3b30; }
-.hero-slot.status-error .hero-slot-glow {
-  background: linear-gradient(115deg, transparent 30%, rgba(255,59,48,0.25) 50%, transparent 60%);
-}
 
 .hero-slot-logo {
   width: 36px; height: 36px;
