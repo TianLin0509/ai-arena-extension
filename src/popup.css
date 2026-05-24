@@ -2537,7 +2537,8 @@ body { letter-spacing: -0.01em; }
   padding: 4px 0 10px;
 }
 .hero-slot {
-  aspect-ratio: 0.85;
+  /* v4.8.17: 0.85 → 0.72 贴合卡牌实际比例（225:320 ≈ 0.703），cover 模式完美贴合不再裁底部黄虚线 */
+  aspect-ratio: 0.72;
   position: relative;
   border-radius: 10px;
   cursor: pointer;

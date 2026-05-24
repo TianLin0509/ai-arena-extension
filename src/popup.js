@@ -411,11 +411,17 @@
     ensureEmptyHidden();
     const row = document.createElement("div");
     row.className = "msg ai msg-summary";
+    // v4.8.17: 用裁判的卡牌 logo 替代 📋 绿色方块；标题加裁判名
+    const judgeSvc = meta?.judgeService;
+    const judgeName = meta?.judgeName ? `·${meta.judgeName}` : "";
+    const avatarClass = judgeSvc ? `msg-avatar ${AVATAR_CLASS[judgeSvc] || ""}` : "msg-avatar";
+    const avatarInner = judgeSvc ? brandLogoHtml(judgeSvc) : "📋";
+    const avatarStyle = judgeSvc ? "" : `style="background:#0a5e3a;color:#fff;font-weight:700"`;
     row.innerHTML = `
-      <div class="msg-avatar" style="background:#0a5e3a;color:#fff;font-weight:700">📋</div>
+      <div class="${avatarClass}" ${avatarStyle}>${avatarInner}</div>
       <div class="msg-body">
         <div class="msg-meta">
-          <span class="name">辩论总结</span>
+          <span class="name">辩论总结${escapeHtml(judgeName)}</span>
           <span class="time">${escapeHtml(meta?.date || "")}</span>
           <span class="stat done"><span class="pip"></span>已生成</span>
           <span class="acts">
