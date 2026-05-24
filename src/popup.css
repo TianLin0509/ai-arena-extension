@@ -339,12 +339,13 @@ body {
   letter-spacing: 0.02em;
   margin-left: 2px;
 }
-/* v4.8.22 A2: 顶栏图标按钮 — 卡片描边 + hover 青色光晕（danger 粉色） */
+/* v4.8.22 A2: 顶栏图标按钮 — 卡片描边 + hover 青色光晕（danger 粉色）
+   v4.8.24: 32→30 对齐其他顶栏按钮（折叠到顶 30 + Tab/并列 30） */
 .btn-icon {
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   padding: 0;
   color: var(--ink-soft);
   border-radius: 8px;
@@ -1646,8 +1647,9 @@ body { letter-spacing: -0.01em; }
   user-select: none;
 }
 .rp-more:hover { background: var(--card); color: var(--accent); }
-/* v4.8.22 B2: 添加 AI 按钮 — 微卡片 + 副标题（厂商·定位）
-   v4.8.23: 改 3 列 + 字号紧缩，一行放 3 个 AI（9 个 AI 占 3 行 vs 之前 5 行） */
+/* v4.8.22 B2: 添加 AI 按钮 — 微卡片
+   v4.8.23: 3 列网格
+   v4.8.24: 删除副标题（用户反馈"没必要"）— logo + name 单行横排 */
 .rp-add-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 10px;
 }
@@ -1655,16 +1657,17 @@ body { letter-spacing: -0.01em; }
   background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
   border: 1px solid var(--border);
   border-radius: 9px;
-  padding: 6px 7px;
-  font-size: 11px;
+  padding: 7px 8px;
+  font-size: 11.5px;
   cursor: pointer;
   color: var(--ink);
   font-family: inherit;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-start;
-  text-align: left;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
@@ -1685,32 +1688,18 @@ body { letter-spacing: -0.01em; }
   box-shadow: 0 6px 16px rgba(0,0,0,0.25), 0 0 12px rgba(94,234,212,0.18);
 }
 .rp-add-btn:hover::after { opacity: 1; }
-.rp-add-head {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 700;
-}
 .rp-add-logo {
-  width: 12px; height: 12px;
+  width: 14px; height: 14px;
   object-fit: contain;
   flex-shrink: 0;
 }
 .rp-add-name {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.rp-add-desc {
-  font-size: 9px;
-  color: var(--ink-soft);
-  margin-left: 17px;
-  letter-spacing: 0.02em;
-  font-weight: 500;
-  line-height: 1.3;
 }
 .rp-mode-toggle {
   display: flex; border: 1px solid var(--border);
@@ -3078,61 +3067,92 @@ body { letter-spacing: -0.01em; }
   margin-top: 6px;
 }
 
-/* ============ ② 时光机时间轴目录 ============ */
+/* ============ ② 时光机时间轴目录 ============
+   v4.8.24: 整体升级 — 彩虹渐变时间轴 + 渐变圆点 + 卡片化 hover + 霓虹序号 */
 .sidebar-list {
   position: relative;
-  padding-left: 22px !important;   /* 给时间轴留位 */
+  padding-left: 22px !important;
 }
+/* 时间轴垂直线 — 青→紫→粉 三色渐变，比单色更生动 */
 .sidebar-list::before {
   content: "";
   position: absolute;
   left: 14px;
   top: 12px;
   bottom: 12px;
-  width: 1.5px;
+  width: 2px;
   background: linear-gradient(180deg,
-    var(--accent) 0%,
-    rgba(127,127,127,0.35) 60%,
-    rgba(127,127,127,0.1) 100%);
-  border-radius: 1px;
+    rgba(94,234,212,0.85) 0%,
+    rgba(167,139,250,0.65) 50%,
+    rgba(251,113,133,0.30) 100%);
+  border-radius: 2px;
   pointer-events: none;
+  box-shadow: 0 0 8px rgba(94,234,212,0.25);
 }
-/* 隐藏旧的 3px 矩形装饰，让圆点 take over */
+/* 圆点节点 — 默认半透明 + 渐变填充 */
 .sidebar-item::before {
-  /* 圆点节点 — 在时间轴线上 */
   content: "" !important;
-  left: -16px !important;
-  top: 14px !important;
+  left: -17px !important;
+  top: 12px !important;
   bottom: auto !important;
-  width: 10px !important;
-  height: 10px !important;
+  width: 12px !important;
+  height: 12px !important;
   border-radius: 50% !important;
-  background: var(--bg) !important;
-  border: 2px solid var(--ink-soft) !important;
-  box-shadow: 0 0 0 2px var(--card) !important;
-  transition: all 0.2s !important;
+  background: linear-gradient(135deg, rgba(94,234,212,0.6), rgba(167,139,250,0.5)) !important;
+  border: 2px solid var(--card) !important;
+  box-shadow: 0 0 0 1px rgba(94,234,212,0.4), 0 0 6px rgba(94,234,212,0.3) !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   opacity: 1 !important;
 }
 .sidebar-item:hover::before {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--card), 0 0 8px var(--accent) !important;
-  background: var(--accent) !important;
+  background: linear-gradient(135deg, #5eead4, #a78bfa) !important;
+  box-shadow: 0 0 0 1px rgba(94,234,212,0.7), 0 0 12px rgba(94,234,212,0.6) !important;
+  transform: scale(1.15) !important;
 }
 .sidebar-item.active::before {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px var(--card), 0 0 10px var(--accent) !important;
+  background: linear-gradient(135deg, #5eead4, #a78bfa, #fb7185) !important;
+  box-shadow: 0 0 0 2px rgba(94,234,212,0.4), 0 0 14px rgba(167,139,250,0.7) !important;
+  transform: scale(1.2) !important;
 }
-/* 时间戳更突出 */
-.sidebar-item-time {
-  color: var(--accent) !important;
+/* 序号 #1 #2 — 霓虹青色 + 等宽字体 */
+.sidebar-item-num {
+  color: #5eead4 !important;
   font-weight: 700 !important;
-  font-feature-settings: "tnum" 1;
+  font-family: "SF Mono", "Consolas", monospace !important;
+  letter-spacing: 0.02em;
 }
-/* hover 时整条向右轻推 */
+/* 时间戳 — 灰色 monospace，跟序号区分 */
+.sidebar-item-time {
+  color: var(--ink-soft) !important;
+  font-weight: 600 !important;
+  font-feature-settings: "tnum" 1;
+  font-family: "SF Mono", "Consolas", monospace !important;
+  font-size: 11px !important;
+}
+/* hover 卡片化 — 微圆角背景 + 整条不再水平推动（容易让人觉得晃） */
+.sidebar-item {
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+}
 .sidebar-item:hover {
-  transform: translateX(2px) !important;
-  background: linear-gradient(90deg, rgba(10,132,255,0.06), transparent 70%) !important;
+  background: linear-gradient(135deg, rgba(94,234,212,0.08), rgba(167,139,250,0.04)) !important;
+  box-shadow: inset 0 0 0 1px rgba(94,234,212,0.15) !important;
+  transform: none !important;
+}
+.sidebar-item.active {
+  background: linear-gradient(135deg, rgba(94,234,212,0.14), rgba(167,139,250,0.08)) !important;
+  box-shadow: inset 0 0 0 1px rgba(94,234,212,0.30) !important;
+}
+/* 日期分组标签 — 更精致 */
+.sidebar-day {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 8px 0 4px 4px;
+  position: relative;
 }
 
 /* ============ ③ 极简任务 picker（v4.8.23 重写为彩色胶囊，此处微调失效）============
@@ -3149,7 +3169,8 @@ body { letter-spacing: -0.01em; }
    - 仅保留 input bar + roster（roster 头像可点击决定下轮发言）
    - .btn-mini-mode 文字由 JS 切成 "⇱ 展开"
 ============================================================ */
-/* v4.8.22 A2: 折叠到顶按钮 — 霓虹外发光 + 慢呼吸 + hover 加强 */
+/* v4.8.22 A2: 折叠到顶按钮 — 霓虹外发光
+   v4.8.24: 用户反馈"有点太闪亮"，降低光晕强度 + 删 ::before blur aura + 静态化（hover 才发光）*/
 .btn-mini-mode {
   background: linear-gradient(135deg, #ff8c42 0%, #ff5e3a 100%);
   color: #fff;
@@ -3166,35 +3187,18 @@ body { letter-spacing: -0.01em; }
   gap: 4px;
   white-space: nowrap;
   position: relative;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
   margin-right: 8px;
-  box-shadow: 0 0 0 1px rgba(255,140,66,0.4), 0 4px 14px rgba(255,94,58,0.35), 0 0 18px rgba(255,140,66,0.30);
-  animation: btn-mini-pulse 3.2s ease-in-out infinite;
-}
-.btn-mini-mode::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ff8c42, #ff5e3a);
-  filter: blur(10px);
-  opacity: 0.35;
-  z-index: -1;
-  animation: btn-mini-aura 3.2s ease-in-out infinite;
+  /* v4.8.24: 大幅降低默认光晕 — 仅 1px 描边 + 浅投影，不再呼吸 */
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.25), 0 2px 8px rgba(255,94,58,0.20);
 }
 .btn-mini-mode:hover {
   transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 0 0 1px rgba(255,140,66,0.6), 0 6px 22px rgba(255,94,58,0.55), 0 0 26px rgba(255,140,66,0.45);
+  /* hover 时才出现完整霓虹光晕 */
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.55), 0 6px 18px rgba(255,94,58,0.40), 0 0 18px rgba(255,140,66,0.30);
 }
 .btn-mini-mode:active { transform: translateY(0) scale(0.98); }
-@keyframes btn-mini-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(255,140,66,0.4), 0 4px 14px rgba(255,94,58,0.35), 0 0 18px rgba(255,140,66,0.30); }
-  50%      { box-shadow: 0 0 0 1px rgba(255,140,66,0.55), 0 4px 18px rgba(255,94,58,0.45), 0 0 24px rgba(255,140,66,0.42); }
-}
-@keyframes btn-mini-aura {
-  0%, 100% { opacity: 0.30; }
-  50%      { opacity: 0.50; }
-}
+/* btn-mini-pulse / btn-mini-aura 已删（v4.8.24 静态化）*/
 
 /* mini 模式 — 隐藏不需要的区域 */
 body[data-mode="mini"] .chat-sidebar,
