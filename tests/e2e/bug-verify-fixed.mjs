@@ -374,12 +374,24 @@ function staticCheck() {
       pattern: /onUpdated\.addListener[\s\S]*?isAiUrl[\s\S]*?injectBootstrapToTab/,
       desc: "F32+ tabs.onUpdated complete 时 inject 兜底",
     },
+    // F32-no-debugger-perm 已删除 — F37 混合模式恢复 debugger 权限（Tab 模式用）
     {
-      id: "F32-no-debugger-perm",
+      id: "F37-debugger-perm",
       file: "src/manifest.json",
-      // 关键：debugger 权限必须删除（否则用户 install 仍会看到敏感权限提示）
-      pattern: /^(?:(?!"debugger").)*$/s,
-      desc: "F32 manifest 不再包含 debugger 权限",
+      pattern: /"debugger"/,
+      desc: "F37 混合模式：manifest 含 debugger 权限（Tab 模式用）",
+    },
+    {
+      id: "F37-mixed-attach",
+      file: "src/background.js",
+      pattern: /F37[\s\S]*?windowMode === "tab"[\s\S]*?attachAndWake/,
+      desc: "F37 addParticipant Tab 模式时持久 attach CDP",
+    },
+    {
+      id: "F37-setmode-sync",
+      file: "src/background.js",
+      pattern: /case "setWindowMode"[\s\S]*?F37[\s\S]*?detachAll/,
+      desc: "F37 setWindowMode 切换时同步 attach/detach",
     },
     {
       id: "F32-content-main-world",
@@ -944,33 +956,32 @@ try {
   }
 
   // ════════════════════════════════════════════════════════
-  // F32-fix: MAIN world visibility patch（替代 chrome.debugger）
-  // 验证：debugger 权限已删 / CDPExtractor 不存在 / manifest content_scripts 注册了 bootstrap MAIN
-  // + chat-bus polling 完成后仍把 p.response 写入（保留 F27-bugfix 的核心逻辑作回归保护）
+  // F37 混合模式: Tab=CDP / 并列=MAIN world
+  // 验证 CDPExtractor 模块 + MAIN world bootstrap 同时存在（两套并存）
   // ════════════════════════════════════════════════════════
-  console.log("\n=== F32-fix: MAIN world visibility patch ===");
-  const f32 = await sw.evaluate(async () => {
+  console.log("\n=== F37 混合模式: MAIN world + CDP 并存 ===");
+  const f37 = await sw.evaluate(async () => {
     const manifest = chrome.runtime.getManifest();
     const main_cs = (manifest.content_scripts || []).find(cs =>
       Array.isArray(cs.js) && cs.js.includes("bootstrap-main-world.js")
     );
     return {
-      noDebuggerPerm: !manifest.permissions.includes("debugger"),
-      noCDPExtractor: typeof self.CDPExtractor === "undefined",
+      hasDebuggerPerm: manifest.permissions.includes("debugger"),
+      hasCDPExtractor: typeof self.CDPExtractor === "object",
       mainBootstrapEntry: !!main_cs,
       mainWorld: main_cs?.world === "MAIN",
       docStart: main_cs?.run_at === "document_start",
       matchCount: main_cs?.matches?.length || 0,
     };
   });
-  const f32_ok = f32.noDebuggerPerm && f32.noCDPExtractor &&
-    f32.mainBootstrapEntry && f32.mainWorld && f32.docStart &&
-    f32.matchCount >= 9;
-  if (f32_ok) {
-    record("F32-bootstrap", "fixed", f32,
-      `debugger 权限已删 / CDPExtractor 不存在 / bootstrap MAIN world entry 覆盖 ${f32.matchCount} 个 AI 站点 + document_start 时机`);
+  const f37_ok = f37.hasDebuggerPerm && f37.hasCDPExtractor &&
+    f37.mainBootstrapEntry && f37.mainWorld && f37.docStart &&
+    f37.matchCount >= 9;
+  if (f37_ok) {
+    record("F37-mixed", "fixed", f37,
+      `debugger 权限 + CDPExtractor + bootstrap MAIN world entry 三者并存（${f37.matchCount} AI 站点）`);
   } else {
-    record("F32-bootstrap", "regression", f32, JSON.stringify(f32));
+    record("F37-mixed", "regression", f37, JSON.stringify(f37));
   }
 
   // F32-bugfix 回归：polling 完成后 p.response 写入仍正常（保留 F27-bugfix 核心逻辑）

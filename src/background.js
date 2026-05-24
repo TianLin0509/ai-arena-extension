@@ -3,8 +3,9 @@
 // 从 sidepanel 缓存的屏幕尺寸；双屏时用于判断 AI 窗口应放到哪块屏幕。
 let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
 
-// v4.8.19 F32: 已删 cdp-extractor.js — MAIN world content script 替代 chrome.debugger
-importScripts("selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js");
+// v4.8.29 F37 混合模式: Tab 模式走 chrome.debugger 持久 attach（黄条不影响 UI），
+// 并列模式走 MAIN world visibility patch（无黄条）— 两套并存按需启用
+importScripts("selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js");
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -151,9 +152,20 @@ async function injectBootstrapToExistingTabs() {
   }
   console.log(`[F32+] scan DONE matched=${totalMatched} injected=${injected} failed=${failed}`);
 
-  // v4.8.24 F34: 一次性激活所有现有 AI window — 触发 Chrome "曾 visible" 标记
-  // 否则用户 reload 扩展后老 AI tab 仍处于 never-visible 状态 → Heavy Timer Throttling
-  await activateAiWindowsOnce(aiTabIds);
+  // v4.8.29 F37 混合模式: 如果是 Tab 模式，对所有 AI tab 持久 attach CDP
+  // （F34 activateAiWindowsOnce 只对并列模式有效；tab 模式靠 CDP 真解 throttle）
+  if (windowMode === "tab" && self.CDPExtractor && aiTabIds.length) {
+    console.log(`[F37] tab mode, attaching ${aiTabIds.length} existing AI tab(s)`);
+    for (const { id } of aiTabIds) {
+      try {
+        const r = await self.CDPExtractor.attachAndWake(id);
+        console.log(`[F37] attach tab=${id} ok=${r?.ok} code=${r?.code}`);
+      } catch (_) {}
+    }
+  } else {
+    // 并列模式：F34 activateAiWindowsOnce 让 AI window 短暂可见触发 chrome "曾 visible" 标记
+    await activateAiWindowsOnce(aiTabIds);
+  }
 }
 
 let _activatedOnce = false;
@@ -264,7 +276,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
-        case "setWindowMode":     windowMode = msg.mode; chrome.storage.local.set({ windowMode: msg.mode }); sendResponse({ ok: true }); break;
+        case "setWindowMode": {
+          // v4.8.29 F37 混合模式: 切换 Tab/并列 时同步 attach/detach CDP
+          const oldMode = windowMode;
+          windowMode = msg.mode;
+          chrome.storage.local.set({ windowMode: msg.mode });
+          if (self.CDPExtractor) {
+            if (msg.mode === "tab" && oldMode !== "tab") {
+              // 切到 Tab 模式 → 批量 attach 所有现有 AI tab
+              console.log(`[F37] mode → tab, attaching ${StateMachine.participants.length} AI tabs`);
+              for (const p of StateMachine.participants) {
+                if (p.tabId) self.CDPExtractor.attachAndWake(p.tabId).catch(() => {});
+              }
+            } else if (msg.mode === "tiled" && oldMode === "tab") {
+              // 切到并列模式 → detach 所有让黄条消失（并列模式靠 MAIN world patch）
+              console.log(`[F37] mode → tiled, detaching all CDP`);
+              self.CDPExtractor.detachAll().catch(() => {});
+            }
+          }
+          sendResponse({ ok: true });
+          break;
+        }
         case "arrangeWindows":
           if (msg.screen) lastKnownScreen = msg.screen;
           sendResponse(await arrangeWindows(msg.screen || lastKnownScreen));
@@ -513,9 +545,16 @@ async function addParticipant(service) {
   // v4.3.0：立即把 popup 拉回前端（不等 arrange）
   try { await ChatBus.focusPopup(); } catch (_) {}
 
-  // v4.8.19 F32: 已完全废弃 chrome.debugger 路线，改用 MAIN world content script
-  // bootstrap-main-world.js 在 document_start 注入完整 visibility patch
-  // 旧 F27/F28/F31 注释保留在 git history，不在此重复
+  // v4.8.29 F37 混合模式: Tab 模式持久 attach chrome.debugger（黄条不影响 tab UI），
+  // 并列模式靠 MAIN world bootstrap-main-world.js 自动注入（已在 manifest content_scripts）
+  if (windowMode === "tab" && self.CDPExtractor) {
+    setTimeout(async () => {
+      try {
+        const r = await self.CDPExtractor.attachAndWake(tabId);
+        console.log(`[F37] tab-mode CDP attach service=${service} tab=${tabId} ok=${r?.ok} code=${r?.code}`);
+      } catch (e) { console.warn(`[F37] attach fail:`, e?.message); }
+    }, 1500);
+  }
 
   return { ok: true, participants: StateMachine.getFullState().participants };
 }
@@ -523,7 +562,10 @@ async function addParticipant(service) {
 async function removeParticipant(id) {
   const p = StateMachine.getParticipant(id);
   if (!p) return { ok: false };
-  // v4.8.19 F32: 不再有 CDP attach，无需 detach（保留 placeholder 防 git rebase 混乱）
+  // v4.8.29 F37: 移除参与者前 detach 该 tab 的 CDP（如已 attach）
+  if (p.tabId && self.CDPExtractor) {
+    try { await self.CDPExtractor.detach(p.tabId); } catch (_) {}
+  }
   if (p.tabId) { _removingTabs.add(p.tabId); try { await chrome.tabs.remove(p.tabId); } catch {} }
   StateMachine.removeParticipant(id);
   notifyStatus(`已移除 ${p.name}`);
