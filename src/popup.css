@@ -487,8 +487,9 @@ body {
 .msg { display: flex; gap: 8px; align-items: flex-start; }
 .msg.me { justify-content: flex-end; }
 /* v4.8.7: 改为卡牌头像 — 删白底 padding，object-fit cover 让 Q 版角色脸居中露出 */
+/* v4.8.9: 36→48（面积 ~1.78x）+ 圆角 10px，让卡牌细节更清晰，跟气泡高度更协调 */
 .msg-avatar {
-  width: 36px; height: 36px; border-radius: 8px; flex: 0 0 36px;
+  width: 48px; height: 48px; border-radius: 10px; flex: 0 0 48px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 600; font-size: 12px;
   background: transparent;

@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.8-beta", manifest.version_name === "4.8.8-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.9-beta", manifest.version_name === "4.8.9-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.8-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.9-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.8-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.9-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.8-beta", popupVersion === "v4.8.8-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.9-beta", popupVersion === "v4.8.9-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1333,6 +1333,35 @@ try {
       && cssCheck.heroLogoFull
       && cssCheck.msgBrandCover,
     JSON.stringify(cssCheck));
+
+  // ========== v4.8.9: 头像尺寸 36→48（面积 ~1.78x）==========
+  console.log("\n[smoke] === v4.8.9 头像放大 ===");
+  const avatarSize = await popupPage.evaluate(() => {
+    // 注入一条 AI 消息 → 渲染 → 量真实尺寸
+    const $messages = document.getElementById("chat-messages");
+    if (!$messages) return { err: "no #chat-messages" };
+    // 直接构造 DOM，避免依赖 ChatBus 注入
+    $messages.innerHTML = `
+      <div class="msg ai">
+        <div class="msg-avatar claude"><img class="brand-logo" src="icons/heroes/claude.webp"></div>
+        <div class="msg-body"><div class="msg-bubble">测试</div></div>
+      </div>`;
+    const av = document.querySelector(".msg.ai .msg-avatar");
+    const rect = av?.getBoundingClientRect();
+    const cs = av ? getComputedStyle(av) : null;
+    return {
+      width: rect?.width,
+      height: rect?.height,
+      borderRadius: cs?.borderRadius,
+      flexBasis: cs?.flexBasis
+    };
+  });
+  check("v4.8.9: .msg-avatar 实际尺寸 48×48 (面积 ~1.78x of 36×36)",
+    avatarSize.width === 48 && avatarSize.height === 48,
+    JSON.stringify(avatarSize));
+  check("v4.8.9: .msg-avatar 圆角 10px + flex-basis 48",
+    avatarSize.borderRadius === "10px" && avatarSize.flexBasis === "48px",
+    JSON.stringify(avatarSize));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);
