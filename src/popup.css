@@ -41,6 +41,79 @@ body {
   height: 100vh; min-width: 0;
 }
 
+/* v4.6.9: 右栏拆 3:1 — 上 Tab 区，下状态日志固定区 */
+.rp-top {
+  flex: 3;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.rp-bottom {
+  flex: 1;
+  min-height: 120px;
+  max-height: 38vh;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+.rp-log-header {
+  display: flex;
+  align-items: center;
+  padding: 7px 12px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.rp-log-header > span:first-child { flex: 1; }
+.rp-log-clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.rp-log-clear:hover { border-color: #ff3b30; color: #ff3b30; }
+.rp-log-box {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 10px;
+  font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+.rp-log-empty {
+  color: var(--ink-soft);
+  font-size: 11px;
+  text-align: center;
+  padding: 14px 0;
+  font-family: inherit;
+}
+.rp-log-line {
+  display: flex; gap: 6px;
+  padding: 2px 0;
+  word-break: break-word;
+}
+.rp-log-line .t {
+  color: var(--accent);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rp-log-line .warn { color: #ff9f0a; }
+.rp-log-line .err  { color: #ff3b30; }
+.rp-log-line .ok   { color: #34c759; }
+
 /* 左侧对话目录 */
 .chat-sidebar {
   width: 220px; flex: 0 0 220px;
@@ -511,60 +584,29 @@ body {
   display: block;
 }
 
-/* ── 现代细滚动条（v4.0.12）—— 所有可滚动区统一 ── */
-.chat-messages,
-.sidebar-list,
-.chat-input,
-.task-menu,
-.sub-menu,
-.mention-menu,
-.drawer-panel {
+/* ── 现代细滚动条（v4.6.9 全局统一）—— 所有可滚动区都用 6px 灰条 ── */
+/* Firefox / 现代浏览器 */
+* {
   scrollbar-width: thin;
   scrollbar-color: rgba(127, 127, 127, 0.25) transparent;
 }
-.chat-messages::-webkit-scrollbar,
-.sidebar-list::-webkit-scrollbar,
-.chat-input::-webkit-scrollbar,
-.task-menu::-webkit-scrollbar,
-.sub-menu::-webkit-scrollbar,
-.mention-menu::-webkit-scrollbar,
-.drawer-panel::-webkit-scrollbar {
+/* WebKit / Chromium 系 — 用 * 全局应用（v4.0.12 旧版只列举固定 selector，新加的 .rp-log-box / .tpl-modal-body 等没覆盖） */
+*::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-.chat-messages::-webkit-scrollbar-track,
-.sidebar-list::-webkit-scrollbar-track,
-.chat-input::-webkit-scrollbar-track,
-.task-menu::-webkit-scrollbar-track,
-.sub-menu::-webkit-scrollbar-track,
-.mention-menu::-webkit-scrollbar-track,
-.drawer-panel::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
-.chat-messages::-webkit-scrollbar-thumb,
-.sidebar-list::-webkit-scrollbar-thumb,
-.chat-input::-webkit-scrollbar-thumb,
-.task-menu::-webkit-scrollbar-thumb,
-.sub-menu::-webkit-scrollbar-thumb,
-.mention-menu::-webkit-scrollbar-thumb,
-.drawer-panel::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: rgba(127, 127, 127, 0.25);
   border-radius: 3px;
   transition: background 0.15s;
 }
-.chat-messages:hover::-webkit-scrollbar-thumb,
-.sidebar-list:hover::-webkit-scrollbar-thumb,
-.chat-input:hover::-webkit-scrollbar-thumb,
-.drawer-panel:hover::-webkit-scrollbar-thumb {
+*:hover::-webkit-scrollbar-thumb {
   background: rgba(127, 127, 127, 0.45);
 }
-.chat-messages::-webkit-scrollbar-thumb:hover,
-.sidebar-list::-webkit-scrollbar-thumb:hover,
-.chat-input::-webkit-scrollbar-thumb:hover,
-.task-menu::-webkit-scrollbar-thumb:hover,
-.sub-menu::-webkit-scrollbar-thumb:hover,
-.mention-menu::-webkit-scrollbar-thumb:hover,
-.drawer-panel::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: rgba(127, 127, 127, 0.65);
 }
 /* 表格横向滚动条同款 */
@@ -1350,6 +1392,99 @@ body { letter-spacing: -0.01em; }
   background: var(--accent); color: #fff;
   border-color: var(--accent); font-weight: 600;
 }
+
+/* v4.6.8: 统计可视化 — 横向柱状图 / 趋势折线 / 热力图 */
+.rp-bar-list { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.rp-bar-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0;
+}
+.rp-bar-label {
+  display: flex; align-items: center; gap: 5px;
+  width: 78px; flex-shrink: 0;
+  font-size: 11px; color: var(--ink);
+}
+.rp-bar-em { font-size: 12px; }
+.rp-bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp-bar-track {
+  flex: 1;
+  height: 22px;
+  background: var(--bg);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.rp-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(10,132,255,0.7), rgba(10,132,255,0.95));
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.rp-bar-val {
+  position: absolute;
+  right: 6px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--ink);
+  font-weight: 600;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 2px var(--card);
+}
+
+.rp-chart-wrap {
+  margin-top: 14px;
+  padding: 10px 8px 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.rp-chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.rp-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.rp-chart-area { fill: rgba(10,132,255,0.10); }
+.rp-chart-line { stroke: var(--accent); stroke-width: 1.6; fill: none; }
+.rp-chart-dot { fill: var(--accent); }
+.rp-chart-axis { font-size: 9px; fill: var(--ink-soft); font-family: inherit; }
+.rp-chart-meta {
+  font-size: 10px; color: var(--ink-soft);
+  margin-top: 4px; text-align: center;
+}
+
+.rp-heat-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.rp-heat-label { font-size: 8px; fill: var(--ink-soft); font-family: inherit; }
+.rp-heat-cell { transition: opacity 0.2s; cursor: help; }
+.rp-heat-cell:hover { stroke: var(--accent); stroke-width: 1; }
+.rp-heat-l0 { fill: var(--bg); stroke: var(--border); stroke-width: 0.5; }
+.rp-heat-l1 { fill: rgba(10,132,255,0.18); }
+.rp-heat-l2 { fill: rgba(10,132,255,0.40); }
+.rp-heat-l3 { fill: rgba(10,132,255,0.65); }
+.rp-heat-l4 { fill: rgba(10,132,255,0.90); }
+.rp-heat-legend-lbl { font-size: 9px; color: var(--ink-soft); margin: 0 4px; }
+.rp-heat-legend-sq {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 2px;
+  margin: 0 1px;
+  vertical-align: middle;
+}
+.rp-heat-legend-sq.rp-heat-l0 { background: var(--bg); border: 1px solid var(--border); }
+.rp-heat-legend-sq.rp-heat-l1 { background: rgba(10,132,255,0.18); }
+.rp-heat-legend-sq.rp-heat-l2 { background: rgba(10,132,255,0.40); }
+.rp-heat-legend-sq.rp-heat-l3 { background: rgba(10,132,255,0.65); }
+.rp-heat-legend-sq.rp-heat-l4 { background: rgba(10,132,255,0.90); }
 .rp-theme-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 3px; margin-bottom: 10px;

@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.6.6-beta", manifest.version_name === "4.6.6-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.6.12-beta", manifest.version_name === "4.6.12-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.6.6-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.6.12-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.6.6-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.6.12-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.6.6-beta", popupVersion === "v4.6.6-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.6.12-beta", popupVersion === "v4.6.12-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -315,6 +315,78 @@ try {
     v466.nestedFrac.includes("Pₛᵢgₙₐₗ") && v466.nestedFrac.includes("/"),
     v466.nestedFrac);
 
+  // ========== v4.6.8: 统计 Tab 可视化（柱状图 / 趋势线 / 热力图） ==========
+  console.log("\n[smoke] === v4.6.8 统计可视化 ===");
+
+  // 切到 stats Tab
+  await popupPage.click('.rp-tab[data-tab="stats"]');
+  await popupPage.waitForTimeout(200);
+
+  // 注入测试数据：3 个 AI + 7 天 daily + 168 cell heatmap
+  await popupPage.evaluate(() => {
+    const today = new Date();
+    const daily = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      daily[k] = { conversations: 2 + i, chars: 3000 + i * 500, models: {} };
+    }
+    const heatmap = new Array(168).fill(0);
+    // 工作日 9-18 高活跃，周末低
+    for (let w = 1; w <= 5; w++) for (let h = 9; h <= 18; h++) heatmap[w * 24 + h] = Math.floor(Math.random() * 20 + 5);
+    window.ChatStats._injectFakeData({
+      conversations: 42,
+      debates: 8,
+      totalChars: 38000,
+      models: {
+        claude: { chars: 18000, rounds: 15 },
+        gemini: { chars: 12000, rounds: 12 },
+        chatgpt: { chars: 8000, rounds: 9 }
+      },
+      daily, heatmap
+    });
+  });
+  await popupPage.waitForTimeout(200);
+
+  // sub-tab 切到"模型" → 柱状图
+  await popupPage.click('.rp-substat-tab[data-sub="models"]');
+  await popupPage.waitForTimeout(200);
+  const barChart = await popupPage.evaluate(() => {
+    const rows = [...document.querySelectorAll(".rp-bar-row")];
+    return {
+      rowCount: rows.length,
+      hasFill: !!document.querySelector(".rp-bar-fill"),
+      firstName: rows[0]?.querySelector(".rp-bar-name")?.textContent,
+      firstWidth: rows[0]?.querySelector(".rp-bar-fill")?.style.width
+    };
+  });
+  check("v4.6.8: 模型 sub-tab 渲染柱状图 — 3 行 + fill 元素",
+    barChart.rowCount === 3 && barChart.hasFill, JSON.stringify(barChart));
+  check("v4.6.8: 柱状图按 Token 排序 — 第 1 名 Claude 100%",
+    barChart.firstName === "Claude" && /^100(\.0)?%$/.test(barChart.firstWidth),
+    JSON.stringify(barChart));
+
+  // sub-tab 切到"累计" → 趋势线 + 热力图
+  await popupPage.click('.rp-substat-tab[data-sub="lifetime"]');
+  await popupPage.waitForTimeout(200);
+  const lifetimeChart = await popupPage.evaluate(() => {
+    return {
+      hasTrendSvg: !!document.querySelector(".rp-chart-svg"),
+      trendLineExists: !!document.querySelector(".rp-chart-line"),
+      trendDotCount: document.querySelectorAll(".rp-chart-dot").length,
+      hasHeatSvg: !!document.querySelector(".rp-heat-svg"),
+      heatCellCount: document.querySelectorAll(".rp-heat-cell").length,
+      hasLegend: !!document.querySelector(".rp-heat-legend-sq")
+    };
+  });
+  check("v4.6.8: 累计 sub-tab — 7 天趋势 SVG + 折线 + 7 个数据点",
+    lifetimeChart.hasTrendSvg && lifetimeChart.trendLineExists && lifetimeChart.trendDotCount === 7,
+    JSON.stringify(lifetimeChart));
+  check("v4.6.8: 累计 sub-tab — 热力图 7×24=168 cells + 图例",
+    lifetimeChart.hasHeatSvg && lifetimeChart.heatCellCount === 168 && lifetimeChart.hasLegend,
+    JSON.stringify(lifetimeChart));
+
   // 6) 任务模式 hover 子菜单验证（DOM 存在性）
   const debateSubItems = await popupPage.locator('.menu-item.has-sub:has(span:text("辩论")) .sub-menu .menu-item').count();
   check("debate hover submenu has items (free/collab)", debateSubItems >= 2, `actual: ${debateSubItems}`);
@@ -369,6 +441,112 @@ try {
   check("v4.5.0：popup 右栏 5 Tab DOM (含 templates)",
     rpTabs.length === 5 && rpTabs.map(t => t.name).join(",") === "members,tasks,stats,templates,settings",
     JSON.stringify(rpTabs));
+
+  // v4.6.9: 右栏拆 3:1 + 状态日志固定区
+  const layout469 = await popupPage.evaluate(() => {
+    const rp = document.getElementById("chat-rightpanel");
+    const top = document.getElementById("rp-top");
+    const bot = document.getElementById("rp-bottom");
+    const logBox = document.getElementById("rp-log-box");
+    const logHdr = document.querySelector(".rp-log-header");
+    const clearBtn = document.getElementById("rp-log-clear");
+    // 验证 Tab 都嵌在 rp-top 内
+    const panelsInTop = top ? top.querySelectorAll(".rp-panel").length : 0;
+    return {
+      rpExists: !!rp,
+      topExists: !!top,
+      botExists: !!bot,
+      logBoxExists: !!logBox,
+      logHdrExists: !!logHdr,
+      clearBtnExists: !!clearBtn,
+      panelsInTop,
+      // 高度比应该 3:1（容忍 ±20% 浮动）
+      topH: top?.getBoundingClientRect().height || 0,
+      botH: bot?.getBoundingClientRect().height || 0
+    };
+  });
+  check("v4.6.9: 右栏布局 .rp-top + .rp-bottom 存在",
+    layout469.topExists && layout469.botExists, JSON.stringify(layout469));
+  check("v4.6.9: 5 个 .rp-panel 全部嵌在 .rp-top",
+    layout469.panelsInTop === 5, JSON.stringify(layout469));
+  check("v4.6.9: 状态日志 #rp-log-box + header + 清空按钮",
+    layout469.logBoxExists && layout469.logHdrExists && layout469.clearBtnExists,
+    JSON.stringify(layout469));
+  check("v4.6.9: top:bottom 高度比 ≈ 3:1（top 至少是 bot 2 倍）",
+    layout469.topH > layout469.botH * 2, JSON.stringify({ topH: layout469.topH, botH: layout469.botH }));
+
+  // 设置 Tab 不应再含"状态日志"
+  await popupPage.click('.rp-tab[data-tab="settings"]');
+  await popupPage.waitForTimeout(200);
+  const settingsNoLog = await popupPage.evaluate(() => {
+    const panel = document.getElementById("rp-panel-settings");
+    return {
+      hasLogTitle: panel?.innerText?.includes("状态日志") || false,
+      hasLogBoxInside: !!panel?.querySelector(".rp-log-box"),
+      sectionCount: panel?.querySelectorAll(".rp-section-title").length || 0
+    };
+  });
+  check("v4.6.9: 设置 Tab 已移除「状态日志」section",
+    !settingsNoLog.hasLogTitle && !settingsNoLog.hasLogBoxInside,
+    JSON.stringify(settingsNoLog));
+  check("v4.6.9: 设置 Tab 只剩 2 个 section（主题 + 快捷键）",
+    settingsNoLog.sectionCount === 2, JSON.stringify(settingsNoLog));
+
+  // ChatLog API 暴露 + pushLog 兼容
+  const logApi = await popupPage.evaluate(() => ({
+    hasChatLog: typeof window.ChatLog === "object",
+    hasPush: typeof window.ChatLog?.push === "function",
+    hasClear: typeof window.ChatLog?.clear === "function",
+    hasCompat: typeof window.ChatSettings?.pushLog === "function"
+  }));
+  check("v4.6.9: ChatLog API 暴露 (push/clear) + ChatSettings.pushLog 兼容",
+    logApi.hasChatLog && logApi.hasPush && logApi.hasClear && logApi.hasCompat,
+    JSON.stringify(logApi));
+
+  // 模拟 push → 看 DOM
+  const logPushTest = await popupPage.evaluate(() => {
+    window.ChatLog.push({ ts: Date.now(), text: "TEST_LOG_LINE_v4.6.9", level: "info" });
+    const lines = document.querySelectorAll("#rp-log-box .rp-log-line");
+    const txt = [...lines].map(x => x.innerText).join("|");
+    return { lineCount: lines.length, hasTest: txt.includes("TEST_LOG_LINE_v4.6.9") };
+  });
+  check("v4.6.9: ChatLog.push → 日志 DOM 写入 + 含测试文本",
+    logPushTest.hasTest, JSON.stringify(logPushTest));
+
+  // 全局细滚动条 — 验证 .rp-log-box 实际拿到 6px 细滚动条规则（最直接）
+  const scrollGlobal = await popupPage.evaluate(() => {
+    // 注入超长内容让 log-box 出现滚动条，然后看 computed style
+    const box = document.getElementById("rp-log-box");
+    if (!box) return { err: "no log box" };
+    box.innerHTML = "";
+    for (let i = 0; i < 50; i++) {
+      const d = document.createElement("div");
+      d.className = "rp-log-line";
+      d.textContent = `测试日志行 ${i} - 验证滚动条样式`;
+      box.appendChild(d);
+    }
+    const cs = getComputedStyle(box);
+    const styles = [...document.styleSheets].flatMap(s => { try { return [...s.cssRules]; } catch { return []; } });
+    // 浏览器序列化把 *::-webkit-scrollbar 中的 `*` 省略，直接搜 webkit-scrollbar
+    const allScrollRules = styles.filter(r => r.cssText && r.cssText.includes("::-webkit-scrollbar"));
+    return {
+      scrollHeight: box.scrollHeight,
+      clientHeight: box.clientHeight,
+      isScrollable: box.scrollHeight > box.clientHeight,
+      firefoxThinSet: cs.scrollbarWidth === "thin" || cs.getPropertyValue("scrollbar-width") === "thin",
+      scrollRuleCount: allScrollRules.length,
+      hasWidth6: allScrollRules.some(r => /width:\s*6px/.test(r.cssText))
+    };
+  });
+  check("v4.6.9: 全局细滚动条 — log-box 可滚动 + firefox thin 生效",
+    scrollGlobal.isScrollable && scrollGlobal.firefoxThinSet,
+    JSON.stringify(scrollGlobal));
+  check("v4.6.9: webkit ::-webkit-scrollbar 规则含 6px width",
+    scrollGlobal.hasWidth6, JSON.stringify(scrollGlobal));
+
+  // 切回 templates Tab 准备后续断言
+  await popupPage.click('.rp-tab[data-tab="templates"]');
+  await popupPage.waitForTimeout(150);
   const headerBtns = await popupPage.evaluate(() => ({
     clear: !!document.getElementById("btn-clear"),
     hardReset: !!document.getElementById("btn-hard-reset"),

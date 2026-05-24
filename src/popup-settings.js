@@ -1,4 +1,5 @@
-// popup-settings.js — 设置 Tab：主题 + 状态日志 + 快捷键
+// popup-settings.js — 设置 Tab：主题 + 快捷键
+// v4.6.9: 状态日志已抽到 popup-log.js（右栏下半部分固定区），本文件不再含 log 逻辑
 (function () {
   const THEMES = [
     { id: "C", name: "Aurora",  gradient: "linear-gradient(135deg,#5eead4,#a78bfa)" },
@@ -11,22 +12,6 @@
   const THEME_KEY = "uiTheme";
 
   let currentTheme = "C";
-  let logs = [];
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-  }
-
-  function renderLogLine(line) {
-    const ts = line.ts
-      ? new Date(line.ts).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
-      : "";
-    const level = line.level || "info";
-    const cls = level === "warn" ? "warn" : level === "error" || level === "err" ? "err" : level === "success" || level === "ok" ? "ok" : "";
-    return `<div class="rp-log-line"><span class="t">[${ts}]</span><span class="${cls}">${escapeHtml(line.text || "")}</span></div>`;
-  }
 
   function render() {
     const root = document.getElementById("rp-panel-settings");
@@ -40,11 +25,6 @@
             <span>${t.name}${t.id === currentTheme ? " ✓" : ""}</span>
           </div>
         `).join("")}
-      </div>
-
-      <div class="rp-section-title">状态日志</div>
-      <div class="rp-log-box" id="rp-log-box">
-        ${logs.length ? logs.map(renderLogLine).join("") : '<div class="rp-log-line"><span style="color:#aeaeb2">暂无日志</span></div>'}
       </div>
 
       <div class="rp-section-title">快捷键</div>
@@ -69,19 +49,6 @@
     document.dispatchEvent(new CustomEvent("theme:changed", { detail: { theme: id } }));
   }
 
-  function pushLog(line) {
-    logs.push(line);
-    if (logs.length > 100) logs = logs.slice(-100);
-    const box = document.getElementById("rp-log-box");
-    if (!box) return;
-    if (logs.length === 1) {
-      box.innerHTML = renderLogLine(line);
-    } else {
-      box.insertAdjacentHTML("beforeend", renderLogLine(line));
-    }
-    box.scrollTop = box.scrollHeight;
-  }
-
   async function refresh() {
     try {
       const r = await new Promise(res => {
@@ -97,24 +64,10 @@
     render();
   }
 
-  // 监听 background 推送的 status 消息当作 log
-  try {
-    chrome.runtime.onMessage.addListener((msg) => {
-      if (msg?.type === "status" && msg.message) {
-        pushLog({
-          ts: Date.now(),
-          text: msg.message,
-          level: msg.level || "info",
-        });
-      }
-    });
-  } catch (_) {}
-
   document.addEventListener("rp:activated", (e) => {
     if (e.detail?.tab === "settings") refresh();
   });
 
-  // 与顶部 🎨 按钮联动
   document.addEventListener("theme:cycle", () => {
     const ids = THEMES.map(t => t.id);
     const idx = ids.indexOf(currentTheme);
@@ -122,13 +75,15 @@
     setTheme(next);
   });
 
-  window.ChatSettings = {
-    refresh,
-    render,
-    setTheme,
+  // pushLog 兼容入口由 popup-log.js 接管：window.ChatSettings.pushLog = ChatLog.push
+  // 这里不再监听 chrome.runtime.onMessage (避免双重监听导致日志重复)
+  const api = {
+    refresh, render, setTheme,
     currentTheme: () => currentTheme,
-    pushLog,
   };
+  // 跟 popup-log.js 共存：popup-log.js 已经把 pushLog 挂到了 window.ChatSettings
+  if (window.ChatSettings) Object.assign(window.ChatSettings, api);
+  else window.ChatSettings = api;
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", refresh);

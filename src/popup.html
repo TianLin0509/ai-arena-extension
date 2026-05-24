@@ -29,7 +29,7 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v4.6.11-beta</span>
+        <span class="chat-version">v4.6.12-beta</span>
       </div>
       <div class="chat-actions">
         <div class="hdr-mode-toggle" id="hdr-mode-toggle" role="group" aria-label="AI 窗口布局">
@@ -104,6 +104,7 @@
     </footer>
     </div>
     <aside class="chat-rightpanel" id="chat-rightpanel">
+      <div class="rp-top" id="rp-top">
       <div class="rp-tabs">
         <button class="rp-tab active" data-tab="members" aria-label="成员">
           <svg class="rp-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -160,6 +161,16 @@
       <div class="rp-panel" data-rp-panel="stats" id="rp-panel-stats"></div>
       <div class="rp-panel" data-rp-panel="templates" id="rp-panel-templates"></div>
       <div class="rp-panel" data-rp-panel="settings" id="rp-panel-settings"></div>
+      </div><!-- /.rp-top -->
+      <div class="rp-bottom" id="rp-bottom">
+        <div class="rp-log-header">
+          <span>状态日志</span>
+          <button class="rp-log-clear" id="rp-log-clear" title="清空日志">清空</button>
+        </div>
+        <div class="rp-log-box" id="rp-log-box">
+          <div class="rp-log-empty">暂无日志</div>
+        </div>
+      </div>
     </aside>
   </div>
   <div class="tpl-modal-mask" id="tpl-modal-mask" hidden>
@@ -184,6 +195,7 @@
   <script src="popup-tasks.js"></script>
   <script src="popup-stats.js"></script>
   <script src="popup-settings.js"></script>
+  <script src="popup-log.js"></script>
   <script src="popup-window-mode.js"></script>
   <script src="templates-builtin.js"></script>
   <script src="template-store.js"></script>
