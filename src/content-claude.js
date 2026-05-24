@@ -68,7 +68,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       readLatestResponse().then(async text => {
         if (typeof postProcessBlobUrls === "function") { text = await postProcessBlobUrls(text); }
         const { hasRichContent, richTypes } = detectRichContent();
-        sendResponse({ site: SITE, text, hasRichContent, richTypes });
+        // v4.6.8 F18: readResponse 返回 isStreaming 让 chat-bus pollOnce 判完成时纳入条件
+        // 防 ChatGPT/Claude 等复杂问题中"模型停顿规划下一段"时被 4.5s sameCount 误判完成
+        const streamingEl = queryBySelectors("streaming");
+        const isStreaming = !!(streamingEl && streamingEl.getBoundingClientRect?.().width > 0);
+        sendResponse({ site: SITE, text, hasRichContent, richTypes, isStreaming });
       }).catch(e => sendResponse({ site: SITE, text: "", error: e.message }));
       return true;
     }

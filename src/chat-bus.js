@@ -285,7 +285,11 @@ const ChatBus = (() => {
       const stableKey = `${text}|imgPending:${imagesPending}`;
       if (stableKey === state.lastStableKey) {
         state.sameCount++;
-        if (state.sameCount >= STREAM_DONE_THRESHOLD && text.length > 0) {
+        // v4.6.8 F18: 完成判定加 !r.isStreaming — 让 polling 不再仅靠 4.5s 文本不变就判完成
+        // 防 ChatGPT/Claude 等模型"输出第一段后停顿规划下一段"时被早判完成（截图证据：
+        // 复杂技术问题 ChatGPT 输出 "我" 后停顿 4.5s → polling 误判 → 气泡卡在"我"）
+        // streaming selector 失效时 isStreaming 退化为 false，行为同老版本，向后兼容
+        if (state.sameCount >= STREAM_DONE_THRESHOLD && text.length > 0 && !r?.isStreaming) {
           // 完成
           clearInterval(state.intervalId);
           pollers.delete(service);

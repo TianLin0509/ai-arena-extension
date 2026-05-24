@@ -198,6 +198,30 @@ function staticCheck() {
       pattern: /type:\s*"popupReady",\s*windowId/,
       desc: "F17 popup.js 启动主动通知 SW",
     },
+    {
+      id: "F18-pollOnce",
+      file: "src/chat-bus.js",
+      pattern: /&&\s*!r\?\.isStreaming/,
+      desc: "F18 pollOnce 判完成纳入 isStreaming",
+    },
+    {
+      id: "F18-content-claude",
+      file: "src/content-claude.js",
+      pattern: /v4\.6\.8 F18.*isStreaming/s,
+      desc: "F18 content-claude.js readResponse 返回 isStreaming",
+    },
+    {
+      id: "F18-content-gemini",
+      file: "src/content-gemini.js",
+      pattern: /v4\.6\.8 F18.*isStreaming/s,
+      desc: "F18 content-gemini.js readResponse 返回 isStreaming",
+    },
+    {
+      id: "F18-content-chatgpt",
+      file: "src/content-chatgpt.js",
+      pattern: /v4\.6\.8 F18.*isStreaming/s,
+      desc: "F18 content-chatgpt.js readResponse 返回 isStreaming",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
@@ -487,6 +511,71 @@ try {
   } else {
     record("F13-fix", "regression", f13,
       `pendingSummary=${JSON.stringify(f13.pendingSummary_afterReset)} disconnectCount=${f13.disconnectMessageCount}`);
+  }
+
+  // ════════════════════════════════════════════════════════
+  // F18-fix: streaming 中即便文本稳定也不判完成
+  // 用户截图 bug：ChatGPT 输出 "我" 后停顿 4.5s（仍在 streaming）被 sameCount=3 误判完成
+  // ════════════════════════════════════════════════════════
+  console.log("\n=== F18-fix: streaming 中拒绝早判完成 ===");
+  const f18 = await sw.evaluate(async () => {
+    return new Promise(async (resolve) => {
+      StateMachine.hardReset();
+      StateMachine.participants = [{ id: "pF18", service: "ai_f18", tabId: 81001, name: "F18", response: null, responsePreview: null }];
+
+      let tickCount = 0;
+      const origTabsSend = chrome.tabs.sendMessage;
+      chrome.tabs.sendMessage = async (tid, msg) => {
+        if (msg.action === "readResponse") {
+          tickCount++;
+          // 文本稳定 "我" 但 isStreaming=true（模拟 ChatGPT 停顿规划场景）
+          return {
+            text: "我",
+            hasRichContent: false,
+            richTypes: [],
+            imagesPending: 0,
+            isStreaming: true,  // ← 关键：仍在 streaming
+          };
+        }
+        return { status: "sent" };
+      };
+
+      let donePushed = false;
+      let pushedText = null;
+      const origRuntime = chrome.runtime.sendMessage;
+      chrome.runtime.sendMessage = (m) => {
+        if (m?.type === "chatStreamUpdate" && m?.isDone && m?.participantId === "ai_f18") {
+          donePushed = true;
+          pushedText = m.text;
+        }
+        return Promise.resolve();
+      };
+
+      ChatBus.notifyRoundStart("test F18", ["ai_f18"]);
+
+      // 等 9 秒（6 tick × 1.5s）— 老逻辑 sameCount=3 时会在 ~4.5s 完成
+      // 新逻辑 isStreaming=true 即便 sameCount=∞ 也不判完成
+      setTimeout(() => {
+        chrome.tabs.sendMessage = origTabsSend;
+        chrome.runtime.sendMessage = origRuntime;
+        resolve({
+          tickCount,
+          donePushed,
+          pushedText,
+          // 期待：跑了 5-6 tick 但 donePushed=false
+          passed: tickCount >= 5 && !donePushed,
+        });
+      }, 9000);
+    });
+  });
+  if (f18.passed) {
+    record("F18-fix", "fixed", f18,
+      `polling 跑了 ${f18.tickCount} tick (>5) 但 isStreaming=true 期间不判完成 — 老逻辑早在第 3 tick 就 pushed "我" 当完整回答`);
+  } else if (f18.donePushed) {
+    record("F18-fix", "regression", f18,
+      `polling 仍把"我"当完成回答推给 popup — F18 修复未生效`);
+  } else {
+    record("F18-fix", "partial", f18, `polling 未跑足够 tick: ${f18.tickCount}`);
   }
 
   // ════════════════════════════════════════════════════════
