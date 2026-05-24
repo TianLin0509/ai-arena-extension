@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.6-beta", manifest.version_name === "4.8.6-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.8-beta", manifest.version_name === "4.8.8-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.6-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.8-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.6-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.8-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.6-beta", popupVersion === "v4.8.6-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.8-beta", popupVersion === "v4.8.8-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1259,6 +1259,80 @@ try {
   }).catch(e => ({ err: e.message }));
   check("v4.5.1: buildPptxPrompt 使用 override 后的 pptx",
     pptxBuildResult.containsOverride === true, JSON.stringify(pptxBuildResult));
+
+  // ========== v4.8.7: 卡牌 logo 替换 ==========
+  console.log("\n[smoke] === v4.8.7 卡牌 logo ===");
+
+  // ① 10 个 webp 资源都能加载
+  const heroAssets = await popupPage.evaluate(async () => {
+    const ids = ["claude","gemini","chatgpt","deepseek","doubao","qwen","kimi","yuanbao","grok","huawei"];
+    const results = {};
+    for (const id of ids) {
+      const url = chrome.runtime.getURL(`icons/heroes/${id}.webp`);
+      try {
+        const r = await fetch(url);
+        results[id] = { ok: r.ok, status: r.status, size: r.headers.get("content-length") };
+      } catch (e) {
+        results[id] = { ok: false, err: e.message };
+      }
+    }
+    return results;
+  });
+  const heroAllOk = Object.values(heroAssets).every(v => v.ok === true);
+  check("v4.8.7: 10 个 hero webp 资源全部加载成功",
+    heroAllOk, JSON.stringify(heroAssets));
+
+  // ② popup-members.js 含 heroLogo 字段
+  const heroLogoFieldOk = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-members.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasHeroLogoField: src.includes("heroLogo:"),
+        hasHeroesPath:    src.includes("icons/heroes/"),
+        hasFallback:      src.includes("meta.heroLogo || meta.logo")
+      }));
+  });
+  check("v4.8.7: popup-members.js 含 heroLogo 字段 + heroes/ 路径 + fallback",
+    heroLogoFieldOk.hasHeroLogoField && heroLogoFieldOk.hasHeroesPath && heroLogoFieldOk.hasFallback,
+    JSON.stringify(heroLogoFieldOk));
+
+  // ③ popup.js 主对话窗口 user/AI 头像走 HERO_LOGO，"我"=huawei
+  const popupJsCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasHeroLogoMap:     src.includes("const HERO_LOGO ="),
+        huaweiUsesWebp:     src.includes('huawei:   "icons/heroes/huawei.webp"'),
+        brandLogoUsesHero:  src.includes("HERO_LOGO[id] || BRAND_SVG[id]"),
+        meAvatarHasHuawei:  src.includes("brandLogoHtml('huawei')")
+      }));
+  });
+  check("v4.8.7: popup.js 含 HERO_LOGO 映射 + brandLogoHtml 优先用 hero + 我=huawei",
+    popupJsCheck.hasHeroLogoMap
+      && popupJsCheck.huaweiUsesWebp
+      && popupJsCheck.brandLogoUsesHero
+      && popupJsCheck.meAvatarHasHuawei,
+    JSON.stringify(popupJsCheck));
+
+  // ④ CSS .msg-avatar 已删白底 padding，.hero-slot-logo 改为 cover 占满
+  const cssCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        msgAvatarNoPadding: /\.msg-avatar\s*\{[^}]*padding:\s*0/.test(src),
+        msgAvatarTransparent: /\.msg-avatar\s*\{[^}]*background:\s*transparent/.test(src),
+        heroLogoCover: /\.hero-slot-logo\s*\{[^}]*object-fit:\s*cover/.test(src),
+        heroLogoFull:  /\.hero-slot-logo\s*\{[^}]*inset:\s*0/.test(src),
+        msgBrandCover: /\.msg-avatar\s+\.brand-logo\s*\{[^}]*object-fit:\s*cover/.test(src)
+      }));
+  });
+  check("v4.8.7: popup.css — .msg-avatar 删白底/padding + .hero-slot-logo cover 占满",
+    cssCheck.msgAvatarNoPadding
+      && cssCheck.msgAvatarTransparent
+      && cssCheck.heroLogoCover
+      && cssCheck.heroLogoFull
+      && cssCheck.msgBrandCover,
+    JSON.stringify(cssCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);

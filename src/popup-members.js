@@ -1,15 +1,17 @@
 // popup-members.js — 成员 Tab：参与者列表 + 添加 + ⋯ 菜单 + Tab/并列 切换
 (function () {
+  // v4.8.7: heroLogo 是 codex 画的 Q 版英雄卡（webp 17KB/张），仅 hero-slot 卡槽用；
+  // logo 仍是简单 svg，给"添加"按钮、排行榜等小图标场景
   const ALL_SERVICES = [
-    { id: "claude",   name: "Claude",   logo: "icons/brands/claude.svg" },
-    { id: "gemini",   name: "Gemini",   logo: "icons/brands/gemini.svg" },
-    { id: "chatgpt",  name: "GPT",      logo: "icons/brands/openai.svg" },
-    { id: "deepseek", name: "DeepSeek", logo: "icons/brands/deepseek.svg" },
-    { id: "doubao",   name: "豆包",     logo: "icons/brands/doubao.svg" },
-    { id: "qwen",     name: "千问",     logo: "icons/brands/qwen.svg" },
-    { id: "kimi",     name: "Kimi",     logo: "icons/brands/kimi.svg" },
-    { id: "yuanbao",  name: "元宝",     logo: "icons/brands/yuanbao.svg" },
-    { id: "grok",     name: "Grok",     logo: "icons/brands/grok.svg" },
+    { id: "claude",   name: "Claude",   logo: "icons/brands/claude.svg",   heroLogo: "icons/heroes/claude.webp"   },
+    { id: "gemini",   name: "Gemini",   logo: "icons/brands/gemini.svg",   heroLogo: "icons/heroes/gemini.webp"   },
+    { id: "chatgpt",  name: "GPT",      logo: "icons/brands/openai.svg",   heroLogo: "icons/heroes/chatgpt.webp"  },
+    { id: "deepseek", name: "DeepSeek", logo: "icons/brands/deepseek.svg", heroLogo: "icons/heroes/deepseek.webp" },
+    { id: "doubao",   name: "豆包",     logo: "icons/brands/doubao.svg",   heroLogo: "icons/heroes/doubao.webp"   },
+    { id: "qwen",     name: "千问",     logo: "icons/brands/qwen.svg",     heroLogo: "icons/heroes/qwen.webp"     },
+    { id: "kimi",     name: "Kimi",     logo: "icons/brands/kimi.svg",     heroLogo: "icons/heroes/kimi.webp"     },
+    { id: "yuanbao",  name: "元宝",     logo: "icons/brands/yuanbao.svg",  heroLogo: "icons/heroes/yuanbao.webp"  },
+    { id: "grok",     name: "Grok",     logo: "icons/brands/grok.svg",     heroLogo: "icons/heroes/grok.webp"     },
   ];
   const SERVICE_MAP = Object.fromEntries(ALL_SERVICES.map(s => [s.id, s]));
 
@@ -142,15 +144,17 @@
     const slotsHtml = Array.from({ length: MAX_SLOTS }, (_, i) => {
       const p = joined[i];
       if (p) {
-        const meta = SERVICE_MAP[p.service] || { name: p.service, logo: null };
+        const meta = SERVICE_MAP[p.service] || { name: p.service, logo: null, heroLogo: null };
         const status = statusOf(p);
         const isNew = newPids.includes(p.id);
+        // v4.8.7: 优先用卡牌版 heroLogo；旧 svg 作为兜底
+        const heroSrc = meta.heroLogo || meta.logo;
         return `
           <div class="hero-slot filled status-${status || 'idle'}${isNew ? ' just-added' : ''}" data-pid="${escapeHtml(p.id)}" data-slot="${i}" title="${escapeHtml(p.name || meta.name)} · ${statusTextOf(p)}">
             <div class="hero-slot-bg"></div>
             <div class="hero-slot-glow"></div>
-            ${meta.logo
-              ? `<img class="hero-slot-logo" src="${meta.logo}" alt="${escapeHtml(meta.name)}">`
+            ${heroSrc
+              ? `<img class="hero-slot-logo" src="${heroSrc}" alt="${escapeHtml(meta.name)}">`
               : `<span class="hero-slot-fb">${escapeHtml((meta.name || "?")[0])}</span>`}
             <div class="hero-slot-name">${escapeHtml(meta.name)}</div>
             <div class="hero-slot-status"><span class="rp-status-dot ${status}"></span></div>

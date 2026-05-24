@@ -486,15 +486,22 @@ body {
 }
 .msg { display: flex; gap: 8px; align-items: flex-start; }
 .msg.me { justify-content: flex-end; }
+/* v4.8.7: 改为卡牌头像 — 删白底 padding，object-fit cover 让 Q 版角色脸居中露出 */
 .msg-avatar {
-  width: 32px; height: 32px; border-radius: 6px; flex: 0 0 32px;
+  width: 36px; height: 36px; border-radius: 8px; flex: 0 0 36px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 600; font-size: 12px;
-  background: #fff;
-  padding: 3px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
-.msg-avatar .brand-logo { width: 100%; height: 100%; object-fit: contain; display: block; }
+.msg-avatar .brand-logo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 18%; /* 卡牌人物脸在偏上位置，按比例对准头部 */
+  display: block;
+}
 .msg-avatar-fallback { color: var(--ink); font-weight: 700; font-size: 11px; }
 /* 各服务 fallback 字母颜色（仅 svg 缺失时显示） */
 .msg-avatar-fallback.claude { color: #cc785c; }
@@ -1044,7 +1051,8 @@ body {
 }
 .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
 @media (prefers-color-scheme: dark) {
-  .msg-avatar { background: rgba(255,255,255,0.95); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  /* v4.8.7: 卡牌自带深色背景，dark mode 不再需要强制白底；只加微弱光晕区分气泡 */
+  .msg-avatar { box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06); }
 }
 
 /* ── 紧凑 meta 行 ── */
@@ -2585,13 +2593,32 @@ body { letter-spacing: -0.01em; }
 .hero-slot.status-ready { border-color: #34c759; }
 .hero-slot.status-error { border-color: #ff3b30; }
 
+/* v4.8.7: 卡牌 logo 充满槽位，覆盖原来 36×36 白底小图模式 */
 .hero-slot-logo {
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.96);
-  padding: 4px;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 1;
+  border-radius: 10px;
+  pointer-events: none;
+  user-select: none;
+}
+/* v4.8.7: 卡牌底部添加深色渐变遮罩，让名字 + 状态点可读 */
+.hero-slot.filled::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 38%;
+  background: linear-gradient(to top,
+    rgba(10,16,36,0.85) 0%,
+    rgba(10,16,36,0.55) 55%,
+    rgba(10,16,36,0) 100%);
+  border-radius: 0 0 10px 10px;
   z-index: 2;
-  position: relative;
+  pointer-events: none;
 }
 .hero-slot-fb {
   width: 36px; height: 36px;
@@ -2601,24 +2628,26 @@ body { letter-spacing: -0.01em; }
   display: flex; align-items: center; justify-content: center;
   font-weight: 700;
   font-size: 16px;
-  z-index: 2;
+  z-index: 3;
   position: relative;
 }
 .hero-slot-name {
-  margin-top: 6px;
-  font-size: 10.5px;
-  color: #e0e8ff;
-  font-weight: 600;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 14px;
+  font-size: 11px;
+  color: #f5f7ff;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  z-index: 2;
-  position: relative;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  z-index: 3;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.5);
 }
 .hero-slot-status {
   position: absolute;
   bottom: 4px; left: 50%;
   transform: translateX(-50%);
-  z-index: 3;
+  z-index: 4;
 }
 .hero-slot-status .rp-status-dot {
   width: 5px; height: 5px;

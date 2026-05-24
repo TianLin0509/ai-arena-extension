@@ -40,8 +40,22 @@
     yuanbao: "icons/brands/yuanbao.svg",
     grok: "icons/brands/grok.svg",
   };
+  // v4.8.7: Q 版英雄卡牌（webp，~17KB/张），主对话气泡头像优先用；
+  // BRAND_SVG 仍保留作为 fallback（新增 AI 还没卡牌时降级）
+  const HERO_LOGO = {
+    huawei:   "icons/heroes/huawei.webp",
+    claude:   "icons/heroes/claude.webp",
+    gemini:   "icons/heroes/gemini.webp",
+    chatgpt:  "icons/heroes/chatgpt.webp",
+    deepseek: "icons/heroes/deepseek.webp",
+    doubao:   "icons/heroes/doubao.webp",
+    qwen:     "icons/heroes/qwen.webp",
+    kimi:     "icons/heroes/kimi.webp",
+    yuanbao:  "icons/heroes/yuanbao.webp",
+    grok:     "icons/heroes/grok.webp",
+  };
   function brandLogoHtml(id) {
-    const src = BRAND_SVG[id];
+    const src = HERO_LOGO[id] || BRAND_SVG[id];
     if (!src) return `<span class="msg-avatar-fallback ${id || ""}">${AVATAR_INITIAL[id] || "?"}</span>`;
     return `<img src="${src}" alt="${id}" class="brand-logo">`;
   }
