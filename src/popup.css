@@ -339,27 +339,59 @@ body {
   letter-spacing: 0.02em;
   margin-left: 2px;
 }
+/* v4.8.22 A2: 顶栏图标按钮 — 卡片描边 + hover 青色光晕（danger 粉色） */
 .btn-icon {
-  background: none; border: none; cursor: pointer;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
   width: 32px; height: 32px;
   padding: 0;
   color: var(--ink-soft);
   border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-icon:hover {
+  border-color: var(--neon-1, #5eead4);
+  color: var(--neon-1, #5eead4);
+  box-shadow: 0 0 12px rgba(94,234,212,0.35), inset 0 0 8px rgba(94,234,212,0.08);
+  transform: translateY(-1px);
+}
+.btn-icon:active { transform: translateY(0); }
+.btn-icon svg { display: block; }
+/* A2: 重置按钮 hover 出粉色光晕 + SVG 轻微旋转暗示"重启" */
+.btn-icon.danger { color: #ff9f80; border-color: rgba(255,159,128,0.18); }
+.btn-icon.danger:hover {
+  border-color: #fb7185;
+  color: #fb7185;
+  background: rgba(251,113,133,0.06);
+  box-shadow: 0 0 14px rgba(251,113,133,0.4), inset 0 0 10px rgba(251,113,133,0.1);
+}
+.btn-icon.danger:hover svg { animation: btn-icon-spin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes btn-icon-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(-25deg); }
+}
+/* 清空按钮 hover 时扫帚轻微摆动 */
+.btn-icon:not(.danger):hover svg { animation: btn-icon-sweep 0.5s ease-out; }
+@keyframes btn-icon-sweep {
+  0%   { transform: rotate(0deg); }
+  40%  { transform: rotate(-12deg); }
+  100% { transform: rotate(0deg); }
 }
 
-/* v4.5.3: 顶栏 AI 窗口布局切换（紧凑 segmented control） */
+/* v4.5.3 → v4.8.22 A2: 顶栏 Tab/并列 toggle — 霓虹双色发光 */
 .hdr-mode-toggle {
   display: inline-flex;
   align-items: stretch;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px;
-  height: 28px;
+  background: rgba(94,234,212,0.06);
+  border: 1px solid rgba(94,234,212,0.25);
+  border-radius: 10px;
+  padding: 3px;
+  height: 30px;
   margin-right: 4px;
   gap: 1px;
+  box-shadow: 0 0 14px rgba(94,234,212,0.12);
 }
 .hdr-mode-btn {
   background: transparent;
@@ -367,30 +399,24 @@ body {
   color: var(--ink-soft);
   font-family: inherit;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  padding: 0 10px;
-  border-radius: 6px;
+  padding: 0 12px;
+  border-radius: 7px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
+  min-width: 38px;
 }
-.hdr-mode-btn:hover { color: var(--ink); }
+.hdr-mode-btn:hover { color: var(--neon-1, #5eead4); }
 .hdr-mode-btn.active {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
+  background: linear-gradient(135deg, #5eead4, #a78bfa);
+  color: #0a1024;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(94,234,212,0.45);
 }
-.btn-icon:hover {
-  background: var(--bg);
-  color: var(--ink);
-  transform: translateY(-1px);
-}
-.btn-icon:active { transform: translateY(0); }
-.btn-icon svg { display: block; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
 /* v4.8.20 ③ 辩论轮次徽章 — 主区顶部浮现，横扫流光 */
@@ -825,11 +851,45 @@ body {
   display: flex; gap: 10px; align-items: flex-end;
   padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border);
 }
-.chat-input-wrap { flex: 1; position: relative; }
+/* v4.8.22 C2: 输入框边缘 conic-gradient 跑光（focus 时跑得快，平时慢） */
+.chat-input-wrap {
+  flex: 1;
+  position: relative;
+  border-radius: 10px;
+  padding: 1px;                    /* 给伪元素留 1px 流光宽度 */
+  isolation: isolate;
+}
+.chat-input-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(94,234,212,0.6) 60deg,
+    rgba(167,139,250,0.6) 120deg,
+    rgba(251,113,133,0.5) 180deg,
+    transparent 240deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: chat-input-flow 6s linear infinite;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+.chat-input-wrap:focus-within::before { animation-duration: 2.4s; opacity: 0.9; }
+@keyframes chat-input-flow { to { transform: rotate(360deg); } }
 .chat-input {
   min-height: 36px; max-height: 120px; overflow-y: auto;
-  background: var(--bg); border-radius: 8px; padding: 8px 12px;
+  background: var(--bg); border-radius: 9px; padding: 8px 12px;
   outline: none; line-height: 1.4;
+  position: relative;
+  z-index: 1;
 }
 .chat-input:empty::before {
   content: attr(data-placeholder); color: var(--ink-soft); pointer-events: none;
@@ -1138,9 +1198,10 @@ body {
   color: var(--ink);
   letter-spacing: -0.01em;
 }
+/* v4.8.22 C2: 发送按钮基础尺寸（详细效果在下方 v4.3.4 升级版定义）*/
 .btn-send {
   width: 36px; height: 36px; border-radius: 50%;
-  border: none; background: var(--accent); color: #fff; font-size: 18px;
+  border: none; color: #0a1024;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -1190,7 +1251,30 @@ body {
   background: var(--card);
   border-top: 1px solid var(--border);
 }
-.roster-label { color: var(--ink-soft); font-size: 10.5px; }
+/* v4.8.22 C2: "下轮发言" 改胶囊徽章 + 闪烁圆点 */
+.roster-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(94,234,212,0.10);
+  color: var(--neon-1, #5eead4);
+  border: 1px solid rgba(94,234,212,0.30);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.roster-label::before {
+  content: "●";
+  font-size: 8px;
+  line-height: 1;
+  animation: roster-dot 1.6s ease-in-out infinite;
+}
+@keyframes roster-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
 .roster-items { display: flex; gap: 8px; align-items: center; }
 .roster-item {
   width: 28px; height: 28px; border-radius: 7px;
@@ -1304,23 +1388,24 @@ body { letter-spacing: -0.01em; }
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.65; transform: scale(1.12); }
 }
-/* v4.3.4: 科技感发送按钮 */
+/* v4.3.4 → v4.8.22 C2: 科技蓝 → 青紫霓虹（跟卡槽彩虹环、输入框跑光呼应） */
 .btn-send {
   width: 38px; height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0a84ff 0%, #5e5cff 50%, #007aff 100%);
+  background: linear-gradient(135deg, #5eead4 0%, #a78bfa 60%, #fb7185 100%);
   background-size: 200% 200%;
   box-shadow:
-    0 4px 14px rgba(10,132,255,0.45),
-    0 0 0 1px rgba(255,255,255,0.18) inset,
+    0 4px 14px rgba(94,234,212,0.40),
+    0 0 16px rgba(167,139,250,0.30),
+    0 0 0 1px rgba(255,255,255,0.22) inset,
     0 -1px 0 rgba(0,0,0,0.15) inset;
-  color: #fff;
+  color: #0a1024;
   border: none;
   position: relative;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: btnSendGradient 4s ease infinite;
+  animation: btnSendGradient 5s ease infinite;
 }
 @keyframes btnSendGradient {
   0%,100% { background-position: 0% 50%; }
@@ -1328,19 +1413,25 @@ body { letter-spacing: -0.01em; }
 }
 .btn-send::before {
   content: "";
-  position: absolute; inset: -2px;
+  position: absolute; inset: -3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0a84ff, #5e5cff, #00d4ff);
+  background: linear-gradient(135deg, #5eead4, #a78bfa, #fb7185);
   z-index: -1;
-  opacity: 0;
-  filter: blur(6px);
+  opacity: 0.45;
+  filter: blur(8px);
   transition: opacity 0.25s;
+  animation: btn-send-aura 3s ease-in-out infinite;
+}
+@keyframes btn-send-aura {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.65; }
 }
 .btn-send:hover {
   transform: translateY(-2px) scale(1.08);
   box-shadow:
-    0 8px 22px rgba(10,132,255,0.55),
-    0 0 0 1px rgba(255,255,255,0.28) inset,
+    0 8px 22px rgba(94,234,212,0.55),
+    0 0 24px rgba(167,139,250,0.45),
+    0 0 0 1px rgba(255,255,255,0.30) inset,
     0 -1px 0 rgba(0,0,0,0.15) inset;
 }
 .btn-send:hover::before { opacity: 0.7; }
@@ -1504,16 +1595,63 @@ body { letter-spacing: -0.01em; }
   user-select: none;
 }
 .rp-more:hover { background: var(--card); color: var(--accent); }
+/* v4.8.22 B2: 添加 AI 按钮 — 微卡片 + 副标题（厂商·定位） */
 .rp-add-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 10px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;
 }
 .rp-add-btn {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 6px; padding: 5px; font-size: 11px;
-  cursor: pointer; color: var(--ink);
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink);
   font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
 }
-.rp-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rp-add-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 100%, rgba(94,234,212,0.10), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.rp-add-btn:hover {
+  border-color: var(--neon-1, #5eead4);
+  background: linear-gradient(135deg, rgba(94,234,212,0.08), rgba(167,139,250,0.04));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25), 0 0 12px rgba(94,234,212,0.18);
+}
+.rp-add-btn:hover::after { opacity: 1; }
+.rp-add-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+.rp-add-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.rp-add-desc {
+  font-size: 10px;
+  color: var(--ink-soft);
+  margin-left: 21px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  line-height: 1.3;
+}
 .rp-mode-toggle {
   display: flex; border: 1px solid var(--border);
   border-radius: 6px; overflow: hidden; background: var(--bg);
@@ -2383,33 +2521,54 @@ body { letter-spacing: -0.01em; }
   font-size: 10px;
   margin-left: 6px;
 }
+/* v4.8.22 Hat B: 角色帽胸章 pin — 左侧圆形 icon-pin（青紫渐变发光）+ 右侧文字胶囊 */
 .rp-hat-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 .rp-hat-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  gap: 6px;
+  padding: 4px 12px 4px 4px;       /* 左侧给 icon-pin 留位 */
+  background: linear-gradient(135deg, rgba(167,139,250,0.10), rgba(94,234,212,0.06));
+  border: 1px solid rgba(167,139,250,0.30);
   border-radius: 999px;
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
 }
 .rp-hat-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(10,132,255,0.06);
+  border-color: rgba(167,139,250,0.55);
+  background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(94,234,212,0.10));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(167,139,250,0.30);
 }
-.rp-hat-em { font-size: 13px; }
-.rp-hat-label { line-height: 1; }
+/* 圆形 icon-pin 包裹 emoji */
+.rp-hat-em {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a78bfa, #5eead4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  color: #0a1024;
+  box-shadow: 0 0 8px rgba(167,139,250,0.45), inset 0 0 4px rgba(255,255,255,0.18);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+}
+.rp-hat-label {
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
 
 /* AI 选择菜单（点角色帽后弹出） */
 .rp-hat-picker {
@@ -2953,25 +3112,52 @@ body { letter-spacing: -0.01em; }
    - 仅保留 input bar + roster（roster 头像可点击决定下轮发言）
    - .btn-mini-mode 文字由 JS 切成 "⇱ 展开"
 ============================================================ */
+/* v4.8.22 A2: 折叠到顶按钮 — 霓虹外发光 + 慢呼吸 + hover 加强 */
 .btn-mini-mode {
-  background: #ff9f0a;
+  background: linear-gradient(135deg, #ff8c42 0%, #ff5e3a 100%);
   color: #fff;
   border: none;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 8px;
-  font-size: 14px;
+  height: 30px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   white-space: nowrap;
-  transition: filter 0.15s ease, transform 0.1s ease;
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
   margin-right: 8px;
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.4), 0 4px 14px rgba(255,94,58,0.35), 0 0 18px rgba(255,140,66,0.30);
+  animation: btn-mini-pulse 3.2s ease-in-out infinite;
 }
-.btn-mini-mode:hover { filter: brightness(1.1); }
-.btn-mini-mode:active { transform: translateY(1px); }
+.btn-mini-mode::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8c42, #ff5e3a);
+  filter: blur(10px);
+  opacity: 0.35;
+  z-index: -1;
+  animation: btn-mini-aura 3.2s ease-in-out infinite;
+}
+.btn-mini-mode:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 0 1px rgba(255,140,66,0.6), 0 6px 22px rgba(255,94,58,0.55), 0 0 26px rgba(255,140,66,0.45);
+}
+.btn-mini-mode:active { transform: translateY(0) scale(0.98); }
+@keyframes btn-mini-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,140,66,0.4), 0 4px 14px rgba(255,94,58,0.35), 0 0 18px rgba(255,140,66,0.30); }
+  50%      { box-shadow: 0 0 0 1px rgba(255,140,66,0.55), 0 4px 18px rgba(255,94,58,0.45), 0 0 24px rgba(255,140,66,0.42); }
+}
+@keyframes btn-mini-aura {
+  0%, 100% { opacity: 0.30; }
+  50%      { opacity: 0.50; }
+}
 
 /* mini 模式 — 隐藏不需要的区域 */
 body[data-mode="mini"] .chat-sidebar,

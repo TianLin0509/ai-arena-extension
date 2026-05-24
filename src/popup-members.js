@@ -2,16 +2,17 @@
 (function () {
   // v4.8.7: heroLogo 是 codex 画的 Q 版英雄卡（webp 17KB/张），仅 hero-slot 卡槽用；
   // logo 仍是简单 svg，给"添加"按钮、排行榜等小图标场景
+  // v4.8.22 B2: 加 desc 字段（"厂商 · 一句话定位"），添加按钮显示副标题
   const ALL_SERVICES = [
-    { id: "claude",   name: "Claude",   logo: "icons/brands/claude.svg",   heroLogo: "icons/heroes/claude.webp"   },
-    { id: "gemini",   name: "Gemini",   logo: "icons/brands/gemini.svg",   heroLogo: "icons/heroes/gemini.webp"   },
-    { id: "chatgpt",  name: "GPT",      logo: "icons/brands/openai.svg",   heroLogo: "icons/heroes/chatgpt.webp"  },
-    { id: "deepseek", name: "DeepSeek", logo: "icons/brands/deepseek.svg", heroLogo: "icons/heroes/deepseek.webp" },
-    { id: "doubao",   name: "豆包",     logo: "icons/brands/doubao.svg",   heroLogo: "icons/heroes/doubao.webp"   },
-    { id: "qwen",     name: "千问",     logo: "icons/brands/qwen.svg",     heroLogo: "icons/heroes/qwen.webp"     },
-    { id: "kimi",     name: "Kimi",     logo: "icons/brands/kimi.svg",     heroLogo: "icons/heroes/kimi.webp"     },
-    { id: "yuanbao",  name: "元宝",     logo: "icons/brands/yuanbao.svg",  heroLogo: "icons/heroes/yuanbao.webp"  },
-    { id: "grok",     name: "Grok",     logo: "icons/brands/grok.svg",     heroLogo: "icons/heroes/grok.webp"     },
+    { id: "claude",   name: "Claude",   logo: "icons/brands/claude.svg",   heroLogo: "icons/heroes/claude.webp",   desc: "Anthropic · 推理稳健" },
+    { id: "gemini",   name: "Gemini",   logo: "icons/brands/gemini.svg",   heroLogo: "icons/heroes/gemini.webp",   desc: "Google · 多模态强" },
+    { id: "chatgpt",  name: "GPT",      logo: "icons/brands/openai.svg",   heroLogo: "icons/heroes/chatgpt.webp",  desc: "OpenAI · 全能选手" },
+    { id: "deepseek", name: "DeepSeek", logo: "icons/brands/deepseek.svg", heroLogo: "icons/heroes/deepseek.webp", desc: "深度求索 · 代码强" },
+    { id: "doubao",   name: "豆包",     logo: "icons/brands/doubao.svg",   heroLogo: "icons/heroes/doubao.webp",   desc: "字节 · 中文友好" },
+    { id: "qwen",     name: "千问",     logo: "icons/brands/qwen.svg",     heroLogo: "icons/heroes/qwen.webp",     desc: "阿里 · 长文档强" },
+    { id: "kimi",     name: "Kimi",     logo: "icons/brands/kimi.svg",     heroLogo: "icons/heroes/kimi.webp",     desc: "月之暗面 · 超长上下文" },
+    { id: "yuanbao",  name: "元宝",     logo: "icons/brands/yuanbao.svg",  heroLogo: "icons/heroes/yuanbao.webp",  desc: "腾讯 · 微信生态" },
+    { id: "grok",     name: "Grok",     logo: "icons/brands/grok.svg",     heroLogo: "icons/heroes/grok.webp",     desc: "xAI · 实时网络" },
   ];
   const SERVICE_MAP = Object.fromEntries(ALL_SERVICES.map(s => [s.id, s]));
 
@@ -179,9 +180,12 @@
       <div class="rp-section-title" style="margin-top:14px">添加</div>
       <div class="rp-add-grid">
         ${remaining.map(s => `
-          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)}">
-            <img class="rp-add-logo" src="${s.logo}" alt="">
-            <span>${escapeHtml(s.name)}</span>
+          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)} — ${escapeHtml(s.desc || "")}">
+            <div class="rp-add-head">
+              <img class="rp-add-logo" src="${s.logo}" alt="">
+              <span class="rp-add-name">${escapeHtml(s.name)}</span>
+            </div>
+            ${s.desc ? `<div class="rp-add-desc">${escapeHtml(s.desc)}</div>` : ""}
           </button>
         `).join("")}
       </div>

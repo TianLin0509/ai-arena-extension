@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.20-beta", manifest.version_name === "4.8.20-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.22-beta", manifest.version_name === "4.8.22-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.20-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.22-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.20-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.22-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.20-beta", popupVersion === "v4.8.20-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.22-beta", popupVersion === "v4.8.22-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1706,6 +1706,91 @@ try {
   });
   check("v4.8.20 ⑤: empty-state 含 12 颗 .es-star 星点",
     starCheck.starCount === 12, JSON.stringify(starCheck));
+
+  // ========== v4.8.22: 按钮组 + 输入区美化 (A2 + B2 + Hat B + C2) ==========
+  console.log("\n[smoke] === v4.8.22 按钮美化 ===");
+
+  // A2: 顶栏霓虹 — 折叠到顶外发光 + Tab/并列 渐变 + 图标 hover 光晕
+  const a2Check = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        miniPulse: src.includes("@keyframes btn-mini-pulse"),
+        miniAura: src.includes("@keyframes btn-mini-aura"),
+        toggleNeon: /\.hdr-mode-toggle\s*\{[^}]*box-shadow:[^}]*94,234,212/.test(src),
+        toggleActiveGradient: /\.hdr-mode-btn\.active\s*\{[^}]*linear-gradient/.test(src),
+        iconBtnHoverGlow: /\.btn-icon:hover[^}]*box-shadow:[^}]*94,234,212/.test(src),
+        iconSpin: src.includes("@keyframes btn-icon-spin"),
+        iconSweep: src.includes("@keyframes btn-icon-sweep"),
+      }));
+  });
+  check("v4.8.22 A2: 折叠到顶外发光呼吸 + Tab/并列 渐变发光 + 图标 hover 光晕 + 扫帚摆动 + 重置旋转",
+    a2Check.miniPulse && a2Check.miniAura
+      && a2Check.toggleNeon && a2Check.toggleActiveGradient
+      && a2Check.iconBtnHoverGlow
+      && a2Check.iconSpin && a2Check.iconSweep,
+    JSON.stringify(a2Check));
+
+  // B2: ALL_SERVICES 加 desc + render 加 .rp-add-desc
+  const b2Check = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-members.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasDescField: src.includes('desc: "Anthropic'),
+        rendersDesc: src.includes("rp-add-desc"),
+        allNineHaveDesc: (src.match(/desc:\s*"/g) || []).length >= 9,
+      }));
+  });
+  check("v4.8.22 B2: ALL_SERVICES 9 个 AI 都有 desc 字段 + 渲染 .rp-add-desc 副标题",
+    b2Check.hasDescField && b2Check.rendersDesc && b2Check.allNineHaveDesc,
+    JSON.stringify(b2Check));
+
+  // Hat B: 角色帽 .rp-hat-em 改成圆形 icon-pin（青紫渐变 + 发光）
+  const hatBCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        emIsPin: /\.rp-hat-em\s*\{[^}]*border-radius:\s*50%/.test(src),
+        emHasGradient: /\.rp-hat-em\s*\{[^}]*linear-gradient[^}]*a78bfa/.test(src),
+        btnHasGradient: /\.rp-hat-btn\s*\{[^}]*linear-gradient[^}]*167,139,250/.test(src),
+      }));
+  });
+  check("v4.8.22 Hat B: .rp-hat-em 圆形青紫渐变 pin + 按钮背景渐变",
+    hatBCheck.emIsPin && hatBCheck.emHasGradient && hatBCheck.btnHasGradient,
+    JSON.stringify(hatBCheck));
+
+  // C2: 输入框 conic mask 跑光 + roster-label 胶囊徽章 + btn-send 青紫渐变
+  const c2Check = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        inputFlow: src.includes("@keyframes chat-input-flow"),
+        inputConicMask: /chat-input-wrap::before[^}]*conic-gradient/.test(src),
+        rosterLabelChip: /\.roster-label\s*\{[^}]*border-radius:\s*999px/.test(src),
+        rosterDot: src.includes("@keyframes roster-dot"),
+        sendNeon: /\.btn-send\s*\{[^}]*linear-gradient[^}]*5eead4[^}]*a78bfa/.test(src),
+        sendAura: src.includes("@keyframes btn-send-aura"),
+      }));
+  });
+  check("v4.8.22 C2: 输入框 conic 跑光 + roster-label 胶囊 + 闪烁圆点 + btn-send 青紫渐变 + 光晕",
+    c2Check.inputFlow && c2Check.inputConicMask
+      && c2Check.rosterLabelChip && c2Check.rosterDot
+      && c2Check.sendNeon && c2Check.sendAura,
+    JSON.stringify(c2Check));
+
+  // SVG 升级：清空 = 扫帚（4 个 path）；重置 = 圆环 + 闪电（polygon fill）
+  const svgCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.html"))
+      .then(r => r.text())
+      .then(src => ({
+        broomSvg: src.includes("M19 11 9.6 1.6"),
+        resetCircle: src.includes('M21 12a9 9 0 1 1-3-6.7'),
+        boltPolygon: src.includes("polygon points=\"12.5 9"),
+      }));
+  });
+  check("v4.8.22: 清空按钮 = 扫帚 SVG + 重置按钮 = 圆环 + 闪电 polygon（替代旧垃圾桶 + 单闪电）",
+    svgCheck.broomSvg && svgCheck.resetCircle && svgCheck.boltPolygon,
+    JSON.stringify(svgCheck));
 
   // 等几秒收集 layout logs
   await popupPage.waitForTimeout(2000);
