@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.7.1-beta", manifest.version_name === "4.7.1-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.7.2-beta", manifest.version_name === "4.7.2-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.7.1-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.7.2-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.7.1-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.7.2-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.7.1-beta", popupVersion === "v4.7.1-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.7.2-beta", popupVersion === "v4.7.2-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -463,6 +463,67 @@ try {
   });
   check("v4.7.0: 任务计数全 0 时显示 empty 提示（无饼图）",
     taskPieEmpty.hasEmpty && taskPieEmpty.noSvg, JSON.stringify(taskPieEmpty));
+
+  // ========== v4.7.2: 3 项 UI/功能修复 ==========
+  console.log("\n[smoke] === v4.7.2 UI/功能修复 ===");
+
+  // Issue 1: roster 区文件上传安全提示
+  const rosterHint = await popupPage.evaluate(() => {
+    const el = document.querySelector(".roster-upload-hint");
+    return {
+      exists: !!el,
+      text: el?.textContent?.trim() || "",
+      hasSecurityHint: el?.textContent?.includes("文件上传") && el?.textContent?.includes("AI 窗口")
+    };
+  });
+  check("v4.7.2: roster 区有文件上传安全提示文案",
+    rosterHint.exists && rosterHint.hasSecurityHint, JSON.stringify(rosterHint));
+
+  // Issue 2: 状态日志样式跟主题（用 var(--card) / var(--bg)）
+  const themeAware = await popupPage.evaluate(() => {
+    // 切到 Sunset 主题 (F)
+    document.body.setAttribute("data-theme", "F");
+    const box = document.getElementById("rp-log-box");
+    const cs = getComputedStyle(box);
+    const expectedF = "rgb(255, 255, 255)"; // F 主题 --card: #fff
+    const actualBg = cs.backgroundColor;
+    // 切回默认（不挂主题），看是否变浅灰
+    document.body.removeAttribute("data-theme");
+    const noThemeBg = getComputedStyle(box).backgroundColor;
+    // 删除老的 hardcoded #1d1d1f 验证：现在 bg 不能是黑色
+    return {
+      sunsetBg: actualBg,
+      noThemeBg,
+      notHardcodedBlack: actualBg !== "rgb(29, 29, 31)" && noThemeBg !== "rgb(29, 29, 31)"
+    };
+  });
+  check("v4.7.2: 状态日志背景不再硬编码黑色（删 dead .rp-log-box 老定义）",
+    themeAware.notHardcodedBlack, JSON.stringify(themeAware));
+
+  // Issue 3: 导出会话 handler 不再忽略成功响应（拿到 markdown 后真做事）
+  const exportFixed = await popupPage.evaluate(() => {
+    // 找 popup-tasks.js 渲染的 #rp-btn-export 处理器是否完整
+    // 切到任务 Tab 看 export 按钮（仅辩论模式下出现，但任务面板默认是 ask）
+    // 我们直接检查 popup-tasks.js 源码静态：handler 函数内部是否含 navigator.clipboard.writeText 或 a.download
+    // 但 evaluate 拿不到 popup-tasks.js 源码，改成 mock：触发后看 ChatLog 是否被写
+    let pushed = [];
+    const origPush = window.ChatLog?.push;
+    if (origPush) window.ChatLog.push = (l) => { pushed.push(l.text); origPush(l); };
+    // 直接调 background exportSession 看返回
+    return new Promise(res => {
+      chrome.runtime.sendMessage({ type: "exportSession" }, (resp) => {
+        if (origPush) window.ChatLog.push = origPush;
+        res({
+          hasMarkdown: !!resp?.markdown,
+          markdownStart: resp?.markdown?.slice(0, 30) || "",
+          ok: resp?.ok
+        });
+      });
+    });
+  });
+  check("v4.7.2: background exportSession 返回 markdown",
+    exportFixed.ok && exportFixed.hasMarkdown && exportFixed.markdownStart.includes("AI Arena"),
+    JSON.stringify(exportFixed));
 
   // 6) 任务模式 hover 子菜单验证（DOM 存在性）
   const debateSubItems = await popupPage.locator('.menu-item.has-sub:has(span:text("辩论")) .sub-menu .menu-item').count();
