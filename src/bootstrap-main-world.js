@@ -41,9 +41,12 @@
   // ──────── 3. document.hasFocus 锁死 ────────
   try { document.hasFocus = () => true; } catch (_) {}
 
-  // ──────── 4. requestAnimationFrame MessageChannel fallback ────────
+  // ──────── 4. requestAnimationFrame 永久走 MessageChannel ────────
+  // v4.8.22 关键修复：之前 try origRAF first 让 polyfill 形同虚设 —
+  // 原生 rAF 在 background 仍返回 id 但被节流到 1/min，导致 polyfill 永远走原生路径
+  // 修复：完全替换 rAF，永远走 MessageChannel（不被任何 throttle 影响）
+  // 代价：前台时 rAF 与 vsync 不同步（无视觉影响，只影响动画微调；提取功能无影响）
   try {
-    const origRAF = window.requestAnimationFrame.bind(window);
     const origCAF = window.cancelAnimationFrame.bind(window);
     const ch = new MessageChannel();
     const queue = new Map();
@@ -55,7 +58,6 @@
       for (const [, cb] of callbacks) { try { cb(t); } catch (_) {} }
     };
     window.requestAnimationFrame = function (cb) {
-      try { const id = origRAF(cb); if (id) return id; } catch (_) {}
       const id = nextId++;
       queue.set(id, cb);
       ch.port2.postMessage(0);
