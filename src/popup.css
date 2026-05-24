@@ -488,14 +488,14 @@ body {
 .msg.me { justify-content: flex-end; }
 /* v4.8.7: 改为卡牌头像 — 删白底 padding，object-fit cover 让 Q 版角色脸居中露出 */
 /* v4.8.9: 36→48（面积 ~1.78x）+ 圆角 10px，让卡牌细节更清晰，跟气泡高度更协调 */
+/* v4.8.10: 48→72（边长 2x of 36 原始 = 面积 4x）+ 删黑色外框（box-shadow）— 卡牌自带黄色虚线边框做装饰 */
 .msg-avatar {
-  width: 48px; height: 48px; border-radius: 10px; flex: 0 0 48px;
+  width: 72px; height: 72px; border-radius: 12px; flex: 0 0 72px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 600; font-size: 12px;
   background: transparent;
   padding: 0;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 .msg-avatar .brand-logo {
   width: 100%; height: 100%;
@@ -1051,10 +1051,7 @@ body {
   cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
-@media (prefers-color-scheme: dark) {
-  /* v4.8.7: 卡牌自带深色背景，dark mode 不再需要强制白底；只加微弱光晕区分气泡 */
-  .msg-avatar { box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06); }
-}
+/* v4.8.10: 删 dark mode 的 box-shadow + 1px outline — 卡牌自带黄色虚线边框，无需额外描边 */
 
 /* ── 紧凑 meta 行 ── */
 .msg-meta {
