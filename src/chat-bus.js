@@ -142,6 +142,32 @@ const ChatBus = (() => {
 
   function getPopupMode() { return popupMode; }
 
+  // v4.8.28: mini 模式下 task-menu 打开时临时把窗口高度撑到 ~320 让菜单可见，关 menu 时还原
+  // 注意：临时撑大期间不写 storage（保持 popupMiniBounds 是用户最终选定的 height）
+  let _miniMenuPrevHeight = null;
+  async function miniMenuExpand(expand) {
+    if (popupMode !== "mini" || popupWindowId == null) return { ok: false, error: "not in mini" };
+    try {
+      const w = await chrome.windows.get(popupWindowId);
+      if (expand) {
+        if (_miniMenuPrevHeight != null) return { ok: true, alreadyExpanded: true };
+        _miniMenuPrevHeight = w.height;
+        await chrome.windows.update(popupWindowId, {
+          state: "normal",
+          height: 340,                  // 撑高到容纳 task-menu（约 6-7 个 item × 32 + 子菜单空间）
+        });
+      } else {
+        const restore = _miniMenuPrevHeight ?? 78;
+        _miniMenuPrevHeight = null;
+        await chrome.windows.update(popupWindowId, { state: "normal", height: restore });
+      }
+      return { ok: true };
+    } catch (e) {
+      _miniMenuPrevHeight = null;
+      return { ok: false, error: e?.message || String(e) };
+    }
+  }
+
   function onWindowRemoved(windowId) {
     if (windowId === popupWindowId) popupWindowId = null;
   }
@@ -149,6 +175,8 @@ const ChatBus = (() => {
   // v4.8.15 F30: rememberBounds 按当前 mode 存到对应字段（不污染另一套）
   async function rememberBounds(windowId) {
     if (windowId !== popupWindowId) return;
+    // v4.8.28: mini menu 撑高期间不写 mini bounds（撑高的 340 不是用户想要的）
+    if (popupMode === "mini" && _miniMenuPrevHeight != null) return;
     try {
       const w = await chrome.windows.get(popupWindowId);
       const b = { left: w.left, top: w.top, width: w.width, height: w.height };
@@ -688,6 +716,7 @@ const ChatBus = (() => {
     skipParticipant,
     toggleMiniMode,  // v4.8.15 F30
     getPopupMode,    // v4.8.15 F30
+    miniMenuExpand,  // v4.8.28
   };
 })();
 

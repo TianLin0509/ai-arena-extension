@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.27-beta", manifest.version_name === "4.8.27-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.28-beta", manifest.version_name === "4.8.28-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.27-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.28-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.27-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.28-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.27-beta", popupVersion === "v4.8.27-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.28-beta", popupVersion === "v4.8.28-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2026,6 +2026,64 @@ try {
   check("v4.8.27 ②: defaultMiniBounds 高度 78 + 旧 bounds height>150 视为脏数据回退默认",
     busCheck.height78 && busCheck.staleCheck,
     JSON.stringify(busCheck));
+
+  // ========== v4.8.28: mini 模式 task-menu 向下弹 + 撑大窗口 ==========
+  console.log("\n[smoke] === v4.8.28 mini task-menu ===");
+
+  // ① CSS: mini 模式下 .task-menu top:calc(100% + 6px)（向下弹）
+  const menuDownCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup.css"))
+      .then(r => r.text())
+      .then(src => ({
+        hasMiniMenuDown: /body\[data-mode="mini"\]\s+\.task-menu\s*\{[^}]*top:\s*calc\(100%/.test(src),
+        hasBottomAuto: /body\[data-mode="mini"\]\s+\.task-menu\s*\{[^}]*bottom:\s*auto/.test(src),
+      }));
+  });
+  check("v4.8.28 ①: mini 模式 .task-menu 改 top:calc(100%+6px) + bottom:auto（向下弹）",
+    menuDownCheck.hasMiniMenuDown && menuDownCheck.hasBottomAuto,
+    JSON.stringify(menuDownCheck));
+
+  // ② popup-task-menu.js: open/close 时通知 background miniMenuExpand
+  const taskMenuJsCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("popup-task-menu.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasNotifyExpand: src.includes("notifyMiniExpand"),
+        sendsMessage: src.includes('type: "miniMenuExpand"'),
+        callsOnOpen: /function open\(\)[^}]*notifyMiniExpand\(true\)/s.test(src),
+        callsOnClose: /function close\(\)[^}]*notifyMiniExpand\(false\)/s.test(src),
+      }));
+  });
+  check("v4.8.28 ②: popup-task-menu.js open/close 时调 notifyMiniExpand → miniMenuExpand message",
+    taskMenuJsCheck.hasNotifyExpand && taskMenuJsCheck.sendsMessage
+      && taskMenuJsCheck.callsOnOpen && taskMenuJsCheck.callsOnClose,
+    JSON.stringify(taskMenuJsCheck));
+
+  // ③ chat-bus.js: miniMenuExpand 实现 + rememberBounds 撑高期间跳过写 storage
+  const busExpandCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("chat-bus.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasFn: src.includes("async function miniMenuExpand"),
+        height340: src.includes("height: 340"),
+        skipRemember: src.includes("_miniMenuPrevHeight != null"),
+        exposedInReturn: src.includes("miniMenuExpand,  // v4.8.28"),
+      }));
+  });
+  // background.js: case "miniMenuExpand"
+  const bgCaseCheck = await popupPage.evaluate(() => {
+    return fetch(chrome.runtime.getURL("background.js"))
+      .then(r => r.text())
+      .then(src => ({
+        hasCase: src.includes('case "miniMenuExpand"'),
+        callsBus: src.includes("ChatBus.miniMenuExpand(msg.expand)"),
+      }));
+  });
+  check("v4.8.28 ③: chat-bus 含 miniMenuExpand 函数 + rememberBounds 跳过临时撑高 + background.js 路由消息",
+    busExpandCheck.hasFn && busExpandCheck.height340
+      && busExpandCheck.skipRemember && busExpandCheck.exposedInReturn
+      && bgCaseCheck.hasCase && bgCaseCheck.callsBus,
+    JSON.stringify({ ...busExpandCheck, ...bgCaseCheck }));
 
 
   // 等几秒收集 layout logs

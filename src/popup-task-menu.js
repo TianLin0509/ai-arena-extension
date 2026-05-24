@@ -25,10 +25,24 @@
     if ($picker) $picker.dataset.mode = current.task || "ask";
   }
 
-  function close() { $menu.hidden = true; }
+  // v4.8.28: mini 模式下打开菜单时通知 background 临时撑大窗口（菜单向下弹露出来）
+  function isMini() { return document.body.getAttribute("data-mode") === "mini"; }
+  function notifyMiniExpand(expand) {
+    if (!isMini()) return;
+    try {
+      chrome.runtime.sendMessage({ type: "miniMenuExpand", expand }, () => {
+        void chrome.runtime.lastError;
+      });
+    } catch (_) {}
+  }
+  function close() {
+    if (!$menu.hidden) notifyMiniExpand(false);
+    $menu.hidden = true;
+  }
   function open() {
     refreshJudges();
     $menu.hidden = false;
+    notifyMiniExpand(true);
   }
   $picker.addEventListener("click", (e) => {
     e.stopPropagation();
