@@ -1030,9 +1030,28 @@ body {
   font-weight: 700;
 }
 .roster-count {
-  margin-left: auto;
   color: var(--ink-soft); font-size: 10.5px;
   font-family: "SF Mono",monospace;
+}
+/* v4.7.2: 文件上传安全提示 — roster 下轮发言 AI 图标右侧，自动跟主题 */
+.roster-upload-hint {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 10.5px;
+  letter-spacing: 0;
+  padding: 3px 9px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: help;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
+.roster-upload-hint:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 @media (prefers-color-scheme: dark) {
   .roster-item { background: rgba(255,255,255,0.92); }
@@ -1506,19 +1525,8 @@ body { letter-spacing: -0.01em; }
   width: 11px; height: 11px; border-radius: 50%;
   flex-shrink: 0;
 }
-.rp-log-box {
-  background: #1d1d1f; color: #f5f5f7;
-  border-radius: 5px; padding: 8px;
-  font-family: "SF Mono", "Consolas", monospace;
-  font-size: 10px; line-height: 1.5;
-  max-height: 220px; overflow-y: auto;
-  margin-bottom: 10px;
-}
-.rp-log-line { padding: 1px 0; word-break: break-all; }
-.rp-log-line .t { color: #0a84ff; margin-right: 4px; }
-.rp-log-line .ok { color: #34c759; }
-.rp-log-line .warn { color: #ff9f0a; }
-.rp-log-line .err { color: #ff3b30; }
+/* v4.7.2: 老版 .rp-log-box 硬编码深色背景已删除（dead code 自 v4.6.9 状态日志抽出设置 Tab）。
+   新版定义在 line 52-115，用 var(--card) / var(--bg)，自动跟主题变。 */
 .rp-kbd-list {
   font-size: 11px; line-height: 1.8;
   color: var(--ink);

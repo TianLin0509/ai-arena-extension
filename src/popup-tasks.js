@@ -127,10 +127,42 @@
     }
     root.querySelector("#rp-btn-summary")?.addEventListener("click", () => dispatchSummary("html"));
     root.querySelector("#rp-btn-summary-text")?.addEventListener("click", () => dispatchSummary("text"));
-    root.querySelector("#rp-btn-export")?.addEventListener("click", () => {
-      chrome.runtime.sendMessage({ type: "exportSession" }, (resp) => {
-        if (resp && !resp.ok) alert(`导出失败：${resp.error || "未知错误"}`);
-      });
+    // v4.7.2 fix: 导出会话之前只 handle error，markdown 拿到后没复制/没下载 → 用户感觉按了没反应
+    root.querySelector("#rp-btn-export")?.addEventListener("click", async () => {
+      const pushLog = (text, level) => {
+        try { window.ChatLog?.push?.({ ts: Date.now(), text, level }); } catch (_) {}
+      };
+      try {
+        const r = await new Promise(res => {
+          chrome.runtime.sendMessage({ type: "exportSession" }, resp => res(resp || {}));
+        });
+        if (!r?.ok || !r.markdown) {
+          alert("无辩论记录可导出（先发送几条提问 / 跑一轮辩论）");
+          pushLog("导出失败：无可导出记录", "warn");
+          return;
+        }
+        // 复制到剪贴板
+        try {
+          await navigator.clipboard.writeText(r.markdown);
+          pushLog("辩论记录已复制到剪贴板", "ok");
+        } catch (e) {
+          pushLog("剪贴板复制失败（无 focus 时浏览器会拒），降级仅下载文件", "warn");
+        }
+        // 下载 .md 文件
+        const blob = new Blob([r.markdown], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ai-arena-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        pushLog("Markdown 文件已下载", "ok");
+      } catch (e) {
+        alert(`导出失败：${e.message}`);
+        pushLog("导出异常：" + e.message, "err");
+      }
     });
     root.querySelector("#rp-btn-reset")?.addEventListener("click", () => {
       if (!confirm("重置当前会话上下文？所有未导出的内容会丢失。")) return;
