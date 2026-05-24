@@ -185,16 +185,39 @@ async function readLatestResponse() {
   await sleep(800);
   if (isLoginBlocked()) throw new Error("需要登录");
 
-  // 优先使用 SelectorManager 配置的选择器
-  const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]).trim();
-
-  // 备选选择器
-  const modelTurns = document.querySelectorAll("[data-content-type='model']");
-  if (modelTurns.length > 0) {
-    return _extractEl(modelTurns[modelTurns.length - 1]).trim();
+  // v4.6.3 F12: 优先锚定最新 model-response 容器再在其内查内容，防图片/canvas-only
+  // 回答时 selector(".markdown") 跨轮匹配到前一轮 markdown 节点 → 返回上一轮残留文本。
+  // 4 级 fallback：markdown 子节点 → 整体 _extractEl → img 列表 → canvas 占位
+  const allModels = document.querySelectorAll("[data-content-type='model'], model-response");
+  if (allModels.length > 0) {
+    const last = allModels[allModels.length - 1];
+    // 1) latest model-response 内的 markdown 子节点
+    const md = last.querySelector(".model-response-text .markdown, .response-container .markdown, .markdown");
+    if (md) {
+      const t = _extractEl(md).trim();
+      if (t) return t;
+    }
+    // 2) 没 markdown 或空 → 提取整个 model-response（含 img、清理 button/toolbar 噪声）
+    const full = _extractEl(last).trim();
+    if (full) return full;
+    // 3) 仍空 → 直接列出 img markdown（生成图回答常见情形）
+    const imgs = last.querySelectorAll("img[src]");
+    const realImgs = Array.from(imgs).filter(img => {
+      const src = img.getAttribute("src") || "";
+      const w = img.naturalWidth || img.width || 0;
+      const h = img.naturalHeight || img.height || 0;
+      return (/^https?:|^data:image|^blob:/i.test(src)) && (w >= 60 || h >= 60);
+    });
+    if (realImgs.length) {
+      return realImgs.map((img, i) => `![image-${i + 1}](${img.getAttribute("src")})`).join("\n\n");
+    }
+    // 4) canvas-only（图正在画） → 返回占位让 polling 继续等
+    if (last.querySelector("canvas")) return "[正在生成图片...]";
   }
 
+  // 兜底：旧 selector 路径（保留向后兼容，理论上不会执行到）
+  const responses = queryBySelectors("response", { all: true });
+  if (responses.length > 0) return _extractEl(responses[responses.length - 1]).trim();
   return "";
 }
 

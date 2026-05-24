@@ -114,6 +114,18 @@ function staticCheck() {
       pattern: /prevAccepted:\s*StateMachine\.lastAcceptedByPid/,
       desc: "F11 polling state 初始化 prevAccepted",
     },
+    {
+      id: "F12-source",
+      file: "src/content-gemini.js",
+      pattern: /v4\.6\.3 F12.*优先锚定最新 model-response/s,
+      desc: "F12 Gemini 锚定 latest model-response",
+    },
+    {
+      id: "F12-fallback",
+      file: "src/content-gemini.js",
+      pattern: /正在生成图片/,
+      desc: "F12 canvas-only 兜底占位",
+    },
   ];
   console.log("═".repeat(70));
   console.log("静态白盒：13 项源码 patch 存在性检查");
