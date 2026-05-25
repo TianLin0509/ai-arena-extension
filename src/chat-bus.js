@@ -23,7 +23,15 @@ const ChatBus = (() => {
       STORAGE_KEYS.miniBounds, STORAGE_KEYS.mode,
     ]);
     if (Array.isArray(data[STORAGE_KEYS.log])) chatLog.push(...data[STORAGE_KEYS.log].slice(-MAX_LOG));
-    if (data[STORAGE_KEYS.bounds]) popupBounds = data[STORAGE_KEYS.bounds];
+    // v4.8.37: sanity check — 清理 v4.8.36 之前 toggleMiniMode race 留下的污染数据
+    //   popupBounds.height 应为 full 模式合理值；< 200 视为被 mini 大小（86）污染 → 丢弃
+    //   popupMiniBounds.height > 150 已有 stale check（toggleMiniMode），此处 init 不再处理
+    if (data[STORAGE_KEYS.bounds] && data[STORAGE_KEYS.bounds].height >= 200) {
+      popupBounds = data[STORAGE_KEYS.bounds];
+    } else if (data[STORAGE_KEYS.bounds]) {
+      console.log("[chat-bus] v4.8.37 sanity: discard polluted popupBounds height=", data[STORAGE_KEYS.bounds].height);
+      await chrome.storage.local.remove(STORAGE_KEYS.bounds).catch(() => {});
+    }
     if (data[STORAGE_KEYS.miniBounds]) popupMiniBounds = data[STORAGE_KEYS.miniBounds];
     if (data[STORAGE_KEYS.mode] === "mini" || data[STORAGE_KEYS.mode] === "full") {
       popupMode = data[STORAGE_KEYS.mode];
@@ -102,44 +110,56 @@ const ChatBus = (() => {
   }
 
   // v4.8.15 F30: mini 模式 toggle — 由 popup-mini-mode.js 通过 miniModeToggle 消息触发
+  // v4.8.37: 加 _modeSwitching flag 防 race —
+  //   chrome.windows.update 触发的 onBoundsChanged 会异步调 rememberBounds，
+  //   它读 popupMode 决定存哪个字段。如果切换中 popupMode 还是旧值，新 bounds
+  //   会错存到旧 mode 字段（如 mini 大小 86 被记成 full bounds → 下次展开窗口变 86 高）。
+  //   修复：切换期间 rememberBounds 跳过；切换结束 500ms 后才允许记录。
+  let _modeSwitching = false;
   async function toggleMiniMode(mode) {
     const next = mode === "mini" ? "mini" : "full";
     if (popupWindowId == null) return { ok: false, error: "popup not open" };
-    // 切换前先把当前模式的 bounds 记下来
+    _modeSwitching = true;
     try {
-      const w = await chrome.windows.get(popupWindowId);
-      const curBounds = { left: w.left, top: w.top, width: w.width, height: w.height };
-      if (popupMode === "full") {
-        popupBounds = curBounds;
-        await chrome.storage.local.set({ [STORAGE_KEYS.bounds]: popupBounds });
+      // 切换前先把当前模式的 bounds 记下来
+      try {
+        const w = await chrome.windows.get(popupWindowId);
+        const curBounds = { left: w.left, top: w.top, width: w.width, height: w.height };
+        if (popupMode === "full") {
+          popupBounds = curBounds;
+          await chrome.storage.local.set({ [STORAGE_KEYS.bounds]: popupBounds });
+        } else {
+          popupMiniBounds = curBounds;
+          await chrome.storage.local.set({ [STORAGE_KEYS.miniBounds]: popupMiniBounds });
+        }
+      } catch {}
+      // 切到目标 bounds
+      let target;
+      if (next === "mini") {
+        // v4.8.27: 旧版 mini 默认高度 60，但实际经常被 Chrome 撑到 200+ 用户也未必拉低；
+        //          新版 row flex 一行 78px 足够，若持久化的 height > 150 认为是脏数据，回退默认
+        const stale = popupMiniBounds && popupMiniBounds.height > 150;
+        target = (!stale && popupMiniBounds) || await defaultMiniBounds();
       } else {
-        popupMiniBounds = curBounds;
-        await chrome.storage.local.set({ [STORAGE_KEYS.miniBounds]: popupMiniBounds });
+        target = popupBounds || await defaultBounds();
       }
-    } catch {}
-    // 切到目标 bounds
-    let target;
-    if (next === "mini") {
-      // v4.8.27: 旧版 mini 默认高度 60，但实际经常被 Chrome 撑到 200+ 用户也未必拉低；
-      //          新版 row flex 一行 78px 足够，若持久化的 height > 150 认为是脏数据，回退默认
-      const stale = popupMiniBounds && popupMiniBounds.height > 150;
-      target = (!stale && popupMiniBounds) || await defaultMiniBounds();
-    } else {
-      target = popupBounds || await defaultBounds();
+      try {
+        await chrome.windows.update(popupWindowId, {
+          state: "normal", focused: true,
+          left: target.left, top: target.top,
+          width: target.width, height: target.height,
+        });
+      } catch (e) {
+        return { ok: false, error: e?.message || String(e) };
+      }
+      popupMode = next;
+      await chrome.storage.local.set({ [STORAGE_KEYS.mode]: popupMode });
+      // v4.8.19 F32: 已无 CDP attach，无需 detachAll
+      return { ok: true, mode: popupMode, bounds: target };
+    } finally {
+      // v4.8.37: 延迟 500ms 释放，确保 chrome update 触发的 onBoundsChanged 已派发完毕
+      setTimeout(() => { _modeSwitching = false; }, 500);
     }
-    try {
-      await chrome.windows.update(popupWindowId, {
-        state: "normal", focused: true,
-        left: target.left, top: target.top,
-        width: target.width, height: target.height,
-      });
-    } catch (e) {
-      return { ok: false, error: e?.message || String(e) };
-    }
-    popupMode = next;
-    await chrome.storage.local.set({ [STORAGE_KEYS.mode]: popupMode });
-    // v4.8.19 F32: 已无 CDP attach，无需 detachAll
-    return { ok: true, mode: popupMode, bounds: target };
   }
 
   function getPopupMode() { return popupMode; }
@@ -212,6 +232,9 @@ const ChatBus = (() => {
   // v4.8.15 F30: rememberBounds 按当前 mode 存到对应字段（不污染另一套）
   async function rememberBounds(windowId) {
     if (windowId !== popupWindowId) return;
+    // v4.8.37: mode 切换期间跳过 — 防 chrome.windows.update 触发的 onBoundsChanged
+    //   在 popupMode 还是旧值时记录新 bounds，导致 mini 大小被存到 full bounds（或反之）
+    if (_modeSwitching) return;
     // v4.8.28: mini menu 撑高期间不写 mini bounds（撑高的 340 不是用户想要的）
     if (popupMode === "mini" && _miniMenuPrevHeight != null) return;
     try {

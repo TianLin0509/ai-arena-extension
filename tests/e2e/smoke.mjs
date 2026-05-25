@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.36-beta", manifest.version_name === "4.8.36-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.37-beta", manifest.version_name === "4.8.37-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.36-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.37-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.36-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.37-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.36-beta", popupVersion === "v4.8.36-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.37-beta", popupVersion === "v4.8.37-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -767,6 +767,49 @@ try {
   check("v4.8.36: broadcast 无可用 participants 时返回 skippedTargets",
     Array.isArray(swSkipResult?.skippedTargets) && swSkipResult.skippedTargets.includes("claude"),
     JSON.stringify(swSkipResult));
+
+  // v4.8.37: toggleMiniMode race 修复 — 加 _modeSwitching flag 防 onBoundsChanged → rememberBounds
+  //   把新窗口 bounds 错存到旧 mode 字段（mini 86 被存到 full bounds → 下次展开窗口变 86 高）
+  //   同时 init 加 sanity check：popupBounds.height < 200 视为被污染，丢弃
+  const chatBusSrcV37 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  check("v4.8.37: chat-bus.js 引入 _modeSwitching flag",
+    /let _modeSwitching = false/.test(chatBusSrcV37) &&
+    /_modeSwitching = true/.test(chatBusSrcV37),
+    "chat-bus.js 缺 _modeSwitching 状态");
+  check("v4.8.37: toggleMiniMode 用 try/finally 确保 flag 释放（含 500ms 延迟）",
+    /} finally \{\s*[\s\S]*?setTimeout\(\(\) => \{ _modeSwitching = false; \}, 500\)/.test(chatBusSrcV37),
+    "toggleMiniMode 未在 finally 释放 _modeSwitching");
+  check("v4.8.37: rememberBounds 检测 _modeSwitching 早 return",
+    /async function rememberBounds[\s\S]{0,300}if \(_modeSwitching\) return/.test(chatBusSrcV37),
+    "rememberBounds 缺 _modeSwitching 早 return");
+  check("v4.8.37: init 加 popupBounds.height < 200 sanity check（清污染数据）",
+    /data\[STORAGE_KEYS\.bounds\]\.height >= 200/.test(chatBusSrcV37) &&
+    /discard polluted popupBounds/.test(chatBusSrcV37),
+    "init 缺 popupBounds sanity check");
+
+  // 运行时验证 race fix：SW 调 toggleMiniMode 模拟切换，校验 _modeSwitching 在切换期间 true，500ms 后 false
+  const switchFlagResult = await serviceWorker.evaluate(async () => {
+    if (!self.ChatBus?.toggleMiniMode) return { err: "ChatBus.toggleMiniMode unavailable" };
+    // popup window 未打开，toggleMiniMode 会立刻返回 { ok:false, error:"popup not open" }
+    // 但 try/finally 仍会跑 setTimeout(500) 释放 _modeSwitching —— 这里我们不直接读 _modeSwitching（闭包私有）
+    // 改测：调用返回值正常
+    const r = await self.ChatBus.toggleMiniMode("mini");
+    return r;
+  }).catch(e => ({ evalErr: e.message }));
+  check("v4.8.37: toggleMiniMode 返回结构化结果（不抛异常 — popup 未开时 ok:false / 已开时 ok:true）",
+    typeof switchFlagResult?.ok === "boolean",
+    JSON.stringify(switchFlagResult));
+
+  // 验证 poster-ai-team.webp 替换后仍可访问（v4.8.37 用户提供新版）
+  const posterOk = await popupPage.evaluate(async (extId) => {
+    const r = await fetch(`chrome-extension://${extId}/icons/poster-ai-team.webp`);
+    if (!r.ok) return { ok: false, status: r.status };
+    const blob = await r.blob();
+    return { ok: true, size: blob.size, type: blob.type };
+  }, extensionId);
+  check("v4.8.37: poster-ai-team.webp 可访问 + size > 100KB（新版高分辨率）",
+    posterOk.ok && posterOk.size > 100 * 1024 && posterOk.type === "image/webp",
+    JSON.stringify(posterOk));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
