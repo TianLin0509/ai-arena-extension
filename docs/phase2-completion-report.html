@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI Arena v4.0.0-beta Phase 2 完成报告 + 测试计划</title>
+<style>
+  :root {
+    --bg:#fafafa; --card:#fff; --ink:#1d1d1f; --ink-soft:#6e6e73;
+    --border:#d2d2d7; --accent:#0071e3;
+    --success:#34c759; --warning:#ff9f0a; --danger:#ff3b30;
+    --code-bg:#1d1d1f; --code-ink:#f5f5f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#1d1d1f; --card:#2c2c2e; --ink:#f5f5f7; --ink-soft:#aeaeb2;
+      --border:#38383a; --accent:#0a84ff;
+      --success:#30d158; --warning:#ff9f0a; --danger:#ff453a;
+    }
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink);
+    padding:32px 20px; line-height:1.55; font-size:14px;
+    letter-spacing:-0.01em;
+  }
+  .container { max-width:880px; margin:0 auto; }
+  h1 { font-size:26px; margin-bottom:6px; letter-spacing:-0.02em; }
+  .subtitle { color:var(--ink-soft); margin-bottom:24px; font-size:13px; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; margin-left:4px; }
+  .pill.ok { background:var(--success); color:#fff; }
+  .pill.info { background:var(--accent); color:#fff; }
+  .pill.warn { background:var(--warning); color:#000; }
+  .card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:20px 24px; margin-bottom:14px;
+  }
+  h2 {
+    font-size:16px; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  h2 .num {
+    background:var(--accent); color:#fff;
+    width:24px; height:24px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+  }
+  code, .mono {
+    font-family:"SF Mono","JetBrains Mono","Consolas",monospace;
+    background:var(--bg); padding:1px 6px; border-radius:3px;
+    font-size:0.88em;
+  }
+  pre {
+    background:var(--code-bg); color:var(--code-ink);
+    padding:10px 14px; border-radius:6px; overflow-x:auto;
+    font-size:11.5px; line-height:1.45;
+    font-family:"SF Mono","Consolas",monospace;
+    margin:6px 0;
+  }
+  pre code { background:none; padding:0; color:inherit; }
+
+  .num-stat { display:flex; gap:14px; margin-top:8px; flex-wrap:wrap; }
+  .num-stat .stat {
+    background:var(--bg); padding:9px 14px; border-radius:8px;
+    display:flex; flex-direction:column; gap:2px; min-width:90px;
+  }
+  .num-stat .stat .v { font-size:20px; font-weight:700; letter-spacing:-0.02em; }
+  .num-stat .stat .l { font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.05em; }
+
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--ink-soft); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; }
+  .commit-row { font-family:"SF Mono",monospace; font-size:11.5px; }
+  .commit-sha { color:var(--accent); font-weight:600; }
+
+  /* 测试清单 */
+  .test-section { margin-bottom:18px; }
+  .test-section-title {
+    font-weight:600; color:var(--ink);
+    background:var(--bg); padding:8px 12px; border-radius:6px;
+    margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .test-section-title .module-num {
+    background:var(--accent); color:#fff;
+    width:20px; height:20px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+  }
+  .test-list { padding-left:8px; }
+  .test-item {
+    padding:7px 10px; border-bottom:1px solid var(--border);
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .test-item:last-child { border-bottom:none; }
+  .test-item input[type="checkbox"] {
+    margin-top:3px; transform:scale(1.15); flex-shrink:0;
+    accent-color:var(--accent);
+  }
+  .test-item .test-content { flex:1; }
+  .test-item .test-title { font-weight:500; color:var(--ink); margin-bottom:2px; }
+  .test-item .test-expect {
+    font-size:11.5px; color:var(--ink-soft);
+    margin-top:3px;
+  }
+  .test-item .test-expect strong { color:var(--success); }
+
+  .install-steps { counter-reset:step; }
+  .install-step {
+    counter-increment:step;
+    padding:8px 10px 8px 36px; position:relative;
+    background:var(--bg); border-radius:6px; margin-bottom:4px;
+    font-size:13px;
+  }
+  .install-step::before {
+    content:counter(step);
+    position:absolute; left:10px; top:8px;
+    background:var(--accent); color:#fff;
+    width:20px; height:20px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+  }
+
+  .footer-tip {
+    margin-top:18px; padding:14px 18px;
+    background:#fff8e6; border-left:3px solid var(--warning);
+    border-radius:4px; font-size:12px; color:#7a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    .footer-tip { background:#3a2f1a; color:#ffb84d; }
+  }
+
+  .path-block {
+    background:var(--code-bg); color:var(--code-ink);
+    padding:12px 16px; border-radius:8px;
+    font-family:"SF Mono",monospace; font-size:12.5px;
+    margin:8px 0;
+    word-break:break-all;
+    border:1px solid var(--border);
+  }
+
+  .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+  @media (max-width:640px) { .summary-grid { grid-template-columns:1fr; } }
+  .summary-grid .item {
+    background:var(--bg); padding:10px 14px; border-radius:8px;
+    font-size:12.5px;
+  }
+  .summary-grid .item strong { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>AI Arena v4.0.0-beta <span class="pill ok">Phase 2 完成</span></h1>
+  <p class="subtitle">2026-05-22 · 群聊 popup 增强为独立完整工具 · sidepanel 全保留 · auto-extract bug 修复</p>
+
+  <!-- 1. 全景数据 -->
+  <div class="card">
+    <h2><span class="num">①</span> 全景数据</h2>
+    <div class="num-stat">
+      <div class="stat"><span class="v">9</span><span class="l">commits</span></div>
+      <div class="stat"><span class="v">34</span><span class="l">unit tests ✓</span></div>
+      <div class="stat"><span class="v">7</span><span class="l">new files</span></div>
+      <div class="stat"><span class="v">8</span><span class="l">modified</span></div>
+      <div class="stat"><span class="v">~600</span><span class="l">lines added</span></div>
+      <div class="stat"><span class="v">v4.0.0-beta</span><span class="l">git tag</span></div>
+    </div>
+  </div>
+
+  <!-- 2. 本次变化总览 -->
+  <div class="card">
+    <h2><span class="num">②</span> 本次变化（vs v4.0.0-alpha）</h2>
+    <div class="summary-grid">
+      <div class="item"><strong>👤 真品牌头像</strong><br>用户用华为红圆 HW，9 个 AI 各自品牌 SVG（Claude/Gemini/OpenAI/DeepSeek/豆包/千问/Kimi/元宝/Grok）</div>
+      <div class="item"><strong>🧾 紧凑 meta 行</strong><br>每条气泡上方一行 = 名字 + 时间戳 + 状态点（脉动动画）+ hover 出现的操作按钮</div>
+      <div class="item"><strong>🎯 气泡 4 操作</strong><br>🔄 重提 / 📤 重发 / 📋 复制 / ↗ 跳原页（hover 整条 row 浮现）</div>
+      <div class="item"><strong>👥 左下 roster</strong><br>参与者头像 toggle 选下轮谁发言，默认全选，状态持久化，全空回弹防呆</div>
+      <div class="item"><strong>⚙️ 任务模式选择器</strong><br>输入框左侧按钮，hover 弹三级菜单：同时提问 / 辩论(自由|群策) / 总结(N 候选裁判) / PPT(文案|图片|生成)</div>
+      <div class="item"><strong>🎨 视觉精致化</strong><br>新消息 slide-in / 标题脉动 / 气泡毛玻璃 / 发送按钮弹性回弹 / 字距 -0.01em</div>
+      <div class="item"><strong>🐛 sidepanel bug 修复</strong><br>auto-extract 不再依赖 streaming indicator selector（易失效），改用"N 次稳定文本"判定，与 popup 一致</div>
+      <div class="item"><strong>🧪 12 个新单测</strong><br>labelOf 8 个 + roster 4 个，总 34/34 pass</div>
+    </div>
+  </div>
+
+  <!-- 3. 加载步骤 -->
+  <div class="card">
+    <h2><span class="num">③</span> 在你这台家用电脑加载扩展</h2>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">直接加载 <code>src/</code> 目录即可（不用解压 zip）。</p>
+
+    <div class="path-block">
+      C:\Users\lintian\AI_debate\ai-arena-extension\src
+    </div>
+
+    <div class="install-steps">
+      <div class="install-step">Chrome 打开 <code>chrome://extensions/</code></div>
+      <div class="install-step">右上角"开发者模式"开关 → 打开</div>
+      <div class="install-step">点"加载已解压的扩展程序" → 选上面那个 src 目录</div>
+      <div class="install-step">扩展列表里能看到 <strong>AI Arena</strong>（version 4.0.0，显示 4.0.0-beta）</div>
+      <div class="install-step">点扩展图标 → sidepanel 打开（顶部能看到 <code>v4.0.0-beta</code> + 蓝色 🪟 群聊 按钮）</div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink-soft);margin-top:10px;">
+      如果之前已加载过 v4.0.0-alpha：在 chrome://extensions/ 找到 AI Arena → 点 🔄 重新加载 即可（不需要先移除）。
+    </p>
+  </div>
+
+  <!-- 4. 测试计划 -->
+  <div class="card">
+    <h2><span class="num">④</span> 测试计划（8 模块 32 项）</h2>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">
+      每项打勾验证。发现 bug 把 <strong>模块号 + 项号</strong>（如"M3-③"）告诉我即可。<br>
+      <strong>前置准备</strong>：sidepanel 添加 Claude + Gemini + ChatGPT 三个参与者（用"并列"模式），让 3 个 AI 各开一个独立 window。
+    </p>
+
+    <!-- M1: 基础打开 + 头像 -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">1</span>群聊 popup 打开 + 头像 logo</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t1-1">
+          <label class="test-content" for="t1-1">
+            <div class="test-title">点 sidepanel "🪟 群聊"按钮</div>
+            <div class="test-expect"><strong>期望</strong>：独立 popup 窗口弹出（落在主屏右半，约 800×900）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t1-2">
+          <label class="test-content" for="t1-2">
+            <div class="test-title">popup 顶部检查</div>
+            <div class="test-expect"><strong>期望</strong>：🪟 + "AI Arena 群聊" + "v4.0.0-beta" 三段标题；右侧 🗑 和 ⚙️ 图标</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t1-3">
+          <label class="test-content" for="t1-3">
+            <div class="test-title">空状态显示</div>
+            <div class="test-expect"><strong>期望</strong>：中间显示 👋 "群聊已就绪" + 提示"输入消息广播给所有参与者"</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t1-4">
+          <label class="test-content" for="t1-4">
+            <div class="test-title">底部检查：roster + 输入框</div>
+            <div class="test-expect"><strong>期望</strong>：底部从上到下两条 — "下轮发言"行（3 个 AI 头像 + "3 / 3"计数），输入栏（⚙️ 任务 按钮 + 输入框 + ↑ 发送按钮）</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M2: 紧凑 meta + 气泡 actions -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">2</span>紧凑 meta 行 + 气泡 4 操作</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t2-1">
+          <label class="test-content" for="t2-1">
+            <div class="test-title">输入"你好" Ctrl+Enter 发送</div>
+            <div class="test-expect"><strong>期望</strong>：自己的气泡右侧出现，头像是华为红色 HW logo；meta 一行含 "我 · Huawei" + 时间戳（HH:MM:SS）+ "● 已发送"绿点</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-2">
+          <label class="test-content" for="t2-2">
+            <div class="test-title">观察 AI 气泡 meta 行</div>
+            <div class="test-expect"><strong>期望</strong>：每个 AI 气泡左侧头像 = 各自品牌 logo（不再是单字母 C/G/P）；上方一行 = 名字 + 时间 + 状态点（"提取中"橙色脉动 / "已完成"绿色）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-3">
+          <label class="test-content" for="t2-3">
+            <div class="test-title">鼠标悬停在 AI 气泡 row 上</div>
+            <div class="test-expect"><strong>期望</strong>：meta 行右侧浮现 4 个按钮 🔄 重提 / 📤 重发 / 📋 / ↗</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-4">
+          <label class="test-content" for="t2-4">
+            <div class="test-title">点 📋 复制按钮</div>
+            <div class="test-expect"><strong>期望</strong>：按钮短暂显示 ✓，气泡文本被复制到剪贴板（在别处粘贴验证）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-5">
+          <label class="test-content" for="t2-5">
+            <div class="test-title">点 ↗ 跳原页</div>
+            <div class="test-expect"><strong>期望</strong>：自动切到对应 AI 的 chrome window/tab（如 Claude → claude.ai 那个 window 被拉到前台）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-6">
+          <label class="test-content" for="t2-6">
+            <div class="test-title">点 🔄 重提按钮</div>
+            <div class="test-expect"><strong>期望</strong>：按钮变 ⏳，1 秒内 AI 气泡的文本被刷新成 AI 原页当前的最新文本</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t2-7">
+          <label class="test-content" for="t2-7">
+            <div class="test-title">点 📤 重发按钮</div>
+            <div class="test-expect"><strong>期望</strong>：把"你好"那条用户消息重新发送给该 AI 单个（不广播），AI 原页会重新开始流式生成</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M3: 左下 roster -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">3</span>左下参与者多选 roster</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t3-1">
+          <label class="test-content" for="t3-1">
+            <div class="test-title">初始状态：3 个头像全亮 + ✓ + "3 / 3"</div>
+            <div class="test-expect"><strong>期望</strong>：默认全选，每个头像蓝色边框 + 右上角蓝色 ✓ badge</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t3-2">
+          <label class="test-content" for="t3-2">
+            <div class="test-title">点 ChatGPT 头像 toggle 关闭</div>
+            <div class="test-expect"><strong>期望</strong>：ChatGPT 头像变灰 + ✓ 消失；计数变 "2 / 3"</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t3-3">
+          <label class="test-content" for="t3-3">
+            <div class="test-title">输入"hi" Ctrl+Enter</div>
+            <div class="test-expect"><strong>期望</strong>：只有 Claude + Gemini 气泡出现，ChatGPT 不触发任何气泡</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t3-4">
+          <label class="test-content" for="t3-4">
+            <div class="test-title">关闭 popup → 重新点 sidepanel "🪟 群聊"</div>
+            <div class="test-expect"><strong>期望</strong>：roster 状态保留（ChatGPT 仍是灰色未选中），历史消息全部恢复</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t3-5">
+          <label class="test-content" for="t3-5">
+            <div class="test-title">把 3 个全 toggle 关闭</div>
+            <div class="test-expect"><strong>期望</strong>：第 3 次 toggle 后自动回弹全选（防止空状态发送），计数变回 "3 / 3"</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M4: 任务模式选择器 -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">4</span>任务模式选择器（核心）</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t4-1">
+          <label class="test-content" for="t4-1">
+            <div class="test-title">点输入框左侧"⚙️ 任务"按钮</div>
+            <div class="test-expect"><strong>期望</strong>：上方弹出菜单，4 项：💬 同时提问 / ⚔️ 辩论 / 📋 裁判总结 / 📊 PPT 制作（后三项右侧有 ▸ 表示有子菜单）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-2">
+          <label class="test-content" for="t4-2">
+            <div class="test-title">鼠标 hover 到"⚔️ 辩论"</div>
+            <div class="test-expect"><strong>期望</strong>：右侧弹出二级菜单：⚔️ 自由辩论 / 🤝 群策群力</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-3">
+          <label class="test-content" for="t4-3">
+            <div class="test-title">点"自由辩论"</div>
+            <div class="test-expect"><strong>期望</strong>：菜单关闭，"⚙️ 任务"按钮上的 pill 变成"辩论·自由"（蓝色）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-4">
+          <label class="test-content" for="t4-4">
+            <div class="test-title">输入"重点讨论估值分歧" Ctrl+Enter</div>
+            <div class="test-expect"><strong>期望</strong>：触发 sidepanel 同款辩论流程（这条消息作为 guidance 传入），3 个 AI 进入辩论模式（log 显示"第 N 轮 辩论..."）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-5">
+          <label class="test-content" for="t4-5">
+            <div class="test-title">切到"📋 裁判总结" hover</div>
+            <div class="test-expect"><strong>期望</strong>：右侧二级菜单列出 3 个候选裁判（Claude/Gemini/ChatGPT），每个前面 ⚖️ 图标</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-6">
+          <label class="test-content" for="t4-6">
+            <div class="test-title">选 Claude 为裁判 → 输入"对比双方观点" Ctrl+Enter</div>
+            <div class="test-expect"><strong>期望</strong>：pill 显示"总结·Claude"，发送后触发 sidepanel 同款 summary 流程（自动让 Claude 生成裁判总结）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-7">
+          <label class="test-content" for="t4-7">
+            <div class="test-title">切到"📊 PPT 制作" → 选"文案生成"</div>
+            <div class="test-expect"><strong>期望</strong>：pill 显示"PPT·文案"。发送时弹 alert "PPT 工坊请在 sidepanel 工具栏完成" <span class="pill warn">已知</span>（Phase 2 决策：PPT prompt builder 暂未抽到共享文件，留 v4.1）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t4-8">
+          <label class="test-content" for="t4-8">
+            <div class="test-title">切回"💬 同时提问"</div>
+            <div class="test-expect"><strong>期望</strong>：pill 恢复"同时提问"，输入框发送回归基础广播</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M5: sidepanel auto-extract bug 验证 -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">5</span>sidepanel auto-extract bug 验证（你之前手动提取的痛点）</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t5-1">
+          <label class="test-content" for="t5-1">
+            <div class="test-title">关闭 popup，回到 sidepanel</div>
+            <div class="test-expect"><strong>期望</strong>：sidepanel 正常显示，"同时提问 / 辩论 / PPT 制作" 三个 tab 都还在（不删）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t5-2">
+          <label class="test-content" for="t5-2">
+            <div class="test-title">在 sidepanel"同时提问"tab 输入"宁德时代估值" → 发送给全部</div>
+            <div class="test-expect"><strong>期望</strong>：sidepanel 参与者列表各自显示"等待中→生成中→已完成"状态切换</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t5-3" style="border-color:var(--success);">
+          <label class="test-content" for="t5-3">
+            <div class="test-title">⭐ <strong>关键验证</strong>：等所有 AI 流式完成后</div>
+            <div class="test-expect"><strong>期望</strong>：sidepanel 自动判定每个 AI"已完成"+ 自动提取回复（无需手动点提取）。日志显示"XX 回复已自动提取"。<br><span style="color:var(--danger);">如果还是要手动提取 = bug 未修复</span></div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t5-4">
+          <label class="test-content" for="t5-4">
+            <div class="test-title">在 sidepanel 切到"辩论"tab → 选"自由辩论" → 点"开始辩论"</div>
+            <div class="test-expect"><strong>期望</strong>：辩论一轮跑完，sidepanel 显示"第 N 轮"badge，3 个 AI 全部自动判定完成</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M6: popup 历史 + 持久化 -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">6</span>持久化 + 关闭重开</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t6-1">
+          <label class="test-content" for="t6-1">
+            <div class="test-title">popup 顶部 🗑 点击</div>
+            <div class="test-expect"><strong>期望</strong>：弹确认"清空群聊（不影响 AI 原页对话）？" 确认后消息列清空</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t6-2">
+          <label class="test-content" for="t6-2">
+            <div class="test-title">发几条消息 → 关闭 popup → 点 sidepanel "🪟 群聊"重开</div>
+            <div class="test-expect"><strong>期望</strong>：历史消息全部恢复（最多最近 100 条），气泡完整渲染含品牌头像 + meta 行</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t6-3">
+          <label class="test-content" for="t6-3">
+            <div class="test-title">拖动 popup 到屏幕不同位置 + 调尺寸 → 关闭 → 重开</div>
+            <div class="test-expect"><strong>期望</strong>：popup 位置和尺寸还原（chrome.system.display 记忆）</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M7: @mention -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">7</span>@mention 单发（Phase 1 已有）</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t7-1">
+          <label class="test-content" for="t7-1">
+            <div class="test-title">输入框输入 "@"</div>
+            <div class="test-expect"><strong>期望</strong>：上方弹出 9 个 AI 候选菜单</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t7-2">
+          <label class="test-content" for="t7-2">
+            <div class="test-title">输入 "@Cl" → 按 ↓↑ 切换 → Enter 确认</div>
+            <div class="test-expect"><strong>期望</strong>：菜单只剩 Claude，Enter 后输入框变 "@Claude "，再输入"你好"+Ctrl+Enter → 只有 Claude 气泡出现</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t7-3">
+          <label class="test-content" for="t7-3">
+            <div class="test-title">@mention 优先级 vs roster</div>
+            <div class="test-expect"><strong>期望</strong>：即使 roster 把 Claude 关掉了，<code>@Claude xxx</code> 仍然发给 Claude（@mention override roster）</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- M8: 视觉精致化 -->
+    <div class="test-section">
+      <div class="test-section-title"><span class="module-num">8</span>视觉细节</div>
+      <div class="test-list">
+        <div class="test-item">
+          <input type="checkbox" id="t8-1">
+          <label class="test-content" for="t8-1">
+            <div class="test-title">新消息出现时观察动画</div>
+            <div class="test-expect"><strong>期望</strong>：气泡从底部 slide-in 进入（0.25s）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t8-2">
+          <label class="test-content" for="t8-2">
+            <div class="test-title">观察 popup 标题 🪟 图标</div>
+            <div class="test-expect"><strong>期望</strong>：缓慢呼吸脉动（2.4s 一次）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t8-3">
+          <label class="test-content" for="t8-3">
+            <div class="test-title">观察"提取中"状态点</div>
+            <div class="test-expect"><strong>期望</strong>：橙色小圆点脉动放大缩小（1.2s 一次）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t8-4">
+          <label class="test-content" for="t8-4">
+            <div class="test-title">悬停发送按钮 ↑</div>
+            <div class="test-expect"><strong>期望</strong>：按钮微微上浮 + 放大 5% + 阴影变深（弹性回弹 cubic-bezier）</div>
+          </label>
+        </div>
+        <div class="test-item">
+          <input type="checkbox" id="t8-5">
+          <label class="test-content" for="t8-5">
+            <div class="test-title">系统切到深色模式（如有）</div>
+            <div class="test-expect"><strong>期望</strong>：popup 自动切深色配色（深灰背景 / 浅色文字 / 蓝渐变按钮保持）</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 5. Commit 链路 -->
+  <div class="card">
+    <h2><span class="num">⑤</span> Commit 链路（9 commits）</h2>
+    <table>
+      <thead><tr><th>SHA</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr class="commit-row"><td class="commit-sha">7b51c0a</td><td>feat(popup): brand SVG avatars + huawei logo</td></tr>
+        <tr class="commit-row"><td class="commit-sha">b2ebcc9</td><td>feat(popup): 紧凑 meta 行（名字/时间/状态/actions）</td></tr>
+        <tr class="commit-row"><td class="commit-sha">24dbcce</td><td>feat(popup): 气泡 4 actions（重提/重发/复制/跳原页）</td></tr>
+        <tr class="commit-row"><td class="commit-sha">ef6da64</td><td>feat(popup): 左下参与者多选 roster</td></tr>
+        <tr class="commit-row"><td class="commit-sha">3683212</td><td>feat(popup): 任务模式选择器 + hover 子菜单</td></tr>
+        <tr class="commit-row"><td class="commit-sha">9f729d7</td><td>style(popup): 微动效 + 字距 + 毛玻璃</td></tr>
+        <tr class="commit-row"><td class="commit-sha">c08f062</td><td>test: 12 个新单测（labelOf 8 + roster 4）</td></tr>
+        <tr class="commit-row"><td class="commit-sha">8ea3c76</td><td><strong>fix(sidepanel): auto-extract bug 修复</strong></td></tr>
+        <tr class="commit-row"><td class="commit-sha">ac8f94d</td><td>release(v4.0.0-beta) + tag</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. 反馈 -->
+  <div class="card">
+    <h2><span class="num">⑥</span> 反馈格式</h2>
+    <p style="font-size:13px;line-height:1.7;">
+      发现 bug 直接告诉我 <strong>模块号-项号</strong>（如 "M2-③ 复制按钮没反应"）+ 简短描述。可以截图，也可以纯文字。<br>
+      我会立刻定位到具体 commit + 文件，修了再发新 zip 给你。<br>
+      <br>
+      <strong>已知限制（M4-⑦）</strong>：PPT 任务三个子项点击后会弹 alert 提示去 sidepanel 完成。这是 Phase 2 决策，因为 PPT 工坊的 prompt 构造函数高度依赖 sidepanel 内部状态，强行抽离风险大。如果你要用 PPT 工坊，直接在 sidepanel 的 PPT tab 操作即可（完全保留未动）。
+    </p>
+  </div>
+
+  <div class="footer-tip">
+    💡 <strong>测试小贴士</strong>：先跑 M1-M3 基础流程（10 分钟），再跑 M5 验证 bug 修复（最有价值的修复），最后看 M4 任务模式和 M8 视觉细节。M6-M7 是 Phase 1 已有功能的回归。
+  </div>
+
+</div>
+</body>
+</html>
