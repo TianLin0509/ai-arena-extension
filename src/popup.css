@@ -10,18 +10,7 @@
   --code-bg: #1d1d1f;
   --code-ink: #f5f5f7;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1c1e;
-    --card: #2c2c2e;
-    --ink: #f5f5f7;
-    --ink-soft: #aeaeb2;
-    --border: #38383a;
-    --accent: #0a84ff;
-    --bubble-me: #0a84ff;
-    --bubble-them: #2c2c2e;
-  }
-}
+/* v4.8.35: 删除 prefers-color-scheme dark — 插件只跟主题（data-theme），不再跟系统色彩偏好 */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body {
@@ -260,9 +249,6 @@ body {
 .sidebar-item mark {
   background: rgba(255,212,0,0.5); color: inherit;
   padding: 0 1px; border-radius: 2px;
-}
-@media (prefers-color-scheme: dark) {
-  .sidebar-item mark { background: rgba(255,212,0,0.35); }
 }
 .sidebar-toast {
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
@@ -649,9 +635,6 @@ body[data-mode="mini"] .mention-menu {
   border: 1px solid var(--border);
 }
 .msg.me .msg-bubble { background: var(--bubble-me); color: #000; border: none; }
-@media (prefers-color-scheme: dark) {
-  .msg.me .msg-bubble { color: #fff; }
-}
 .msg-bubble pre {
   background: var(--code-bg); color: var(--code-ink);
   padding: 8px 10px; border-radius: 6px; overflow-x: auto;
@@ -729,12 +712,6 @@ body[data-mode="mini"] .mention-menu {
 }
 .msg-bubble table.md-table tbody tr:nth-child(even) td {
   background: rgba(0,0,0,0.02);
-}
-@media (prefers-color-scheme: dark) {
-  .msg-bubble table.md-table tbody tr:nth-child(even) td {
-    background: rgba(255,255,255,0.03);
-  }
-  .msg-bubble blockquote { background: rgba(10,132,255,0.1); }
 }
 .msg-bubble img.md-img {
   max-width: 100%;
@@ -1243,9 +1220,6 @@ body[data-mode="mini"] .mention-menu {
   transition: all 0.12s;
 }
 .msg-meta .acts button:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
-@media (prefers-color-scheme: dark) {
-  .msg-meta .acts button:hover { background: rgba(255,255,255,0.08); color: var(--ink); }
-}
 .me-meta { flex-direction: row-reverse; }
 .me-meta .acts { margin-left: 0; margin-right: auto; }
 
@@ -1328,9 +1302,6 @@ body[data-mode="mini"] .mention-menu {
 .roster-upload-hint:hover {
   border-color: var(--accent);
   color: var(--accent);
-}
-@media (prefers-color-scheme: dark) {
-  .roster-item { background: rgba(255,255,255,0.92); }
 }
 
 /* ── 任务模式选择器 ── */
@@ -1554,9 +1525,6 @@ body { letter-spacing: -0.01em; }
 .chat-input:focus { border-color: var(--accent); outline: none; }
 .msg:hover .msg-bubble {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-@media (prefers-color-scheme: dark) {
-  .msg:hover .msg-bubble { box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 }
 
 /* ────────── 右栏 4 Tab 抽屉 (v4.3.5 用 SVG icons) ────────── */
@@ -2755,9 +2723,6 @@ body { letter-spacing: -0.01em; }
   overflow-x: auto;
 }
 .md-math-block:hover { border-color: var(--accent); }
-@media (prefers-color-scheme: dark) {
-  .md-math:hover { background: rgba(10,132,255,0.15); }
-}
 
 /* v4.7.0: 心流柱状图 + 任务分布饼图 */
 .rp-flow-bar { transition: opacity 0.2s; cursor: help; }
@@ -2858,11 +2823,6 @@ body { letter-spacing: -0.01em; }
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.05),
     0 1px 3px rgba(0,0,0,0.2);
-}
-@media (prefers-color-scheme: light) {
-  .hero-slot {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  }
 }
 .hero-slot.empty { border-style: dashed; opacity: 0.7; }
 .hero-slot.empty:hover { opacity: 1; transform: translateY(-2px); border-color: rgba(255,215,0,0.55); }

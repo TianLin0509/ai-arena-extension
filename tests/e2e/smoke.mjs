@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.34-beta", manifest.version_name === "4.8.34-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.35-beta", manifest.version_name === "4.8.35-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.34-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.35-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.34-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.35-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.34-beta", popupVersion === "v4.8.34-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.35-beta", popupVersion === "v4.8.35-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -702,6 +702,30 @@ try {
   check("v4.8.34: tests/e2e/f34-activate-real.mjs 已删除（测试目标函数已不存在）",
     !fs.existsSync(path.join(PROJECT_ROOT, "tests", "e2e", "f34-activate-real.mjs")),
     "f34-activate-real.mjs 仍存在");
+
+  // v4.8.35: popup.css 不再随系统 prefers-color-scheme 切深浅色 — 插件只跟 data-theme 主题
+  //   用户反馈：家电脑（深色系统）和公司电脑（浅色系统）同主题下表现不一致
+  //   决定：完全去掉 popup.css 的 @media (prefers-color-scheme: dark/light)
+  //   保留：debate-summary-template.js 导出 HTML 模板（独立文档，跟读者系统色合理）
+  const popupCssSrc = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  const debateTplSrc = fs.readFileSync(path.join(EXT_PATH, "debate-summary-template.js"), "utf8");
+  check("v4.8.35: popup.css 不再含 prefers-color-scheme @media",
+    !/@media\s*\(\s*prefers-color-scheme/.test(popupCssSrc),
+    "popup.css 仍含 prefers-color-scheme");
+  check("v4.8.35: debate-summary-template.js 保留 prefers-color-scheme（导出文档）",
+    /@media\s*\(\s*prefers-color-scheme:\s*dark/.test(debateTplSrc),
+    "debate-summary-template.js 不应被改动");
+  // 运行时验证：popup 在 chromium 默认（浅色）下，bg 应来自 popup-themes.css 而非 popup.css 的 dark 覆盖
+  const themeBg = await popupPage.evaluate(() => {
+    const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim();
+    const card = getComputedStyle(document.body).getPropertyValue("--card").trim();
+    const dataTheme = document.body.dataset.theme;
+    return { dataTheme, bg, card };
+  });
+  // 默认主题 C 极光琉璃只覆盖 --accent，--bg 应来自 popup.css :root（#f5f5f7 浅色）
+  check("v4.8.35: 默认主题 C 下 --bg 是 popup.css :root 浅色（#f5f5f7），不再被 dark media 覆盖",
+    themeBg.bg === "#f5f5f7",
+    JSON.stringify(themeBg));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
