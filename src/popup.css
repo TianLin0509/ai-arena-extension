@@ -3558,3 +3558,45 @@ body[data-mode="mini"] .mini-roster.empty { display: none; }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+
+/* ============================================================
+   v4.8.51: basic 风格（默认基础）— 不打包 webp 卡片，走 brand SVG/PNG 原图
+   classic/anime/cat 都是 225×320 webp 满铺卡牌；basic 是透明 brand SVG，
+   叠在默认深色 .hero-slot 上会撞色看不清 → 切到白底卡片 + 留 padding
+============================================================ */
+body[data-logo-style="basic"] .hero-slot {
+  background: linear-gradient(135deg, #ffffff, #f5f5f7);
+  border-color: #e5e5e7;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.06);
+}
+body[data-logo-style="basic"] .hero-slot.filled {
+  border-color: #d2d2d7;
+}
+body[data-logo-style="basic"] .hero-slot.filled.status-ready { border-color: #34c759; }
+body[data-logo-style="basic"] .hero-slot.filled.status-busy  { border-color: #ff9f0a; }
+body[data-logo-style="basic"] .hero-slot.filled.status-error { border-color: #ff3b30; }
+body[data-logo-style="basic"] .hero-slot-logo {
+  /* SVG brand 是 1:1 正方形 → 在 225×320 卡里给 padding 让其居中适中 */
+  padding: 22% 20% 26% 20%;
+  object-position: center;
+}
+/* basic 卡底部名字遮罩 — 白底场景反相为浅白渐变 */
+body[data-logo-style="basic"] .hero-slot.filled::after {
+  background: linear-gradient(to top, rgba(245,245,247,0.95) 0%, rgba(245,245,247,0) 100%);
+}
+body[data-logo-style="basic"] .hero-slot-name {
+  color: #1d1d1f;
+  text-shadow: none;
+}
+/* 设置面板 — basic 风格预览图：brand SVG 也需要白底兜底（非 basic 风格无影响）*/
+.rp-style-preview[src*="/brands/"] {
+  background: #ffffff;
+  padding: 6px;
+  object-fit: contain;
+  border: 1px solid #e5e5e7;
+}
+/* 聊天气泡头像 — basic 风格下 brand SVG 加白底圆形（避免 dark mode 下黑底 SVG 看不清）*/
+body[data-logo-style="basic"] .msg-avatar img {
+  background: #ffffff;
+  padding: 3px;
+}

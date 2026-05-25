@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.50-beta", manifest.version_name === "4.8.50-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.51-beta", manifest.version_name === "4.8.51-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.50-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.51-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.50-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.51-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.50-beta", popupVersion === "v4.8.50-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.51-beta", popupVersion === "v4.8.51-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1433,6 +1433,83 @@ try {
     /async function injectAndPoll[\s\S]{0,2000}injectResp\.error/.test(busV50),
     "chat-bus injectAndPoll 缺 status===error 路径");
 
+  // v4.8.51: 新增 cat（小猫风格）+ basic（默认基础）两种 logo style
+  //   - cat：和 classic/anime 一样的 225×320 webp 卡片（src/icons/heroes-cat/）
+  //   - basic：不打包 webp，复用 src/icons/brands/ 品牌 SVG/PNG；CSS 给 body[data-logo-style="basic"]
+  //           的 .hero-slot 加白底卡片样式（避免透明 SVG 撞深色背景）
+  const logoStyleJs = fs.readFileSync(path.join(EXT_PATH, "popup-logo-style.js"), "utf8");
+  check("v4.8.51 ①: popup-logo-style.js STYLES 含 basic + cat",
+    /basic:\s*\{\s*dir:\s*"icons\/brands"/.test(logoStyleJs) &&
+    /cat:\s*\{\s*dir:\s*"icons\/heroes-cat"/.test(logoStyleJs),
+    "STYLES 缺 basic 或 cat");
+  check("v4.8.51 ①: basic 走 SVG ext + huawei PNG override + chatgpt → openai idMap",
+    /extOverrides:\s*\{\s*huawei:\s*"png"\s*\}/.test(logoStyleJs) &&
+    /idMap:\s*\{\s*chatgpt:\s*"openai"\s*\}/.test(logoStyleJs) &&
+    /ext:\s*"svg"/.test(logoStyleJs),
+    "basic 风格 ext/extOverrides/idMap 配置不完整");
+  check("v4.8.51 ②: setCurrent 同步 body[data-logo-style] 属性（CSS 兜底白底依赖此属性）",
+    /function syncBodyAttr/.test(logoStyleJs) &&
+    /document\.body\.setAttribute\("data-logo-style"/.test(logoStyleJs),
+    "logo style 未同步到 body[data-logo-style]");
+
+  // 文件资产存在性 — 10 个 cat webp + 10 个 brands 文件（不依赖 chrome，直接 fs.existsSync）
+  const SVC_IDS = ["claude","gemini","chatgpt","deepseek","doubao","qwen","kimi","yuanbao","grok","huawei"];
+  const catMissing = SVC_IDS.filter(id => !fs.existsSync(path.join(EXT_PATH, "icons/heroes-cat", `${id}.webp`)));
+  check("v4.8.51 ③: 10 个 heroes-cat webp 全部存在",
+    catMissing.length === 0, `missing: ${catMissing.join(", ")}`);
+  const basicMissing = SVC_IDS.filter(id => {
+    const fname = id === "chatgpt" ? "openai" : id;
+    const ext = id === "huawei" ? "png" : "svg";
+    return !fs.existsSync(path.join(EXT_PATH, "icons/brands", `${fname}.${ext}`));
+  });
+  check("v4.8.51 ③: 10 个 basic 品牌资产全部存在（SVG 9 + huawei PNG，chatgpt→openai.svg）",
+    basicMissing.length === 0, `missing: ${basicMissing.join(", ")}`);
+
+  const cssV51 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.51 ④: CSS 给 body[data-logo-style=basic] 的 .hero-slot 加白底卡片样式",
+    /body\[data-logo-style="basic"\]\s*\.hero-slot\s*\{[^}]*background:\s*linear-gradient/s.test(cssV51) &&
+    /body\[data-logo-style="basic"\]\s*\.hero-slot-logo\s*\{[^}]*padding:/s.test(cssV51),
+    "CSS 缺 basic 风格 hero-slot 白底兜底");
+
+  // 运行时：popup.html 暴露 ArenaLogoStyle（sidepanel 不引这个 js），验证 listStyles 返回 4 个 + heroPath
+  const logoStyleRuntime = await popupPage.evaluate(() => {
+    if (!window.ArenaLogoStyle) return { err: "ArenaLogoStyle 未加载" };
+    const styles = window.ArenaLogoStyle.listStyles();
+    const ids = styles.map(s => s.id);
+    // 切到 basic 看 heroPath / body 属性同步
+    window.ArenaLogoStyle.setCurrent("basic", false);
+    const basicChatgpt = window.ArenaLogoStyle.heroPath("chatgpt");
+    const basicHuawei  = window.ArenaLogoStyle.heroPath("huawei");
+    const basicClaude  = window.ArenaLogoStyle.heroPath("claude");
+    const bodyAttrBasic = document.body.getAttribute("data-logo-style");
+    // 切到 cat
+    window.ArenaLogoStyle.setCurrent("cat", false);
+    const catClaude = window.ArenaLogoStyle.heroPath("claude");
+    const bodyAttrCat = document.body.getAttribute("data-logo-style");
+    // 还原
+    window.ArenaLogoStyle.setCurrent("classic", false);
+    return { ids, basicChatgpt, basicHuawei, basicClaude, bodyAttrBasic, catClaude, bodyAttrCat };
+  });
+  check("v4.8.51 运行时: listStyles 返回 4 个（basic + classic + anime + cat）",
+    Array.isArray(logoStyleRuntime.ids) &&
+    logoStyleRuntime.ids.includes("basic") &&
+    logoStyleRuntime.ids.includes("classic") &&
+    logoStyleRuntime.ids.includes("anime") &&
+    logoStyleRuntime.ids.includes("cat"),
+    JSON.stringify(logoStyleRuntime));
+  check("v4.8.51 运行时: basic 风格 heroPath — chatgpt→openai.svg / huawei.png / claude.svg",
+    logoStyleRuntime.basicChatgpt === "icons/brands/openai.svg" &&
+    logoStyleRuntime.basicHuawei === "icons/brands/huawei.png" &&
+    logoStyleRuntime.basicClaude === "icons/brands/claude.svg",
+    JSON.stringify(logoStyleRuntime));
+  check("v4.8.51 运行时: cat 风格 heroPath claude → icons/heroes-cat/claude.webp",
+    logoStyleRuntime.catClaude === "icons/heroes-cat/claude.webp",
+    JSON.stringify(logoStyleRuntime));
+  check("v4.8.51 运行时: setCurrent 同步 body[data-logo-style]",
+    logoStyleRuntime.bodyAttrBasic === "basic" &&
+    logoStyleRuntime.bodyAttrCat === "cat",
+    JSON.stringify(logoStyleRuntime));
+
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
     const btn = document.getElementById("task-picker-btn");
@@ -2366,10 +2443,12 @@ try {
         .map(e => e.textContent.trim()),
     };
   });
-  check("v4.8.15: 设置 Tab 含 风格 section + 2 cards (classic + anime) + active=classic + 预览图",
-    settingsCheck.count === 2
+  check("v4.8.15+v4.8.51: 设置 Tab 风格 section 含 4 cards (basic + classic + anime + cat) + active=classic",
+    settingsCheck.count === 4
+      && settingsCheck.styles.includes("basic")
       && settingsCheck.styles.includes("classic")
       && settingsCheck.styles.includes("anime")
+      && settingsCheck.styles.includes("cat")
       && settingsCheck.activeStyle === "classic"
       && settingsCheck.hasPreviewImg
       && settingsCheck.sectionTitle.includes("风格")

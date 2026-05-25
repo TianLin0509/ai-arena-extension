@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Arena",
-  "version": "4.8.50",
-  "version_name": "4.8.50-beta",
+  "version": "4.8.51",
+  "version_name": "4.8.51-beta",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https:;"
   },
