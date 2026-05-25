@@ -1,4 +1,12 @@
 // AI Arena — Content Script for kimi.moonshot.cn
+// v4.8.47: IIFE + globalThis guard 防御重复注入（reload 扩展 / ensureContentScriptInjected 多次触发时不撞 const SITE 重复声明）
+(function() {
+if (globalThis.__AI_ARENA_CS_LOADED_kimi__) {
+  console.log("[content-kimi] already loaded, skip duplicate injection");
+  return;
+}
+globalThis.__AI_ARENA_CS_LOADED_kimi__ = true;
+
 const SITE = "kimi";
 
 let selectors = null;
@@ -233,3 +241,5 @@ function detectRichContent() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+})();  // v4.8.47 IIFE 防御重复注入 END

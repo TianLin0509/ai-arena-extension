@@ -142,18 +142,19 @@ async function injectBootstrapToTab(tabId, url, reason) {
 
 // v4.8.46: AI URL → 业务 content scripts 映射（与 manifest content_scripts 对齐）
 //   reload 扩展后 manifest 不会自动重注入，需要主动执行；ping 失败时也按需重注入
+// v4.8.47: 加 service 字段，用于 globalThis flag 检查避免重复注入
 const AI_PATTERN_TO_SCRIPTS = [
-  { re: /^https:\/\/claude\.ai\//, files: ["inject-images.js", "content-claude.js"] },
-  { re: /^https:\/\/gemini\.google\.com\//, files: ["inject-images.js", "content-gemini.js"] },
-  { re: /^https:\/\/chatgpt\.com\//, files: ["inject-images.js", "content-chatgpt.js"] },
-  { re: /^https:\/\/chat\.deepseek\.com\//, files: ["inject-images.js", "content-deepseek.js"] },
-  { re: /^https:\/\/www\.doubao\.com\//, files: ["inject-images.js", "content-doubao.js"] },
-  { re: /^https:\/\/tongyi\.aliyun\.com\//, files: ["inject-images.js", "content-qwen.js"] },
-  { re: /^https:\/\/www\.qianwen\.com\//, files: ["inject-images.js", "content-qwen.js"] },
-  { re: /^https:\/\/kimi\.moonshot\.cn\//, files: ["inject-images.js", "content-kimi.js"] },
-  { re: /^https:\/\/www\.kimi\.com\//, files: ["inject-images.js", "content-kimi.js"] },
-  { re: /^https:\/\/yuanbao\.tencent\.com\//, files: ["inject-images.js", "content-yuanbao.js"] },
-  { re: /^https:\/\/grok\.com\//, files: ["inject-images.js", "content-grok.js"] },
+  { re: /^https:\/\/claude\.ai\//, service: "claude", files: ["inject-images.js", "content-claude.js"] },
+  { re: /^https:\/\/gemini\.google\.com\//, service: "gemini", files: ["inject-images.js", "content-gemini.js"] },
+  { re: /^https:\/\/chatgpt\.com\//, service: "chatgpt", files: ["inject-images.js", "content-chatgpt.js"] },
+  { re: /^https:\/\/chat\.deepseek\.com\//, service: "deepseek", files: ["inject-images.js", "content-deepseek.js"] },
+  { re: /^https:\/\/www\.doubao\.com\//, service: "doubao", files: ["inject-images.js", "content-doubao.js"] },
+  { re: /^https:\/\/tongyi\.aliyun\.com\//, service: "qwen", files: ["inject-images.js", "content-qwen.js"] },
+  { re: /^https:\/\/www\.qianwen\.com\//, service: "qwen", files: ["inject-images.js", "content-qwen.js"] },
+  { re: /^https:\/\/kimi\.moonshot\.cn\//, service: "kimi", files: ["inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/www\.kimi\.com\//, service: "kimi", files: ["inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/yuanbao\.tencent\.com\//, service: "yuanbao", files: ["inject-images.js", "content-yuanbao.js"] },
+  { re: /^https:\/\/grok\.com\//, service: "grok", files: ["inject-images.js", "content-grok.js"] },
 ];
 
 function getAiContentScriptsForUrl(url) {
@@ -164,24 +165,53 @@ function getAiContentScriptsForUrl(url) {
   return null;
 }
 
+// v4.8.47: 取 service 名（用于 globalThis flag 检查 __AI_ARENA_CS_LOADED_<service>__）
+function getServiceForUrl(url) {
+  if (!url) return null;
+  for (const { re, service } of AI_PATTERN_TO_SCRIPTS) {
+    if (re.test(url)) return service;
+  }
+  return null;
+}
+
 // v4.8.46: 注入业务 content scripts（ISOLATED world），用于 reload 扩展后 AI tab 失联恢复
 //   先 ping 检测，已 ready 就跳过避免双 onMessage listener；失联才注入
+// v4.8.47: ping 失败时不立刻注入 — 先用 globalThis flag 检查 content script 是否已注入（listener
+//   尚未就绪的 race 情况），避免无谓的重复注入。即使重复注入，content scripts 顶部 IIFE guard
+//   也会 early-return，但额外的 executeScript 调用仍有开销 + 日志噪音。
 async function ensureContentScriptInjected(tabId, url) {
   try {
     await chrome.tabs.sendMessage(tabId, { action: "ping" });
     return { ok: true, alreadyReady: true };
   } catch (_) {
-    // ping 失败 → 走重注入
+    // ping 失败 → 进一步判断
+  }
+  // v4.8.47: ping 失败 → 检查 globalThis flag 区分 "未注入" vs "已注入但 listener 未就绪"
+  const svc = getServiceForUrl(url);
+  if (svc) {
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId },
+        func: (key) => !!globalThis[key],
+        args: [`__AI_ARENA_CS_LOADED_${svc}__`],
+      });
+      if (results?.[0]?.result === true) {
+        // 已注入但 listener 异步未就绪 — 不重复注入，由上层重试 ping
+        return { ok: true, alreadyLoaded: true, listenerNotReady: true };
+      }
+    } catch (_) {
+      // executeScript 都失败说明 tab 状态异常，继续走注入路径让 chrome 报具体错误
+    }
   }
   const files = getAiContentScriptsForUrl(url);
   if (!files) return { ok: false, error: "URL 不匹配 AI 平台" };
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files });
-    console.log(`[F46] re-inject content scripts tab=${tabId} files=${files.join(",")}`);
+    console.log(`[F46/47] inject content scripts tab=${tabId} files=${files.join(",")}`);
     return { ok: true, justInjected: true };
   } catch (e) {
     const msg = e?.message || String(e);
-    console.warn(`[F46] re-inject fail tab=${tabId}: ${msg}`);
+    console.warn(`[F46/47] inject fail tab=${tabId}: ${msg}`);
     return { ok: false, error: msg };
   }
 }
@@ -1489,6 +1519,7 @@ function overlapArea(a, b) {
 async function waitForContentScript(tabId, maxRetries = 12) {
   // v4.8.46: ping 失败一次后主动 ensureContentScriptInjected（reload 扩展后 manifest
   //   不会自动重注 content-{service}.js → "Receiving end does not exist"）
+  // v4.8.47: ensureContentScriptInjected 现在区分 justInjected vs listenerNotReady（race）
   let triedReinject = false;
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -1503,8 +1534,8 @@ async function waitForContentScript(tabId, maxRetries = 12) {
           const tab = await chrome.tabs.get(tabId);
           if (tab?.url) {
             const r = await ensureContentScriptInjected(tabId, tab.url);
-            if (r.justInjected) {
-              await new Promise(r2 => setTimeout(r2, 500));  // 等 listener 注册
+            if (r.justInjected || r.listenerNotReady) {
+              await new Promise(r2 => setTimeout(r2, 500));  // 等 listener 注册或就绪
               continue;  // 立即重试 ping
             }
           }

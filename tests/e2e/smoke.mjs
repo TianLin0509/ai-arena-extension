@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.46-beta", manifest.version_name === "4.8.46-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.47-beta", manifest.version_name === "4.8.47-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.46-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.47-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.46-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.47-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.46-beta", popupVersion === "v4.8.46-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.47-beta", popupVersion === "v4.8.47-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1301,6 +1301,51 @@ try {
      Array.isArray(reinjectUrlResult.gemini) && reinjectUrlResult.gemini.includes("content-gemini.js") &&
      reinjectUrlResult.bad === null),
     JSON.stringify(reinjectUrlResult));
+
+  // v4.8.47: 修复 v4.8.46 反作用 — 重复注入 content-{service}.js 撞 "Identifier 'SITE' has already been declared"
+  //   根因：ensureContentScriptInjected ping 失败时直接 executeScript，但 content scripts 顶层
+  //         是 `const SITE = "xxx"`，重复注入同一 isolated world → SyntaxError
+  //   修复：① 9 个 content-{service}.js 顶部加 IIFE + globalThis flag guard，重复执行 early return
+  //         ② background.js AI_PATTERN_TO_SCRIPTS 加 service 字段
+  //         ③ ensureContentScriptInjected ping 失败时先用 executeScript({func}) 检查 globalThis
+  //            flag 区分"未注入"vs"已注入但 listener 未就绪"；后者返回 listenerNotReady=true
+  //         ④ waitForContentScript 识别 listenerNotReady 也继续重试 ping
+  const CS_SERVICES = ["chatgpt", "claude", "deepseek", "doubao", "gemini", "grok", "kimi", "qwen", "yuanbao"];
+  for (const svc of CS_SERVICES) {
+    const csSrc = fs.readFileSync(path.join(EXT_PATH, `content-${svc}.js`), "utf8");
+    const flagName = `__AI_ARENA_CS_LOADED_${svc}__`;
+    check(`v4.8.47 ①: content-${svc}.js 顶部含 IIFE + globalThis.${flagName} guard`,
+      csSrc.includes(`globalThis.${flagName}`) &&
+      /^[\s\S]{0,400}\(function\(\)\s*\{/.test(csSrc) &&  // 文件头 400 字内有 (function() {
+      /\}\)\(\);\s*\/\/ v4\.8\.47/.test(csSrc),           // 文件尾有 })(); // v4.8.47
+      `content-${svc}.js 缺 IIFE guard`);
+  }
+
+  const bgV47 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  check("v4.8.47 ②: AI_PATTERN_TO_SCRIPTS 每项含 service 字段",
+    /service:\s*"claude"/.test(bgV47) &&
+    /service:\s*"gemini"/.test(bgV47) &&
+    /service:\s*"chatgpt"/.test(bgV47) &&
+    /service:\s*"qwen"/.test(bgV47),
+    "AI_PATTERN_TO_SCRIPTS 缺 service 字段");
+  check("v4.8.47 ③: getServiceForUrl helper",
+    /function getServiceForUrl/.test(bgV47),
+    "缺 getServiceForUrl");
+  check("v4.8.47 ③: ensureContentScriptInjected ping 失败时用 globalThis flag 检查避免重复注入",
+    /__AI_ARENA_CS_LOADED_/.test(bgV47) &&
+    /listenerNotReady:\s*true/.test(bgV47) &&
+    /func:\s*\(key\)\s*=>\s*!!globalThis\[key\]/.test(bgV47),
+    "ensureContentScriptInjected 缺 globalThis flag 检查");
+  check("v4.8.47 ④: waitForContentScript 识别 listenerNotReady 继续重试",
+    /async function waitForContentScript[\s\S]{0,1000}listenerNotReady/.test(bgV47),
+    "waitForContentScript 未识别 listenerNotReady");
+
+  // 运行时：popup 页面里能看到 chrome.scripting 已可用（间接验证 ensureContentScriptInjected 依赖项就绪）
+  const scriptingOk = await serviceWorker.evaluate(() => {
+    return typeof chrome.scripting?.executeScript === "function";
+  }).catch(() => false);
+  check("v4.8.47 运行时: chrome.scripting.executeScript 可用（ensureContentScriptInjected 依赖）",
+    scriptingOk === true, "chrome.scripting 不可用");
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

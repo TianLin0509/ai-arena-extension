@@ -1,4 +1,12 @@
 // AI Arena — Content Script for grok.com
+// v4.8.47: IIFE + globalThis guard 防御重复注入（reload 扩展 / ensureContentScriptInjected 多次触发时不撞 const SITE 重复声明）
+(function() {
+if (globalThis.__AI_ARENA_CS_LOADED_grok__) {
+  console.log("[content-grok] already loaded, skip duplicate injection");
+  return;
+}
+globalThis.__AI_ARENA_CS_LOADED_grok__ = true;
+
 const SITE = "grok";
 
 let selectors = null;
@@ -197,3 +205,5 @@ function detectRichContent() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+})();  // v4.8.47 IIFE 防御重复注入 END

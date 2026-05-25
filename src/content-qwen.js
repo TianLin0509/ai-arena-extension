@@ -1,4 +1,12 @@
 // AI Arena — Content Script for tongyi.aliyun.com (通义千问)
+// v4.8.47: IIFE + globalThis guard 防御重复注入（reload 扩展 / ensureContentScriptInjected 多次触发时不撞 const SITE 重复声明）
+(function() {
+if (globalThis.__AI_ARENA_CS_LOADED_qwen__) {
+  console.log("[content-qwen] already loaded, skip duplicate injection");
+  return;
+}
+globalThis.__AI_ARENA_CS_LOADED_qwen__ = true;
+
 const SITE = "qwen";
 
 // 选择器配置（启动时从 background 获取）
@@ -198,3 +206,5 @@ function detectRichContent() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+})();  // v4.8.47 IIFE 防御重复注入 END

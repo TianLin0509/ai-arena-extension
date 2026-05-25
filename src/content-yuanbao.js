@@ -1,4 +1,12 @@
 // AI Arena — Content Script for yuanbao.tencent.com
+// v4.8.47: IIFE + globalThis guard 防御重复注入（reload 扩展 / ensureContentScriptInjected 多次触发时不撞 const SITE 重复声明）
+(function() {
+if (globalThis.__AI_ARENA_CS_LOADED_yuanbao__) {
+  console.log("[content-yuanbao] already loaded, skip duplicate injection");
+  return;
+}
+globalThis.__AI_ARENA_CS_LOADED_yuanbao__ = true;
+
 const SITE = "yuanbao";
 
 let selectors = null;
@@ -208,3 +216,5 @@ function detectRichContent() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+})();  // v4.8.47 IIFE 防御重复注入 END
