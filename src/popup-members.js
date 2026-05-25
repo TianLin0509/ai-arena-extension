@@ -167,17 +167,11 @@
               <button class="hero-slot-more" data-pid="${escapeHtml(p.id)}" title="操作">⋯</button>
               ${sparks}
             </div>
-            <!-- v4.8.41: 卡片下方 3 个快捷按钮 — 重发/提取/跳过，比 ⋯ 菜单更显眼 -->
+            <!-- v4.8.41 + v4.8.42 K样式: 卡片下方 3 快捷按钮 — icon-only + hover tooltip -->
             <div class="hero-quick-actions">
-              <button class="hqa-btn" data-act="resend" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" title="重新发送原题给 ${escapeHtml(meta.name)}">
-                <span class="hqa-icon">🔄</span><span class="hqa-label">重发</span>
-              </button>
-              <button class="hqa-btn" data-act="reextract" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" title="重新提取 ${escapeHtml(meta.name)} 当前回答">
-                <span class="hqa-icon">📥</span><span class="hqa-label">提取</span>
-              </button>
-              <button class="hqa-btn" data-act="skip" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" title="跳过 ${escapeHtml(meta.name)} 本轮（解除 polling 卡住）">
-                <span class="hqa-icon">⏭</span><span class="hqa-label">跳过</span>
-              </button>
+              <button class="hqa-btn" data-act="resend" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" data-label="重发原题" title="重新发送原题给 ${escapeHtml(meta.name)}">${window.ChatActionIcons?.svg("resend") || "📤"}</button>
+              <button class="hqa-btn" data-act="reextract" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" data-label="重新提取" title="重新提取 ${escapeHtml(meta.name)} 当前回答">${window.ChatActionIcons?.svg("reextract") || "🔄"}</button>
+              <button class="hqa-btn" data-act="skip" data-pid="${escapeHtml(p.id)}" data-service="${escapeHtml(p.service)}" data-label="跳过本轮" title="跳过 ${escapeHtml(meta.name)} 本轮（解除 polling 卡住）">${window.ChatActionIcons?.svg("skip") || "⏭"}</button>
             </div>
           </div>`;
       }
