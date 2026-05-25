@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.35-beta", manifest.version_name === "4.8.35-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.36-beta", manifest.version_name === "4.8.36-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.35-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.36-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.35-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.36-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.35-beta", popupVersion === "v4.8.35-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.36-beta", popupVersion === "v4.8.36-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -726,6 +726,47 @@ try {
   check("v4.8.35: 默认主题 C 下 --bg 是 popup.css :root 浅色（#f5f5f7），不再被 dark media 覆盖",
     themeBg.bg === "#f5f5f7",
     JSON.stringify(themeBg));
+
+  // v4.8.36: broadcast/notifyRoundStart 对 skipped service 创建警告气泡（fail loud）
+  //   用户反馈：发送给 3 个 AI 时偶尔只看到 2 个卡片气泡
+  //   根因：race condition (移除 AI 后立刻发，popup-roster.selected 未刷新)
+  //         或用户在 roster 取消选中某 AI 后没察觉 → targets 含已离开的 service
+  //   修复：chat-bus.js _resolveTargetsWithSkipped 返回 targetList + skippedServices，
+  //         skippedServices 通过 _emitSkippedWarning 创建 isDone+warning 气泡
+  const chatBusSrcV36 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  check("v4.8.36: chat-bus.js 新增 _resolveTargetsWithSkipped helper",
+    /function _resolveTargetsWithSkipped/.test(chatBusSrcV36) &&
+    /skippedServices/.test(chatBusSrcV36),
+    "chat-bus.js 缺 _resolveTargetsWithSkipped");
+  check("v4.8.36: chat-bus.js 新增 _emitSkippedWarning helper",
+    /function _emitSkippedWarning/.test(chatBusSrcV36) &&
+    /skipped:\s*true/.test(chatBusSrcV36) &&
+    /已不在会话/.test(chatBusSrcV36),
+    "chat-bus.js 缺 _emitSkippedWarning 或警告文本");
+  check("v4.8.36: broadcast 返回 skippedTargets 字段",
+    /skippedTargets:\s*skippedServices/.test(chatBusSrcV36),
+    "broadcast 返回值未含 skippedTargets");
+  check("v4.8.36: notifyRoundStart 也调用 _emitSkippedWarning（辩论/总结同样 fail loud）",
+    (chatBusSrcV36.match(/_emitSkippedWarning\(/g) || []).length >= 2,
+    "notifyRoundStart 缺 _emitSkippedWarning 调用");
+  check("v4.8.36: chat-bus.js 含 9 个 AI 的 SERVICE_DISPLAY_NAME 映射（warn 气泡用）",
+    /SERVICE_DISPLAY_NAME/.test(chatBusSrcV36) &&
+    ["claude", "gemini", "chatgpt", "deepseek", "doubao", "qwen", "kimi", "yuanbao", "grok"]
+      .every(s => new RegExp(s + ":").test(chatBusSrcV36)),
+    "chat-bus.js SERVICE_DISPLAY_NAME 不全");
+
+  // 运行时验证：通过 SW 直接调 ChatBus.broadcast 模拟 race（targets 含已离开的 service）→ 验证 popup 收到警告气泡
+  // SW 端没有 participants 时，发 broadcast({text, targets:["claude"]}) → targetList=[], skippedServices=["claude"]
+  // 此时 broadcast 提前 return（targetList.length===0）但仍返回 skippedTargets
+  const swSkipResult = await serviceWorker.evaluate(async () => {
+    if (!self.ChatBus?.broadcast) return { err: "ChatBus.broadcast unavailable" };
+    // SM participants 在 chromium 干净环境下应为空 → 任何 service 都算 skipped
+    const r = await self.ChatBus.broadcast("v4.8.36 skip-warn test", ["claude"], []);
+    return r;
+  }).catch(e => ({ evalErr: e.message }));
+  check("v4.8.36: broadcast 无可用 participants 时返回 skippedTargets",
+    Array.isArray(swSkipResult?.skippedTargets) && swSkipResult.skippedTargets.includes("claude"),
+    JSON.stringify(swSkipResult));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

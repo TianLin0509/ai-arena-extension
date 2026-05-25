@@ -273,17 +273,49 @@ const ChatBus = (() => {
     chrome.storage.local.set({ [STORAGE_KEYS.log]: chatLog }).catch(() => {});
   }
 
+  // v4.8.36: 用户期望的 service 列表 → 实际可用列表 + 丢失列表
+  //   targets 为空 → 默认全员，无丢失；
+  //   targets 非空 → filter 后比较，丢失的 service 用于警告气泡（silent failure → fail loud）
+  //   场景：移除 AI 后立刻发消息时 popup-roster.selected 尚未刷新；或 roster 选中了已离开的 service
+  function _resolveTargetsWithSkipped(targets) {
+    const allParticipants = StateMachine.participants || [];
+    if (!targets?.length) {
+      return { targetList: allParticipants, skippedServices: [] };
+    }
+    const availableServices = new Set(allParticipants.map(p => p.service));
+    const targetList = allParticipants.filter(p => targets.includes(p.service));
+    const skippedServices = targets.filter(s => !availableServices.has(s));
+    return { targetList, skippedServices };
+  }
+
+  // v4.8.36: 9 个 AI 的展示名（用于警告气泡 — 该 service 已不在 StateMachine.participants）
+  const SERVICE_DISPLAY_NAME = {
+    claude: "Claude", gemini: "Gemini", chatgpt: "ChatGPT",
+    deepseek: "DeepSeek", doubao: "豆包", qwen: "通义千问",
+    kimi: "Kimi", yuanbao: "元宝", grok: "Grok",
+  };
+
+  function _emitSkippedWarning(msgId, skippedServices) {
+    for (const svc of skippedServices) {
+      const name = SERVICE_DISPLAY_NAME[svc] || svc;
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId,
+        participantId: svc,
+        text: `⚠ ${name} 已不在会话，本轮跳过 — 请检查参与者列表`,
+        isDone: true,
+        skipped: true,
+      });
+    }
+  }
+
   async function broadcast(text, targets, images) {
     if (!text?.trim()) return { ok: false, error: "empty text" };
 
-    // 决定目标参与者
-    const allParticipants = StateMachine.participants || [];
-    const targetList = targets?.length
-      ? allParticipants.filter(p => targets.includes(p.service))
-      : allParticipants;
+    // 决定目标参与者 + skipped 列表（v4.8.36 fail loud）
+    const { targetList, skippedServices } = _resolveTargetsWithSkipped(targets);
 
     if (!targetList.length) {
-      return { ok: false, error: "无可用参与者" };
+      return { ok: false, error: "无可用参与者", skippedTargets: skippedServices };
     }
 
     // v4.5.4 F3: 同步 StateMachine — 否则 originalQuestion/p.response/lastSent/flowState 全是旧值，
@@ -323,7 +355,13 @@ const ChatBus = (() => {
       });
       injectAndPoll(p, msgId, text);
     }
-    return { ok: true, msgId, targets: targetList.map(p => p.service) };
+    // v4.8.36: 对已离开的 service 创建警告气泡（fail loud）
+    _emitSkippedWarning(msgId, skippedServices);
+    return {
+      ok: true, msgId,
+      targets: targetList.map(p => p.service),
+      skippedTargets: skippedServices,
+    };
   }
 
   // 外部触发的轮次（辩论 / 总结 / 手动发送）：不再 inject（外部已 inject），只显示用户气泡+启动 polling
@@ -331,11 +369,9 @@ const ChatBus = (() => {
   // participantServices = 受影响的参与者 service id 列表（如 ["claude","gemini","chatgpt"]）
   // presetMsgId = v4.6.13 F20: 外部预生成 msgId（用于辩论 pending 占位 → 正式状态复用同气泡）
   function notifyRoundStart(displayText, participantServices, presetMsgId) {
-    const allParticipants = StateMachine.participants || [];
-    const targetList = participantServices?.length
-      ? allParticipants.filter(p => participantServices.includes(p.service))
-      : allParticipants;
-    if (!targetList.length) return { ok: false, error: "无目标参与者" };
+    // v4.8.36: 复用 _resolveTargetsWithSkipped，对辩论/总结路径同样 fail loud
+    const { targetList, skippedServices } = _resolveTargetsWithSkipped(participantServices);
+    if (!targetList.length) return { ok: false, error: "无目标参与者", skippedTargets: skippedServices };
 
     const msgId = presetMsgId || newMsgId();
     pushLog({ role: "user", msgId, text: displayText, ts: Date.now() });
@@ -362,7 +398,9 @@ const ChatBus = (() => {
       state.intervalId = setInterval(() => pollOnce(p, state), POLL_INTERVAL_MS);
       pollers.set(p.service, state);
     }
-    return { ok: true, msgId };
+    // v4.8.36: 对已离开的 service 创建警告气泡
+    _emitSkippedWarning(msgId, skippedServices);
+    return { ok: true, msgId, skippedTargets: skippedServices };
   }
 
   // v4.8.19 F32: 完全废弃 chrome.debugger 路线
