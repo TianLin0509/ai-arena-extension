@@ -141,7 +141,7 @@ async function injectBootstrapToTab(tabId, url, reason) {
 }
 
 async function injectBootstrapToExistingTabs() {
-  // v4.8.30 F38-①: 等 windowMode 真加载完，否则会按默认 "tiled" 错走 activateAiWindowsOnce
+  // v4.8.30 F38-①: 等 windowMode 真加载完（tab/tiled 影响下面的 CDP 路由）
   try { await _windowModeLoaded; } catch (_) {}
   console.log(`[F32+] scan existing AI tabs (mode=${windowMode})`);
   let injected = 0, failed = 0, totalMatched = 0;
@@ -162,8 +162,13 @@ async function injectBootstrapToExistingTabs() {
   }
   console.log(`[F32+] scan DONE matched=${totalMatched} injected=${injected} failed=${failed}`);
 
-  // v4.8.29 F37 混合模式: 如果是 Tab 模式，对所有 AI tab 持久 attach CDP
-  // （F34 activateAiWindowsOnce 只对并列模式有效；tab 模式靠 CDP 真解 throttle）
+  // v4.8.34: 取消并列模式下的 activateAiWindowsOnce — 用户反馈"扫一遍 AI 窗口"视觉抖动
+  //   旧行为（v4.8.26-v4.8.33）：chrome 启动后第一次激活扩展，把每个已开的 AI window
+  //   依次 focus 800ms 再还原原焦点，3 个窗口 = 2.4s 可见抖动。
+  //   新行为：扩展启动时只静默注入 bootstrap JS（已在 injectBootstrapToTab 完成）。
+  //   代价：首次辩论前 AI tab 可能仍被 chrome heavy-throttle，但辩论代码本身会
+  //   tabs.update(active:true) 切到目标 tab，chrome 自动解 throttle。
+  //   Tab 模式 CDP attachAndWake 保留（无视觉抖动）。
   if (windowMode === "tab" && self.CDPExtractor && aiTabIds.length) {
     console.log(`[F37] tab mode, attaching ${aiTabIds.length} existing AI tab(s)`);
     for (const { id } of aiTabIds) {
@@ -172,62 +177,12 @@ async function injectBootstrapToExistingTabs() {
         console.log(`[F37] attach tab=${id} ok=${r?.ok} code=${r?.code}`);
       } catch (_) {}
     }
-  } else {
-    // 并列模式：F34 activateAiWindowsOnce 让 AI window 短暂可见触发 chrome "曾 visible" 标记
-    await activateAiWindowsOnce(aiTabIds);
   }
+  // 并列模式：不再做强制 focus（v4.8.34）
 }
 
-// v4.8.30 F38-④: _activatedOnce 用 chrome.storage.session 持久化，
-// 防 SW 30s idle 回收后重置 → 每次 SW 唤醒 AI window 反复闪烁
-let _activatedOnce = false;
-const _activatedOnceLoaded = (chrome.storage.session
-  ? chrome.storage.session.get("activatedOnce").then(d => { _activatedOnce = !!d.activatedOnce; }).catch(() => {})
-  : Promise.resolve());
-async function activateAiWindowsOnce(aiTabs) {
-  try { await _activatedOnceLoaded; } catch (_) {}
-  if (_activatedOnce || !aiTabs.length) return;
-  _activatedOnce = true;
-  if (chrome.storage.session) {
-    try { chrome.storage.session.set({ activatedOnce: true }).catch(() => {}); } catch (_) {}
-  }
-  // 按 tab 去重（避免一个 window 多个 tab 重复 focus）
-  const uniqueWindows = new Map();  // windowId -> first tabId
-  for (const t of aiTabs) {
-    if (t.windowId != null && !uniqueWindows.has(t.windowId)) {
-      uniqueWindows.set(t.windowId, t.id);
-    }
-  }
-  if (!uniqueWindows.size) return;
-
-  let originalFocusedWindowId = null;
-  try {
-    const wins = await chrome.windows.getAll();
-    originalFocusedWindowId = wins.find(w => w.focused)?.id;
-  } catch {}
-  console.log(`[F34] activating ${uniqueWindows.size} AI windows once (anti heavy-throttle)`);
-
-  for (const [wid, tabId] of uniqueWindows) {
-    try {
-      // v4.8.26 F34+: 三连击让 Chrome 真的标记"曾 visible"
-      // 1) state:"normal" + focused:true — 防 minimized 同时请求前台
-      // 2) tab active:true — 双保险确保 window 内该 tab 可见
-      // 3) 等 800ms — Windows OS Foreground Lock Timeout 防扩展程序化 focus，
-      //    但 800ms 内 chrome RenderWidgetHostImpl::SetHidden(false) 应该已触发
-      await chrome.windows.update(wid, { state: "normal", focused: true });
-      await chrome.tabs.update(tabId, { active: true });
-      await new Promise(r => setTimeout(r, 800));
-      console.log(`[F34] activated win=${wid} tab=${tabId}`);
-    } catch (e) {
-      console.warn(`[F34] activate win ${wid}: ${e?.message}`);
-    }
-  }
-  // 还原原始焦点
-  if (originalFocusedWindowId) {
-    try { await chrome.windows.update(originalFocusedWindowId, { focused: true }); } catch {}
-  }
-  console.log(`[F34] activation done, focus restored to ${originalFocusedWindowId}`);
-}
+// v4.8.34: activateAiWindowsOnce / _activatedOnce / storage.session activatedOnce 整套删除
+// （视觉抖动元凶；详见上方注释）
 
 // 触发 1: 安装 / 启动 / SW 唤醒
 chrome.runtime.onInstalled.addListener(() => { injectBootstrapToExistingTabs(); });

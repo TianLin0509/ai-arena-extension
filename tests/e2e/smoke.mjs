@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.33-beta", manifest.version_name === "4.8.33-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.34-beta", manifest.version_name === "4.8.34-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.33-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.34-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.33-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.34-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.33-beta", popupVersion === "v4.8.33-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.34-beta", popupVersion === "v4.8.34-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -681,6 +681,27 @@ try {
   check("v4.8.33: popup 启动默认 tab = members（reload 后即使 storage.rpActiveTab=tasks 也不恢复）",
     defaultTabState.active === "members" && defaultTabState.activePanel === "members",
     JSON.stringify(defaultTabState));
+
+  // v4.8.34: 取消"扫一遍 AI 窗口"视觉抖动 — 删除 activateAiWindowsOnce 整套
+  //   旧版（v4.8.26-v4.8.33）chrome 启动后第一次激活扩展会依次 focus 每个 AI window 800ms
+  //   用户报告"扫一遍"视觉差，v4.8.34 删除该机制；并列模式不再 focus 抢屏
+  //   保留：injectBootstrapToTab 静默注入 JS（无视觉副作用）+ tab 模式 CDP attach
+  check("v4.8.34: background.js 删除 activateAiWindowsOnce 函数定义",
+    !/async function activateAiWindowsOnce\b/.test(backgroundSrc) &&
+    !/await activateAiWindowsOnce\(/.test(backgroundSrc),
+    "background.js 仍含 activateAiWindowsOnce 定义或调用");
+  check("v4.8.34: background.js 删除 _activatedOnce 状态变量",
+    !/let _activatedOnce\b/.test(backgroundSrc) &&
+    !/_activatedOnce\s*=\s*true/.test(backgroundSrc) &&
+    !/storage\.session\.(get|set)\([^)]*activatedOnce/.test(backgroundSrc),
+    "background.js 仍含 _activatedOnce / storage.session activatedOnce");
+  check("v4.8.34: background.js 删除 [F34] 三连击 focus/active 800ms 序列",
+    !/state:\s*"normal",\s*focused:\s*true/.test(backgroundSrc) ||
+    !/setTimeout\(r,\s*800\)/.test(backgroundSrc),
+    "background.js 仍保留 [F34] focused:true + 800ms 三连击");
+  check("v4.8.34: tests/e2e/f34-activate-real.mjs 已删除（测试目标函数已不存在）",
+    !fs.existsSync(path.join(PROJECT_ROOT, "tests", "e2e", "f34-activate-real.mjs")),
+    "f34-activate-real.mjs 仍存在");
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
