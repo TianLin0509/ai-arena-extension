@@ -140,6 +140,52 @@ async function injectBootstrapToTab(tabId, url, reason) {
   }
 }
 
+// v4.8.46: AI URL → 业务 content scripts 映射（与 manifest content_scripts 对齐）
+//   reload 扩展后 manifest 不会自动重注入，需要主动执行；ping 失败时也按需重注入
+const AI_PATTERN_TO_SCRIPTS = [
+  { re: /^https:\/\/claude\.ai\//, files: ["inject-images.js", "content-claude.js"] },
+  { re: /^https:\/\/gemini\.google\.com\//, files: ["inject-images.js", "content-gemini.js"] },
+  { re: /^https:\/\/chatgpt\.com\//, files: ["inject-images.js", "content-chatgpt.js"] },
+  { re: /^https:\/\/chat\.deepseek\.com\//, files: ["inject-images.js", "content-deepseek.js"] },
+  { re: /^https:\/\/www\.doubao\.com\//, files: ["inject-images.js", "content-doubao.js"] },
+  { re: /^https:\/\/tongyi\.aliyun\.com\//, files: ["inject-images.js", "content-qwen.js"] },
+  { re: /^https:\/\/www\.qianwen\.com\//, files: ["inject-images.js", "content-qwen.js"] },
+  { re: /^https:\/\/kimi\.moonshot\.cn\//, files: ["inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/www\.kimi\.com\//, files: ["inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/yuanbao\.tencent\.com\//, files: ["inject-images.js", "content-yuanbao.js"] },
+  { re: /^https:\/\/grok\.com\//, files: ["inject-images.js", "content-grok.js"] },
+];
+
+function getAiContentScriptsForUrl(url) {
+  if (!url) return null;
+  for (const { re, files } of AI_PATTERN_TO_SCRIPTS) {
+    if (re.test(url)) return files;
+  }
+  return null;
+}
+
+// v4.8.46: 注入业务 content scripts（ISOLATED world），用于 reload 扩展后 AI tab 失联恢复
+//   先 ping 检测，已 ready 就跳过避免双 onMessage listener；失联才注入
+async function ensureContentScriptInjected(tabId, url) {
+  try {
+    await chrome.tabs.sendMessage(tabId, { action: "ping" });
+    return { ok: true, alreadyReady: true };
+  } catch (_) {
+    // ping 失败 → 走重注入
+  }
+  const files = getAiContentScriptsForUrl(url);
+  if (!files) return { ok: false, error: "URL 不匹配 AI 平台" };
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files });
+    console.log(`[F46] re-inject content scripts tab=${tabId} files=${files.join(",")}`);
+    return { ok: true, justInjected: true };
+  } catch (e) {
+    const msg = e?.message || String(e);
+    console.warn(`[F46] re-inject fail tab=${tabId}: ${msg}`);
+    return { ok: false, error: msg };
+  }
+}
+
 async function injectBootstrapToExistingTabs() {
   // v4.8.30 F38-①: 等 windowMode 真加载完（tab/tiled 影响下面的 CDP 路由）
   try { await _windowModeLoaded; } catch (_) {}
@@ -155,6 +201,11 @@ async function injectBootstrapToExistingTabs() {
         const r = await injectBootstrapToTab(tab.id, tab.url, "startup");
         if (r.ok && !r.skipped) injected++;
         else if (!r.ok) failed++;
+        // v4.8.46: 顺带重注入业务 content scripts（content-{service}.js + inject-images.js）
+        //   解决：reload 扩展后已存在 AI tab 的 content script 失联，
+        //         chrome.tabs.sendMessage 报 "Could not establish connection. Receiving end does not exist"
+        //   ensureContentScriptInjected 内部先 ping，已 ready 则跳过避免双 listener
+        try { await ensureContentScriptInjected(tab.id, tab.url); } catch (_) {}
       }
     } catch (e) {
       console.warn(`[F32+] query fail pattern=${pattern}:`, e?.message);
@@ -1436,13 +1487,29 @@ function overlapArea(a, b) {
 // ── 工具函数 ──
 
 async function waitForContentScript(tabId, maxRetries = 12) {
+  // v4.8.46: ping 失败一次后主动 ensureContentScriptInjected（reload 扩展后 manifest
+  //   不会自动重注 content-{service}.js → "Receiving end does not exist"）
+  let triedReinject = false;
   for (let i = 0; i < maxRetries; i++) {
     try {
       await chrome.tabs.sendMessage(tabId, { action: "ping" });
-      // v4.8.19 F32: 不再调 injectVisibilityOverride（已删，manifest content_scripts 提前注入）
       return true;
     } catch (e) {
       if (e.message && (e.message.includes("No tab") || e.message.includes("removed"))) return false;
+      // 第一次失败立刻尝试主动注入；之后只等待
+      if (!triedReinject) {
+        triedReinject = true;
+        try {
+          const tab = await chrome.tabs.get(tabId);
+          if (tab?.url) {
+            const r = await ensureContentScriptInjected(tabId, tab.url);
+            if (r.justInjected) {
+              await new Promise(r2 => setTimeout(r2, 500));  // 等 listener 注册
+              continue;  // 立即重试 ping
+            }
+          }
+        } catch (_) {}
+      }
       await new Promise(r => setTimeout(r, 1000));
     }
   }
