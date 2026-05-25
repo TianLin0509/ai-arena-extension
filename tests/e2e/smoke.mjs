@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.45-beta", manifest.version_name === "4.8.45-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.46-beta", manifest.version_name === "4.8.46-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.45-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.46-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.45-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.46-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.45-beta", popupVersion === "v4.8.45-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.46-beta", popupVersion === "v4.8.46-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1249,6 +1249,58 @@ try {
     stateUpdatePayloadResult.p888?.response === "v4.8.45 测试回答" &&
     stateUpdatePayloadResult.p888?.userEdited === true,
     JSON.stringify(stateUpdatePayloadResult));
+
+  // v4.8.46: reload 扩展后 content scripts 失联恢复
+  //   根因：manifest content_scripts 只在 navigation 时注入 content-{service}.js，
+  //         reload 扩展后已存在 AI tab 的 content script 失联 → "Receiving end does not exist"
+  //   修复：① AI_PATTERN_TO_SCRIPTS 映射 + getAiContentScriptsForUrl helper
+  //         ② ensureContentScriptInjected：ping 检测 → 失败时 chrome.scripting.executeScript 重注入
+  //         ③ injectBootstrapToExistingTabs startup 时主动调
+  //         ④ waitForContentScript 首次 ping 失败 → 尝试 ensureContentScriptInjected 兜底
+  const bgV46 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  check("v4.8.46 ①: background.js 新增 AI_PATTERN_TO_SCRIPTS 映射（11 个 AI URL → files）",
+    /const AI_PATTERN_TO_SCRIPTS\s*=/.test(bgV46) &&
+    /content-claude\.js/.test(bgV46) &&
+    /content-gemini\.js/.test(bgV46) &&
+    /content-chatgpt\.js/.test(bgV46) &&
+    /content-deepseek\.js/.test(bgV46),
+    "background.js 缺 AI_PATTERN_TO_SCRIPTS 映射");
+  check("v4.8.46 ①: getAiContentScriptsForUrl helper",
+    /function getAiContentScriptsForUrl/.test(bgV46),
+    "缺 getAiContentScriptsForUrl helper");
+  check("v4.8.46 ②: ensureContentScriptInjected 含 ping 检测 + executeScript 注入",
+    /async function ensureContentScriptInjected/.test(bgV46) &&
+    /chrome\.tabs\.sendMessage\(tabId,\s*\{\s*action:\s*"ping"/.test(bgV46) &&
+    /chrome\.scripting\.executeScript\(\{ target: \{ tabId \}, files \}\)/.test(bgV46),
+    "ensureContentScriptInjected 不完整");
+  check("v4.8.46 ③: injectBootstrapToExistingTabs 内调 ensureContentScriptInjected",
+    /injectBootstrapToExistingTabs[\s\S]{0,1500}ensureContentScriptInjected\(tab\.id, tab\.url\)/.test(bgV46),
+    "startup 未主动重注入 content scripts");
+  check("v4.8.46 ④: waitForContentScript ping 失败时调 ensureContentScriptInjected 兜底",
+    /async function waitForContentScript[\s\S]{0,800}ensureContentScriptInjected/.test(bgV46) &&
+    /triedReinject/.test(bgV46),
+    "waitForContentScript 缺重注入兜底");
+
+  // 运行时：SW evaluate getAiContentScriptsForUrl 对 11 个 URL 返回正确 files
+  const reinjectUrlResult = await serviceWorker.evaluate(() => {
+    if (typeof getAiContentScriptsForUrl !== "function") {
+      // 不在 self 上，可能是 closure scope；直接试 self.getAi...
+      return { err: "getAiContentScriptsForUrl 不可用（不影响生产，需在 background.js 顶层定义）" };
+    }
+    return {
+      claude: getAiContentScriptsForUrl("https://claude.ai/new"),
+      gemini: getAiContentScriptsForUrl("https://gemini.google.com/app"),
+      chatgpt: getAiContentScriptsForUrl("https://chatgpt.com/c/abc"),
+      bad: getAiContentScriptsForUrl("https://example.com"),
+    };
+  }).catch(e => ({ evalErr: e.message }));
+  check("v4.8.46 运行时: getAiContentScriptsForUrl 正确映射各 AI URL（或函数 module-scope 不暴露 OK）",
+    // 容忍 module-scope：如果 SW 看不到这个 helper（const 不挂 self），跳过运行时检查
+    reinjectUrlResult.err ||
+    (Array.isArray(reinjectUrlResult.claude) && reinjectUrlResult.claude.includes("content-claude.js") &&
+     Array.isArray(reinjectUrlResult.gemini) && reinjectUrlResult.gemini.includes("content-gemini.js") &&
+     reinjectUrlResult.bad === null),
+    JSON.stringify(reinjectUrlResult));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
