@@ -118,14 +118,27 @@
         });
       }
       if (c.task === "debate") {
+        // v4.8.38: 处理 needsConfirm — handleDebateRound 检测到有 AI 正在 polling 时
+        //   先返回 { needsConfirm: true, message }，用户确认后再用 force:true 重发
         return new Promise((res) => {
-          chrome.runtime.sendMessage(
-            { type: "debateRound", style: c.style, guidance: text || "", concise: false },
-            (resp) => {
-              if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
-              res(resp || { ok: false, error: chrome.runtime.lastError?.message });
-            }
-          );
+          const sendOnce = (force) => {
+            chrome.runtime.sendMessage(
+              { type: "debateRound", style: c.style, guidance: text || "", concise: false, force },
+              (resp) => {
+                if (resp?.needsConfirm) {
+                  if (window.confirm(resp.message)) {
+                    sendOnce(true);
+                  } else {
+                    res({ ok: false, cancelled: true });
+                  }
+                  return;
+                }
+                if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
+                res(resp || { ok: false, error: chrome.runtime.lastError?.message });
+              }
+            );
+          };
+          sendOnce(false);
         });
       }
       if (c.task === "summary") {

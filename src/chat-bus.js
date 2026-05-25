@@ -797,6 +797,12 @@ const ChatBus = (() => {
     }
   }
 
+  // v4.8.38: 暴露当前正在 polling 的 service 列表（handleDebateRound 用来检测
+  //   "有 AI 正在回答中"，避免用旧 p.response 启动下一轮辩论）
+  function getActivePollingServices() {
+    return [...pollers.keys()];
+  }
+
   return {
     init,
     openChatPopup,
@@ -815,6 +821,7 @@ const ChatBus = (() => {
     toggleMiniMode,  // v4.8.15 F30
     getPopupMode,    // v4.8.15 F30
     miniMenuExpand,  // v4.8.28
+    getActivePollingServices,  // v4.8.38
     // setMiniSkippedServices 在 v4.8.31 删除（mini 点击改 removeParticipant）
   };
 })();

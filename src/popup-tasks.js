@@ -80,14 +80,23 @@
     root.querySelector("#rp-btn-debate")?.addEventListener("click", () => {
       state.guidance = root.querySelector("#rp-guidance")?.value || "";
       state.concise = root.querySelector("#rp-concise")?.checked || false;
-      chrome.runtime.sendMessage({
-        type: "debateRound",
-        style: state.style,
-        guidance: state.guidance,
-        concise: state.concise,
-      }, (resp) => {
-        if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
-      });
+      // v4.8.38: needsConfirm — 有 AI 在 polling 时让用户决定
+      const sendOnce = (force) => {
+        chrome.runtime.sendMessage({
+          type: "debateRound",
+          style: state.style,
+          guidance: state.guidance,
+          concise: state.concise,
+          force,
+        }, (resp) => {
+          if (resp?.needsConfirm) {
+            if (window.confirm(resp.message)) sendOnce(true);
+            return;
+          }
+          if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
+        });
+      };
+      sendOnce(false);
     });
     root.querySelector("#rp-btn-debate-retry")?.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "retryInject" }, () => {});

@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.37-beta", manifest.version_name === "4.8.37-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.38-beta", manifest.version_name === "4.8.38-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.37-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.38-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.37-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.38-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.37-beta", popupVersion === "v4.8.37-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.38-beta", popupVersion === "v4.8.38-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -810,6 +810,55 @@ try {
   check("v4.8.37: poster-ai-team.webp 可访问 + size > 100KB（新版高分辨率）",
     posterOk.ok && posterOk.size > 100 * 1024 && posterOk.type === "image/webp",
     JSON.stringify(posterOk));
+
+  // v4.8.38: handleDebateRound 检测 polling 中的 AI，弹 confirm 让用户决定
+  //   场景：用户重发某 AI → AI 在异步生成新答案 → 用户立刻点辩论 → 之前会用旧 p.response
+  //   修复：handleDebateRound 检测 ChatBus.getActivePollingServices()，非 force 时返回
+  //         { needsConfirm:true, message, pollingNames }，popup/sidepanel 弹 confirm
+  const chatBusSrcV38 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  const backgroundSrcV38 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  const taskMenuSrcV38 = fs.readFileSync(path.join(EXT_PATH, "popup-task-menu.js"), "utf8");
+  const tasksSrcV38 = fs.readFileSync(path.join(EXT_PATH, "popup-tasks.js"), "utf8");
+  const sidepanelSrcV38 = fs.readFileSync(path.join(EXT_PATH, "sidepanel.js"), "utf8");
+
+  check("v4.8.38: chat-bus.js 暴露 getActivePollingServices",
+    /function getActivePollingServices/.test(chatBusSrcV38) &&
+    /getActivePollingServices,/.test(chatBusSrcV38),
+    "chat-bus.js 缺 getActivePollingServices export");
+  check("v4.8.38: handleDebateRound 加 force 参数 + needsConfirm 早返回",
+    /handleDebateRound\([^)]*force[\s\S]{0,500}if \(!force\)/.test(backgroundSrcV38) &&
+    /needsConfirm:\s*true/.test(backgroundSrcV38) &&
+    /ChatBus\.getActivePollingServices/.test(backgroundSrcV38),
+    "background.js handleDebateRound 缺 needsConfirm 逻辑");
+  check("v4.8.38: background.js case debateRound 传递 msg.force",
+    /handleDebateRound\(msg\.style, msg\.guidance, msg\.concise, msg\.force\)/.test(backgroundSrcV38),
+    "case debateRound 未传 msg.force");
+  check("v4.8.38: popup-task-menu.js 处理 needsConfirm + force:true 重发",
+    /resp\?\.needsConfirm/.test(taskMenuSrcV38) &&
+    /window\.confirm\(resp\.message\)/.test(taskMenuSrcV38) &&
+    /sendOnce\(true\)/.test(taskMenuSrcV38),
+    "popup-task-menu.js 缺 needsConfirm 处理");
+  check("v4.8.38: popup-tasks.js 处理 needsConfirm",
+    /resp\?\.needsConfirm/.test(tasksSrcV38) &&
+    /window\.confirm\(resp\.message\)/.test(tasksSrcV38),
+    "popup-tasks.js 缺 needsConfirm 处理");
+  check("v4.8.38: sidepanel.js 处理 needsConfirm + force:true 重发",
+    /r\?\.needsConfirm/.test(sidepanelSrcV38) &&
+    /window\.confirm\(r\.message\)/.test(sidepanelSrcV38) &&
+    /force:\s*true/.test(sidepanelSrcV38),
+    "sidepanel.js 缺 needsConfirm 处理");
+
+  // 运行时验证：SW 直接调 handleDebateRound — 无 participants 时返回"参与者不足"
+  // 我们 mock 不出 polling 状态，所以只验证 force 参数被识别（force:true 跳过 polling check）
+  const debateConfirmResult = await serviceWorker.evaluate(async () => {
+    if (!self.ChatBus?.getActivePollingServices) return { err: "getActivePollingServices unavailable" };
+    const polling = self.ChatBus.getActivePollingServices();
+    // 默认 chromium 干净环境无 polling，返回 []
+    return { polling, isArray: Array.isArray(polling) };
+  }).catch(e => ({ evalErr: e.message }));
+  check("v4.8.38: ChatBus.getActivePollingServices 返回数组（默认空）",
+    debateConfirmResult.isArray && debateConfirmResult.polling.length === 0,
+    JSON.stringify(debateConfirmResult));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

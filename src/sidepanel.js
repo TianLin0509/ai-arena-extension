@@ -1148,7 +1148,17 @@ btnDebate.addEventListener("click", async () => {
   trackDebateRound();
   try {
     const concise = $("#concise-mode")?.checked || false;
-    const r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise });
+    // v4.8.38: needsConfirm 路径 — handleDebateRound 探测到 polling 中的 AI 会先返回提示
+    let r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise });
+    if (r?.needsConfirm) {
+      if (window.confirm(r.message)) {
+        r = await chrome.runtime.sendMessage({ type: "debateRound", style: debateMode, guidance, concise, force: true });
+      } else {
+        addLog(`已取消（${r.pollingNames?.length || 0} 个 AI 仍在回答中）`, "info");
+        btnDebate.disabled = false; btnDebate.innerHTML = `开始辩论（第${getDebateRound() + 1}轮）`;
+        return;
+      }
+    }
     if (r?.ok) {
       addLog(`第${nextRound}轮已发送`, "success");
       // Mark non-active participants as ready so poll doesn't hang waiting for them

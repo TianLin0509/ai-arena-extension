@@ -244,7 +244,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse(await addParticipant(msg.service)); break;
         case "removeParticipant": sendResponse(await removeParticipant(msg.id)); break;
         case "broadcast":         sendResponse(await handleBroadcast(msg.text, msg.images)); break;
-        case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise)); break;
+        case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise, msg.force)); break;
         case "summary":           sendResponse(await handleSummary(msg.judgeId, msg.customInstruction, msg.format)); break;
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
@@ -820,10 +820,35 @@ async function sendPromptToService(service, text) {
 
 // ── 辩论（状态机驱动） ──
 
-async function handleDebateRound(style = "free", guidance = "", concise = false) {
+async function handleDebateRound(style = "free", guidance = "", concise = false, force = false) {
   if (StateMachine.participants.length < 2) {
     notifyStatus("至少需要 2 个参与者");
     return { ok: false, error: "参与者不足" };
+  }
+
+  // v4.8.38: 检测是否有 AI 正在 polling（重发后 / 当前轮还没收完）
+  //   handleDebateRound 严格读 p.response，但 polling 未完成时 p.response 仍是上一轮内容。
+  //   非强制模式下返回 needsConfirm，由 popup 弹 confirm 询问用户。
+  if (!force) {
+    let activeServices = [];
+    try {
+      activeServices = ChatBus.getActivePollingServices?.() || [];
+    } catch (_) {}
+    if (activeServices.length > 0) {
+      // service → 友好名 + participant id 映射
+      const pollingNames = activeServices.map(svc => {
+        const p = StateMachine.participants.find(pp => pp.service === svc);
+        return p?.name || svc;
+      });
+      return {
+        ok: false,
+        needsConfirm: true,
+        reason: "polling_in_progress",
+        pollingServices: activeServices,
+        pollingNames,
+        message: `⏳ ${pollingNames.length} 个 AI 仍在回答中（${pollingNames.join("、")}），用当前内容辩论将使用上一轮的回答。确认继续？`,
+      };
+    }
   }
 
   const responses = {};
