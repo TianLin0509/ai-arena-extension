@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.47-beta", manifest.version_name === "4.8.47-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.48-beta", manifest.version_name === "4.8.48-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.47-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.48-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.47-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.48-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.47-beta", popupVersion === "v4.8.47-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.48-beta", popupVersion === "v4.8.48-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1191,10 +1191,11 @@ try {
     /\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)\s*\{[\s\S]{0,300}max-height:\s*none/.test(popupCssV44) &&
     /\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)\s*\{[\s\S]{0,300}padding-bottom:\s*34px/.test(popupCssV44),
     "compact-fold 仍 max-height:2.5em（会裁文字）");
-  check("v4.8.44 ①: compact-fold 子元素 max-height:1.6em + nowrap + ellipsis（严格 1 行）",
-    /compact-fold:not\(\.expanded\)\s*>\s*\*:not\(\.msg-fold-toggle\)[\s\S]{0,300}max-height:\s*1\.6em/.test(popupCssV44) &&
-    /compact-fold:not\(\.expanded\)\s*>\s*\*:not\(\.msg-fold-toggle\)[\s\S]{0,300}white-space:\s*nowrap/.test(popupCssV44),
-    "compact-fold 子元素未严格 1 行");
+  // v4.8.48 改写：第 1 个子元素压 1 行 + 其余隐藏（替代 v4.8.44 的"全子元素 1 行"——多段会变多行）
+  check("v4.8.44 ①: compact-fold 第 1 个子元素 max-height:1.6em + nowrap + ellipsis（v4.8.48 改写）",
+    /compact-fold:not\(\.expanded\)\s*>\s*\*:first-child[\s\S]{0,300}max-height:\s*1\.6em/.test(popupCssV44) &&
+    /compact-fold:not\(\.expanded\)\s*>\s*\*:first-child[\s\S]{0,300}white-space:\s*nowrap/.test(popupCssV44),
+    "compact-fold 第 1 个子元素未严格 1 行");
   check("v4.8.44 ①: compact-fold::before 渐变遮罩已删（display:none，与 ellipsis 重复）",
     /\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)::before[\s\S]{0,200}display:\s*none/.test(popupCssV44),
     "compact-fold::before 仍存在遮罩");
@@ -1346,6 +1347,59 @@ try {
   }).catch(() => false);
   check("v4.8.47 运行时: chrome.scripting.executeScript 可用（ensureContentScriptInjected 依赖）",
     scriptingOk === true, "chrome.scripting 不可用");
+
+  // v4.8.48: 修复简洁折叠被多段 markdown 打破
+  //   v4.8.44 用 `> *:not(.msg-fold-toggle)` 对每个直接子元素都 max-height:1.6em，
+  //   markdown 多段（p/h2/strong）渲染后每个子元素各占一行 → 多段 = 多行（用户反馈截图）
+  //   修法：CSS 改成只显示第 1 个子元素 + 其余 display:none
+  const cssV48 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.48 ①: compact-fold 第 1 个子元素压成 1 行（max-height/nowrap/ellipsis）",
+    /\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)\s*>\s*\*:first-child\s*\{[^}]*max-height:\s*1\.6em[^}]*white-space:\s*nowrap[^}]*text-overflow:\s*ellipsis/s.test(cssV48),
+    "缺第 1 个子元素 1 行规则");
+  check("v4.8.48 ②: compact-fold 其余子元素（非 toggle）display:none",
+    /\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)\s*>\s*\*:not\(:first-child\):not\(\.msg-fold-toggle\)\s*\{[^}]*display:\s*none/s.test(cssV48),
+    "缺其余子元素隐藏规则");
+  check("v4.8.48 ③: 移除了 v4.8.44 的全子元素 max-height（确保不撞新规则）",
+    !/\.msg-bubble-foldable\.compact-fold:not\(\.expanded\)\s*>\s*\*:not\(\.msg-fold-toggle\)\s*\{/.test(cssV48),
+    "旧的全子元素 max-height 规则未删（v4.8.44 风格）");
+
+  // 运行时：构造一个含 5 段 markdown 的 .msg-bubble，加 .compact-fold + .msg-bubble-foldable，
+  //   验证只有第 1 段可见（offsetHeight > 0），其余隐藏（offsetHeight === 0）
+  const compactFoldRuntime = await popupPage.evaluate(() => {
+    const test = document.createElement("div");
+    test.className = "msg-bubble msg-bubble-foldable compact-fold";
+    test.style.cssText = "position:fixed;left:-9999px;width:400px;font-size:14px;line-height:1.5;";
+    test.innerHTML = `
+      <h2>第一段标题非常非常长的内容到底有多长呢这是测试用的占位文字</h2>
+      <p>第二段正文应当被隐藏</p>
+      <p>第三段也应当被隐藏</p>
+      <ul><li>第四段列表也应当被隐藏</li></ul>
+      <button class="msg-fold-toggle">展开全文</button>
+    `;
+    document.body.appendChild(test);
+    try {
+      const children = Array.from(test.children);
+      const firstVisible = children[0].offsetHeight > 0;
+      const secondHidden = children[1].offsetHeight === 0;
+      const thirdHidden = children[2].offsetHeight === 0;
+      const fourthHidden = children[3].offsetHeight === 0;
+      const toggleVisible = children[4].offsetHeight > 0;
+      const firstHeight = children[0].offsetHeight;
+      return { firstVisible, secondHidden, thirdHidden, fourthHidden, toggleVisible, firstHeight };
+    } finally {
+      test.remove();
+    }
+  });
+  check("v4.8.48 运行时: 简洁折叠下第 1 段可见 + 第 2/3/4 段隐藏 + toggle 可见",
+    compactFoldRuntime.firstVisible &&
+    compactFoldRuntime.secondHidden &&
+    compactFoldRuntime.thirdHidden &&
+    compactFoldRuntime.fourthHidden &&
+    compactFoldRuntime.toggleVisible,
+    JSON.stringify(compactFoldRuntime));
+  check("v4.8.48 运行时: 第 1 段高度 ≤ 36px（line-height 1.5 × 14px ≈ 21px + 余量）",
+    compactFoldRuntime.firstHeight > 0 && compactFoldRuntime.firstHeight <= 36,
+    `firstHeight=${compactFoldRuntime.firstHeight}`);
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

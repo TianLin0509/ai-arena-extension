@@ -1100,22 +1100,28 @@ body[data-mode="mini"] .mention-menu {
   overflow: hidden;
   padding-bottom: 40px;  /* 给 toggle 按钮留位 */
 }
-/* v4.8.41 + v4.8.44 修复: 简洁模式 — 完整 1 行文字 + 下一行展开按钮
-   旧版 max-height:2.5em + padding-bottom:32px 把文字挤到只剩半行（用户反馈裁切过头）
-   新版：文字区独立 1 行（max-height ~1.6em），按钮通过 padding-bottom 留独立第二行空间 */
+/* v4.8.41 + v4.8.44 + v4.8.48 修复: 简洁模式 — 完整 1 行文字 + 下一行展开按钮
+   v4.8.44 用 `> *:not(.msg-fold-toggle)` 对每个直接子元素都 max-height:1.6em，
+   但 markdown 渲染多段（p/h2/strong 等）时每个子元素都成独立一行 → 多段 = 多行（v4.8.48 用户反馈）
+   v4.8.48 修法：只显示第 1 个 markdown 子元素，其余 display:none */
 .msg-bubble-foldable.compact-fold:not(.expanded) {
   max-height: none;
   padding-bottom: 34px;  /* 给底部 absolute 按钮（≈30px 高）腾位 */
   display: block;
   position: relative;
 }
-.msg-bubble-foldable.compact-fold:not(.expanded) > *:not(.msg-fold-toggle) {
+/* 第 1 个子元素：压成 1 行 + ellipsis */
+.msg-bubble-foldable.compact-fold:not(.expanded) > *:first-child {
   display: block;
   max-height: 1.6em;  /* line-height 1.5 × 1 行 + 余量 = 严格一行 */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   margin: 0;
+}
+/* 其余子元素（除 toggle 按钮）全部隐藏 — 保证简洁模式始终只一行 */
+.msg-bubble-foldable.compact-fold:not(.expanded) > *:not(:first-child):not(.msg-fold-toggle) {
+  display: none;
 }
 .msg-bubble-foldable.compact-fold:not(.expanded)::before {
   display: none;  /* 渐变遮罩不需要 — 已用 ellipsis */
