@@ -438,13 +438,31 @@ const ChatBus = (() => {
 
   async function injectAndPoll(participant, msgId, text) {
     const { tabId, service } = participant;
+    // v4.8.50: 必须检查 content script 返回的 status — 旧逻辑只接 throw 异常，
+    //   但 content script 在 "穷尽 retry 后" 仍可能 return { status: "sent" } 谎报，
+    //   导致上层无感、polling 一直读到旧/错位内容（用户场景：Claude ProseMirror 注入失败
+    //   但 status=sent → polling 误读输入框 "你好" 为回答）。现在 status==='error' 也走错误路径。
+    let injectResp;
     try {
-      await chrome.tabs.sendMessage(tabId, { action: "inject", text });
+      injectResp = await chrome.tabs.sendMessage(tabId, { action: "inject", text });
     } catch (e) {
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId,
         participantId: service, text: `⚠ ${participant.name} 注入失败: ${e.message}`,
         isDone: true,
+      });
+      return;
+    }
+    if (injectResp?.status === "error") {
+      const errMsg = injectResp.error || "未知错误";
+      const fullText = `⚠ ${participant.name} 注入失败: ${errMsg}（请手动在 ${participant.name} 页面发送或点击 🔄 重试）`;
+      sendToPopup({
+        type: "chatStreamUpdate", role: "ai", msgId,
+        participantId: service, text: fullText, isDone: true, injectError: true,
+      });
+      pushLog({
+        role: "ai", msgId, participantId: service,
+        text: fullText, ts: Date.now(), injectError: true,
       });
       return;
     }

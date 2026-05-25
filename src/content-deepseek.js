@@ -168,7 +168,7 @@ async function injectAndSend(text) {
       if (btn && !btn.disabled) { btn.click(); return { site: SITE, status: "sent" }; }
     }
 
-    return { site: SITE, status: "sent" };
+    return { site: SITE, status: "error", error: "发送按钮 disabled 或未找到（注入可能未触发框架状态更新）" };  // v4.8.50: fail-loud（旧逻辑这里 return sent 谎报成功 → 用户感知"已发送但未回答"）
   } catch (e) {
     return { site: SITE, status: "error", error: e.message };
   }

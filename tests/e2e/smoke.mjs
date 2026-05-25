@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.49-beta", manifest.version_name === "4.8.49-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.50-beta", manifest.version_name === "4.8.50-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.49-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.50-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.49-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.50-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.49-beta", popupVersion === "v4.8.49-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.50-beta", popupVersion === "v4.8.50-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1403,6 +1403,35 @@ try {
   check("v4.8.49 运行时: 第 1 段高度 ≤ 64px（line-height 1.5 × 14px × 2 行 + 余量）但 > 21px（不止 1 行）",
     compactFoldRuntime.firstHeight > 21 && compactFoldRuntime.firstHeight <= 64,
     `firstHeight=${compactFoldRuntime.firstHeight}`);
+
+  // v4.8.50: 注入失败 fail-loud
+  //   根因（用户场景）：Claude ProseMirror 注入"你好" → 框架状态未更新 → Enter dispatch
+  //     无响应 → sendButton.disabled=true → for 3 次都跳过 → 旧逻辑兜底 return status:"sent"
+  //     谎报成功 → 上层启动 polling → response selector 错位读到输入框"你好" → 当成
+  //     Claude 回答（截图气泡显示框框样式的"你好"）。用户被迫手动点发送才真正发出。
+  //   修复：① 9 个 content-{service}.js 穷尽 retry 后改 return status:"error"
+  //         ② chat-bus injectAndPoll 检查 injectResp.status — error 时通知 popup 不启 polling
+  const INJECT_CS_FILES = [
+    "content-chatgpt.js", "content-claude.js", "content-deepseek.js", "content-doubao.js",
+    "content-gemini.js", "content-grok.js", "content-kimi.js", "content-qwen.js", "content-yuanbao.js",
+  ];
+  for (const f of INJECT_CS_FILES) {
+    const src = fs.readFileSync(path.join(EXT_PATH, f), "utf8");
+    // 必须有新兜底 error return — 形态 `return { site: SITE, status: "error", error: "发送按钮 disabled 或未找到..." };`
+    const errFallback = /return \{ site: SITE, status: "error", error: "发送按钮 disabled 或未找到/.test(src);
+    // 必须有 v4.8.50 注释（与生产代码一致）
+    const hasMarker = /v4\.8\.50/.test(src);
+    check(`v4.8.50 ①: ${f} 兜底 return 已改成 status:"error"（fail-loud）`,
+      errFallback && hasMarker,
+      `errFallback=${errFallback} hasMarker=${hasMarker}`);
+  }
+
+  const busV50 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  check("v4.8.50 ②: chat-bus injectAndPoll 检查 injectResp.status === 'error' 并发 chatStreamUpdate（不启 polling）",
+    /injectResp\?\.status === "error"/.test(busV50) &&
+    /injectError:\s*true/.test(busV50) &&
+    /async function injectAndPoll[\s\S]{0,2000}injectResp\.error/.test(busV50),
+    "chat-bus injectAndPoll 缺 status===error 路径");
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
