@@ -86,7 +86,7 @@
     row.innerHTML = `
       <div class="msg-body">
         <div class="msg-meta me-meta">
-          <span class="acts"><button data-act="copy" title="复制">📋</button></span>
+          <span class="acts"><button data-act="copy" title="复制">${window.ChatActionIcons?.svg("copy") || "📋"}</button></span>
           <span class="stat done"><span class="pip"></span>已发送</span>
           <span class="time">${escapeHtml(ts)}</span>
           <span class="name">我 · Huawei</span>
@@ -122,11 +122,11 @@
           <span class="time">${escapeHtml(ts)}</span>
           <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
           <span class="acts">
-            <button data-act="reextract" title="重新提取">🔄</button>
-            <button data-act="resend" title="重新发送">📤</button>
-            <button data-act="skip" title="跳过本轮（避免卡住流程）">⏭</button>
-            <button data-act="copy" title="复制">📋</button>
-            <button data-act="jump" title="跳原页">↗</button>
+            <button data-act="reextract" title="重新提取">${window.ChatActionIcons?.svg("reextract") || "🔄"}</button>
+            <button data-act="resend" title="重新发送">${window.ChatActionIcons?.svg("resend") || "📤"}</button>
+            <button data-act="skip" title="跳过本轮（避免卡住流程）">${window.ChatActionIcons?.svg("skip") || "⏭"}</button>
+            <button data-act="copy" title="复制">${window.ChatActionIcons?.svg("copy") || "📋"}</button>
+            <button data-act="jump" title="跳原页">${window.ChatActionIcons?.svg("jump") || "↗"}</button>
           </span>
         </div>
         <div class="msg-bubble">${isTyping ? `<span class="msg-typing"><span></span><span></span><span></span></span>` : renderMarkdown(initialText)}</div>

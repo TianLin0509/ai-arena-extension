@@ -1230,16 +1230,35 @@ body[data-mode="mini"] .mention-menu {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.4); opacity: 0.5; }
 }
-.msg-meta .acts { margin-left: auto; display: flex; gap: 1px; opacity: 0; transition: opacity 0.15s; }
+.msg-meta .acts { margin-left: auto; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
 .msg:hover .msg-meta .acts { opacity: 1; }
+/* v4.8.42 K样式: 气泡 5 按钮 — resend/reextract/skip 跳色，copy/jump 中性灰
+   配色用 rgba(0,0,0,X) 黑色透明叠层，对浅/深主题都中性（不依赖 prefers-color-scheme） */
 .msg-meta .acts button {
-  background: transparent; border: none;
+  width: 22px; height: 22px;
+  background: rgba(127,127,127,0.12);
+  border: none; border-radius: 5px;
   color: var(--ink-soft); cursor: pointer;
-  padding: 1px 5px; border-radius: 4px;
-  font-size: 10.5px;
-  transition: all 0.12s;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  position: relative;
 }
-.msg-meta .acts button:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
+.msg-meta .acts button .ai-icn { width: 13px; height: 13px; }
+.msg-meta .acts button[data-act="resend"]    { background: rgba(10,132,255,0.12); color: #0a84ff; }
+.msg-meta .acts button[data-act="reextract"] { background: rgba(52,199,89,0.14);  color: #34c759; }
+.msg-meta .acts button[data-act="skip"]      { background: rgba(255,159,10,0.14); color: #ff9f0a; }
+.msg-meta .acts button:hover {
+  transform: scale(1.08);
+  filter: saturate(1.2);
+}
+.msg-meta .acts button[data-act="resend"]:hover    { background: #0a84ff; color: #fff; }
+.msg-meta .acts button[data-act="reextract"]:hover { background: #34c759; color: #fff; }
+.msg-meta .acts button[data-act="skip"]:hover      { background: #ff9f0a; color: #fff; }
+.msg-meta .acts button[data-act="copy"]:hover,
+.msg-meta .acts button[data-act="jump"]:hover {
+  background: rgba(127,127,127,0.24); color: var(--ink);
+}
 .me-meta { flex-direction: row-reverse; }
 .me-meta .acts { margin-left: 0; margin-right: auto; }
 
@@ -2831,43 +2850,53 @@ body { letter-spacing: -0.01em; }
   gap: 6px;
   min-width: 0;
 }
-/* v4.8.41: 卡片下方 3 个快捷按钮（重发/提取/跳过） — 比 ⋯ 菜单更显眼 */
+/* v4.8.41 + v4.8.42 K样式: 卡片下方 3 快捷按钮（重发蓝/提取绿/跳过橙） icon-only + hover tooltip */
 .hero-quick-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: 5px;
+  margin-top: 4px;
 }
 .hqa-btn {
+  width: 100%;
+  height: 28px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  padding: 5px 2px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  border: none;
+  border-radius: 7px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 10px;
-  color: var(--ink-soft);
   transition: all 0.15s;
-  min-width: 0;
+  position: relative;
 }
+.hqa-btn[data-act="resend"]     { background: rgba(10,132,255,0.10); color: #0a84ff; }
+.hqa-btn[data-act="reextract"]  { background: rgba(52,199,89,0.12);  color: #34c759; }
+.hqa-btn[data-act="skip"]       { background: rgba(255,159,10,0.12); color: #ff9f0a; }
 .hqa-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transform: scale(1.06);
+  filter: saturate(1.2);
 }
-.hqa-btn:active { transform: translateY(0) scale(0.96); }
-.hqa-icon {
-  font-size: 14px;
-  line-height: 1;
+.hqa-btn[data-act="resend"]:hover    { background: #0a84ff; color: #fff; }
+.hqa-btn[data-act="reextract"]:hover { background: #34c759; color: #fff; }
+.hqa-btn[data-act="skip"]:hover      { background: #ff9f0a; color: #fff; }
+.hqa-btn:active { transform: scale(0.96); }
+.hqa-btn .ai-icn { width: 16px; height: 16px; display: block; }
+/* hover tooltip — 用 data-label 不依赖 title 系统延迟 */
+.hqa-btn::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(2px);
+  background: var(--ink); color: var(--card);
+  font-size: 10.5px; padding: 3px 8px; border-radius: 5px;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.18s, transform 0.18s;
+  z-index: 10;
 }
-.hqa-label {
-  font-weight: 600;
-  letter-spacing: 0.02em;
+.hqa-btn:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 .hero-slot {
   /* v4.8.17: 0.85 → 0.72 贴合卡牌比例 */

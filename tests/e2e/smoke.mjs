@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.41-beta", manifest.version_name === "4.8.41-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.42-beta", manifest.version_name === "4.8.42-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.41-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.42-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.41-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.42-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.41-beta", popupVersion === "v4.8.41-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.42-beta", popupVersion === "v4.8.42-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1002,6 +1002,86 @@ try {
     compactRuntimeResult.after?.bodyAttr === "on" &&
     compactRuntimeResult.after?.active === true,
     JSON.stringify(compactRuntimeResult));
+
+  // v4.8.42: K 样式 + SVG 统一图标
+  //   - 新模块 popup-action-icons.js 暴露 window.ChatActionIcons.svg(action)
+  //   - popup.js / popup-members.js 用 SVG 替换 emoji
+  //   - popup-bubble-actions.js 用 innerHTML 备份还原（不再 textContent 覆盖）
+  //   - popup.css K 样式：resend蓝/reextract绿/skip橙 淡底→hover实色，copy/jump 中性灰
+  const actionIconsSrc = fs.readFileSync(path.join(EXT_PATH, "popup-action-icons.js"), "utf8");
+  const popupHtmlV42 = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
+  const popupJsV42 = fs.readFileSync(path.join(EXT_PATH, "popup.js"), "utf8");
+  const popupMembersV42 = fs.readFileSync(path.join(EXT_PATH, "popup-members.js"), "utf8");
+  const bubbleActionsV42 = fs.readFileSync(path.join(EXT_PATH, "popup-bubble-actions.js"), "utf8");
+  const popupCssV42 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+
+  check("v4.8.42 ①: popup-action-icons.js 含 5 个 action SVG（resend/reextract/skip/copy/jump）",
+    ["resend", "reextract", "skip", "copy", "jump"].every(a => new RegExp(a + ":").test(actionIconsSrc)) &&
+    /window\.ChatActionIcons\s*=/.test(actionIconsSrc),
+    "popup-action-icons.js 不完整");
+  check("v4.8.42 ①: popup.html 加载 popup-action-icons.js 在 popup-members.js 之前",
+    /<script src="popup-action-icons\.js"><\/script>/.test(popupHtmlV42),
+    "popup.html 未加载 SVG 模块");
+  check("v4.8.42 ①: popup.js 用 ChatActionIcons.svg() 替换气泡 5 emoji",
+    /ChatActionIcons\?\.svg\("reextract"\)/.test(popupJsV42) &&
+    /ChatActionIcons\?\.svg\("resend"\)/.test(popupJsV42) &&
+    /ChatActionIcons\?\.svg\("skip"\)/.test(popupJsV42) &&
+    /ChatActionIcons\?\.svg\("copy"\)/.test(popupJsV42) &&
+    /ChatActionIcons\?\.svg\("jump"\)/.test(popupJsV42),
+    "popup.js 5 个气泡按钮未全部用 SVG helper");
+  check("v4.8.42 ①: popup-members.js 用 ChatActionIcons.svg() 替换卡下方 3 emoji",
+    /ChatActionIcons\?\.svg\("resend"\)/.test(popupMembersV42) &&
+    /ChatActionIcons\?\.svg\("reextract"\)/.test(popupMembersV42) &&
+    /ChatActionIcons\?\.svg\("skip"\)/.test(popupMembersV42),
+    "popup-members.js 未用 SVG helper");
+  check("v4.8.42 ①: 卡下方 reextract/resend emoji 颠倒已修复（不再含 hqa-icon 文字标签）",
+    !/hqa-icon/.test(popupMembersV42) && !/hqa-label/.test(popupMembersV42),
+    "popup-members.js 仍含旧 .hqa-icon/.hqa-label 文字");
+  check("v4.8.42 ②: popup-bubble-actions.js 用 innerHTML 备份还原（保住 SVG 不被 textContent 冲掉）",
+    /const orig = btn\.innerHTML/.test(bubbleActionsV42) &&
+    /btn\.innerHTML = orig/.test(bubbleActionsV42) &&
+    !/const orig = btn\.textContent[\s\S]{0,400}btn\.textContent = orig/.test(bubbleActionsV42),
+    "popup-bubble-actions.js 仍用 textContent（会清掉 SVG）");
+  check("v4.8.42 ③: popup.css .hqa-btn K 样式 — resend 蓝 / reextract 绿 / skip 橙 淡底",
+    /\.hqa-btn\[data-act="resend"\][\s\S]{0,200}rgba\(10,132,255/.test(popupCssV42) &&
+    /\.hqa-btn\[data-act="reextract"\][\s\S]{0,200}rgba\(52,199,89/.test(popupCssV42) &&
+    /\.hqa-btn\[data-act="skip"\][\s\S]{0,200}rgba\(255,159,10/.test(popupCssV42),
+    "popup.css 缺 K 样式的三色淡底");
+  check("v4.8.42 ③: popup.css .hqa-btn:hover 跳实色（resend蓝 / reextract绿 / skip橙）",
+    /\.hqa-btn\[data-act="resend"\]:hover[\s\S]{0,200}#0a84ff/.test(popupCssV42) &&
+    /\.hqa-btn\[data-act="reextract"\]:hover[\s\S]{0,200}#34c759/.test(popupCssV42) &&
+    /\.hqa-btn\[data-act="skip"\]:hover[\s\S]{0,200}#ff9f0a/.test(popupCssV42),
+    "popup.css 缺 hover 跳实色");
+  check("v4.8.42 ③: popup.css .hqa-btn::after data-label hover tooltip",
+    /\.hqa-btn::after[\s\S]{0,400}attr\(data-label\)/.test(popupCssV42) &&
+    /\.hqa-btn:hover::after/.test(popupCssV42),
+    "popup.css 缺 hqa-btn tooltip 样式");
+  check("v4.8.42 ③: popup.css 气泡 .msg-meta .acts button 也用 K 样式（resend/reextract/skip 跳色）",
+    /\.msg-meta \.acts button\[data-act="resend"\][\s\S]{0,200}rgba\(10,132,255/.test(popupCssV42) &&
+    /\.msg-meta \.acts button\[data-act="reextract"\][\s\S]{0,200}rgba\(52,199,89/.test(popupCssV42) &&
+    /\.msg-meta \.acts button\[data-act="skip"\][\s\S]{0,200}rgba\(255,159,10/.test(popupCssV42),
+    "popup.css 气泡按钮未用 K 样式");
+  check("v4.8.42 ③: popup.css 不再引入新 prefers-color-scheme（沿用 v4.8.35 决策）",
+    !/@media\s*\(\s*prefers-color-scheme/.test(popupCssV42),
+    "popup.css 又含 prefers-color-scheme（违反 v4.8.35）");
+
+  // 运行时验证：popup 上有 .hqa-btn 时 svg.ai-icn 渲染出来（v4.8.42 验证 SVG 注入路径）
+  const svgRuntimeResult = await popupPage.evaluate(() => {
+    return {
+      hasIconsApi: typeof window.ChatActionIcons?.svg === "function",
+      resendSvg: window.ChatActionIcons?.svg?.("resend") || "",
+      reextractSvg: window.ChatActionIcons?.svg?.("reextract") || "",
+    };
+  });
+  check("v4.8.42 运行时: window.ChatActionIcons.svg 可用且返回带 <svg> 的字符串",
+    svgRuntimeResult.hasIconsApi === true &&
+    svgRuntimeResult.resendSvg.includes("<svg") &&
+    svgRuntimeResult.reextractSvg.includes("<svg"),
+    JSON.stringify({
+      hasIconsApi: svgRuntimeResult.hasIconsApi,
+      resendLen: svgRuntimeResult.resendSvg.length,
+      reextractLen: svgRuntimeResult.reextractSvg.length,
+    }));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

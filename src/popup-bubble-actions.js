@@ -72,9 +72,10 @@
     if (act === "copy") {
       try {
         await navigator.clipboard.writeText(text);
-        const orig = btn.textContent;
-        btn.textContent = "✓";
-        setTimeout(() => btn.textContent = orig, 1000);
+        // v4.8.42: 按钮内容是 SVG，用 innerHTML 备份还原，textContent 会冲掉 SVG
+        const orig = btn.innerHTML;
+        btn.innerHTML = "✓";
+        setTimeout(() => btn.innerHTML = orig, 1000);
       } catch (err) { console.warn("copy failed:", err); }
     } else if (act === "jump") {
       if (!participantId) return;
@@ -82,22 +83,22 @@
     } else if (act === "reextract") {
       if (!participantId) return;
       btn.disabled = true;
-      const orig = btn.textContent;
-      btn.textContent = "⏳";
+      const orig = btn.innerHTML;
+      btn.innerHTML = "⏳";
       chrome.runtime.sendMessage({ type: "chatReextractOne", participantId }, () => {
         btn.disabled = false;
-        btn.textContent = orig;
+        btn.innerHTML = orig;
       });
     } else if (act === "resend") {
       // v4.8.7 F26: 不再用 popup user 气泡显示文本（辩论/总结只是短显示文本）
       // 改为不传 text → background.sendPromptToService 自动从 lastSentByPid 取完整 prompt
       if (!participantId) return;
       btn.disabled = true;
-      const orig = btn.textContent;
-      btn.textContent = "⏳";
+      const orig = btn.innerHTML;
+      btn.innerHTML = "⏳";
       chrome.runtime.sendMessage(
         { type: "sendPromptToService", service: participantId },
-        () => { btn.disabled = false; btn.textContent = orig; }
+        () => { btn.disabled = false; btn.innerHTML = orig; }
       );
     } else if (act === "skip") {
       // 跳过本轮：标记气泡"已跳过"，通知 background 取消该 AI 的 polling 但保留 participant
