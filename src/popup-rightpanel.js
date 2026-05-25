@@ -20,11 +20,7 @@
     document.querySelectorAll(".rp-tab").forEach(btn => {
       btn.addEventListener("click", () => activate(btn.dataset.tab));
     });
-    try {
-      chrome.storage?.local.get(["rpActiveTab"], (r) => {
-        if (r?.rpActiveTab && TABS.includes(r.rpActiveTab)) activate(r.rpActiveTab);
-      });
-    } catch (_) {}
+    // v4.8.33: 每次打开默认成员 tab，不恢复上次选择（rpActiveTab 仍写入便于其他模块查询）
   }
 
   window.ChatRightPanel = {

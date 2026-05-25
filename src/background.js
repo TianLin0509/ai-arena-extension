@@ -1282,8 +1282,7 @@ async function arrangeWindows(screen = lastKnownScreen) {
   return { ok: true, screen: targetScreen, displayId: targetLayout.displayId, isDifferentDisplay: targetLayout.isDifferentDisplay };
 }
 
-// AI 平台域名（用于过滤"我们自己创建的 AI window"，避免它们污染 hasUserWindow 判定）
-const AI_HOSTS = /(?:^|\.)(claude\.ai|gemini\.google\.com|chatgpt\.com|deepseek\.com|doubao\.com|qianwen\.com|tongyi\.aliyun\.com|kimi\.com|kimi\.moonshot\.cn|yuanbao\.tencent\.com|grok\.com)$/i;
+// v4.8.33: 删除 AI_HOSTS — 副屏判定不再依赖 hasUserWindow，AI 域名过滤无用
 
 async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
   const fallback = normalizeScreen(sidepanelScreen);
@@ -1313,42 +1312,15 @@ async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
       return { screen: currentScreen, displayId: current?.id || null, isDifferentDisplay: false };
     }
 
-    // 检测"真副屏"：
-    //   (1) 与 current 屏物理不重叠
-    //   (2) 该 display 上至少存在一个【非 AI 平台】的用户 chrome window
-    // 条件 (2) 防虚拟副屏 + 防"上一次错误弹到虚拟副屏的 AI window 自污染"
-    const allWindows = await chrome.windows.getAll({ populate: true }).catch(() => []);
-    function isUserWindow(w) {
-      // 无 tab 信息：保守视为用户窗口
-      if (!w.tabs?.length) return true;
-      // 我们之前创建的 AI 窗口都是单 tab 且 url 是 AI 平台 → 全部 tab 都 match AI 域名时跳过
-      return !w.tabs.every(t => {
-        try {
-          if (!t.url) return false;
-          const host = new URL(t.url).hostname;
-          return AI_HOSTS.test(host);
-        } catch { return false; }
-      });
-    }
-    function hasUserWindow(displayScreen) {
-      return allWindows.some(w => {
-        if (!isUserWindow(w)) return false;
-        if (typeof w.left !== "number" || typeof w.width !== "number") return false;
-        const cx = w.left + w.width / 2;
-        const cy = w.top + w.height / 2;
-        return cx >= displayScreen.left
-          && cx < displayScreen.left + displayScreen.width
-          && cy >= displayScreen.top
-          && cy < displayScreen.top + displayScreen.height;
-      });
-    }
-
+    // v4.8.33: 副屏判定放宽 — 默认 AI 窗口去和群聊窗口"不同屏"
+    //   旧规则要求副屏上有【非 AI 平台】的用户 chrome window（防虚拟副屏自污染），
+    //   代价：副屏空白时识别失败 → 用户实际是双屏却 AI 仍弹同屏。
+    //   新规则：只看 chrome.system.display 报告的物理不重叠副屏，去掉 hasUserWindow 门。
     const others = normalized.filter(d => {
       if (d.id === current.id) return false;
       const notOverlap = !overlapsDisplay(d.screen, currentScreen);
-      const hasUser = hasUserWindow(d.screen);
-      console.log("[Arena/layout] other display", d.id.slice(-6), "notOverlap:", notOverlap, "hasUserWindow:", hasUser);
-      return notOverlap && hasUser;
+      console.log("[Arena/layout] other display", d.id.slice(-6), "notOverlap:", notOverlap);
+      return notOverlap;
     });
 
     if (others.length === 0) {

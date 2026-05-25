@@ -51,19 +51,21 @@ const ChatBus = (() => {
   }
 
   async function defaultBounds() {
+    // v4.8.33: 首次打开（无记忆 bounds）= 屏幕 80%×80% 居中，去掉 1100×720 封顶
+    //          只影响 defaultBounds，用户拖动后仍走 popupBounds 记忆
     try {
       const displays = await chrome.system.display.getInfo();
       const primary = displays.find(d => d.isPrimary) || displays[0];
-      const w = Math.min(1100, Math.round(primary.workArea.width * 0.7));
-      const h = Math.min(720, Math.round(primary.workArea.height * 0.85));
+      const w = Math.round(primary.workArea.width * 0.8);
+      const h = Math.round(primary.workArea.height * 0.8);
       return {
-        left: primary.workArea.left + primary.workArea.width - w - 20,
-        top: primary.workArea.top + 40,
+        left: primary.workArea.left + Math.round((primary.workArea.width - w) / 2),
+        top: primary.workArea.top + Math.round((primary.workArea.height - h) / 2),
         width: w,
         height: h,
       };
     } catch {
-      return { left: 100, top: 100, width: 1100, height: 720 };
+      return { left: 100, top: 100, width: 1280, height: 800 };
     }
   }
 

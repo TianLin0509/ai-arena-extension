@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.32-beta", manifest.version_name === "4.8.32-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.33-beta", manifest.version_name === "4.8.33-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.32-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.33-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.32-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.33-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.32-beta", popupVersion === "v4.8.32-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.33-beta", popupVersion === "v4.8.33-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -634,6 +634,53 @@ try {
   check("v4.8.32: sidebar 跳过'🔄 重发'占位（2 turns 不含重发文本，AI replies 合入上个 turn）",
     resendFilter.turnCount === 2 && !resendFilter.hasResend,
     JSON.stringify(resendFilter));
+
+  // v4.8.33: 三项屏幕感知改造静态校验
+  //   ① chat-bus.js defaultBounds 改 80%×80% 居中（去掉 1100×720 封顶）
+  //   ② popup-rightpanel.js init 不再从 storage 恢复 tab（默认 members）
+  //   ③ background.js getAiTargetLayout 副屏判定不再依赖 hasUserWindow
+  const chatBusSrc = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  const rightPanelSrc = fs.readFileSync(path.join(EXT_PATH, "popup-rightpanel.js"), "utf8");
+  const backgroundSrc = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+
+  check("v4.8.33: defaultBounds 用 0.8 比例（80%×80%）",
+    /workArea\.width \* 0\.8\b/.test(chatBusSrc) && /workArea\.height \* 0\.8\b/.test(chatBusSrc),
+    "chat-bus.js defaultBounds 未匹配 0.8 比例");
+  check("v4.8.33: defaultBounds 去掉 1100/720 封顶",
+    !/Math\.min\(1100[\s\S]{0,80}workArea\.width \* 0\.7/.test(chatBusSrc) &&
+    !/Math\.min\(720[\s\S]{0,80}workArea\.height \* 0\.85/.test(chatBusSrc),
+    "chat-bus.js 仍含旧封顶逻辑");
+  check("v4.8.33: defaultBounds 居中（含 (width - w) / 2）",
+    /\(primary\.workArea\.width - w\) \/ 2/.test(chatBusSrc),
+    "chat-bus.js defaultBounds 未居中");
+  check("v4.8.33: popup-rightpanel.js init 不再恢复 rpActiveTab",
+    !/storage\?\.local\.get\(\["rpActiveTab"\]/.test(rightPanelSrc),
+    "popup-rightpanel.js 仍含 storage.get(rpActiveTab) 恢复逻辑");
+  check("v4.8.33: popup-rightpanel.js activate 仍写入 rpActiveTab（便于其他模块查询）",
+    /storage\?\.local\.set\(\{ rpActiveTab/.test(rightPanelSrc),
+    "popup-rightpanel.js activate 不再写入 rpActiveTab（不期望被删）");
+  check("v4.8.33: getAiTargetLayout 不再调用 hasUserWindow",
+    !/hasUserWindow\(/.test(backgroundSrc),
+    "background.js 仍有 hasUserWindow 调用");
+  check("v4.8.33: AI_HOSTS 已删除（无引用）",
+    !/AI_HOSTS\s*=/.test(backgroundSrc) && !/AI_HOSTS\.test/.test(backgroundSrc),
+    "background.js 仍含 AI_HOSTS");
+
+  // 运行时验证：先把 rpActiveTab=tasks 写入 storage → reload popup → 检查 active 仍是 members
+  await popupPage.evaluate(async () => {
+    await new Promise(r => chrome.storage.local.set({ rpActiveTab: "tasks" }, r));
+  });
+  await popupPage.reload({ waitUntil: "domcontentloaded" });
+  await popupPage.waitForTimeout(150);  // 等 popup-rightpanel.js init 完成 storage 异步读
+  const defaultTabState = await popupPage.evaluate(() => {
+    return {
+      active: document.querySelector(".rp-tab.active")?.dataset.tab,
+      activePanel: document.querySelector(".rp-panel.active")?.dataset.rpPanel,
+    };
+  });
+  check("v4.8.33: popup 启动默认 tab = members（reload 后即使 storage.rpActiveTab=tasks 也不恢复）",
+    defaultTabState.active === "members" && defaultTabState.activePanel === "members",
+    JSON.stringify(defaultTabState));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
