@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.51-beta", manifest.version_name === "4.8.51-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.52-beta", manifest.version_name === "4.8.52-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.51-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.52-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.51-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.52-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.51-beta", popupVersion === "v4.8.51-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.52-beta", popupVersion === "v4.8.52-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1509,6 +1509,80 @@ try {
     logoStyleRuntime.bodyAttrBasic === "basic" &&
     logoStyleRuntime.bodyAttrCat === "cat",
     JSON.stringify(logoStyleRuntime));
+
+  // v4.8.52: Tab 模式 debugger 提示
+  //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
+  //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
+  //   扩展无法拦截点击 → 只能教育用户。一次性 storage flag 记忆已读。
+  const wmJs = fs.readFileSync(path.join(EXT_PATH, "popup-window-mode.js"), "utf8");
+  check("v4.8.52 ①: popup-window-mode.js 含 maybeShowDebuggerWarning + WARN_FLAG storage 读写",
+    /function maybeShowDebuggerWarning/.test(wmJs) &&
+    /tabDebuggerWarnSeen/.test(wmJs) &&
+    /chrome\.storage\.local\.set\(\{\s*\[WARN_FLAG\]:\s*true\s*\}\)/.test(wmJs),
+    "popup-window-mode.js 缺 debugger 提示逻辑");
+  check("v4.8.52 ①: setMode('tab') / init / onChanged 三处都触发提醒",
+    /if \(next === "tab"\) maybeShowDebuggerWarning/.test(wmJs) &&
+    /if \(v === "tab"\) maybeShowDebuggerWarning/.test(wmJs) &&
+    /if \(mode === "tab"\) maybeShowDebuggerWarning/.test(wmJs),
+    "三个触发点不全");
+  check("v4.8.52 ①: 文案含 chrome 横条提示 + 不要点取消 + 切回并列建议",
+    /已开始调试此浏览器/.test(wmJs) &&
+    /不要点[\s\S]{0,10}取消/.test(wmJs) &&
+    /并列[\s\S]{0,5}模式/.test(wmJs),
+    "文案不完整");
+
+  const cssV52 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.52 ②: CSS .msg.system + .msg-sys-bubble + .msg-sys-close 样式",
+    /\.msg\.system\s*\{[^}]*display:\s*flex/s.test(cssV52) &&
+    /\.msg-sys-bubble\s*\{[^}]*background:\s*rgba\(255,\s*159,\s*10/s.test(cssV52) &&
+    /\.msg-sys-close\s*\{[^}]*cursor:\s*pointer/s.test(cssV52),
+    "CSS 缺 .msg.system 样式");
+
+  // 运行时：popup 中模拟切到 tab 模式，验证 .msg.system[data-sys-key="tab-debugger"] 出现 + storage 写入
+  const debugWarnRuntime = await popupPage.evaluate(async () => {
+    if (!window.ChatWindowMode) return { err: "ChatWindowMode 未加载" };
+    const initialMode = window.ChatWindowMode.current;
+    const hasMessagesDiv = !!document.getElementById("chat-messages");
+    const flagBeforeRemove = await new Promise(r => chrome.storage.local.get(["tabDebuggerWarnSeen"], resp => r(!!resp?.tabDebuggerWarnSeen)));
+    // 清掉 storage flag 让提示能触发 + 移除可能已存在的 .msg.system 行
+    await new Promise(r => chrome.storage.local.remove(["tabDebuggerWarnSeen"], r));
+    document.querySelectorAll('.msg.system[data-sys-key="tab-debugger"]').forEach(el => el.remove());
+    // 先强制切到 tiled（防当前已是 tab，set("tab") 因 next === mode 直接 return）
+    if (window.ChatWindowMode.current === "tab") {
+      await window.ChatWindowMode.set("tiled");
+      await new Promise(r => setTimeout(r, 300));
+    }
+    const modeBeforeTab = window.ChatWindowMode.current;
+    // 再切到 tab → 触发 maybeShowDebuggerWarning（fire-and-forget async）
+    await window.ChatWindowMode.set("tab");
+    // 等 storage 读 + DOM 插入完成（maybeShowDebuggerWarning 是 async 但 setMode 不 await 它）
+    await new Promise(r => setTimeout(r, 600));
+    const sysRow = document.querySelector('.msg.system[data-sys-key="tab-debugger"]');
+    const hasIcon = !!sysRow?.querySelector(".msg-sys-icon");
+    const hasClose = !!sysRow?.querySelector(".msg-sys-close");
+    const text = sysRow?.querySelector(".msg-sys-text")?.textContent?.slice(0, 200) || "";
+    const flagSet = await new Promise(r => chrome.storage.local.get(["tabDebuggerWarnSeen"], resp => r(!!resp?.tabDebuggerWarnSeen)));
+    // 再次切到 tab（应该不重复插入，因为 flag 已设）
+    await window.ChatWindowMode.set("tiled");
+    await new Promise(r => setTimeout(r, 200));
+    await window.ChatWindowMode.set("tab");
+    await new Promise(r => setTimeout(r, 400));
+    const sysCount = document.querySelectorAll('.msg.system[data-sys-key="tab-debugger"]').length;
+    // 还原
+    await window.ChatWindowMode.set("tiled");
+    return { initialMode, modeBeforeTab, hasMessagesDiv, flagBeforeRemove, hasRow: !!sysRow, hasIcon, hasClose, text, flagSet, sysCount };
+  });
+  check("v4.8.52 运行时: 切到 Tab 后插入 .msg.system 提示气泡（含 icon + 关闭按钮）",
+    debugWarnRuntime.hasRow && debugWarnRuntime.hasIcon && debugWarnRuntime.hasClose,
+    JSON.stringify(debugWarnRuntime));
+  check("v4.8.52 运行时: 文案含'调试此浏览器' + '不要点' + '并列'",
+    /调试此浏览器/.test(debugWarnRuntime.text) &&
+    /不要点/.test(debugWarnRuntime.text) &&
+    /并列/.test(debugWarnRuntime.text),
+    `text=${debugWarnRuntime.text}`);
+  check("v4.8.52 运行时: 一次性—storage flag 已写入 + 二次切 Tab 不重复插入",
+    debugWarnRuntime.flagSet === true && debugWarnRuntime.sysCount === 1,
+    JSON.stringify(debugWarnRuntime));
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {

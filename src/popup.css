@@ -3600,3 +3600,76 @@ body[data-logo-style="basic"] .msg-avatar img {
   background: #ffffff;
   padding: 3px;
 }
+
+/* ============================================================
+   v4.8.52: .msg.system —— 系统提示气泡（Tab 模式 debugger 警告等）
+   居中布局 / 浅橙底（warning）/ 含 ✕ 关闭按钮 / 不渲染头像/时间
+============================================================ */
+.msg.system {
+  display: flex;
+  justify-content: center;
+  padding: 4px 16px;
+  margin: 4px 0;
+}
+.msg.system .msg-body {
+  max-width: 92%;
+  width: 100%;
+}
+.msg-sys-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 159, 10, 0.08);
+  border: 1px solid rgba(255, 159, 10, 0.30);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.msg-sys-icon {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ff9f0a;
+}
+.msg-sys-text {
+  flex: 1;
+  min-width: 0;
+}
+.msg-sys-text strong {
+  display: block;
+  font-weight: 600;
+  color: #ff9f0a;
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+.msg-sys-text em {
+  font-style: normal;
+  background: rgba(255, 159, 10, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11.5px;
+}
+.msg-sys-close {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.msg-sys-close:hover {
+  background: rgba(255, 159, 10, 0.15);
+  color: #ff9f0a;
+}
+/* v4.8.35 决策：不用 prefers-color-scheme；橙色背景半透明叠加 dark/light 主题都自动 OK */
