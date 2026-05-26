@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.55-beta", manifest.version_name === "4.8.55-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.56-beta", manifest.version_name === "4.8.56-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.55-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.56-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.55-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.56-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.55-beta", popupVersion === "v4.8.55-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.56-beta", popupVersion === "v4.8.56-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1578,6 +1578,56 @@ try {
   check("v4.8.55 运行时: listStyles 每个 name 都恰好 2 个字符",
     v55NameRuntime.every(s => s.nameLen === 2),
     JSON.stringify(v55NameRuntime));
+
+  // v4.8.56: chat-roster pill 预览从 1 行放宽到 2 行
+  //   用户反馈"折叠到顶"对话指的其实是 .roster-pill 那条预览行（不是 .msg-bubble compact-fold）
+  //   单行 ellipsis 让"## Claude responded: 第 1 轮辩论:共识、分歧..."只看到几个字
+  //   修法：.rp-text line-clamp:2 + white-space:normal + max-height calc(1.35em * 2)
+  const cssV56 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.56 ①: .rp-text 改为 -webkit-line-clamp:2 + display:-webkit-box + white-space:normal",
+    /\.rp-text\s*\{[^}]*-webkit-line-clamp:\s*2[^}]*white-space:\s*normal/s.test(cssV56) &&
+    /\.rp-text\s*\{[^}]*display:\s*-webkit-box/s.test(cssV56) &&
+    /\.rp-text\s*\{[^}]*text-overflow:\s*ellipsis/s.test(cssV56),
+    "缺 line-clamp:2 / white-space:normal / display:-webkit-box / ellipsis");
+  check("v4.8.56 ①: 不再含旧的 white-space:nowrap on .rp-text（避免一行截断）",
+    !/\.rp-text\s*\{[^}]*white-space:\s*nowrap/s.test(cssV56),
+    ".rp-text 仍含 nowrap，仍会一行截断");
+  check("v4.8.56 ②: .rp-text 含 max-height calc(1.35em * 2) 严格 2 行上限",
+    /\.rp-text\s*\{[^}]*max-height:\s*calc\(1\.35em \* 2\)/s.test(cssV56),
+    ".rp-text 缺 max-height 上限");
+
+  // 运行时：构造一个 .roster-pill 含 .rp-text 长文本，验证高度允许 2 行（>17px）但 ≤ 35px
+  const rpTextRuntime = await popupPage.evaluate(() => {
+    const test = document.createElement("div");
+    test.className = "roster-pill selected";
+    test.style.cssText = "position:fixed;left:-9999px;width:240px;";
+    test.innerHTML = `
+      <button class="rp-logo-btn"><img class="rp-logo-img" src="" alt="" style="width:24px;height:24px"></button>
+      <button class="rp-preview" type="button">
+        <span class="rp-name">Claude</span>
+        <span class="rp-text">## Claude responded: 第 1 轮辩论：共识、分歧与对用户三个量化追问的回答（这是一段很长的预览文字用来验证两行渲染是否正确）</span>
+      </button>`;
+    document.body.appendChild(test);
+    try {
+      const rpText = test.querySelector(".rp-text");
+      const h = rpText.offsetHeight;
+      const styles = getComputedStyle(rpText);
+      return {
+        height: h,
+        whiteSpace: styles.whiteSpace,
+        display: styles.display,
+        lineClamp: styles.webkitLineClamp || styles.lineClamp,
+      };
+    } finally {
+      test.remove();
+    }
+  });
+  check("v4.8.56 运行时: .rp-text 长文本高度 17 < h ≤ 35px（2 行但不超出）",
+    rpTextRuntime.height > 17 && rpTextRuntime.height <= 35,
+    JSON.stringify(rpTextRuntime));
+  check("v4.8.56 运行时: white-space=normal + line-clamp=2（line-clamp 实际生效）",
+    rpTextRuntime.whiteSpace === "normal" && rpTextRuntime.lineClamp === "2",
+    JSON.stringify(rpTextRuntime));
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

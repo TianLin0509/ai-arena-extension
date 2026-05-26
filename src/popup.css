@@ -1377,11 +1377,24 @@ body[data-mode="mini"] .mention-menu {
   max-width: 56px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* v4.8.56: pill 预览从严格 1 行放宽到最多 2 行（line-clamp:2 + 允许换行）
+   原 white-space:nowrap + ellipsis 把"## Claude responded: 第 1 轮辩论..."只显示一小段
+   现在 line-clamp:2 让较长 markdown 标题展示完整两行 + 第 3 行起 ellipsis */
 .rp-text {
   flex: 1; min-width: 0;
   font-size: 11.5px;
+  line-height: 1.35;
   color: var(--ink);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  /* 严格高度上限：line-height 1.35 × 2 行 × 11.5px ≈ 31px + 余量 */
+  max-height: calc(1.35em * 2);
+  word-break: break-word;
 }
 .rp-preview.empty .rp-text { color: var(--ink-soft); font-style: italic; }
 .rp-edited {
