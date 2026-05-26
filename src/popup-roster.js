@@ -30,6 +30,9 @@
   let selected = new Set();
   let lastKnownServices = new Set();
   let editingPid = null;   // 当前编辑中的 participant.id
+  // v4.8.60 F7 fix: popup 重启时 lastKnownServices 初始为空 → 现有 AI 都被视为"新加入"
+  //   → 强制覆盖用户的取消选择（破坏用户偏好）。加 firstRefresh 标志跳过首次"自动选中"
+  let firstRefresh = true;
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -44,14 +47,20 @@
       if (!state?.participants) { participants = []; selected = new Set(); render(); return; }
       participants = state.participants;
       const known = new Set(participants.map(p => p.service));
+
       chrome.storage.local.get("rosterSelected", (data) => {
         if (Array.isArray(data.rosterSelected)) {
           selected = new Set(data.rosterSelected.filter(s => known.has(s)));
         }
-        for (const s of known) {
-          if (!lastKnownServices.has(s) && !selected.has(s)) selected.add(s);
+        // v4.8.60 F7 fix: 首次 refresh 不做"自动选中新加入 AI"（视作 storage 恢复，保留用户偏好）
+        //   非首次：检测到 known 中有 lastKnownServices 没的 service → 真新加入 → 自动选中
+        if (!firstRefresh) {
+          for (const s of known) {
+            if (!lastKnownServices.has(s) && !selected.has(s)) selected.add(s);
+          }
         }
         lastKnownServices = known;
+        firstRefresh = false;
         if (selected.size === 0) selected = new Set(known);
         render();
       });
@@ -174,13 +183,16 @@
       if (Array.isArray(msg.participants)) {
         participants = msg.participants;
         const known = new Set(participants.map(p => p.service));
-        // v4.8.44 修复：新加入的 service 自动加 selected
-        //   原 refresh() storage.get 路径有此逻辑，stateUpdate 快路径漏了
-        //   → 之前只有第一个 AI 走 refresh 被自动选中，后续 stateUpdate 来的未选中（image #59）
-        for (const s of known) {
-          if (!lastKnownServices.has(s) && !selected.has(s)) selected.add(s);
+        // v4.8.44 修复：新加入的 service 自动加 selected（image #59 之前 stateUpdate 快路径漏了）
+        // v4.8.60 F7 fix: 首次同步（popup 重启时 stateUpdate 可能比 refresh 先到）不做"自动选中"
+        //   → 保留用户 storage 里取消的选择，避免重启后所有 AI 都被强制选回
+        if (!firstRefresh) {
+          for (const s of known) {
+            if (!lastKnownServices.has(s) && !selected.has(s)) selected.add(s);
+          }
         }
         lastKnownServices = known;
+        firstRefresh = false;
         // 清理已不存在的 service
         for (const s of [...selected]) if (!known.has(s)) selected.delete(s);
         if (selected.size === 0) selected = new Set(known);

@@ -21,14 +21,20 @@
   //   mini 新位置：chat-input-bar 内 task-picker-wrap 之后
   //   full 时移回 chat-actions（保留顶栏原始顺序：先 btn-mini-mode 再 btn-compact-mode）
   //   事件监听绑在 DOM 节点上，move 后保留，不需要重绑
+  // v4.8.60: 加防御 — 如果 task-picker-wrap 找不到（HTML 重构 / 极端 DOM 状态），
+  //   不能 silent return（会导致按钮留在 chat-header 而 chat-header CSS display:none → 锁死）
+  //   返回 false 让调用方知道，调用方降级为 full 模式确保按钮始终可见
   function relocateModeButtons(m) {
     const miniBtn = document.getElementById("btn-mini-mode");
     const compactBtn = document.getElementById("btn-compact-mode");
-    if (!miniBtn || !compactBtn) return;
+    if (!miniBtn || !compactBtn) return true;  // 按钮不存在（popup 未加载），跳过但不算失败
     if (m === "mini") {
       const taskWrap = document.querySelector(".task-picker-wrap");
       const inputBar = taskWrap?.parentNode;
-      if (!inputBar) return;
+      if (!inputBar) {
+        console.warn("[popup-mini-mode] v4.8.60: task-picker-wrap 不存在 → relocate 失败，降级 full 避免按钮锁死");
+        return false;
+      }
       // 按顺序 insert：task-picker-wrap → btn-mini-mode → btn-compact-mode → ...
       inputBar.insertBefore(miniBtn, taskWrap.nextSibling);
       inputBar.insertBefore(compactBtn, miniBtn.nextSibling);
@@ -36,20 +42,30 @@
       compactBtn.classList.add("in-input-bar");
     } else {
       const actions = document.querySelector(".chat-actions");
-      if (!actions) return;
+      if (!actions) {
+        console.warn("[popup-mini-mode] v4.8.60: .chat-actions 不存在 → relocate full 失败");
+        return false;
+      }
       // 移回顶栏（放在 chat-actions 最前，保持原始顺序）
       actions.insertBefore(miniBtn, actions.firstChild);
       actions.insertBefore(compactBtn, miniBtn.nextSibling);
       miniBtn.classList.remove("in-input-bar");
       compactBtn.classList.remove("in-input-bar");
     }
+    return true;
   }
 
   function applyMode(mode) {
     const m = mode === "mini" ? "mini" : "full";
-    document.body.setAttribute("data-mode", m);
-    setLabel(m);
-    relocateModeButtons(m);
+    // v4.8.60: 先 relocate，失败时降级到 full 避免按钮被 CSS 隐藏锁死
+    const ok = relocateModeButtons(m);
+    const finalMode = (m === "mini" && !ok) ? "full" : m;
+    document.body.setAttribute("data-mode", finalMode);
+    setLabel(finalMode);
+    if (finalMode !== m) {
+      // 降级到 full 时同步 storage（防下次启动又卡死）
+      try { chrome.storage.local.set({ [STORAGE_KEY]: finalMode }); } catch (_) {}
+    }
   }
 
   function toggleMode() {

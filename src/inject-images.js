@@ -1,5 +1,9 @@
 // AI Arena — 图片注入通用逻辑
-// 被各 content script 引用
+// 被各 content script 引用 — 函数必须在 global scope 让 content-{service}.js typeof 检测到
+// v4.8.60 说明：inject-images.js 不包 IIFE — 包了会让顶层 function 变成 IIFE 局部，
+//   content-{service}.js 内的 `typeof postProcessBlobUrls === "function"` 会失败 → 功能断
+//   重复注入只是重复创建 function（function declaration 允许重声明），开销可忽略
+//   防 listener 重复注册的责任在使用者：函数体内若 addEventListener，应自带 guard 标志
 
 // 轮询等待图片上传完成（检测预览缩略图出现 & 上传进度消失）
 function waitForImageUpload(expectedCount, timeoutMs = 15000) {

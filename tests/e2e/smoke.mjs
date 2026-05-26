@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.59-beta", manifest.version_name === "4.8.59-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.60-beta", manifest.version_name === "4.8.60-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.59-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.60-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.59-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.60-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.59-beta", popupVersion === "v4.8.59-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.60-beta", popupVersion === "v4.8.60-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1417,21 +1417,24 @@ try {
   ];
   for (const f of INJECT_CS_FILES) {
     const src = fs.readFileSync(path.join(EXT_PATH, f), "utf8");
-    // 必须有新兜底 error return — 形态 `return { site: SITE, status: "error", error: "发送按钮 disabled 或未找到..." };`
-    const errFallback = /return \{ site: SITE, status: "error", error: "发送按钮 disabled 或未找到/.test(src);
-    // 必须有 v4.8.50 注释（与生产代码一致）
-    const hasMarker = /v4\.8\.50/.test(src);
-    check(`v4.8.50 ①: ${f} 兜底 return 已改成 status:"error"（fail-loud）`,
-      errFallback && hasMarker,
-      `errFallback=${errFallback} hasMarker=${hasMarker}`);
+    // v4.8.60: 兜底从 fail-loud (status:"error") 改回 fail-soft (status:"sent" + inject_warning)
+    //   理由：v4.8.50 fail-loud 对 DeepSeek 等 React 同步慢的场景误报，让 polling 兜底验证
+    const softFallback = /return \{ site: SITE, status: "sent", inject_warning:/.test(src);
+    const hasMarkerV60 = /v4\.8\.60/.test(src);
+    check(`v4.8.50+v4.8.60 ①: ${f} 兜底 return 现为 status:"sent" + inject_warning (fail-soft)`,
+      softFallback && hasMarkerV60,
+      `softFallback=${softFallback} hasMarkerV60=${hasMarkerV60}`);
   }
 
   const busV50 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
-  check("v4.8.50 ②: chat-bus injectAndPoll 检查 injectResp.status === 'error' 并发 chatStreamUpdate（不启 polling）",
+  check("v4.8.50 ②: chat-bus injectAndPoll 仍保留 status==='error' 错误路径（真错误仍 fail-loud）",
     /injectResp\?\.status === "error"/.test(busV50) &&
     /injectError:\s*true/.test(busV50) &&
-    /async function injectAndPoll[\s\S]{0,2000}injectResp\.error/.test(busV50),
+    /async function injectAndPoll[\s\S]{0,2500}injectResp\.error/.test(busV50),
     "chat-bus injectAndPoll 缺 status===error 路径");
+  check("v4.8.60: chat-bus injectAndPoll 处理 inject_warning（fail-soft, polling 兜底）",
+    /inject_warning/.test(busV50),
+    "chat-bus 未处理 inject_warning");
 
   // v4.8.51: 新增 cat（小猫风格）+ basic（默认基础）两种 logo style
   //   - cat：和 classic/anime 一样的 225×320 webp 卡片（src/icons/heroes-cat/）
@@ -1778,6 +1781,36 @@ try {
   check("v4.8.59 运行时: white-space=nowrap + min-width 不是 auto",
     foldNowrapRuntime.whiteSpace === "nowrap" && foldNowrapRuntime.minWidth !== "auto",
     JSON.stringify(foldNowrapRuntime));
+
+  // v4.8.60: 注入鲁棒性 + bug fix 一揽子
+  //   ① 9 个 content scripts robustInject paste 后补 input event（React 框架感知）
+  //   ② retry 3→8 次 + 间隔 300→400ms + aria-disabled 检测
+  //   ③ fail-loud → fail-soft（Enter 已 dispatch，polling 兜底验证）
+  //   ④ popup-mini-mode relocateModeButtons 返回 bool + applyMode 失败降级 full（防按钮锁死）
+  //   ⑤ popup-roster firstRefresh 防 popup 重启时强制覆盖用户取消选择
+  for (const f of INJECT_CS_FILES) {
+    const src = fs.readFileSync(path.join(EXT_PATH, f), "utf8");
+    check(`v4.8.60 ①: ${f} robustInject paste 后 dispatch input event(insertFromPaste)`,
+      /inputType:\s*"insertFromPaste"/.test(src),
+      "缺 paste 后 input event");
+    check(`v4.8.60 ②: ${f} retry 改 8 次 + 400ms + aria-disabled`,
+      /attempt < 8/.test(src) &&
+      /await sleep\(400\)/.test(src) &&
+      /aria-disabled/.test(src),
+      "retry 加强未生效");
+  }
+  const miniJs60 = fs.readFileSync(path.join(EXT_PATH, "popup-mini-mode.js"), "utf8");
+  check("v4.8.60 ④: popup-mini-mode relocateModeButtons 返回 bool + applyMode 降级 full",
+    /function relocateModeButtons[\s\S]{0,800}return true/.test(miniJs60) &&
+    /function applyMode[\s\S]{0,500}const ok = relocateModeButtons/.test(miniJs60) &&
+    /const finalMode = \(m === "mini" && !ok\) \? "full" : m/.test(miniJs60),
+    "relocateModeButtons 缺 bool 返回 / applyMode 缺降级");
+  const rosterJs60 = fs.readFileSync(path.join(EXT_PATH, "popup-roster.js"), "utf8");
+  check("v4.8.60 ⑤: popup-roster firstRefresh 防首次同步强制覆盖选择",
+    /let firstRefresh = true/.test(rosterJs60) &&
+    /if \(!firstRefresh\) \{[\s\S]{0,300}lastKnownServices\.has\(s\)/.test(rosterJs60) &&
+    /firstRefresh = false/.test(rosterJs60),
+    "firstRefresh 守卫缺失");
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

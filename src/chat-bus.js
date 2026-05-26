@@ -468,6 +468,14 @@ const ChatBus = (() => {
       });
       return;
     }
+    // v4.8.60: 处理 inject_warning（fail-soft）—— inject 完成但 button 状态可疑，仍启动 polling 兜底验证
+    //   场景：Enter 已 dispatch 但 React state 同步慢，button 检测显示 disabled。Enter 可能已触发 AI 发送。
+    //   行为：发一个非阻断的 status 提示（不 isDone，让 polling 接管，empty timeout 45s 才真正报错）
+    if (injectResp?.inject_warning) {
+      console.warn(`[chat-bus] v4.8.60 inject_warning for ${service}: ${injectResp.inject_warning}`);
+      // 不发 popup notification（避免提早惊扰用户，让 polling 安静兜底）
+      // 仅记日志方便后续 diagnose
+    }
     // 启动 polling
     if (pollers.has(service)) {
       const old = pollers.get(service);
