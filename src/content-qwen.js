@@ -118,6 +118,10 @@ async function robustInject(el, text) {
   el.innerHTML = "";
   await sleep(100);
   try {
+    // v4.8.53: 长文本（>1500 字）跳过 paste — ChatGPT / Kimi 的 paste 处理器会把长文本
+    //   自动转成 .txt 附件（截图证据：用户反馈"用户补充要求: 对于极化可重构: ..." 文件 card），
+    //   导致 prompt 没作为文字发出去。throw 跳到 catch{} 走 execCommand insertText 路径。
+    if (text.length > 1500) throw new Error("skip_paste_long_text");
     const dt = new DataTransfer();
     dt.setData("text/plain", text);
     el.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));

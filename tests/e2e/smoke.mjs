@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.52-beta", manifest.version_name === "4.8.52-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.53-beta", manifest.version_name === "4.8.53-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.52-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.53-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.52-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.53-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.52-beta", popupVersion === "v4.8.52-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.53-beta", popupVersion === "v4.8.53-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1583,6 +1583,27 @@ try {
   check("v4.8.52 运行时: 一次性—storage flag 已写入 + 二次切 Tab 不重复插入",
     debugWarnRuntime.flagSet === true && debugWarnRuntime.sysCount === 1,
     JSON.stringify(debugWarnRuntime));
+
+  // v4.8.53: 9 个 content scripts robustInject 加阈值守卫 — text.length > 1500 跳过 paste
+  //   根因：ChatGPT / Kimi 的 paste 处理器把长文本自动转 .txt 附件（截图证据：用户反馈
+  //         "用户补充要求: 对于极化可重构: ..." 文件 card 出现在输入框顶端），prompt 没作为
+  //         文字发出去 → AI 把附件当参考文档 + 输入框头部短文本当问题，回答偏离意图。
+  //   修复：try paste 块首行加 if (text.length > 1500) throw → catch 跳到 execCommand 路径
+  for (const f of INJECT_CS_FILES) {
+    const src = fs.readFileSync(path.join(EXT_PATH, f), "utf8");
+    check(`v4.8.53: ${f} robustInject 含长文本跳过 paste 守卫（>1500 字 throw skip_paste_long_text）`,
+      /if \(text\.length > 1500\) throw new Error\("skip_paste_long_text"\);/.test(src),
+      "缺长文本跳 paste 守卫");
+  }
+  // 顺序：throw 必须在 const dt = new DataTransfer() 之前（否则等于没守卫）
+  for (const f of INJECT_CS_FILES) {
+    const src = fs.readFileSync(path.join(EXT_PATH, f), "utf8");
+    const throwIdx = src.indexOf("skip_paste_long_text");
+    const dtIdx = src.indexOf("new DataTransfer()");
+    check(`v4.8.53: ${f} throw 在 new DataTransfer() 之前（不是死代码）`,
+      throwIdx > 0 && dtIdx > 0 && throwIdx < dtIdx,
+      `throwIdx=${throwIdx} dtIdx=${dtIdx}`);
+  }
 
   // ③ 极简任务 picker — 删了 ⚙️ icon 和"任务"label
   const pickerSimple = await popupPage.evaluate(() => {
