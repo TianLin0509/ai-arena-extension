@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.58-beta", manifest.version_name === "4.8.58-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.59-beta", manifest.version_name === "4.8.59-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.58-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.59-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.58-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.59-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.58-beta", popupVersion === "v4.8.58-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.59-beta", popupVersion === "v4.8.59-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1732,6 +1732,52 @@ try {
   check("v4.8.58 运行时: btn-mini-mode 紧跟 task-picker-wrap（顺序正确）",
     moveRuntime.miniRightAfterTask,
     JSON.stringify(moveRuntime));
+
+  // v4.8.59: .msg-fold-toggle 防字符级换行
+  //   用户反馈：辩论总结里"收起"按钮被压窄时"收"在上"起"在下竖排显示 + 超出按钮框
+  //   修复：CSS .msg-fold-toggle 加 white-space:nowrap + min-width:max-content
+  //         保证 button 始终能容纳完整文字单行显示，不被父容器压窄到字符换行
+  const cssV59 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.59 ①: .msg-fold-toggle 含 white-space:nowrap + min-width:max-content",
+    /\.msg-fold-toggle\s*\{[^}]*white-space:\s*nowrap[^}]*min-width:\s*max-content/s.test(cssV59),
+    "缺 nowrap / min-width:max-content");
+  check("v4.8.59 ②: .msg-fold-toggle 子元素也 nowrap + flex-shrink:0（兜底）",
+    /\.msg-fold-toggle\s*>\s*\*\s*\{[^}]*flex-shrink:\s*0[^}]*white-space:\s*nowrap/s.test(cssV59),
+    "缺子元素 nowrap 兜底");
+
+  // 运行时：构造一个 80px 窄气泡里的 .msg-fold-toggle 内含"▴ 收起 100 字"，
+  //   验证 button 单行高度（< 36px）且 width >= max-content（不被压缩到内容换行）
+  const foldNowrapRuntime = await popupPage.evaluate(() => {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;left:-9999px;width:80px;";
+    wrap.innerHTML = `
+      <div class="msg-bubble msg-bubble-foldable expanded" style="position:relative;width:80px;">
+        <p>测试内容</p>
+        <button class="msg-fold-toggle" data-act="fold-toggle">
+          <span class="msg-fold-icon">▴</span> 收起 <span class="msg-fold-count">100 字</span>
+        </button>
+      </div>`;
+    document.body.appendChild(wrap);
+    try {
+      const btn = wrap.querySelector(".msg-fold-toggle");
+      const cs = getComputedStyle(btn);
+      return {
+        height: btn.offsetHeight,
+        whiteSpace: cs.whiteSpace,
+        minWidth: cs.minWidth,
+        // 按钮宽度应当 >= 完整文字 + icon + count + padding
+        widerThanParent: btn.offsetWidth > 80,
+      };
+    } finally {
+      wrap.remove();
+    }
+  });
+  check("v4.8.59 运行时: 80px 窄气泡里 .msg-fold-toggle 高度 < 36px（单行不竖排）",
+    foldNowrapRuntime.height > 0 && foldNowrapRuntime.height < 36,
+    JSON.stringify(foldNowrapRuntime));
+  check("v4.8.59 运行时: white-space=nowrap + min-width 不是 auto",
+    foldNowrapRuntime.whiteSpace === "nowrap" && foldNowrapRuntime.minWidth !== "auto",
+    JSON.stringify(foldNowrapRuntime));
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

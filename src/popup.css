@@ -1166,6 +1166,15 @@ body[data-mode="mini"] .mention-menu {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  /* v4.8.59: 防止按钮被父容器压窄时中文"收起" / "展开全文"字符级换行（竖排显示问题）
+     nowrap 强制单行；min-width:max-content 保证按钮宽度 ≥ 完整文字宽度，不会被压成竖向 */
+  white-space: nowrap;
+  min-width: max-content;
+}
+/* v4.8.59: 同样兜底子元素 — 防 .msg-fold-icon / .msg-fold-count 被压换行 */
+.msg-fold-toggle > * {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .msg-fold-toggle:hover { background: rgba(10,132,255,0.06); }
 .msg-bubble-foldable.expanded .msg-fold-toggle {
