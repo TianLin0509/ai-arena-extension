@@ -468,6 +468,11 @@ const ChatBus = (() => {
       });
       return;
     }
+    // v4.8.61: 防御 — injectResp 为 undefined / null（content script 没 sendResponse 或返回非对象）
+    //   不当作成功也不当作 error，记 warn 后继续 polling 兜底（empty timeout 45s 兜底真错误）
+    if (!injectResp || typeof injectResp !== "object") {
+      console.warn(`[chat-bus] v4.8.61 injectResp invalid for ${service}:`, injectResp, "— continuing with polling fallback");
+    }
     // v4.8.60: 处理 inject_warning（fail-soft）—— inject 完成但 button 状态可疑，仍启动 polling 兜底验证
     //   场景：Enter 已 dispatch 但 React state 同步慢，button 检测显示 disabled。Enter 可能已触发 AI 发送。
     //   行为：发一个非阻断的 status 提示（不 isDone，让 polling 接管，empty timeout 45s 才真正报错）

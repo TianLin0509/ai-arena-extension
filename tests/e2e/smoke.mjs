@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.60-beta", manifest.version_name === "4.8.60-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.61-beta", manifest.version_name === "4.8.61-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.60-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.61-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.60-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.61-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.60-beta", popupVersion === "v4.8.60-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.61-beta", popupVersion === "v4.8.61-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1811,6 +1811,13 @@ try {
     /if \(!firstRefresh\) \{[\s\S]{0,300}lastKnownServices\.has\(s\)/.test(rosterJs60) &&
     /firstRefresh = false/.test(rosterJs60),
     "firstRefresh 守卫缺失");
+
+  // v4.8.61: chat-bus injectAndPoll 防 injectResp 为 undefined/null（F2 P1 防御）
+  const busV61 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  check("v4.8.61: chat-bus 防 injectResp invalid（undefined/null/非对象）继续 polling 兜底",
+    /v4\.8\.61[\s\S]{0,200}injectResp invalid/.test(busV61) &&
+    /!injectResp \|\| typeof injectResp !== "object"/.test(busV61),
+    "injectResp 无效兜底缺失");
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
