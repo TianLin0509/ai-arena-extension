@@ -3692,3 +3692,91 @@ body[data-logo-style="basic"] .msg-avatar img {
   color: #ff9f0a;
 }
 /* v4.8.35 决策：不用 prefers-color-scheme；橙色背景半透明叠加 dark/light 主题都自动 OK */
+
+/* ============================================================
+   v4.8.62: 新手教程 3 步骤卡（empty-state 下方）
+============================================================ */
+.es-tutorial {
+  position: relative;
+  margin: 18px auto 0;
+  max-width: 480px;
+  padding: 16px 22px 18px;
+  background: linear-gradient(135deg, rgba(94,234,212,0.08), rgba(167,139,250,0.08));
+  border: 1px solid rgba(94,234,212,0.28);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(94,234,212,0.10);
+}
+.es-tutorial-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neon-1, #5eead4);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.es-tutorial-title::before {
+  content: "🎓 ";
+  font-size: 14px;
+}
+.es-tutorial-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  width: 22px; height: 22px;
+  padding: 0;
+  border: none; background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.es-tutorial-close:hover {
+  background: rgba(127,127,127,0.18);
+  color: var(--ink);
+}
+.es-tutorial-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.es-tutorial-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.es-tut-num {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #5eead4, #a78bfa);
+  color: #0a1024;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+.es-tutorial-steps strong {
+  font-weight: 600;
+  color: var(--ink);
+  margin-right: 2px;
+}
+.es-tutorial-steps em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--accent);
+}
+.es-tutorial-steps kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 2px;
+  background: rgba(127,127,127,0.15);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 10.5px;
+  color: var(--ink);
+}

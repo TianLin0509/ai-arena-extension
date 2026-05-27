@@ -216,6 +216,36 @@ async function ensureContentScriptInjected(tabId, url) {
   }
 }
 
+// v4.8.62: Tab 模式新建 AI tab 后，title 流光闪烁 2.4s 让用户在 tab 栏看到新 tab
+//   chrome 不允许直接给 tab 加动画，只能通过 setTitle 模拟（页面 <title> 元素变化驱动 tab 标签刷新）
+//   注入一次 script，里面用 setInterval 自闪烁，期间 AI 网页可能也在 setTitle（race），可见效果是
+//   闪烁的 emoji prefix 与 page 自带 title 交替显示——用户感知到"这个 tab 在闪/换"，足够定位新 tab
+async function flashNewAiTabTitle(tabId, aiName) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: (name) => {
+        const ICONS = ["✨", "⭐", "🌟", "💫"];
+        const originalTitle = document.title || name;
+        let i = 0;
+        const timer = setInterval(() => {
+          if (i >= 8) {  // 8 次 × 300ms = 2.4s
+            clearInterval(timer);
+            // 不强制还原 title — page 自己会持续 setTitle，让浏览器使用 page 最新的 title
+            return;
+          }
+          document.title = `${ICONS[i % ICONS.length]} ${name} ${ICONS[i % ICONS.length]}`;
+          i++;
+        }, 300);
+      },
+      args: [aiName],
+    });
+  } catch (e) {
+    // tab 可能已关闭 / 注入失败：静默忽略（非关键功能）
+    console.log(`[F62] flash title failed for tab=${tabId}: ${e?.message}`);
+  }
+}
+
 async function injectBootstrapToExistingTabs() {
   // v4.8.30 F38-①: 等 windowMode 真加载完（tab/tiled 影响下面的 CDP 路由）
   try { await _windowModeLoaded; } catch (_) {}
@@ -589,6 +619,8 @@ async function addParticipant(service) {
     const currentWindow = await chrome.windows.getCurrent();
     const tab = await chrome.tabs.create({ url: info.url, windowId: currentWindow.id, active: false });
     tabId = tab.id;
+    // v4.8.62: 新建 AI tab 后 title 闪烁让用户在 tab 栏看到新 tab
+    flashNewAiTabTitle(tabId, `${info.name}-${count}`).catch(() => {});
   }
 
   StateMachine.addParticipant(id, service, tabId, `${info.name}-${count}`);
