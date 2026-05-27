@@ -81,6 +81,7 @@
       state.guidance = root.querySelector("#rp-guidance")?.value || "";
       state.concise = root.querySelector("#rp-concise")?.checked || false;
       // v4.8.38: needsConfirm — 有 AI 在 polling 时让用户决定
+      // v4.8.65: insufficient_responses → 弹自定义 modal（重新提取 / 切同时提问）
       const sendOnce = (force) => {
         chrome.runtime.sendMessage({
           type: "debateRound",
@@ -93,7 +94,16 @@
             if (window.confirm(resp.message)) sendOnce(true);
             return;
           }
-          if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
+          if (resp && !resp.ok) {
+            if (resp.reason === "insufficient_responses" && window.ChatModal) {
+              window.ChatModal.showInsufficientResponses(resp, {
+                onReextract: (missing) => reextractMissing(missing),
+                onSwitchAsk: () => window.ChatTaskMenu?.setTask?.("ask"),
+              });
+            } else {
+              alert(`辩论失败：${resp.error || "未知错误"}`);
+            }
+          }
         });
       };
       sendOnce(false);
@@ -101,6 +111,28 @@
     root.querySelector("#rp-btn-debate-retry")?.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "retryInject" }, () => {});
     });
+  }
+
+  // v4.8.65: insufficient_responses modal 的"重新提取所有"回调 — 优先只提取缺失的 AI，
+  // 拿不到 missing 列表时退回到全部 participants
+  async function reextractMissing(missing) {
+    let targets = Array.isArray(missing) && missing.length ? missing : null;
+    if (!targets) {
+      try {
+        const r = await new Promise(res => chrome.runtime.sendMessage({ type: "getState" }, resp => res(resp || {})));
+        targets = (r.participants || []).map(p => ({ id: p.id, name: p.name, service: p.service }));
+      } catch (_) { targets = []; }
+    }
+    if (!targets.length) return;
+    const pushLog = (text, level) => {
+      try { window.ChatLog?.push?.({ ts: Date.now(), text, level }); } catch (_) {}
+    };
+    pushLog(`手动重新提取 ${targets.length} 个 AI 回答…`, "info");
+    // 并行调 reextract — chat-bus.reextractOne 自带 5 次重试和占位气泡
+    await Promise.allSettled(targets.map(t => new Promise(res => {
+      chrome.runtime.sendMessage({ type: "chatReextractOne", participantId: t.id }, resp => res(resp));
+    })));
+    pushLog("重新提取完成，可再次尝试辩论", "ok");
   }
 
   function renderSummary() {
