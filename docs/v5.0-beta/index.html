@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Arena v5.0 Beta — 让 9 大 AI 同台辩论</title>
+<title>AI Arena v5.0 · 全屏 SPA 单页</title>
 <style>
   :root {
     /* 强制深色 — 不跟随系统 */
@@ -1124,20 +1124,172 @@
   footer.foot summary { cursor: pointer; font-weight: 600; color: var(--ink); }
   footer.foot details ul { margin: 10px 0 0; padding-left: 18px; }
   footer.foot details ul li { margin-bottom: 4px; }
+
+  /* ================ SPA 框架 · D + B 混合 ================ */
+  html, body.spa-body { height: 100vh; overflow: hidden; }
+  body.spa-body { background: var(--bg); }
+  .spa-stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+  .ch {
+    position: absolute; inset: 0;
+    width: 100vw; height: 100vh;
+    padding: 56px 32px 96px;
+    overflow-y: auto; overflow-x: hidden;
+    opacity: 0; pointer-events: none;
+    transform: scale(0.985);
+    transition: opacity 0.45s ease, transform 0.6s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  }
+  .ch.active { opacity: 1; pointer-events: auto; transform: scale(1); z-index: 3; }
+  .ch::-webkit-scrollbar { width: 8px; }
+  .ch::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .ch > * { width: 100%; max-width: 1140px; }
+  .ch.ch-hero { padding: 0 0 96px; justify-content: center; background: var(--hero-grad); }
+  .ch.ch-hero > .hero-inner { padding: 64px 32px; max-width: 1140px; }
+  .ch.ch-hero .hero-brands { display: flex; gap: 18px; flex-wrap: wrap; margin: 28px 0 24px; align-items: center; }
+  .ch.ch-hero .hero-brands img { width: 38px; height: 38px; opacity: 0.92; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
+  .ch.ch-hero .hero-tip { margin-top: 26px; color: rgba(255,255,255,0.55); font-size: 13px; letter-spacing: 0.04em; animation: hero-tip-bounce 1.6s ease infinite; }
+  @keyframes hero-tip-bounce { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(5px); opacity: 1; } }
+  .ch .book-intro { padding: 28px 24px 20px; }
+  .ch .section-head { margin-bottom: 16px; }
+
+  /* Keynote 章节封面 */
+  .spa-cover {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .spa-cover.show { opacity: 1; }
+  .spa-tag {
+    font-size: 13px; color: var(--ink-faint);
+    letter-spacing: 0.4em; margin-bottom: 18px; text-transform: uppercase;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.5s 0.05s, transform 0.5s 0.05s;
+  }
+  .spa-big {
+    font-size: clamp(72px, 16vw, 220px);
+    font-weight: 900; letter-spacing: -0.04em; line-height: 1;
+    margin: 0 0 22px; padding: 0 24px;
+    background: linear-gradient(120deg, #0a84ff 0%, #ff3b30 50%, #ff9f0a 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+    animation: spa-gradient-shift 6s ease infinite;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.55s 0.15s, transform 0.55s 0.15s;
+  }
+  @keyframes spa-gradient-shift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .spa-sub {
+    font-size: 17px; color: var(--ink-soft); max-width: 720px; padding: 0 24px;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.6s 0.30s, transform 0.6s 0.30s;
+  }
+  .spa-cover.show .spa-tag,
+  .spa-cover.show .spa-big,
+  .spa-cover.show .spa-sub {
+    opacity: 1; transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spa-big { animation: none; }
+  }
+
+  /* 底部时间轴 */
+  .spa-timeline {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 0;
+    z-index: 50;
+    background: rgba(28,28,30,0.78);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 999px; padding: 10px 18px;
+  }
+  .spa-tl-node {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #38383a; border: 2px solid var(--border);
+    cursor: pointer; padding: 0; position: relative;
+    transition: all 0.25s;
+  }
+  .spa-tl-node:hover { border-color: var(--accent); }
+  .spa-tl-node.active { background: var(--accent); border-color: var(--accent); transform: scale(1.4); }
+  .spa-tl-node::after {
+    content: attr(data-name);
+    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg);
+    padding: 4px 10px; border-radius: 6px;
+    font-size: 11px; white-space: nowrap; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .spa-tl-node:hover::after, .spa-tl-node.active::after { opacity: 1; }
+  .spa-tl-line { width: 36px; height: 2px; background: var(--border); }
+
+  /* 左右翻页按钮 */
+  .spa-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(28,28,30,0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border); color: var(--ink);
+    cursor: pointer; font-size: 28px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50; transition: all 0.2s;
+  }
+  .spa-arrow:hover:not(:disabled) {
+    background: var(--accent); border-color: var(--accent);
+    transform: translateY(-50%) scale(1.1);
+  }
+  .spa-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+  .spa-arrow.prev { left: 24px; }
+  .spa-arrow.next { right: 24px; }
+  @media (max-width: 720px) {
+    .spa-arrow { width: 44px; height: 44px; font-size: 22px; }
+    .spa-arrow.prev { left: 12px; }
+    .spa-arrow.next { right: 12px; }
+  }
+
 </style>
 </head>
-<body>
+<body class="spa-body">
 
-<!-- ============== HERO ============== -->
-<section class="hero">
+<!-- SPA 章节封面 -->
+<div class="spa-cover" data-spa-cover>
+  <div class="spa-tag" data-spa-tag></div>
+  <div class="spa-big" data-spa-big></div>
+  <div class="spa-sub" data-spa-sub></div>
+</div>
+
+<!-- SPA 翻页按钮 -->
+<button class="spa-arrow prev" data-spa-prev aria-label="上一章">‹</button>
+<button class="spa-arrow next" data-spa-next aria-label="下一章">›</button>
+
+<!-- SPA 时间轴 -->
+<nav class="spa-timeline" data-spa-timeline></nav>
+
+<!-- SPA 章节舞台 -->
+<div class="spa-stage">
+
+<!-- ============== Ch · 让 9 大 AI 同台 ============== -->
+<section class="ch ch-hero hero" data-ch-id="hero">
   <div class="hero-inner">
     <span class="hero-badge"><span class="dot"></span>v5.0 · Beta 公测 · 首批 100 名早鸟限量</span>
     <h1>还在 5 个标签页里<br><span class="accent">轮流问 AI</span> 吗？</h1>
-    <p class="lead">同一个问题问 Claude 一遍、问 Gemini 一遍、问 ChatGPT 一遍，再手工对比答案 —— 你已经这样耗了多少个深夜？</p>
-    <div class="usp">唯一让 9 大主流 AI 在一个屏幕里同台辩论的 Chrome 扩展</div>
+    <p class="lead">让 <b style="color:#5ac8fa">9 大主流 AI</b> 在一个屏幕里同台辩论 —— 唯一的那个 Chrome 扩展。</p>
+    <div class="hero-brands">
+      <img src="v5.0-screenshots/brands/claude.svg" alt="Claude" />
+      <img src="v5.0-screenshots/brands/gemini.svg" alt="Gemini" />
+      <img src="v5.0-screenshots/brands/openai.svg" alt="ChatGPT" />
+      <img src="v5.0-screenshots/brands/deepseek.svg" alt="DeepSeek" />
+      <img src="v5.0-screenshots/brands/doubao.svg" alt="豆包" />
+      <img src="v5.0-screenshots/brands/qwen.svg" alt="通义" />
+      <img src="v5.0-screenshots/brands/kimi.svg" alt="Kimi" />
+      <img src="v5.0-screenshots/brands/yuanbao.svg" alt="元宝" />
+      <img src="v5.0-screenshots/brands/grok.svg" alt="Grok" />
+    </div>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="#install">⚡ 立即加入 Beta</a>
-      <a class="btn btn-ghost" href="#stories">看看怎么用 →</a>
+      <a class="btn btn-primary" href="#" data-spa-go="cta">⚡ 立即加入 Beta</a>
+      <a class="btn btn-ghost" href="#" data-spa-go="stories">看看怎么用 →</a>
     </div>
     <div class="hero-meta">
       <div><b>9</b>大 AI 平台</div>
@@ -1145,44 +1297,18 @@
       <div><b>50+</b>次 v4.8 迭代</div>
       <div><b>6×4</b>主题/Logo 风格</div>
     </div>
+    <div class="hero-tip">↓ 翻到下一章 · 按 → 键 · 或点底部时间轴节点</div>
   </div>
 </section>
 
-<div class="wrap">
+<!-- HOOK + BRAND STRIP 已并入 Hero -->
 
-  <!-- ============== HOOK ============== -->
-  <section class="hook">
-    <div class="text">
-      <h2>想象一下：让 Claude、Gemini、ChatGPT 在你眼前互怼</h2>
-      <p>周一早上 9 点，你正在写一份竞品分析报告。结论怎么写都觉得单薄，因为你只问了一家 AI。</p>
-      <p>如果<b>三家 AI 同时坐在一个屏幕里</b>，Claude 站逻辑派、Gemini 站数据派、ChatGPT 站用户派，互相反驳三轮，再让一位「裁判 AI」综合大家观点输出一份 arXiv 风结构化报告 —— 你会得到一个比单 AI 答案<b>扎实 3 倍</b>的结论。</p>
-      <p>这就是 AI Arena 的日常。<b>免费、本地、零云端</b>。</p>
-    </div>
-    <div class="visual">
-      <img src="v5.0-screenshots/poster-ai-team.webp" alt="10 大 AI 群英排排坐" />
-    </div>
-  </section>
-
-  <!-- ============== BRAND STRIP ============== -->
-  <div class="brand-strip">
-    <div class="lbl">已支持 9 大主流 AI · 一键同台广播</div>
-    <img src="v5.0-screenshots/brands/claude.svg" alt="Claude" title="Claude" />
-    <img src="v5.0-screenshots/brands/gemini.svg" alt="Gemini" title="Gemini" />
-    <img src="v5.0-screenshots/brands/openai.svg" alt="ChatGPT" title="ChatGPT" />
-    <img src="v5.0-screenshots/brands/deepseek.svg" alt="DeepSeek" title="DeepSeek" />
-    <img src="v5.0-screenshots/brands/doubao.svg" alt="豆包" title="豆包" />
-    <img src="v5.0-screenshots/brands/qwen.svg" alt="通义千问" title="通义千问" />
-    <img src="v5.0-screenshots/brands/kimi.svg" alt="Kimi" title="Kimi" />
-    <img src="v5.0-screenshots/brands/yuanbao.svg" alt="元宝" title="元宝" />
-    <img src="v5.0-screenshots/brands/grok.svg" alt="Grok" title="Grok" />
-  </div>
-
-  <!-- ============== 7 大主推 ============== -->
-  <section class="section" id="stories">
+  <!-- ============== Ch · 7 张王牌 ============== ============== -->
+  <section class="ch section" id="stories" data-ch-id="stories">
     <div class="book-intro" data-big="7">
-      <h2>7 个让你<br><em>装上就停不下来</em>的理由</h2>
-      <p class="book-intro-sub">每张主推卡都讲一个真实场景 · 配 v4.8.51 真实截图 + 交互录屏</p>
-      <a class="book-intro-arrow" href="#stories">📖 翻起来 · 点圆点 / ← → / 键盘切换</a>
+      <h2><em>7 张王牌</em></h2>
+      <p class="book-intro-sub">装上就停不下来的 7 个理由 · 配 v4.8.51 真实录屏</p>
+      <a class="book-intro-arrow" href="#stories">📖 ← → 翻看每张王牌</a>
     </div>
 
     <div class="book-wrap">
@@ -1404,11 +1530,11 @@
   </section>
 
   <!-- ============== 4 硬实力 · 翻书页 ============== -->
-  <section class="section" id="hard-section">
+  <section class="ch section" id="hard-section" data-ch-id="hard">
     <div class="book-intro" data-big="4">
-      <h2>4 项<em>底座硬实力</em></h2>
-      <p class="book-intro-sub">让那 7 张主牌打得稳的隐性肌肉 · 鲁棒性 / 统计 / 气泡 / 渲染</p>
-      <a class="book-intro-arrow" href="#hard-section">⚡ 翻下去看 · 点圆点 / ← → 切换</a>
+      <h2><em>4 道护城河</em></h2>
+      <p class="book-intro-sub">看不见的硬核底座 · 鲁棒性 / 统计 / 气泡 / Markdown 渲染</p>
+      <a class="book-intro-arrow" href="#hard-section">⚡ ← → 翻看每道护城河</a>
     </div>
 
     <div class="book-wrap">
@@ -1498,11 +1624,11 @@
     </div>
   </section>
 
-  <!-- ============== 数字 ============== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="section-label">数字不会撒谎</div>
-      <div class="section-hint">v4.0 alpha → v4.8.51 beta 的硬核数据</div>
+  <!-- ============== Ch · 数字不撒谎 ============== -->
+  <section class="ch section" data-ch-id="numbers">
+    <div class="book-intro" data-big="∞">
+      <h2><em>数字不撒谎</em></h2>
+      <p class="book-intro-sub">v4.0 alpha → v4.8.66 beta 的硬核数据 · 让产品说话</p>
     </div>
     <div class="numbers">
       <div class="num-cell"><div class="big">9</div><div class="lbl">主流 AI 平台<br>全覆盖</div></div>
@@ -1516,11 +1642,11 @@
     </div>
   </section>
 
-  <!-- ============== 互动挑战 ============== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="section-label">参与挑战 · 自带传播性</div>
-      <div class="section-hint">装完就玩，截图发朋友圈</div>
+  <!-- ============== Ch · 装完就玩 ============== -->
+  <section class="ch section" data-ch-id="play">
+    <div class="book-intro" data-big="3">
+      <h2><em>装完就玩</em></h2>
+      <p class="book-intro-sub">带着目标用才上瘾 · 3 个挑战预设 · 截图发朋友圈</p>
     </div>
     <div class="challenge">
       <div>
@@ -1538,11 +1664,11 @@
     </div>
   </section>
 
-  <!-- ============== 安装教程 ============== -->
-  <section class="section" id="install-guide">
-    <div class="section-head">
-      <div class="section-label">🚀 安装教程 · 小白版 3 分钟搞定</div>
-      <div class="section-hint">从 GitHub 下载到第一次广播，5 步完成</div>
+  <!-- ============== Ch · 3 分钟拿下 ============== -->
+  <section class="ch section" id="install-guide" data-ch-id="install">
+    <div class="book-intro" data-big="3">
+      <h2><em>3 分钟拿下</em></h2>
+      <p class="book-intro-sub">从下载到第一次广播 · 5 步完成 · 小白可上手</p>
     </div>
     <div class="steps">
 
@@ -1657,7 +1783,7 @@
   </section>
 
   <!-- ============== CTA Final ============== -->
-  <section class="cta-final" id="install">
+  <section class="ch cta-final" id="cta" data-ch-id="cta">
     <div class="urgency">⏰ 首批 100 名 Beta 用户限量 · 仅剩 X 个名额</div>
     <h2>现在加入 · 30 秒后你就在指挥 3 个 AI 辩论</h2>
     <p>明天就要面对那份没头绪的报告？现在装上，让 9 大 AI 帮你想答案。</p>
@@ -1685,49 +1811,7 @@
     </div>
   </section>
 
-  <!-- ============== Footer ============== -->
-  <footer class="foot">
-    <div>本文档为 AI Arena v5.0 beta 推广文稿 · 故事派 voice · 配套 v5.0-screenshots/ 目录使用</div>
-    <details>
-      <summary>📝 用户可修改占位清单（我编的部分，请按需替换）</summary>
-      <ul>
-        <li><b>真实场景故事 7 段</b>：基于功能合理推演，但具体公司 / 诉求是我编的，建议替换成真实经历</li>
-        <li><b>「首批 100 名 · 仅剩 X 个名额」</b>：营销手段，X 替换成实际剩余名额</li>
-        <li><b>Hero / GitHub / Chrome Store 链接</b>：当前 <code>#TODO-*</code>，需替换真实 URL</li>
-        <li><b>Beta 群二维码占位</b>：当前是占位框，需放真实二维码图片</li>
-        <li><b>「24 风格 Beta 专享」「v5.0 元老」</b>：营销噱头，实际是否真"专享"由你定</li>
-        <li><b>3 个挑战预设</b>：当前是叙述，如果想"装上即玩"需要真在 templates 里预制</li>
-      </ul>
-    </details>
-    <details>
-      <summary>✅ 真实可视化资源清单（每张配图的来源）</summary>
-      <ul>
-        <li><b>Hero / 互动挑战</b>：<code>poster-ai-team.webp</code> / <code>hero-arena.webp</code> — 扩展自带艺术封面</li>
-        <li><b>#01</b>：<code>hero-arena.webp</code> — 圆桌艺术图</li>
-        <li><b>#02</b>：🎬 <code>02-minibar.gif</code> — <b>用户实录折叠/展开动画</b></li>
-        <li><b>#03</b>：🎬 <code>03-templates-demo.gif</code> — <b>用户实录模板切换</b></li>
-        <li><b>#04</b>：🎬 <code>04-roster-demo.gif</code> — <b>用户实录卡槽 + 下轮预览 + @mention</b></li>
-        <li><b>#05</b>：🎬 <code>05-timemachine.gif</code> — <b>用户实录时光机搜索</b></li>
-        <li><b>#06</b>：🎬 <code>06-judge-summary.gif</code> — <b>用户实录裁判总结生成</b></li>
-        <li><b>#07 主题切换</b>：CSS 双帧动画 <code>02-overview-hd.png</code> ↔ <code>07-theme-D-cyber.png</code>（如想换 GIF 录一个 <code>07-theme-switch.gif</code> 给我）</li>
-        <li><b>#07 logo gallery</b>：<code>heroes/claude.webp</code> + heroes-leader/cat/chick — Claude 4 风格真实头像</li>
-        <li><b>硬实力 A</b>：🎬 <code>A-robust-send.gif</code> — <b>用户实录鲁棒发送/fail-loud</b></li>
-        <li><b>硬实力 B</b>：<code>03-stats-tab.png</code> — 统计 Tab 真实截图</li>
-        <li><b>硬实力 C</b>：<code>C-bubble-actions.png</code> — 气泡 5 actions 真实截图</li>
-        <li><b>硬实力 D</b>：inline SVG — Attention 公式渲染示意（如想换可补 <code>D-math-render.gif</code>）</li>
-      </ul>
-    </details>
-    <details>
-      <summary>📂 文件依赖</summary>
-      <ul>
-        <li>本 HTML：<code>C:\Users\lintian\AI_debate\ai-arena-extension\.arena\artifacts\v5.0-beta-top10.html</code></li>
-        <li>素材目录：<code>.arena\artifacts\v5.0-screenshots\</code></li>
-        <li>HTML 移动时<b>请连同 v5.0-screenshots/ 一起带走</b></li>
-      </ul>
-    </details>
-  </footer>
-
-</div>
+</div><!-- spa-stage end -->
 
 <script>
 'use strict';
@@ -1795,5 +1879,99 @@
 })();
 </script>
 
+
+<script>
+'use strict';
+(function () {
+  const ORDER = ['hero', 'stories', 'hard', 'install', 'numbers', 'play', 'cta'];
+  const META = {
+    hero:    { tag: '第 0 章 · 开场', big: '让 9 大 AI 同台', sub: '唯一让 9 大主流 AI 同台辩论的 Chrome 扩展' },
+    stories: { tag: '第 1 章 · 王牌', big: '7 张王牌',        sub: '装上就停不下来的 7 个理由' },
+    hard:    { tag: '第 2 章 · 底座', big: '4 道护城河',      sub: '看不见的硬核底座 · 让王牌打得稳' },
+    install: { tag: '第 3 章 · 上手', big: '3 分钟拿下',      sub: '从下载到广播 · 5 步完成' },
+    numbers: { tag: '第 4 章 · 实证', big: '数字不撒谎',      sub: 'v4.0 → v4.8.66 的硬核数据' },
+    play:    { tag: '第 5 章 · 上瘾', big: '装完就玩',        sub: '3 个挑战预设 · 截图发朋友圈' },
+    cta:     { tag: '终章 · 行动',   big: '上车吗？',        sub: '首批 100 名 Beta · 30 秒后你就在指挥 3 个 AI' }
+  };
+  const sections = {};
+  ORDER.forEach(id => { sections[id] = document.querySelector('[data-ch-id="' + id + '"]'); });
+  const cover    = document.querySelector('[data-spa-cover]');
+  const coverTag = document.querySelector('[data-spa-tag]');
+  const coverBig = document.querySelector('[data-spa-big]');
+  const coverSub = document.querySelector('[data-spa-sub]');
+  const timeline = document.querySelector('[data-spa-timeline]');
+  const prevBtn  = document.querySelector('[data-spa-prev]');
+  const nextBtn  = document.querySelector('[data-spa-next]');
+  let cur = 0, transitioning = false;
+
+  ORDER.forEach((id, i) => {
+    if (i > 0) { const line = document.createElement('div'); line.className = 'spa-tl-line'; timeline.appendChild(line); }
+    const node = document.createElement('button');
+    node.className = 'spa-tl-node' + (i === 0 ? ' active' : '');
+    node.dataset.name = META[id].big;
+    node.setAttribute('aria-label', META[id].big);
+    node.addEventListener('click', () => goTo(i));
+    timeline.appendChild(node);
+  });
+
+  function goTo(idx) {
+    if (transitioning || idx === cur || idx < 0 || idx >= ORDER.length) return;
+    transitioning = true;
+    const meta = META[ORDER[idx]];
+    coverTag.textContent = meta.tag;
+    coverBig.textContent = meta.big;
+    coverSub.textContent = meta.sub;
+    cover.classList.add('show');
+    setTimeout(() => {
+      ORDER.forEach((id, i) => {
+        sections[id].classList.toggle('active', i === idx);
+        if (i === idx) sections[id].scrollTop = 0;
+      });
+      cur = idx;
+      updateNav();
+    }, 320);
+    setTimeout(() => { cover.classList.remove('show'); }, 850);
+    setTimeout(() => { transitioning = false; }, 1150);
+  }
+  function updateNav() {
+    timeline.querySelectorAll('.spa-tl-node').forEach((n, j) => n.classList.toggle('active', j === cur));
+    prevBtn.disabled = cur === 0;
+    nextBtn.disabled = cur === ORDER.length - 1;
+  }
+  ORDER.forEach((id, i) => { if (sections[id]) sections[id].classList.toggle('active', i === 0); });
+  updateNav();
+
+  prevBtn.addEventListener('click', () => goTo(cur - 1));
+  nextBtn.addEventListener('click', () => goTo(cur + 1));
+  document.querySelectorAll('[data-spa-go]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); const idx = ORDER.indexOf(a.dataset.spaGo); if (idx >= 0) goTo(idx); });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement.matches('input, textarea, [contenteditable]')) return;
+    const ch = sections[ORDER[cur]];
+    const hasBook = ch && ch.querySelector('[data-book]');
+    if (!hasBook && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      goTo(cur + (e.key === 'ArrowRight' ? 1 : -1)); e.preventDefault();
+    }
+    if (e.key === 'PageUp' || e.key === 'ArrowUp') { goTo(cur - 1); e.preventDefault(); }
+    if (e.key === 'PageDown' || e.key === 'ArrowDown' || e.key === ' ') { goTo(cur + 1); e.preventDefault(); }
+  });
+  let wheelLocked = false;
+  window.addEventListener('wheel', (e) => {
+    if (wheelLocked || transitioning) return;
+    const ch = sections[ORDER[cur]];
+    if (!ch) return;
+    const atTop = ch.scrollTop <= 2;
+    const atBottom = ch.scrollTop + ch.clientHeight >= ch.scrollHeight - 4;
+    if (e.deltaY > 40 && atBottom && cur < ORDER.length - 1) {
+      wheelLocked = true; goTo(cur + 1);
+      setTimeout(() => { wheelLocked = false; }, 1200);
+    } else if (e.deltaY < -40 && atTop && cur > 0) {
+      wheelLocked = true; goTo(cur - 1);
+      setTimeout(() => { wheelLocked = false; }, 1200);
+    }
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
