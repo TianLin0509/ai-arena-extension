@@ -338,8 +338,23 @@ chrome.tabs.onRemoved.addListener((closedId) => {
     StateMachine._broadcastStateUpdate();
   }
 });
-chrome.windows.onRemoved.addListener((windowId) => {
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  // v4.8.63: popup 关闭时自动 detach 所有 debugger session
+  //   原因：用户关掉群聊 popup 后 chrome 顶部"AI Arena 已开始调试此浏览器"横条仍然显示
+  //         每个 AI tab 都挂着 debugger session → 体验差
+  //   行为：判断关掉的 window 是 popup → 调 CDPExtractor.detachAll() 解所有 attach（黄条消失）
+  //   恢复：用户重新 openChatPopup 时，Tab 模式下重新 attach（见 chat-bus openChatPopup 修改）
+  let wasPopup = false;
+  try { wasPopup = (typeof ChatBus.getPopupWindowId === "function") && (windowId === ChatBus.getPopupWindowId()); } catch (_) {}
   ChatBus.onWindowRemoved(windowId);
+  if (wasPopup && self.CDPExtractor) {
+    try {
+      await self.CDPExtractor.detachAll();
+      console.log("[F63] popup closed → detached all debugger sessions (chrome 黄条消失)");
+    } catch (e) {
+      console.warn("[F63] detachAll on popup close failed:", e?.message);
+    }
+  }
 });
 chrome.windows.onBoundsChanged?.addListener((win) => {
   ChatBus.rememberBounds(win.id);

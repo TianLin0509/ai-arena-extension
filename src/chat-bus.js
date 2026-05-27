@@ -55,6 +55,22 @@ const ChatBus = (() => {
       ...bounds,
     });
     popupWindowId = w.id;
+    // v4.8.63: popup 重新打开后，若 Tab 模式则重新 attach 所有 AI tabs（恢复反节流）
+    //   v4.8.63 改动：popup 关闭时 detach 所有 debugger（黄条消失），重开时按需 re-attach
+    //   场景：用户关掉群聊歇一会 → 重新打开 → 自动恢复 Tab 模式的后台 AI 反节流
+    if (windowMode === "tab" && self.CDPExtractor && StateMachine?.participants?.length) {
+      // fire-and-forget — popup 已 ready 返回，不阻塞用户感知
+      (async () => {
+        let attached = 0;
+        for (const p of StateMachine.participants) {
+          if (p.tabId) {
+            const r = await self.CDPExtractor.attachAndWake(p.tabId).catch(() => null);
+            if (r?.ok) attached++;
+          }
+        }
+        console.log(`[F63] popup reopened in Tab mode → re-attached ${attached}/${StateMachine.participants.length} AI tabs`);
+      })();
+    }
     return { ok: true, reused: false, windowId: w.id };
   }
 
@@ -852,6 +868,8 @@ const ChatBus = (() => {
     focusPopup,
     onWindowRemoved,
     rememberBounds,
+    // v4.8.63: 暴露 popupWindowId 给 background onRemoved listener 判断是否是 popup
+    getPopupWindowId: () => popupWindowId,
     broadcast,
     notifyRoundStart,
     getLog,

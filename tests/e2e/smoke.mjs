@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.62-beta", manifest.version_name === "4.8.62-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.63-beta", manifest.version_name === "4.8.63-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.62-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.63-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.62-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.63-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.62-beta", popupVersion === "v4.8.62-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.63-beta", popupVersion === "v4.8.63-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1871,6 +1871,23 @@ try {
   check("v4.8.62 运行时: 3 步骤教程 DOM 存在 + close 按钮 + Ctrl+Enter kbd",
     tutRuntime.hasEl && tutRuntime.hasClose && tutRuntime.stepCount === 3 && tutRuntime.hasKbd,
     JSON.stringify(tutRuntime));
+
+  // v4.8.63: popup 关闭自动 detach debugger（chrome 黄条消失）+ 重新打开 Tab 模式 re-attach
+  const bgV63 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  check("v4.8.63 ①: chrome.windows.onRemoved 内判断 popup → detachAll",
+    /chrome\.windows\.onRemoved[\s\S]{0,1200}wasPopup[\s\S]{0,500}CDPExtractor\.detachAll\(\)/.test(bgV63),
+    "popup 关闭未触发 detachAll");
+  check("v4.8.63 ①: 含 v4.8.63 标记 + console.log 黄条消失说明",
+    /v4\.8\.63[\s\S]{0,800}detached all debugger sessions/.test(bgV63),
+    "缺 v4.8.63 标记或 console.log 说明");
+
+  const busV63 = fs.readFileSync(path.join(EXT_PATH, "chat-bus.js"), "utf8");
+  check("v4.8.63 ②: chat-bus openChatPopup 重开时 Tab 模式 re-attach 所有 participants",
+    /openChatPopup[\s\S]{0,1500}windowMode === "tab"[\s\S]{0,500}attachAndWake\(p\.tabId\)/.test(busV63),
+    "openChatPopup 缺 Tab 模式 re-attach");
+  check("v4.8.63 ②: ChatBus 暴露 getPopupWindowId（让 background onRemoved 判断）",
+    /getPopupWindowId:\s*\(\)\s*=>\s*popupWindowId/.test(busV63),
+    "ChatBus 未暴露 getPopupWindowId");
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
