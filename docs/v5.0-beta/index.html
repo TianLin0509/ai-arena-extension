@@ -946,6 +946,49 @@
     color: var(--ink-soft);
     background: var(--bg-soft);
   }
+  /* 一键下载按钮 */
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 14px;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, #0a84ff, #5ac8fa);
+    color: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 24px rgba(10,132,255,0.40);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(10,132,255,0.55);
+  }
+  .download-btn .arrow { font-size: 20px; }
+  .download-btn .size {
+    margin-left: 8px;
+    padding: 2px 10px;
+    background: rgba(255,255,255,0.22);
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+  .latest-link {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .latest-link a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent);
+  }
+  .latest-link a:hover { color: var(--accent-strong); }
   .faq {
     margin-top: 18px;
     background: var(--card);
@@ -1506,16 +1549,13 @@
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
-          <h4>从 GitHub 下载扩展包</h4>
-          <ol>
-            <li>打开 GitHub 仓库：<a href="https://github.com/TianLin0509/ai-arena-extension" target="_blank">github.com/TianLin0509/ai-arena-extension</a></li>
-            <li>点击页面右上角的绿色 <code>&lt;&gt; Code</code> 按钮</li>
-            <li>在弹出菜单底部点 <code>Download ZIP</code></li>
-            <li>浏览器自动下载 <code>ai-arena-extension-main.zip</code> 文件</li>
-          </ol>
-          <p class="tip">💡 没装过 Git？没关系，<b>Download ZIP 不需要任何工具</b>。</p>
-          <p class="warn">⚠️ 公司网络访问 GitHub 可能慢，建议挂代理或用手机热点下完再拷过来。</p>
-          <div class="img-placeholder">🖼️ 此处插入截图：GitHub Download ZIP 按钮位置（建议自补 <code>github-download.png</code>）</div>
+          <h4>下载扩展包</h4>
+          <a class="download-btn" href="release/ai-arena-extension-v4.8.66.zip" download>
+            <span class="arrow">⬇️</span> 一键下载 ai-arena-extension-v4.8.66.zip
+            <span class="size">1.7 MB</span>
+          </a>
+          <p class="latest-link">📌 想看最新版本？访问 GitHub 仓库 <a href="https://github.com/TianLin0509/ai-arena-extension" target="_blank">github.com/TianLin0509/ai-arena-extension</a>（老用户跟踪更新用）</p>
+          <p class="tip">💡 点击按钮直接下载，无需任何工具。下载完进入第 2 步解压即可。</p>
         </div>
       </div>
 
@@ -1524,9 +1564,9 @@
         <div class="step-body">
           <h4>解压 zip</h4>
           <ol>
-            <li>找到下载好的 zip（默认在 <b>下载</b> 文件夹）</li>
+            <li>找到下载好的 <code>ai-arena-extension-v4.8.66.zip</code>（默认在 <b>下载</b> 文件夹）</li>
             <li>右键 → <b>"全部解压"</b> → 选个能记住的目录（建议桌面）</li>
-            <li>解压完会得到一个文件夹 <code>ai-arena-extension-main</code></li>
+            <li>解压完会得到一个文件夹，里面<b>直接是 manifest.json + 各种 js 文件</b>（没有多余的嵌套目录）</li>
           </ol>
         </div>
       </div>
@@ -1540,11 +1580,10 @@
             <li>在地址栏粘贴：<code>chrome://extensions</code> → 回车</li>
             <li>打开右上角的 <b>"开发者模式"</b> 开关</li>
             <li>点击左上角 <b>"加载已解压的扩展程序"</b> 按钮</li>
-            <li>在弹出的文件夹选择框里：选刚才解压目录里的 <code>dist/github</code> 子文件夹</li>
+            <li>在弹出的文件夹选择框里：<b>选你刚才解压出来的目录</b>（里面应该直接能看到 <code>manifest.json</code>）</li>
             <li>看到一张 "AI Arena" 卡片出现 ✓ = 安装成功</li>
           </ol>
-          <p class="warn"><b>⚠️ 重要</b>：要选 <code>dist/github</code> <b>子文件夹</b>，<b>不是根目录</b>。如果选错会报错"找不到 manifest.json"。</p>
-          <div class="img-placeholder">🖼️ 此处插入截图：Chrome 扩展页加载成功（建议自补 <code>chrome-extensions-loaded.png</code>）</div>
+          <p class="tip">💡 选目录时打开看一眼，<b>能看到 manifest.json 文件就是对的位置</b>。</p>
         </div>
       </div>
 
