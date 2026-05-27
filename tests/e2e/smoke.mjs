@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.61-beta", manifest.version_name === "4.8.61-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.62-beta", manifest.version_name === "4.8.62-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.61-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.62-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.61-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.62-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.61-beta", popupVersion === "v4.8.61-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.62-beta", popupVersion === "v4.8.62-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -1818,6 +1818,59 @@ try {
     /v4\.8\.61[\s\S]{0,200}injectResp invalid/.test(busV61) &&
     /!injectResp \|\| typeof injectResp !== "object"/.test(busV61),
     "injectResp 无效兜底缺失");
+
+  // v4.8.62: ① Tab 模式新建 AI tab title 闪烁  ② empty-state 新手教程
+  const bgV62 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  check("v4.8.62 ①: background.js 含 flashNewAiTabTitle + 8 次 × 300ms setInterval",
+    /async function flashNewAiTabTitle/.test(bgV62) &&
+    /ICONS = \["✨", "⭐", "🌟", "💫"\]/.test(bgV62) &&
+    /i >= 8/.test(bgV62),
+    "缺 flashNewAiTabTitle");
+  check("v4.8.62 ①: chrome.tabs.create 后调 flashNewAiTabTitle（Tab 模式分支）",
+    /chrome\.tabs\.create[\s\S]{0,300}flashNewAiTabTitle\(tabId/.test(bgV62),
+    "Tab 创建后未调 flashNewAiTabTitle");
+
+  const htmlV62 = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
+  check("v4.8.62 ②: popup.html 含 .es-tutorial 3 步骤卡 DOM + 引用 popup-tutorial.js",
+    /class="es-tutorial"[\s\S]{0,2000}es-tutorial-steps/.test(htmlV62) &&
+    /<script src="popup-tutorial\.js"><\/script>/.test(htmlV62),
+    "缺 .es-tutorial 或 popup-tutorial.js 引用");
+
+  const tutorialJs = fs.readFileSync(path.join(EXT_PATH, "popup-tutorial.js"), "utf8");
+  check("v4.8.62 ②: popup-tutorial.js 含 storage tutorialDismissed 读写 + ✕ 关闭 listener",
+    /tutorialDismissed/.test(tutorialJs) &&
+    /chrome\.storage\.local\.set\(\{\s*\[STORAGE_KEY\]:\s*true\s*\}\)/.test(tutorialJs) &&
+    /es-tutorial-close/.test(tutorialJs),
+    "popup-tutorial.js 逻辑不完整");
+
+  const cssV62 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.8.62 ②: CSS .es-tutorial / .es-tutorial-close / .es-tut-num 样式",
+    /\.es-tutorial\s*\{[^}]*background:\s*linear-gradient/.test(cssV62) &&
+    /\.es-tutorial-close\s*\{[^}]*cursor:\s*pointer/.test(cssV62) &&
+    /\.es-tut-num\s*\{[^}]*background:\s*linear-gradient\(135deg/.test(cssV62),
+    "CSS 缺 .es-tutorial 样式");
+
+  // 运行时：sidepanel 注入 mock empty-state + 模拟 popup-tutorial.js 行为
+  //   实际上 popup.html 已加载，验证 .es-tutorial DOM 存在 + close 按钮存在
+  const tutRuntime = await popupPage.evaluate(async () => {
+    // 清掉 dismissed flag 让教程显示
+    await new Promise(r => chrome.storage.local.remove(["tutorialDismissed"], r));
+    // popup-tutorial.js 在 DOMContentLoaded 时 init；popup 已加载 → init 已运行过
+    // 但此时 storage 是 dismissed=true（之前测试可能留过），现在 remove 后 popup-tutorial 不会重 init
+    // 手动检查 DOM 结构存在性（教程显示/隐藏逻辑由 storage 控制）
+    const el = document.getElementById("es-tutorial");
+    const close = document.getElementById("es-tutorial-close");
+    const steps = document.querySelectorAll(".es-tutorial-steps li");
+    return {
+      hasEl: !!el,
+      hasClose: !!close,
+      stepCount: steps.length,
+      hasKbd: !!document.querySelector(".es-tutorial-steps kbd"),
+    };
+  });
+  check("v4.8.62 运行时: 3 步骤教程 DOM 存在 + close 按钮 + Ctrl+Enter kbd",
+    tutRuntime.hasEl && tutRuntime.hasClose && tutRuntime.stepCount === 3 && tutRuntime.hasKbd,
+    JSON.stringify(tutRuntime));
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

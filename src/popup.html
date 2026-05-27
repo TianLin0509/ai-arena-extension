@@ -29,7 +29,7 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v4.8.61-beta</span>
+        <span class="chat-version">v4.8.62-beta</span>
       </div>
       <div class="chat-actions">
         <!-- v4.8.15 F30: 折叠到顶 — mini bar 模式触发器 -->
@@ -93,6 +93,25 @@
             <span class="es-feat"><span class="es-feat-em">📊</span> PPT 工坊</span>
           </div>
           <div class="es-pitch-cta">→ 在右侧添加至少 2 个 AI 选手开始</div>
+        </div>
+        <!-- v4.8.62: 新手教程 3 步骤卡（首次显示，点 ✕ 后写 storage tutorialDismissed 不再出现）-->
+        <div class="es-tutorial" id="es-tutorial" hidden>
+          <button class="es-tutorial-close" id="es-tutorial-close" type="button" title="不再显示">✕</button>
+          <div class="es-tutorial-title">3 步上手</div>
+          <ol class="es-tutorial-steps">
+            <li>
+              <span class="es-tut-num">1</span>
+              <div><strong>选 AI</strong>：右侧成员栏点 Logo（Claude / DeepSeek / 通义 等），至少 2 个</div>
+            </li>
+            <li>
+              <span class="es-tut-num">2</span>
+              <div><strong>发消息</strong>：底部输入框输入问题 → <kbd>Ctrl+Enter</kbd> 同时发给所有 AI</div>
+            </li>
+            <li>
+              <span class="es-tut-num">3</span>
+              <div><strong>切模式</strong>：点底部 <em>同时提问 ▾</em> → 选 <em>⚔️ 辩论</em> / <em>📋 总结</em> / <em>📊 PPT</em></div>
+            </li>
+          </ol>
         </div>
       </div>
     </main>
@@ -263,5 +282,6 @@
   <script src="popup.js"></script>
   <script src="popup-mini-mode.js"></script>
   <script src="popup-compact-mode.js"></script>
+  <script src="popup-tutorial.js"></script>
 </body>
 </html>
