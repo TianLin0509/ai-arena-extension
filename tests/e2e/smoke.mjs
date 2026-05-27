@@ -2156,6 +2156,25 @@ try {
     /catch\s*\(e\)\s*\{[\s\S]{0,200}falling back to handler/.test(bgV490),
     "guardedSend 缺异常降级");
 
+  // ⑥ 前重读 background.js（T6 改了 5 个 case）
+  const bgV490_t6 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  // ── v4.9.0 ⑥: 5 个 handler 都包了 guardedSend ──
+  check("v4.9.0 ⑥: case 'broadcast' 走 guardedSend",
+    /case\s+"broadcast":\s*\n\s*sendResponse\(await guardedSend/.test(bgV490_t6),
+    "case broadcast 没接 guardedSend");
+  check("v4.9.0 ⑥: case 'debateRound' 用 msg.guidance 做 text",
+    /case\s+"debateRound":[\s\S]{0,200}text:\s*msg\.guidance/.test(bgV490_t6),
+    "case debateRound 没接或字段不对");
+  check("v4.9.0 ⑥: case 'summary' 用 msg.customInstruction 做 text",
+    /case\s+"summary":[\s\S]{0,200}text:\s*msg\.customInstruction/.test(bgV490_t6),
+    "case summary 没接或字段不对");
+  check("v4.9.0 ⑥: case 'sendPromptToService' 走 guardedSend",
+    /case\s+"sendPromptToService":[\s\S]{0,300}guardedSend/.test(bgV490_t6),
+    "case sendPromptToService 没接");
+  check("v4.9.0 ⑥: case 'chatBroadcast' 走 guardedSend",
+    /case\s+"chatBroadcast":[\s\S]{0,300}guardedSend/.test(bgV490_t6),
+    "case chatBroadcast 没接");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。

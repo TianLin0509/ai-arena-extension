@@ -395,13 +395,37 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           if (msg.screen) lastKnownScreen = msg.screen;
           sendResponse(await addParticipant(msg.service)); break;
         case "removeParticipant": sendResponse(await removeParticipant(msg.id)); break;
-        case "broadcast":         sendResponse(await handleBroadcast(msg.text, msg.images)); break;
-        case "debateRound":       sendResponse(await handleDebateRound(msg.style, msg.guidance, msg.concise, msg.force)); break;
-        case "summary":           sendResponse(await handleSummary(msg.judgeId, msg.customInstruction, msg.format)); break;
+        case "broadcast":
+          sendResponse(await guardedSend({
+            text: msg.text || "",
+            msg,
+            handler: () => handleBroadcast(msg.text, msg.images),
+          }));
+          break;
+        case "debateRound":
+          sendResponse(await guardedSend({
+            text: msg.guidance || "",
+            msg,
+            handler: () => handleDebateRound(msg.style, msg.guidance, msg.concise, msg.force),
+          }));
+          break;
+        case "summary":
+          sendResponse(await guardedSend({
+            text: msg.customInstruction || "",
+            msg,
+            handler: () => handleSummary(msg.judgeId, msg.customInstruction, msg.format),
+          }));
+          break;
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
-        case "sendPromptToService": sendResponse(await sendPromptToService(msg.service || "chatgpt", msg.text || "")); break;
+        case "sendPromptToService":
+          sendResponse(await guardedSend({
+            text: msg.text || "",
+            msg,
+            handler: () => sendPromptToService(msg.service || "chatgpt", msg.text || ""),
+          }));
+          break;
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
         case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
@@ -448,7 +472,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse({ ok: true });
           break;
         case "chatBroadcast":
-          sendResponse(await ChatBus.broadcast(msg.text, msg.targets || [], msg.images || [])); break;
+          sendResponse(await guardedSend({
+            text: msg.text || "",
+            msg,
+            handler: () => ChatBus.broadcast(msg.text, msg.targets || [], msg.images || []),
+          }));
+          break;
         case "chatRestoreLog":
           sendResponse({ messages: ChatBus.getLog() }); break;
         case "chatClear":
