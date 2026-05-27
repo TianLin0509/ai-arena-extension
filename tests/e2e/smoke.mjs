@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.66-beta", manifest.version_name === "4.8.66-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.67-beta", manifest.version_name === "4.8.67-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.66-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.67-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.66-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.67-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.66-beta", popupVersion === "v4.8.66-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.67-beta", popupVersion === "v4.8.67-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2020,6 +2020,82 @@ try {
     !/act === "summary-toggle"/.test(bubbleActsV66),
     "popup-bubble-actions.js 仍含 summary-toggle 分支");
 
+  // ── v4.8.67: ① 海报标题重叠修复 ② chat-roster 行压缩 ③ 教程 5 页 tab 分页 ──
+  const popupHtmlV67 = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
+  const popupCssV67  = fs.readFileSync(path.join(EXT_PATH, "popup.css"),  "utf8");
+  const tutorialJsV67 = fs.readFileSync(path.join(EXT_PATH, "popup-tutorial.js"), "utf8");
+
+  // ① 海报 layout
+  check("v4.8.67 ①: popup.css empty-state gap 加大 (18→24) + es-poster flex:0 + max-height 48%",
+    /\.empty-state\s*\{[^}]*gap:\s*24px/s.test(popupCssV67) &&
+    /\.empty-state \.es-poster\s*\{[\s\S]{0,400}?flex:\s*0 0 auto[\s\S]{0,400}?max-height:\s*48%/.test(popupCssV67),
+    "海报 layout 修正未生效");
+
+  // ② chat-roster 收紧
+  check("v4.8.67 ②: popup.css chat-roster padding 6/12（高度更紧凑，不再占满整行）",
+    /\.chat-roster\s*\{[^}]*padding:\s*6px 12px/s.test(popupCssV67),
+    "chat-roster padding 未收紧");
+
+  // ③ 5 页教程结构
+  check("v4.8.67 ③: popup.html 含 5 个 .es-tut-page (data-page='1'..'5')",
+    /<div class="es-tut-page" data-page="1">/.test(popupHtmlV67) &&
+    /<div class="es-tut-page" data-page="2"[^>]*hidden>/.test(popupHtmlV67) &&
+    /<div class="es-tut-page" data-page="3"[^>]*hidden>/.test(popupHtmlV67) &&
+    /<div class="es-tut-page" data-page="4"[^>]*hidden>/.test(popupHtmlV67) &&
+    /<div class="es-tut-page" data-page="5"[^>]*hidden>/.test(popupHtmlV67),
+    "缺 5 页结构");
+  check("v4.8.67 ③: popup.html 含 .es-tutorial-header + 进度 (第 N 页 / 共 5 页) + 上/下页 + 5 dots",
+    /<div class="es-tutorial-header">/.test(popupHtmlV67) &&
+    /<span id="es-tut-cur">1<\/span>\s*页\s*\/\s*共\s*5\s*页/.test(popupHtmlV67) &&
+    /<button class="es-tut-prev"[^>]*disabled>/.test(popupHtmlV67) &&
+    /<button class="es-tut-next"/.test(popupHtmlV67) &&
+    (popupHtmlV67.match(/<span class="es-tut-dot[^"]*" data-page="\d"/g) || []).length === 5,
+    "缺 header/进度/翻页按钮/5 圆点");
+  check("v4.8.67 ③: popup.html 5 页标题各自匹配（基础/窗口/任务/排障/进阶）",
+    /🚀 基础 3 步/.test(popupHtmlV67) &&
+    /🪟 窗口模式/.test(popupHtmlV67) &&
+    /🎭 4 大任务模式/.test(popupHtmlV67) &&
+    /🆘 遇到问题怎么办/.test(popupHtmlV67) &&
+    /⭐ 进阶玩法/.test(popupHtmlV67),
+    "5 页标题文案不全");
+  check("v4.8.67 ③: popup-tutorial.js 5 页分页状态机 (TOTAL_PAGES=5 + showPage + ChatTutorial API)",
+    /TOTAL_PAGES\s*=\s*5/.test(tutorialJsV67) &&
+    /function showPage\(/.test(tutorialJsV67) &&
+    /window\.ChatTutorial\s*=\s*\{[^}]*showPage/s.test(tutorialJsV67),
+    "popup-tutorial.js 缺分页逻辑或 API 暴露");
+  check("v4.8.67 ③: popup.css 含 .es-tutorial-nav / .es-tut-dot.active / .es-tut-page-title 样式",
+    /\.es-tutorial-nav\s*\{[^}]*border-top/s.test(popupCssV67) &&
+    /\.es-tut-dot\.active\s*\{[^}]*linear-gradient/s.test(popupCssV67) &&
+    /\.es-tut-page-title\s*\{/.test(popupCssV67),
+    "翻页/圆点/页标题 CSS 缺");
+
+  // 运行时：清 storage flag → 重 init → 验证 page 1 显示 / page 2 hidden / next 按钮可切
+  const tutPageRuntime = await popupPage.evaluate(async () => {
+    await new Promise(r => chrome.storage.local.remove(["tutorialDismissed"], r));
+    if (!window.ChatTutorial) return { err: "ChatTutorial 未暴露" };
+    // 直接调 showPage 验证翻页（init 在 storage 仍 dismissed 时早返回，没绑定监听器）
+    window.ChatTutorial.showPage(1);
+    const page1Visible = !document.querySelector('.es-tut-page[data-page="1"]')?.hidden;
+    const page2Hidden  =  document.querySelector('.es-tut-page[data-page="2"]')?.hidden;
+    const dot1Active = document.querySelector('.es-tut-dot[data-page="1"]')?.classList.contains("active");
+    window.ChatTutorial.showPage(2);
+    const after = {
+      page1HiddenNow: document.querySelector('.es-tut-page[data-page="1"]')?.hidden,
+      page2VisibleNow: !document.querySelector('.es-tut-page[data-page="2"]')?.hidden,
+      dot2Active: document.querySelector('.es-tut-dot[data-page="2"]')?.classList.contains("active"),
+      curText: document.getElementById("es-tut-cur")?.textContent,
+      current: window.ChatTutorial.current(),
+    };
+    return { page1Visible, page2Hidden, dot1Active, after };
+  });
+  check("v4.8.67 ③ 运行时: 初始 page 1 显示 / page 2 隐藏 / dot1 active",
+    !tutPageRuntime.err && tutPageRuntime.page1Visible && tutPageRuntime.page2Hidden && tutPageRuntime.dot1Active,
+    `actual: ${JSON.stringify(tutPageRuntime)}`);
+  check("v4.8.67 ③ 运行时: showPage(2) 后 page1 隐藏 / page2 显示 / dot2 active / 进度=2",
+    !tutPageRuntime.err && tutPageRuntime.after?.page1HiddenNow && tutPageRuntime.after?.page2VisibleNow &&
+    tutPageRuntime.after?.dot2Active && tutPageRuntime.after?.curText === "2" && tutPageRuntime.after?.current === 2,
+    `actual: ${JSON.stringify(tutPageRuntime.after)}`);
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
@@ -2967,9 +3043,10 @@ try {
   check("v4.8.12: CTA 文案含 '右侧添加' + '2 个 AI'",
     pitchCheck.ctaText?.includes("右侧") && pitchCheck.ctaText?.includes("AI"),
     JSON.stringify(pitchCheck));
-  check("v4.8.12: poster flex:2 / pitch flex:1 (上 2/3 + 下 1/3) + poster contain",
-    pitchCheck.posterFlexGrow === "2"
-      && pitchCheck.pitchFlexGrow === "1"
+  // v4.8.67: 海报和 pitch 不再 flex 抢空间（避免在矮窗口里海报底部遮挡标题）→ 改 flex:0 0 auto
+  check("v4.8.12+v4.8.67: poster/pitch flex 改 0 0 auto + poster contain",
+    pitchCheck.posterFlexGrow === "0"
+      && pitchCheck.pitchFlexGrow === "0"
       && pitchCheck.posterObjectFit === "contain",
     JSON.stringify(pitchCheck));
 

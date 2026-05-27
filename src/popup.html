@@ -29,7 +29,7 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v4.8.66-beta</span>
+        <span class="chat-version">v4.8.67-beta</span>
       </div>
       <div class="chat-actions">
         <!-- v4.8.15 F30: 折叠到顶 — mini bar 模式触发器 -->
@@ -96,24 +96,88 @@
           </div>
           <div class="es-pitch-cta">→ 在右侧添加至少 2 个 AI 选手开始</div>
         </div>
-        <!-- v4.8.62: 新手教程 3 步骤卡（首次显示，点 ✕ 后写 storage tutorialDismissed 不再出现）-->
+        <!-- v4.8.67: 新手教程 5 页 tab 分页 (替代 v4.8.62 单页 3 步)；点 ✕ 后写 storage 永久不再弹 -->
         <div class="es-tutorial" id="es-tutorial" hidden>
           <button class="es-tutorial-close" id="es-tutorial-close" type="button" title="不再显示">✕</button>
-          <div class="es-tutorial-title">3 步上手</div>
-          <ol class="es-tutorial-steps">
-            <li>
-              <span class="es-tut-num">1</span>
-              <div><strong>选 AI</strong>：右侧成员栏点 Logo（Claude / DeepSeek / 通义 等），至少 2 个</div>
-            </li>
-            <li>
-              <span class="es-tut-num">2</span>
-              <div><strong>发消息</strong>：底部输入框输入问题 → <kbd>Ctrl+Enter</kbd> 同时发给所有 AI</div>
-            </li>
-            <li>
-              <span class="es-tut-num">3</span>
-              <div><strong>切模式</strong>：点底部 <em>同时提问 ▾</em> → 选 <em>⚔️ 辩论</em> / <em>📋 总结</em> / <em>📊 PPT</em></div>
-            </li>
-          </ol>
+          <div class="es-tutorial-header">
+            <div class="es-tutorial-title">新手教程</div>
+            <div class="es-tutorial-progress">第 <span id="es-tut-cur">1</span> 页 / 共 5 页</div>
+          </div>
+
+          <!-- p1 · 基础 3 步（v4.8.62 原内容，保留兼容） -->
+          <div class="es-tut-page" data-page="1">
+            <div class="es-tut-page-title">🚀 基础 3 步</div>
+            <ol class="es-tutorial-steps">
+              <li>
+                <span class="es-tut-num">1</span>
+                <div><strong>选 AI</strong>：右侧成员栏点 Logo（Claude / DeepSeek / 通义 等），至少 2 个</div>
+              </li>
+              <li>
+                <span class="es-tut-num">2</span>
+                <div><strong>发消息</strong>：底部输入框输入问题 → <kbd>Ctrl+Enter</kbd> 同时发给所有 AI</div>
+              </li>
+              <li>
+                <span class="es-tut-num">3</span>
+                <div><strong>切模式</strong>：点底部 <em>同时提问 ▾</em> → 选 <em>⚔️ 辩论</em> / <em>📋 总结</em> / <em>📊 PPT</em></div>
+              </li>
+            </ol>
+          </div>
+
+          <!-- p2 · 窗口模式 -->
+          <div class="es-tut-page" data-page="2" hidden>
+            <div class="es-tut-page-title">🪟 窗口模式</div>
+            <ul class="es-tut-list">
+              <li><strong>Tab</strong>：所有 AI 共一个窗口不同标签页，占屏少。⚠ 黄条「开始调试」<em>别点 ✕</em>，否则后台 AI 流式渲染会变慢</li>
+              <li><strong>并列</strong>：每个 AI 独立窗口并排排，多屏舒服</li>
+              <li><strong>⇲ 折叠到顶</strong>：群聊缩成屏幕顶部一行 Mini Bar，干别的事时不挡视线</li>
+              <li><strong>⊟ 简洁</strong>：长回答超 100 字自动折成两行预览，点「展开全文」看完整</li>
+            </ul>
+          </div>
+
+          <!-- p3 · 4 大任务模式 -->
+          <div class="es-tut-page" data-page="3" hidden>
+            <div class="es-tut-page-title">🎭 4 大任务模式</div>
+            <ul class="es-tut-list">
+              <li><strong>⚔️ 自由辩论 / 🤝 群策群力</strong>：多 AI 多轮交叉发言，自动注入上轮上下文</li>
+              <li><strong>📋 裁判总结</strong>：选一个 AI 当裁判，输出结构化 HTML 报告，可归档分享</li>
+              <li><strong>🎭 角色帽</strong>：点右栏「问题澄清员 / 事实核验员 / 反方挑战者 / 综合裁判」一键写分工</li>
+              <li><strong>📊 PPT 工坊</strong>：文案 → 图片 → PPTX 三步，发给 ChatGPT 自动生成华为风 PPT</li>
+            </ul>
+          </div>
+
+          <!-- p4 · 排障 -->
+          <div class="es-tut-page" data-page="4" hidden>
+            <div class="es-tut-page-title">🆘 遇到问题怎么办</div>
+            <ul class="es-tut-list">
+              <li><strong>发送失败 / 长文本变 .txt</strong>：v4.8.53+ 已自动用 execCommand 兜底，若仍失败请刷新 AI 网页确保已登录</li>
+              <li><strong>提取失败</strong>：成员卡 <em>⋯</em> → <em>重新提取</em>，或气泡上的 <kbd>⟳</kbd> 按钮 5 次重试</li>
+              <li><strong>辩论提示「回答不足」</strong>：弹窗选 <em>重新提取所有</em> 或 <em>切到同时提问</em></li>
+              <li><strong>AI 不回答 / 限流</strong>：成员卡 <em>⋯</em> → <em>跳到原页</em>，去 AI 网页看登录状态或额度</li>
+            </ul>
+          </div>
+
+          <!-- p5 · 进阶 -->
+          <div class="es-tut-page" data-page="5" hidden>
+            <div class="es-tut-page-title">⭐ 进阶玩法</div>
+            <ul class="es-tut-list">
+              <li><strong>@ 单发</strong>：输入 <em>@AI 名</em> 单独发给某个 AI（不广播）</li>
+              <li><strong>模板库</strong>：设置 Tab → 模板，复用常用提问框架</li>
+              <li><strong>成员卡 ⋯ 菜单</strong>：重发 / 重新提取 / 跳到原页 / 移除</li>
+              <li><strong>窗口拖拽</strong>：Mini Bar / 主控可拖移，下次启动记住位置</li>
+            </ul>
+          </div>
+
+          <div class="es-tutorial-nav">
+            <button class="es-tut-prev" id="es-tut-prev" type="button" disabled>← 上一页</button>
+            <div class="es-tut-dots" id="es-tut-dots">
+              <span class="es-tut-dot active" data-page="1"></span>
+              <span class="es-tut-dot" data-page="2"></span>
+              <span class="es-tut-dot" data-page="3"></span>
+              <span class="es-tut-dot" data-page="4"></span>
+              <span class="es-tut-dot" data-page="5"></span>
+            </div>
+            <button class="es-tut-next" id="es-tut-next" type="button">下一页 →</button>
+          </div>
         </div>
       </div>
     </main>
