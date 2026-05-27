@@ -2096,6 +2096,18 @@ try {
     tutPageRuntime.after?.dot2Active && tutPageRuntime.after?.curText === "2" && tutPageRuntime.after?.current === 2,
     `actual: ${JSON.stringify(tutPageRuntime.after)}`);
 
+  // ── v4.9.0 ①: gatekeeper-rules.js 内置词表 ──
+  const rulesJsV490 = fs.readFileSync(path.join(EXT_PATH, "gatekeeper-rules.js"), "utf8");
+  check("v4.9.0 ①: gatekeeper-rules.js 暴露 BUILTIN_RULES 含 5 类正则 + 2 个词表",
+    /self\.BUILTIN_RULES\s*=/.test(rulesJsV490) &&
+    /id:\s*"huawei-staff-id"/.test(rulesJsV490) &&
+    /id:\s*"internal-ip-10"/.test(rulesJsV490) &&
+    /id:\s*"huawei-email"/.test(rulesJsV490) &&
+    /id:\s*"mobile-phone-cn"/.test(rulesJsV490) &&
+    /id:\s*"carrier-cn"/.test(rulesJsV490) &&
+    /id:\s*"strategic-keywords"/.test(rulesJsV490),
+    "gatekeeper-rules.js 词表不完整");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
