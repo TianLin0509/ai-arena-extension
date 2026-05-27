@@ -6,35 +6,23 @@
 <title>AI Arena v5.0 Beta — 让 9 大 AI 同台辩论</title>
 <style>
   :root {
-    --bg: #fafafa;
-    --bg-soft: #f5f5f7;
-    --card: #ffffff;
-    --ink: #1d1d1f;
-    --ink-soft: #6e6e73;
-    --ink-faint: #86868b;
-    --border: #d2d2d7;
-    --accent: #0071e3;
-    --accent-soft: rgba(0,113,227,0.10);
-    --code-bg: #1d1d1f;
+    /* 强制深色 — 不跟随系统 */
+    --bg: #1d1d1f;
+    --bg-soft: #2c2c2e;
+    --card: #2c2c2e;
+    --ink: #f5f5f7;
+    --ink-soft: #aeaeb2;
+    --ink-faint: #8e8e93;
+    --border: #38383a;
+    --accent: #0a84ff;
+    --accent-soft: rgba(10,132,255,0.16);
+    --code-bg: #0a0a0a;
     --code-ink: #f5f5f7;
-    --chip-bg: #f2f2f7;
-    --chip-ink: #1d1d1f;
+    --chip-bg: #3a3a3c;
+    --chip-ink: #f5f5f7;
     --hero-grad: linear-gradient(135deg, #0a1a3a 0%, #16213e 50%, #1a1a2e 100%);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1d1d1f;
-      --bg-soft: #2c2c2e;
-      --card: #2c2c2e;
-      --ink: #f5f5f7;
-      --ink-soft: #aeaeb2;
-      --ink-faint: #8e8e93;
-      --border: #38383a;
-      --accent: #0a84ff;
-      --accent-soft: rgba(10,132,255,0.16);
-      --chip-bg: #3a3a3c;
-      --chip-ink: #f5f5f7;
-    }
+    --solid-dark: #000000;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -335,6 +323,139 @@
   .page .story-text,
   .page .story-visual { height: 100%; }
   .page .story-text { overflow-y: auto; }
+
+  /* ===== 翻书 section 醒目标题（吸引翻页）===== */
+  .book-intro {
+    text-align: center;
+    padding: 64px 24px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .book-intro::before {
+    /* 巨大装饰数字 - 半透明绘到背景 */
+    content: attr(data-big);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(200px, 30vw, 360px);
+    font-weight: 900;
+    color: var(--accent);
+    opacity: 0.06;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: -0.04em;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  .book-intro > * { position: relative; z-index: 1; }
+  .book-intro h2 {
+    margin: 0 0 14px;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    color: var(--ink);
+  }
+  .book-intro h2 em {
+    font-style: normal;
+    background: linear-gradient(120deg, #0a84ff 0%, #ff3b30 50%, #ff9f0a 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradient-shift 4s ease infinite;
+    padding: 0 4px;
+    font-weight: 800;
+  }
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .book-intro-sub {
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+    line-height: 1.6;
+  }
+  .book-intro-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14.5px;
+    font-weight: 600;
+    animation: bounce-arrow 1.4s ease infinite;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(10,132,255,0.35);
+  }
+  @keyframes bounce-arrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ===== 硬实力 .page.hard-page · 单列变体 ===== */
+  .page.hard-page {
+    grid-template-columns: 1fr;
+    padding: 36px 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 820px) { .page.hard-page { padding: 24px; } }
+  .page.hard-page .hard-card {
+    width: 100%;
+    max-width: 880px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  @media (max-width: 820px) {
+    .page.hard-page .hard-card { grid-template-columns: 1fr; gap: 18px; }
+  }
+  .page.hard-page .hard-card > .h,
+  .page.hard-page .hard-card > .body,
+  .page.hard-page .hard-card > ul {
+    grid-column: 1;
+  }
+  .page.hard-page .hard-card > .hard-thumb {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    margin-top: 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--bg-soft);
+  }
+  @media (max-width: 820px) {
+    .page.hard-page .hard-card > .hard-thumb { grid-column: 1; grid-row: auto; }
+  }
+  .page.hard-page .h { display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px; }
+  .page.hard-page .h .num {
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .page.hard-page .h .ttl {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  .page.hard-page .body { font-size: 15px; color: var(--ink-soft); line-height: 1.75; margin: 0 0 4px; }
+  .page.hard-page .body b { color: var(--ink); font-weight: 600; }
+  .page.hard-page ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink-soft); line-height: 1.85; }
+  .page.hard-page ul b { color: var(--ink); font-weight: 600; }
   .story-text {
     padding: 32px 32px;
     display: flex;
@@ -402,16 +523,13 @@
   }
   .chip.accent { background: var(--accent-soft); color: var(--accent); }
   .story-visual {
-    background: linear-gradient(135deg, #f5f5f7 0%, #ebebef 100%);
+    background: linear-gradient(135deg, #2c2c2e 0%, #1d1d1f 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
     position: relative;
     min-height: 280px;
-  }
-  @media (prefers-color-scheme: dark) {
-    .story-visual { background: linear-gradient(135deg, #2c2c2e 0%, #1d1d1f 100%); }
   }
   .story-visual img {
     max-width: 100%;
@@ -430,14 +548,11 @@
     bottom: 10px;
     right: 16px;
     font-size: 11px;
-    color: var(--ink-faint);
-    background: rgba(255,255,255,0.9);
+    color: var(--ink-soft);
+    background: rgba(0,0,0,0.65);
     padding: 3px 8px;
     border-radius: 4px;
     font-weight: 500;
-  }
-  @media (prefers-color-scheme: dark) {
-    .visual-caption { background: rgba(0,0,0,0.65); color: var(--ink-soft); }
   }
 
   /* ===== CSS-only "GIF": 双帧自动循环 ===== */
@@ -866,7 +981,7 @@
 
   /* ===== CTA Final ===== */
   .cta-final {
-    background: var(--ink);
+    background: var(--solid-dark);
     color: #fff;
     border-radius: 16px;
     padding: 48px 40px;
@@ -1021,13 +1136,14 @@
 
   <!-- ============== 7 大主推 ============== -->
   <section class="section" id="stories">
-    <div class="section-head">
-      <div class="section-label">7 个让你装上就停不下来的理由</div>
-      <div class="section-hint">每张卡都讲一个真实场景，配 v4.8.51 实拍截图</div>
+    <div class="book-intro" data-big="7">
+      <h2>7 个让你<br><em>装上就停不下来</em>的理由</h2>
+      <p class="book-intro-sub">每张主推卡都讲一个真实场景 · 配 v4.8.51 真实截图 + 交互录屏</p>
+      <a class="book-intro-arrow" href="#stories">📖 翻起来 · 点圆点 / ← → / 键盘切换</a>
     </div>
 
     <div class="book-wrap">
-    <div class="book-stage" data-book>
+    <div class="book-stage" data-book="stories">
 
       <!-- #01 9 AI 同台 -->
       <div class="page">
@@ -1236,24 +1352,27 @@
 
     </div>
     <div class="book-controls">
-      <button class="book-btn" data-book-prev>← 上一页</button>
-      <span class="book-idx">第 <b data-book-idx>1</b> 页 / 共 7 页</span>
-      <button class="book-btn" data-book-next>下一页 →</button>
+      <button class="book-btn" data-book-prev="stories">← 上一页</button>
+      <span class="book-idx">第 <b data-book-idx="stories">1</b> 页 / 共 7 页</span>
+      <button class="book-btn" data-book-next="stories">下一页 →</button>
     </div>
-    <div class="book-dots" data-book-dots></div>
+    <div class="book-dots" data-book-dots="stories"></div>
     </div>
   </section>
 
-  <!-- ============== 4 硬实力 ============== -->
-  <section class="section">
-    <div class="section-head">
-      <div class="section-label">4 项底座硬实力</div>
-      <div class="section-hint">让那 7 张主牌打得稳的隐性肌肉</div>
+  <!-- ============== 4 硬实力 · 翻书页 ============== -->
+  <section class="section" id="hard-section">
+    <div class="book-intro" data-big="4">
+      <h2>4 项<em>底座硬实力</em></h2>
+      <p class="book-intro-sub">让那 7 张主牌打得稳的隐性肌肉 · 鲁棒性 / 统计 / 气泡 / 渲染</p>
+      <a class="book-intro-arrow" href="#hard-section">⚡ 翻下去看 · 点圆点 / ← → 切换</a>
     </div>
-    <div class="hard">
+
+    <div class="book-wrap">
+    <div class="book-stage" data-book="hard">
 
       <!-- A 鲁棒性 -->
-      <div class="hard-card">
+      <div class="page hard-page"><div class="hard-card">
         <div class="h"><div class="num">A</div><div class="ttl">鲁棒性全面升级</div></div>
         <div class="body">告别"沉默撒谎" —— 出问题不再装作没事，错误立刻可见，可恢复的自己恢复。</div>
         <ul>
@@ -1265,10 +1384,10 @@
         <div class="hard-thumb">
           <img src="v5.0-screenshots/A-robust-send.gif" alt="鲁棒发送 · fail-loud 演示" />
         </div>
-      </div>
+      </div></div>
 
       <!-- B 统计 -->
-      <div class="hard-card">
+      <div class="page hard-page"><div class="hard-card">
         <div class="h"><div class="num">B</div><div class="ttl">统计 · 你和 AI 的健身房记录</div></div>
         <div class="body">本次 / 累计 / 模型三 sub-tab，把"你跟 AI 的关系"量化到日 / 周 / 月维度。</div>
         <ul>
@@ -1280,10 +1399,10 @@
         <div class="hard-thumb">
           <img src="v5.0-screenshots/03-stats-tab.png" alt="统计 Tab 真实截图" />
         </div>
-      </div>
+      </div></div>
 
       <!-- C 气泡 actions -->
-      <div class="hard-card">
+      <div class="page hard-page"><div class="hard-card">
         <div class="h"><div class="num">C</div><div class="ttl">气泡 5-action 工具栏</div></div>
         <div class="body">每条 AI 回答都是独立工作单元 —— 5 个动作 + 头像点击直跳原对话页。</div>
         <ul>
@@ -1295,10 +1414,10 @@
         <div class="hard-thumb">
           <img src="v5.0-screenshots/C-bubble-actions.png" alt="气泡 + 5 actions 真实截图" />
         </div>
-      </div>
+      </div></div>
 
       <!-- D Markdown -->
-      <div class="hard-card">
+      <div class="page hard-page"><div class="hard-card">
         <div class="h"><div class="num">D</div><div class="ttl">Markdown / 数学公式渲染</div></div>
         <div class="body">AI 答的内容长什么样，扩展里就是什么样 —— 标题、列表、表格、代码、公式，统统原汁原味。</div>
         <ul>
@@ -1324,8 +1443,15 @@
             <text x="20" y="105" font-family="SF Mono,monospace" font-size="11" fill="#6e6e73">KaTeX 渲染 · 自动从 LaTeX 推断 · 失败时退化 Unicode 兜底</text>
           </svg>
         </div>
-      </div>
+      </div></div>
 
+    </div>
+    <div class="book-controls">
+      <button class="book-btn" data-book-prev="hard">← 上一项</button>
+      <span class="book-idx">第 <b data-book-idx="hard">1</b> 项 / 共 4 项</span>
+      <button class="book-btn" data-book-next="hard">下一项 →</button>
+    </div>
+    <div class="book-dots" data-book-dots="hard"></div>
     </div>
   </section>
 
@@ -1566,53 +1692,67 @@
 
 <script>
 'use strict';
-// ===== 7 大主推 · 3D 翻书页交互 =====
+// ===== 3D 翻书页交互 · 支持多 stage（stories + hard） =====
 (function () {
-  const stage = document.querySelector('[data-book]');
-  if (!stage) return;
-  const pages = Array.from(stage.querySelectorAll('.page'));
-  const dotsEl = document.querySelector('[data-book-dots]');
-  const idxEl = document.querySelector('[data-book-idx]');
-  const prevBtn = document.querySelector('[data-book-prev]');
-  const nextBtn = document.querySelector('[data-book-next]');
-  if (!pages.length || !dotsEl) return;
-  let cur = 0;
+  const stages = document.querySelectorAll('[data-book]');
+  if (!stages.length) return;
+  const apis = {};
+  let activeId = null; // 当前 viewport 中可见的 stage id
 
-  // 生成圆点
-  pages.forEach((_, i) => {
-    const b = document.createElement('button');
-    b.className = 'dot' + (i === 0 ? ' active' : '');
-    b.dataset.i = i;
-    b.setAttribute('aria-label', `跳到第 ${i + 1} 页`);
-    b.addEventListener('click', () => go(i));
-    dotsEl.appendChild(b);
+  stages.forEach(stage => {
+    const id = stage.dataset.book;
+    const pages = Array.from(stage.querySelectorAll('.page'));
+    const dotsEl = document.querySelector(`[data-book-dots="${id}"]`);
+    const idxEl = document.querySelector(`[data-book-idx="${id}"]`);
+    const prevBtn = document.querySelector(`[data-book-prev="${id}"]`);
+    const nextBtn = document.querySelector(`[data-book-next="${id}"]`);
+    if (!pages.length || !dotsEl) return;
+    let cur = 0;
+
+    pages.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'dot' + (i === 0 ? ' active' : '');
+      b.dataset.i = i;
+      b.setAttribute('aria-label', `跳到第 ${i + 1} 项`);
+      b.addEventListener('click', () => go(i));
+      dotsEl.appendChild(b);
+    });
+
+    function go(i) {
+      cur = Math.max(0, Math.min(pages.length - 1, i));
+      pages.forEach((p, j) => {
+        p.classList.remove('active', 'past', 'future');
+        if (j === cur) p.classList.add('active');
+        else if (j < cur) p.classList.add('past');
+        else p.classList.add('future');
+      });
+      dotsEl.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('active', j === cur));
+      if (idxEl) idxEl.textContent = cur + 1;
+      if (prevBtn) prevBtn.disabled = cur === 0;
+      if (nextBtn) nextBtn.disabled = cur === pages.length - 1;
+    }
+
+    prevBtn?.addEventListener('click', () => go(cur - 1));
+    nextBtn?.addEventListener('click', () => go(cur + 1));
+
+    apis[id] = { go, get cur() { return cur; } };
+    go(0);
+
+    // 跟踪当前可见 stage（用于全局键盘）
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) activeId = id; });
+    }, { threshold: 0.4 });
+    io.observe(stage);
   });
 
-  function go(i) {
-    cur = Math.max(0, Math.min(pages.length - 1, i));
-    pages.forEach((p, j) => {
-      p.classList.remove('active', 'past', 'future');
-      if (j === cur) p.classList.add('active');
-      else if (j < cur) p.classList.add('past');
-      else p.classList.add('future');
-    });
-    dotsEl.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('active', j === cur));
-    if (idxEl) idxEl.textContent = cur + 1;
-    if (prevBtn) prevBtn.disabled = cur === 0;
-    if (nextBtn) nextBtn.disabled = cur === pages.length - 1;
-  }
-
-  prevBtn?.addEventListener('click', () => go(cur - 1));
-  nextBtn?.addEventListener('click', () => go(cur + 1));
-
-  // 键盘左右翻页（仅当焦点在翻书区域附近或没有 input 聚焦时）
+  // 全局键盘 ← / →：切换当前可见的 stage
   document.addEventListener('keydown', (e) => {
     if (document.activeElement.matches('input, textarea, [contenteditable]')) return;
-    if (e.key === 'ArrowLeft') { go(cur - 1); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { go(cur + 1); e.preventDefault(); }
+    const target = activeId && apis[activeId];
+    if (!target) return;
+    if (e.key === 'ArrowLeft') { target.go(target.cur - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { target.go(target.cur + 1); e.preventDefault(); }
   });
-
-  go(0);
 })();
 </script>
 
