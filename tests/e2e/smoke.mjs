@@ -2233,6 +2233,16 @@ try {
     gkModalRuntime.maskCalled === true && gkModalRuntime.gone === true,
     `actual: ${JSON.stringify(gkModalRuntime)}`);
 
+  // ── v4.9.0 ⑧: popup.css 守门员 modal 样式 ──
+  const cssV490 = fs.readFileSync(path.join(EXT_PATH, "popup.css"), "utf8");
+  check("v4.9.0 ⑧: popup.css 含 .gk-hits / .gk-hit-cat / .gk-mask-tag / .gk-preview-body 样式",
+    /\.gk-hits\s*\{/.test(cssV490) &&
+    /\.gk-hit-cat\s*\{[^}]*background:\s*rgba\(255,\s*159,\s*10/.test(cssV490) &&
+    /\.gk-mask-tag\s*\{[^}]*color:\s*#34c759/.test(cssV490) &&
+    /\.gk-preview-body\s*\{/.test(cssV490) &&
+    /\.arena-modal-actions\.gk-actions/.test(cssV490),
+    "守门员 modal 样式不完整");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。

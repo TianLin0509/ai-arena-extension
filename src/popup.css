@@ -4009,3 +4009,97 @@ body[data-logo-style="basic"] .msg-avatar img {
   transition: all 0.15s ease;
 }
 .arena-modal-close:hover { background: var(--bg); color: var(--ink); }
+/* v4.9.0: 敏感信息守门员 modal — 跟 v4.8.65 ChatModal 共用 .arena-modal 基础体系 */
+.gatekeeper-modal .arena-modal {
+  width: min(480px, 96vw);   /* 比标准 modal 宽一点放命中清单 */
+}
+.gk-hits {
+  margin: 12px 0 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.gk-hits-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.gk-hit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed var(--border);
+}
+.gk-hit-row:last-child { border-bottom: none; }
+.gk-hit-cat {
+  flex-shrink: 0;
+  min-width: 60px;
+  padding: 2px 8px;
+  background: rgba(255, 159, 10, 0.18);
+  color: #ff9f0a;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.gk-hit-text {
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: rgba(255, 59, 48, 0.10);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.gk-preview {
+  margin-bottom: 16px;
+  text-align: left;
+}
+.gk-preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.gk-preview-body {
+  font-size: 12.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  max-height: 120px;
+  overflow-y: auto;
+  word-break: break-all;
+}
+.gk-mask-tag {
+  display: inline;
+  background: rgba(52, 199, 89, 0.16);
+  color: #34c759;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* gk-actions 不同布局：3 按钮横排，主按钮中间 */
+.arena-modal-actions.gk-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.arena-modal-actions.gk-actions .arena-modal-btn {
+  flex: 1 1 auto;
+  min-width: 110px;
+}
