@@ -487,7 +487,7 @@ body[data-mode="mini"] .mention-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 24px;                       /* v4.8.67: 18→24, 给海报和标题更大缓冲，避免被海报底部遮挡 */
   padding: 12px 16px;
   margin: 0;
   max-width: 100%;
@@ -497,15 +497,16 @@ body[data-mode="mini"] .mention-menu {
   position: relative;             /* v4.8.20 ⑤ 让 .es-star 绝对定位的父级 */
 }
 .empty-state .es-poster {
-  flex: 2;                         /* 上 2/3 */
+  /* v4.8.67: 海报不再 flex:2 抢空间，改纯尺寸约束，避免在窄/矮窗口里把 pitch 区域挤到标题被遮挡 */
+  flex: 0 0 auto;
   min-height: 0;
   max-width: 100%;
   width: auto;
-  max-height: 66%;
+  max-height: 48%;                 /* v4.8.67: 66→48，给下半部 pitch 足够空间放标题+features+CTA */
   height: auto;
   object-fit: contain;
   border-radius: 16px;
-  filter: drop-shadow(0 12px 36px rgba(255, 175, 80, 0.22));
+  filter: drop-shadow(0 8px 22px rgba(255, 175, 80, 0.18));  /* v4.8.67: 阴影内敛点 */
   position: relative;
   z-index: 1;                      /* 让海报盖在星点之上 */
 }
@@ -541,7 +542,8 @@ body[data-mode="mini"] .mention-menu {
   50%      { opacity: 0.95; transform: scale(1); }
 }
 .empty-state .es-pitch {
-  flex: 1;                         /* 下 1/3 */
+  /* v4.8.67: 海报不再 flex 抢空间，pitch 也改成自然撑开（不抢 flex）+ 限高让 tutorial 有位置 */
+  flex: 0 0 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1299,11 +1301,13 @@ body[data-mode="mini"] .mention-menu {
 .me-meta .acts { margin-left: 0; margin-right: auto; }
 
 /* ── 左下参与者 roster ── */
+/* v4.8.67: padding 收窄 9/16 → 6/12，让整条 chat-roster 高度更紧凑，不再占满一大行 */
 .chat-roster {
   display: flex; gap: 8px; align-items: center;
-  padding: 9px 16px;
+  padding: 6px 12px;
   background: var(--card);
   border-top: 1px solid var(--border);
+  min-height: 0;
 }
 /* v4.8.22 C2: "下轮发言" 改胶囊徽章 + 闪烁圆点 */
 .roster-label {
@@ -3710,24 +3714,139 @@ body[data-logo-style="basic"] .msg-avatar img {
 .es-tutorial {
   position: relative;
   margin: 18px auto 0;
-  max-width: 480px;
-  padding: 16px 22px 18px;
+  max-width: 520px;
+  width: 100%;
+  padding: 14px 22px 14px;        /* v4.8.67: 收紧底部 padding 给翻页栏让位 */
   background: linear-gradient(135deg, rgba(94,234,212,0.08), rgba(167,139,250,0.08));
   border: 1px solid rgba(94,234,212,0.28);
   border-radius: 14px;
   box-shadow: 0 4px 18px rgba(94,234,212,0.10);
+}
+/* v4.8.67: 教程头 — 标题 + 进度 "第 N 页 / 共 5 页" */
+.es-tutorial-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+  padding-right: 24px;            /* 给右上角 ✕ 让位 */
 }
 .es-tutorial-title {
   font-size: 13px;
   font-weight: 700;
   color: var(--neon-1, #5eead4);
   letter-spacing: 0.04em;
-  margin-bottom: 10px;
 }
 .es-tutorial-title::before {
   content: "🎓 ";
   font-size: 14px;
 }
+.es-tutorial-progress {
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+.es-tutorial-progress #es-tut-cur {
+  color: var(--neon-1, #5eead4);
+  font-weight: 700;
+}
+/* v4.8.67: 单页内容 — 标题 + ol/ul 列表 */
+.es-tut-page {
+  min-height: 156px;              /* 5 页高度统一，避免翻页时高度跳动 */
+}
+.es-tut-page[hidden] { display: none; }
+.es-tut-page-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+}
+.es-tut-list {
+  margin: 0; padding: 0;
+  list-style: none;
+  display: flex; flex-direction: column;
+  gap: 7px;
+}
+.es-tut-list li {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink);
+  padding-left: 14px;
+  position: relative;
+}
+.es-tut-list li::before {
+  content: "•";
+  position: absolute;
+  left: 2px; top: 0;
+  color: var(--neon-1, #5eead4);
+  font-weight: 700;
+}
+.es-tut-list strong {
+  font-weight: 700;
+  color: var(--ink);
+  margin-right: 2px;
+}
+.es-tut-list em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--accent);
+}
+.es-tut-list kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  margin: 0 2px;
+  background: rgba(127,127,127,0.15);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 10.5px;
+}
+/* v4.8.67: 翻页栏 — 左上一页 / 中圆点 / 右下一页 */
+.es-tutorial-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(94,234,212,0.14);
+  gap: 12px;
+}
+.es-tut-prev, .es-tut-next {
+  background: rgba(127,127,127,0.08);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  min-width: 78px;
+}
+.es-tut-prev:hover:not(:disabled),
+.es-tut-next:hover:not(:disabled) {
+  background: rgba(94,234,212,0.16);
+  border-color: rgba(94,234,212,0.4);
+  color: var(--neon-1, #5eead4);
+}
+.es-tut-prev:disabled, .es-tut-next:disabled {
+  opacity: 0.35; cursor: not-allowed;
+}
+.es-tut-dots {
+  display: flex; gap: 7px;
+  align-items: center;
+}
+.es-tut-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(127,127,127,0.32);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.es-tut-dot.active {
+  width: 18px;
+  background: linear-gradient(135deg, #5eead4, #a78bfa);
+  border-radius: 999px;
+}
+.es-tut-dot:hover { background: rgba(94,234,212,0.5); }
+.es-tut-dot.active:hover { filter: brightness(1.08); }
 .es-tutorial-close {
   position: absolute;
   top: 8px; right: 10px;
