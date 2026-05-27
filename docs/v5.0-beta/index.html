@@ -228,30 +228,113 @@
     color: var(--ink-soft);
   }
 
-  /* ===== Story Card ===== */
-  .stories {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
+  /* ===== 7 大主推 · 3D 翻书页 ===== */
+  .book-wrap {
+    perspective: 2200px;
+    position: relative;
   }
-  .story {
+  .book-stage {
+    position: relative;
+    width: 100%;
+    min-height: 580px;
+  }
+  @media (max-width: 820px) { .book-stage { min-height: 780px; } }
+  .page {
+    position: absolute;
+    inset: 0;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
     display: grid;
     grid-template-columns: 1fr 1.15fr;
-    transition: box-shadow 0.2s, transform 0.2s;
+    transform-style: preserve-3d;
+    transition: transform 0.85s cubic-bezier(.4,0,.2,1), opacity 0.45s;
+    backface-visibility: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    transform-origin: center center;
   }
-  .story:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
   @media (max-width: 820px) {
-    .story { grid-template-columns: 1fr; }
+    .page { grid-template-columns: 1fr; overflow-y: auto; }
   }
-  .story.flipped { grid-template-columns: 1.15fr 1fr; }
+  .page.flipped { grid-template-columns: 1.15fr 1fr; }
   @media (max-width: 820px) {
-    .story.flipped { grid-template-columns: 1fr; }
-    .story.flipped .story-visual { order: -1; }
+    .page.flipped { grid-template-columns: 1fr; }
+    .page.flipped .story-visual { order: -1; }
   }
+  .page.future {
+    transform: rotateY(-95deg) translateX(60%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .page.active {
+    transform: rotateY(0);
+    opacity: 1;
+    z-index: 2;
+    pointer-events: auto;
+  }
+  .page.past {
+    transform: rotateY(95deg) translateX(-60%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .book-controls {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .book-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.18s;
+  }
+  .book-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .book-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .book-idx {
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-feature-settings: "tnum";
+  }
+  .book-idx b { color: var(--ink); font-weight: 700; font-size: 18px; }
+  .book-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .book-dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.25s;
+  }
+  .book-dots .dot:hover:not(.active) { background: var(--ink-soft); }
+  .book-dots .dot.active {
+    background: var(--accent);
+    width: 32px;
+    border-radius: 6px;
+  }
+  /* 让 page 内部撑满高度，避免 grid 高度不够 */
+  .page .story-text,
+  .page .story-visual { height: 100%; }
+  .page .story-text { overflow-y: auto; }
   .story-text {
     padding: 32px 32px;
     display: flex;
@@ -943,10 +1026,11 @@
       <div class="section-hint">每张卡都讲一个真实场景，配 v4.8.51 实拍截图</div>
     </div>
 
-    <div class="stories">
+    <div class="book-wrap">
+    <div class="book-stage" data-book>
 
       <!-- #01 9 AI 同台 -->
-      <div class="story">
+      <div class="page">
         <div class="story-text">
           <div class="story-head">
             <div class="story-num">01</div>
@@ -972,7 +1056,7 @@
       </div>
 
       <!-- #02 主控 ↔ Mini Bar (CSS GIF) -->
-      <div class="story flipped">
+      <div class="page flipped">
         <div class="story-visual">
           <img src="v5.0-screenshots/02-minibar.gif" alt="主控桌面一键折叠到 Mini Bar" />
           <span class="visual-caption">⇲ 折叠到顶 ↔ ⇱ 展开 · 真实录屏</span>
@@ -998,7 +1082,7 @@
       </div>
 
       <!-- #03 模板 + PPT + 角色帽 -->
-      <div class="story">
+      <div class="page">
         <div class="story-text">
           <div class="story-head">
             <div class="story-num">03</div>
@@ -1025,7 +1109,7 @@
       </div>
 
       <!-- #04 AI 卡槽 + @mention -->
-      <div class="story flipped">
+      <div class="page flipped">
         <div class="story-visual">
           <img src="v5.0-screenshots/04-roster-demo.gif" alt="AI 卡槽 + 下轮预览 + @mention 演示" />
           <span class="visual-caption">卡槽 · 下轮预览 · @ 单点 · 真实录屏</span>
@@ -1051,7 +1135,7 @@
       </div>
 
       <!-- #05 时光机目录 -->
-      <div class="story">
+      <div class="page">
         <div class="story-text">
           <div class="story-head">
             <div class="story-num">05</div>
@@ -1077,7 +1161,7 @@
       </div>
 
       <!-- #06 辩论裁判 HTML 报告 -->
-      <div class="story flipped">
+      <div class="page flipped">
         <div class="story-visual">
           <img src="v5.0-screenshots/06-judge-summary.gif" alt="辩论裁判生成 HTML 报告演示" />
           <span class="visual-caption">裁判总结生成过程 · 真实录屏</span>
@@ -1103,7 +1187,7 @@
       </div>
 
       <!-- #07 6 主题 × 4 logo (CSS GIF) -->
-      <div class="story">
+      <div class="page">
         <div class="story-text">
           <div class="story-head">
             <div class="story-num">07</div>
@@ -1150,6 +1234,13 @@
         </div>
       </div>
 
+    </div>
+    <div class="book-controls">
+      <button class="book-btn" data-book-prev>← 上一页</button>
+      <span class="book-idx">第 <b data-book-idx>1</b> 页 / 共 7 页</span>
+      <button class="book-btn" data-book-next>下一页 →</button>
+    </div>
+    <div class="book-dots" data-book-dots></div>
     </div>
   </section>
 
@@ -1472,5 +1563,58 @@
   </footer>
 
 </div>
+
+<script>
+'use strict';
+// ===== 7 大主推 · 3D 翻书页交互 =====
+(function () {
+  const stage = document.querySelector('[data-book]');
+  if (!stage) return;
+  const pages = Array.from(stage.querySelectorAll('.page'));
+  const dotsEl = document.querySelector('[data-book-dots]');
+  const idxEl = document.querySelector('[data-book-idx]');
+  const prevBtn = document.querySelector('[data-book-prev]');
+  const nextBtn = document.querySelector('[data-book-next]');
+  if (!pages.length || !dotsEl) return;
+  let cur = 0;
+
+  // 生成圆点
+  pages.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot' + (i === 0 ? ' active' : '');
+    b.dataset.i = i;
+    b.setAttribute('aria-label', `跳到第 ${i + 1} 页`);
+    b.addEventListener('click', () => go(i));
+    dotsEl.appendChild(b);
+  });
+
+  function go(i) {
+    cur = Math.max(0, Math.min(pages.length - 1, i));
+    pages.forEach((p, j) => {
+      p.classList.remove('active', 'past', 'future');
+      if (j === cur) p.classList.add('active');
+      else if (j < cur) p.classList.add('past');
+      else p.classList.add('future');
+    });
+    dotsEl.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('active', j === cur));
+    if (idxEl) idxEl.textContent = cur + 1;
+    if (prevBtn) prevBtn.disabled = cur === 0;
+    if (nextBtn) nextBtn.disabled = cur === pages.length - 1;
+  }
+
+  prevBtn?.addEventListener('click', () => go(cur - 1));
+  nextBtn?.addEventListener('click', () => go(cur + 1));
+
+  // 键盘左右翻页（仅当焦点在翻书区域附近或没有 input 聚焦时）
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement.matches('input, textarea, [contenteditable]')) return;
+    if (e.key === 'ArrowLeft') { go(cur - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { go(cur + 1); e.preventDefault(); }
+  });
+
+  go(0);
+})();
+</script>
+
 </body>
 </html>
