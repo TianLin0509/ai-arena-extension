@@ -2121,6 +2121,21 @@ try {
     /\[KEY_ENABLED\]\s*!==\s*false/.test(storeJsV490),
     "默认启用语义不对");
 
+  // ── v4.9.0 ③: gatekeeper-engine.js 扫描引擎 ──
+  const engineJsV490 = fs.readFileSync(path.join(EXT_PATH, "gatekeeper-engine.js"), "utf8");
+  check("v4.9.0 ③: gatekeeper-engine 暴露 scan / maskText / hasBlocking",
+    /self\.GatekeeperEngine\s*=/.test(engineJsV490) &&
+    /scan,\s*maskText,\s*hasBlocking/.test(engineJsV490),
+    "engine API 不完整");
+  check("v4.9.0 ③: scan 含 100ms 超时兜底（防 ReDoS）",
+    /SCAN_TIMEOUT_MS\s*=\s*100/.test(engineJsV490) &&
+    /Date\.now\(\)\s*>\s*deadline/.test(engineJsV490),
+    "scan 缺超时兜底");
+  check("v4.9.0 ③: scan 接 whitelist 跳过 + 按 index 倒序 mask",
+    /if\s*\(whitelist\[matched\]\)\s*continue/.test(engineJsV490) &&
+    /sort\(\(a,\s*b\)\s*=>\s*b\.index\s*-\s*a\.index\)/.test(engineJsV490),
+    "engine 行为不符 spec");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
