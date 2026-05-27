@@ -2108,6 +2108,19 @@ try {
     /id:\s*"strategic-keywords"/.test(rulesJsV490),
     "gatekeeper-rules.js 词表不完整");
 
+  // ── v4.9.0 ②: gatekeeper-store.js storage 抽象 ──
+  const storeJsV490 = fs.readFileSync(path.join(EXT_PATH, "gatekeeper-store.js"), "utf8");
+  check("v4.9.0 ②: gatekeeper-store 暴露 6 个核心 API",
+    /self\.GatekeeperStore\s*=/.test(storeJsV490) &&
+    /isEnabled,\s*setEnabled,/.test(storeJsV490) &&
+    /loadRules,/.test(storeJsV490) &&
+    /loadWhitelist,\s*addWhitelist,\s*removeWhitelist/.test(storeJsV490) &&
+    /loadStats,\s*bumpStat/.test(storeJsV490),
+    "gatekeeper-store API 不完整");
+  check("v4.9.0 ②: 默认启用（isEnabled 未设值返回 true）",
+    /\[KEY_ENABLED\]\s*!==\s*false/.test(storeJsV490),
+    "默认启用语义不对");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
