@@ -2142,6 +2142,20 @@ try {
     /importScripts\([^)]*"gatekeeper-rules\.js"[^)]*"gatekeeper-store\.js"[^)]*"gatekeeper-engine\.js"/.test(bgV490),
     "background.js importScripts 缺 gatekeeper 模块");
 
+  // ── v4.9.0 ⑤: background.js guardedSend wrapper ──
+  check("v4.9.0 ⑤: background.js 含 async function guardedSend",
+    /async function guardedSend\(\{\s*text,\s*handler,\s*msg\s*\}\)/.test(bgV490),
+    "缺 guardedSend 函数");
+  check("v4.9.0 ⑤: guardedSend 检查 skipGatekeeper + isEnabled + return reason:sensitive_blocked",
+    /msg\?\.skipGatekeeper/.test(bgV490) &&
+    /Store\.isEnabled\(\)/.test(bgV490) &&
+    /reason:\s*"sensitive_blocked"/.test(bgV490) &&
+    /hits,\s*masked,\s*original/.test(bgV490),
+    "guardedSend 行为不符 spec");
+  check("v4.9.0 ⑤: guardedSend 异常时降级放行（try/catch）",
+    /catch\s*\(e\)\s*\{[\s\S]{0,200}falling back to handler/.test(bgV490),
+    "guardedSend 缺异常降级");
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。

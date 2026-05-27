@@ -1644,3 +1644,29 @@ async function sendMessageWithTimeout(tabId, msg, timeoutMs = 90000) {
 }
 
 function notifyStatus(message) { chrome.runtime.sendMessage({ type: "status", message }).catch(() => {}); }
+
+// v4.9.0: 敏感信息守门员 wrapper — 所有发送 handler 走这里扫一次
+//   { text, handler, msg } → 命中则返回 { ok:false, reason:"sensitive_blocked", hits, masked, original }
+//   不命中或 msg.skipGatekeeper === true → 直接调 handler() return 结果
+//   handler 是不带参数的函数（闭包捕获 msg.* 等）
+async function guardedSend({ text, handler, msg }) {
+  try {
+    if (msg?.skipGatekeeper) return await handler();
+    const Store = self.GatekeeperStore;
+    const Engine = self.GatekeeperEngine;
+    if (!Store || !Engine) return await handler();   // 守门员未加载，降级放行
+    if (!(await Store.isEnabled())) return await handler();
+    if (typeof text !== "string" || !text.trim()) return await handler();
+
+    const hits = await Engine.scan(text);
+    if (!hits.length) return await handler();
+
+    // 命中 → 不走 handler，return reason 给 popup
+    const masked = Engine.maskText(text, hits);
+    try { await Store.bumpStat("hits"); } catch (_) {}
+    return { ok: false, reason: "sensitive_blocked", hits, masked, original: text };
+  } catch (e) {
+    console.warn("[Gatekeeper] guardedSend error, falling back to handler:", e);
+    return await handler();
+  }
+}
