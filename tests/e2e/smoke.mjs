@@ -2175,6 +2175,64 @@ try {
     /case\s+"chatBroadcast":[\s\S]{0,300}guardedSend/.test(bgV490_t6),
     "case chatBroadcast 没接");
 
+  // ── v4.9.0 ⑦: popup-modal.js showSensitiveBlocked ──
+  const modalJsV490 = fs.readFileSync(path.join(EXT_PATH, "popup-modal.js"), "utf8");
+  check("v4.9.0 ⑦: popup-modal 暴露 showSensitiveBlocked + 3 个 role(mask/confirm/cancel)",
+    /window\.ChatModal\s*=\s*\{[^}]*showSensitiveBlocked/s.test(modalJsV490) &&
+    /data-role="mask"/.test(modalJsV490) &&
+    /data-role="confirm"/.test(modalJsV490) &&
+    /data-role="cancel"/.test(modalJsV490),
+    "showSensitiveBlocked API 或按钮 role 不完整");
+  check("v4.9.0 ⑦: modal 文案符合 spec（检测到 N 处敏感信息 + 3 按钮中文）",
+    /\$\{n\}\s*处敏感信息/.test(modalJsV490) &&
+    /自动打码后发送/.test(modalJsV490) &&
+    /我确认无敏感\s*·\s*加入白名单/.test(modalJsV490) &&
+    /取消修改/.test(modalJsV490),
+    "modal 文案不符 spec v1");
+
+  // 运行时：popup 中调 showSensitiveBlocked 验证 DOM 出现 + 按钮可点
+  const gkModalRuntime = await popupPage.evaluate(async () => {
+    if (!window.ChatModal?.showSensitiveBlocked) return { err: "showSensitiveBlocked 未暴露" };
+    let maskCalled = false, confirmCalled = false, cancelCalled = false;
+    window.ChatModal.showSensitiveBlocked(
+      {
+        hits: [
+          { category: "工号", text: "Z12345678", masked: "<工号>", severity: "block" },
+          { category: "客户", text: "中国移动",   masked: "<客户>", severity: "block" },
+        ],
+        masked: "请帮我分析 <工号> 在 <客户> 的需求",
+        original: "请帮我分析 Z12345678 在 中国移动 的需求",
+      },
+      {
+        onMask: () => { maskCalled = true; },
+        onConfirm: () => { confirmCalled = true; },
+        onCancel: () => { cancelCalled = true; },
+      }
+    );
+    await new Promise(r => setTimeout(r, 50));
+    const overlay = document.querySelector(".gatekeeper-modal");
+    const titleText = document.querySelector(".arena-modal-title")?.textContent || "";
+    const hitsRowCount = document.querySelectorAll(".gk-hit-row").length;
+    const previewText = document.querySelector(".gk-preview-body")?.textContent || "";
+    const maskTagCount = document.querySelectorAll(".gk-mask-tag").length;
+    // 测点主按钮
+    document.querySelector('[data-role="mask"]')?.click();
+    await new Promise(r => setTimeout(r, 200));
+    const gone = !document.querySelector(".gatekeeper-modal");
+    return { hasOverlay: !!overlay, titleText, hitsRowCount, previewText, maskTagCount, maskCalled, gone };
+  });
+  check("v4.9.0 ⑦ 运行时: showSensitiveBlocked 渲染 overlay + 2 hits + 2 mask-tag + 标题数字正确",
+    !gkModalRuntime.err &&
+    gkModalRuntime.hasOverlay &&
+    gkModalRuntime.titleText.includes("2 处敏感信息") &&
+    gkModalRuntime.hitsRowCount === 2 &&
+    gkModalRuntime.previewText.includes("<工号>") &&
+    gkModalRuntime.maskTagCount === 2,
+    `actual: ${JSON.stringify(gkModalRuntime)}`);
+  check("v4.9.0 ⑦ 运行时: 点击主按钮触发 onMask + modal 关闭",
+    gkModalRuntime.maskCalled === true && gkModalRuntime.gone === true,
+    `actual: ${JSON.stringify(gkModalRuntime)}`);
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
