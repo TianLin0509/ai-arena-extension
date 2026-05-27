@@ -101,7 +101,10 @@
       }
       if (msg?.type === "chatClear" || msg?.type === "hardReset") {
         streamStatus.clear();
-        render();
+        // v4.8.65: hardReset 时 participants 已被 background 清空 → 本地立刻清并刷新，
+        // 再拉一次 state 确保跟 background 一致（双保险，防 background stateUpdate 丢包）
+        if (msg.type === "hardReset") { participants = []; render(); refresh(); }
+        else render();
       }
     });
   } catch (_) {}

@@ -346,6 +346,17 @@ body {
 }
 .btn-icon:active { transform: translateY(0); }
 .btn-icon svg { display: block; }
+/* v4.8.65: with-label 模式 — icon + 文字横排，宽度自适应 */
+.btn-icon.with-label {
+  width: auto;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.btn-icon-label { display: inline-block; }
 /* A2: 重置按钮 hover 出粉色光晕 + SVG 轻微旋转暗示"重启" */
 .btn-icon.danger { color: #ff9f80; border-color: rgba(255,159,128,0.18); }
 .btn-icon.danger:hover {
@@ -3780,3 +3791,102 @@ body[data-logo-style="basic"] .msg-avatar img {
   font-size: 10.5px;
   color: var(--ink);
 }
+
+/* v4.8.65: 通用 action modal — 跟随插件 data-theme 主题（用 CSS var 不用 prefers-color-scheme）
+   v4.8.35 决策：popup.css 禁用 @media prefers-color-scheme，避免家电脑/公司电脑系统色不同导致表现不一致 */
+.arena-modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(8, 10, 16, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.arena-modal-overlay.show { opacity: 1; pointer-events: auto; }
+.arena-modal {
+  position: relative;
+  width: min(420px, 96vw);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+  text-align: center;
+  transform: translateY(8px) scale(0.97);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: -apple-system, "PingFang SC", system-ui, sans-serif;
+}
+.arena-modal-overlay.show .arena-modal { transform: translateY(0) scale(1); }
+.arena-modal-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+.tone-warning .arena-modal-icon { background: rgba(255, 159, 10, 0.18); color: #ff9f0a; }
+.tone-info    .arena-modal-icon { background: rgba(10, 132, 255, 0.18); color: var(--accent); }
+.arena-modal-title {
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.arena-modal-message {
+  font-size: 13.5px; line-height: 1.55;
+  color: var(--ink);
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+.arena-modal-tip {
+  font-size: 12px; line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+.arena-modal-actions {
+  display: flex; flex-direction: column-reverse; gap: 8px;
+}
+.arena-modal-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  transition: all 0.15s ease;
+}
+.arena-modal-btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.arena-modal-btn.primary:hover  { filter: brightness(1.08); transform: translateY(-1px); }
+.arena-modal-btn.primary:active { transform: translateY(0); }
+.arena-modal-btn.secondary {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.arena-modal-btn.secondary:hover { filter: brightness(0.95); }
+.arena-modal-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  border: none; background: transparent;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s ease;
+}
+.arena-modal-close:hover { background: var(--bg); color: var(--ink); }

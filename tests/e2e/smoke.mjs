@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 4.8.64-beta", manifest.version_name === "4.8.64-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 4.8.65-beta", manifest.version_name === "4.8.65-beta", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v4.8.64-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v4.8.65-beta", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v4.8.64-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v4.8.65-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v4.8.64-beta", popupVersion === "v4.8.64-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v4.8.65-beta", popupVersion === "v4.8.65-beta", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -881,7 +881,8 @@ try {
     /type:\s*"same_as_last"/.test(backgroundSrcV39),
     "_buildDebateWarnings 缺 same_as_last 判定");
   check("v4.8.39: warnings 在 responses 收集之后才计算（不在 if(!force) 早 return 前）",
-    /Object\.keys\(responses\)\.length < 2[\s\S]{0,200}if \(!force\)/.test(backgroundSrcV39),
+    // v4.8.65: 窗口 200→1000，因为 insufficient_responses 加了 missing/haveCount payload
+    /Object\.keys\(responses\)\.length < 2[\s\S]{0,1000}if \(!force\)/.test(backgroundSrcV39),
     "warnings 检查顺序不对");
   check("v4.8.39: needsConfirm payload 含 warnings 数组（用于 popup 端识别多类警告）",
     /warnings,\s*\n[\s\S]{0,200}pollingServices/.test(backgroundSrcV39),
@@ -1902,6 +1903,105 @@ try {
   check("v4.8.64 ②: chat-bus 暴露 getActivePollerCount",
     /getActivePollerCount:\s*\(\)\s*=>\s*pollers\.size/.test(busV63),
     "缺 getActivePollerCount 暴露");
+
+  // ── v4.8.65: ① 顶栏重置按钮加文字 ② hardReset 后状态栏清空 ③ 辩论回答不足弹自定义 modal ──
+  const popupHtmlV65 = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
+  const popupCssV65  = fs.readFileSync(path.join(EXT_PATH, "popup.css"),  "utf8");
+  const bgV65        = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  const miniRosterV65 = fs.readFileSync(path.join(EXT_PATH, "popup-mini-roster.js"), "utf8");
+  const popupTasksV65 = fs.readFileSync(path.join(EXT_PATH, "popup-tasks.js"), "utf8");
+  const taskMenuV65   = fs.readFileSync(path.join(EXT_PATH, "popup-task-menu.js"), "utf8");
+
+  // ① 重置按钮加文字（class 和 id 顺序在 HTML 里无关紧要，分两条校验更稳）
+  check("v4.8.65 ①a: popup.html #btn-clear 是 with-label + 含 '清空群聊' 标签",
+    /<button[^>]*with-label[^>]*id="btn-clear"[\s\S]{0,500}?<span class="btn-icon-label">清空群聊<\/span>/.test(popupHtmlV65),
+    "btn-clear 缺 with-label 或 '清空群聊' 文字");
+  check("v4.8.65 ①b: popup.html #btn-hard-reset 是 with-label + 含 '彻底重置' 标签",
+    /<button[^>]*with-label[^>]*id="btn-hard-reset"[\s\S]{0,500}?<span class="btn-icon-label">彻底重置<\/span>/.test(popupHtmlV65),
+    "btn-hard-reset 缺 with-label 或 '彻底重置' 文字");
+  check("v4.8.65 ①: popup.css 含 .btn-icon.with-label 自适应宽度样式",
+    /\.btn-icon\.with-label\s*\{[^}]*width:\s*auto/s.test(popupCssV65),
+    "popup.css 缺 with-label 样式");
+
+  // ② hardReset 清状态栏
+  check("v4.8.65 ②: background.js hardReset case 补 _broadcastStateUpdate（让 mini-roster 拿到空 list）",
+    /hardReset[\s\S]{0,800}?v4\.8\.65[\s\S]{0,200}?StateMachine\._broadcastStateUpdate\(\)/.test(bgV65),
+    "background.js hardReset case 缺 _broadcastStateUpdate 补丁");
+  check("v4.8.65 ②: popup-mini-roster.js 收到 hardReset 时本地清 participants + refresh（双保险）",
+    /msg\.type === "hardReset"[\s\S]{0,200}?participants = \[\][\s\S]{0,100}?refresh\(\)/.test(miniRosterV65),
+    "popup-mini-roster.js 缺 hardReset 主动 refresh 兜底");
+
+  // ③ 辩论回答不足 modal
+  const modalJsExists = fs.existsSync(path.join(EXT_PATH, "popup-modal.js"));
+  check("v4.8.65 ③: popup-modal.js 文件存在", modalJsExists, "缺 popup-modal.js");
+  if (modalJsExists) {
+    const modalV65 = fs.readFileSync(path.join(EXT_PATH, "popup-modal.js"), "utf8");
+    check("v4.8.65 ③: popup-modal.js 暴露 ChatModal.show / close / showInsufficientResponses",
+      /window\.ChatModal\s*=\s*\{[^}]*show[\s\S]*?close[\s\S]*?showInsufficientResponses/s.test(modalV65),
+      "ChatModal 接口不全");
+    check("v4.8.65 ③: showInsufficientResponses 弹 primary=重新提取 + secondary=切到同时提问",
+      /primary:[\s\S]{0,100}重新提取[\s\S]{0,200}secondary:[\s\S]{0,100}切到同时提问/.test(modalV65),
+      "modal 按钮文案不符");
+  }
+  check("v4.8.65 ③: popup.html 引入 popup-modal.js",
+    /<script src="popup-modal\.js"><\/script>/.test(popupHtmlV65),
+    "popup.html 没引入 popup-modal.js");
+  check("v4.8.65 ③: popup.css 含 .arena-modal-overlay 苹果极简风 + 跟随 data-theme CSS var（不 @media）",
+    /\.arena-modal-overlay\s*\{[^}]*position:\s*fixed/s.test(popupCssV65) &&
+    /\.arena-modal\s*\{[^}]*border-radius:\s*16px/s.test(popupCssV65) &&
+    /\.arena-modal\s*\{[\s\S]*?background:\s*var\(--card\)/.test(popupCssV65),
+    "modal CSS 缺 overlay/radius/var(--card) 任一");
+  check("v4.8.65 ③: background.js handleDebateRound 回答不足时 return reason:'insufficient_responses' + missing 列表",
+    /reason:\s*"insufficient_responses"[\s\S]{0,200}missing/.test(bgV65) &&
+    /haveCount/.test(bgV65),
+    "background 缺 reason / haveCount / missing 字段");
+  check("v4.8.65 ③: popup-tasks.js bindDebate 检测 insufficient_responses 调 ChatModal",
+    /resp\.reason === "insufficient_responses"[\s\S]{0,200}ChatModal\.showInsufficientResponses/.test(popupTasksV65),
+    "popup-tasks.js 没接 modal");
+  check("v4.8.65 ③: popup-task-menu.js 暴露 setTask + dispatch 走 modal 兜底",
+    /function setTask\(task\)/.test(taskMenuV65) &&
+    /setTask,/.test(taskMenuV65) &&
+    /ChatModal\.showInsufficientResponses/.test(taskMenuV65),
+    "popup-task-menu.js 缺 setTask 或 modal 兜底");
+
+  // 运行时：popup 中触发 ChatModal.show，验证 DOM 出现 + Escape 关闭
+  const modalRuntime = await popupPage.evaluate(async () => {
+    if (!window.ChatModal) return { err: "ChatModal 未加载" };
+    window.ChatModal.show({
+      tone: "warning", icon: "⚠", title: "测试标题",
+      message: "测试 message", tip: "测试 tip",
+      primary: { label: "主按钮", onClick: () => {} },
+      secondary: { label: "次按钮", onClick: () => {} },
+      cancel: { label: "关闭" },
+    });
+    await new Promise(r => setTimeout(r, 50));
+    const overlay = document.querySelector(".arena-modal-overlay");
+    const title = document.querySelector(".arena-modal-title")?.textContent;
+    const primaryLabel = document.querySelector(".arena-modal-btn.primary")?.textContent;
+    const secondaryLabel = document.querySelector(".arena-modal-btn.secondary")?.textContent;
+    const hasClose = !!document.querySelector(".arena-modal-close");
+    window.ChatModal.close();
+    await new Promise(r => setTimeout(r, 220));
+    const gone = !document.querySelector(".arena-modal-overlay");
+    return { ok: !!overlay, title, primaryLabel, secondaryLabel, hasClose, gone };
+  });
+  check("v4.8.65 ③ 运行时: ChatModal.show 渲染 overlay + 标题 + 主/次按钮 + 关闭按钮",
+    !modalRuntime.err && modalRuntime.ok && modalRuntime.title === "测试标题" &&
+    modalRuntime.primaryLabel === "主按钮" && modalRuntime.secondaryLabel === "次按钮" &&
+    modalRuntime.hasClose,
+    `actual: ${JSON.stringify(modalRuntime)}`);
+  check("v4.8.65 ③ 运行时: ChatModal.close 后 DOM 移除",
+    modalRuntime.gone === true,
+    `overlay 未移除`);
+
+  // 运行时：popup 顶栏两按钮含文字
+  const headerBtnText = await popupPage.evaluate(() => ({
+    clear: document.querySelector("#btn-clear .btn-icon-label")?.textContent,
+    reset: document.querySelector("#btn-hard-reset .btn-icon-label")?.textContent,
+  }));
+  check("v4.8.65 ① 运行时: 顶栏按钮显示 '清空群聊' / '彻底重置' 文字",
+    headerBtnText.clear === "清空群聊" && headerBtnText.reset === "彻底重置",
+    `actual: ${JSON.stringify(headerBtnText)}`);
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

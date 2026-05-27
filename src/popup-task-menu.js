@@ -98,9 +98,36 @@
     detail: { ...current }
   }));
 
+  // v4.8.65: 外部触发任务切换（modal "切到同时提问" 按钮用）
+  function setTask(task) {
+    if (task === "ask") current = { task: "ask" };
+    else if (task === "debate") current = { task: "debate", style: current.style || "free" };
+    else return;
+    refreshPill();
+    document.dispatchEvent(new CustomEvent("task:changed", { detail: { ...current } }));
+  }
+
+  // v4.8.65: 并行重新提取指定 AI 列表的回答（modal "重新提取" 按钮用）
+  async function _reextractMissing(missing) {
+    let targets = Array.isArray(missing) && missing.length ? missing : null;
+    if (!targets) {
+      try {
+        const r = await new Promise(res => chrome.runtime.sendMessage({ type: "getState" }, resp => res(resp || {})));
+        targets = (r.participants || []).map(p => ({ id: p.id, name: p.name, service: p.service }));
+      } catch (_) { targets = []; }
+    }
+    if (!targets.length) return;
+    try { window.ChatLog?.push?.({ ts: Date.now(), text: `手动重新提取 ${targets.length} 个 AI 回答…`, level: "info" }); } catch (_) {}
+    await Promise.allSettled(targets.map(t => new Promise(res => {
+      chrome.runtime.sendMessage({ type: "chatReextractOne", participantId: t.id }, resp => res(resp));
+    })));
+    try { window.ChatLog?.push?.({ ts: Date.now(), text: "重新提取完成，可再次尝试辩论", level: "ok" }); } catch (_) {}
+  }
+
   // 暴露给 popup.js handleSend 用
   window.ChatTaskMenu = {
     current: () => ({ ...current }),
+    setTask,
     async dispatch(text, targets) {
       const c = current;
       // v4.7.0: emit 任务类型事件给 popup-stats.js 埋点（任务分布饼图）
@@ -120,6 +147,7 @@
       if (c.task === "debate") {
         // v4.8.38: 处理 needsConfirm — handleDebateRound 检测到有 AI 正在 polling 时
         //   先返回 { needsConfirm: true, message }，用户确认后再用 force:true 重发
+        // v4.8.65: insufficient_responses → 弹自定义 modal（重新提取 / 切同时提问）
         return new Promise((res) => {
           const sendOnce = (force) => {
             chrome.runtime.sendMessage(
@@ -133,7 +161,16 @@
                   }
                   return;
                 }
-                if (resp && !resp.ok) alert(`辩论失败：${resp.error || "未知错误"}`);
+                if (resp && !resp.ok) {
+                  if (resp.reason === "insufficient_responses" && window.ChatModal) {
+                    window.ChatModal.showInsufficientResponses(resp, {
+                      onReextract: (missing) => _reextractMissing(missing),
+                      onSwitchAsk: () => setTask("ask"),
+                    });
+                  } else {
+                    alert(`辩论失败：${resp.error || "未知错误"}`);
+                  }
+                }
                 res(resp || { ok: false, error: chrome.runtime.lastError?.message });
               }
             );

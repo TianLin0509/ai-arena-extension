@@ -380,7 +380,7 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
     setTimeout(checkAndMaybeDetach, 1500);
   };
   setTimeout(checkAndMaybeDetach, 1500);
-});
+});
 chrome.windows.onBoundsChanged?.addListener((win) => {
   ChatBus.rememberBounds(win.id);
 });
@@ -497,6 +497,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           // v4.5.4 F8: 主动广播 hardReset 让 popup-members 清空 streamStatus，
           // 否则重置后立即添加同 service 新 AI，其状态会显示上一次的 ready/error 鬼影
           chrome.runtime.sendMessage({ type: "hardReset" }).catch(() => {});
+          // v4.8.65: 补一次 stateUpdate — v4.6.6 F14 优化吞掉了 N+1 次广播但漏了 final 那次，
+          // 导致 mini-roster（输入框上方状态条）拿不到空 participants，重置后还显示 3 个 AI
+          StateMachine._broadcastStateUpdate();
           notifyStatus("已彻底重置（AI 标签页 + 群聊 + 辩论上下文）");
           sendResponse({ ok: true });
           break;
@@ -1035,7 +1038,7 @@ function _formatDebateWarningMessage(warnings) {
 async function handleDebateRound(style = "free", guidance = "", concise = false, force = false) {
   if (StateMachine.participants.length < 2) {
     notifyStatus("至少需要 2 个参与者");
-    return { ok: false, error: "参与者不足" };
+    return { ok: false, error: "参与者不足", reason: "not_enough_participants" };
   }
 
   const responses = {};
@@ -1047,7 +1050,20 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
 
   if (Object.keys(responses).length < 2) {
     notifyStatus("至少需要 2 个有效回答");
-    return { ok: false, error: "回答不足" };
+    // v4.8.65: reason 让 popup 弹自定义 modal（重新提取 / 切同时提问），代替 alert
+    // missingIds 让 popup 知道哪些 AI 还没回答 → 重新提取按钮只针对它们
+    const missing = StateMachine.participants
+      .filter(p => !p.response)
+      .map(p => ({ id: p.id, name: p.name, service: p.service }));
+    const haveCount = Object.keys(responses).length;
+    return {
+      ok: false,
+      error: "回答不足",
+      reason: "insufficient_responses",
+      haveCount,
+      totalCount: StateMachine.participants.length,
+      missing,
+    };
   }
 
   // v4.8.38 + v4.8.39: sanity 检查 — 三类警告合并到一个 needsConfirm
