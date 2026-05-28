@@ -5,8 +5,16 @@
 //   - tone: "warning" | "info"（控制图标圈和标题色）
 (function () {
   let activeOverlay = null;
+  // v5.0.0-beta fix: escListener 必须在 close 时统一移除，否则点按钮关 modal 后
+  // listener 泄漏在 document 上，下次用户按 Ctrl+Enter 想发消息时会被旧 listener
+  // 误捕获并重新触发 primary.onClick（典型坑：彻底重置后按 Enter 又重置一遍）
+  let activeEscListener = null;
 
   function close() {
+    if (activeEscListener) {
+      document.removeEventListener("keydown", activeEscListener);
+      activeEscListener = null;
+    }
     if (!activeOverlay) return;
     activeOverlay.classList.remove("show");
     const node = activeOverlay;
@@ -50,16 +58,17 @@
       else if (e.target === overlay) close();   // 点遮罩关闭
     });
 
-    document.addEventListener("keydown", function escListener(ev) {
+    // v5.0.0-beta fix: 注册 escListener 时存到模块级 activeEscListener，
+    // close() 统一移除（不再依赖 listener 自己 self-remove，避免点按钮关 modal 时泄漏）
+    activeEscListener = function escListener(ev) {
       if (ev.key === "Escape") {
-        document.removeEventListener("keydown", escListener);
-        close();
+        close();   // close 内部会 removeEventListener
       } else if (ev.key === "Enter" && primary) {
-        document.removeEventListener("keydown", escListener);
         close();
         try { primary.onClick?.(); } catch (err) { console.warn(err); }
       }
-    });
+    };
+    document.addEventListener("keydown", activeEscListener);
 
     requestAnimationFrame(() => overlay.classList.add("show"));
   }
@@ -154,13 +163,14 @@
       }
     });
 
-    document.addEventListener("keydown", function escListener(ev) {
+    // v5.0.0-beta fix: 同上 — 用模块级 activeEscListener，close 统一移除避免泄漏
+    activeEscListener = function escListener(ev) {
       if (ev.key === "Escape") {
-        document.removeEventListener("keydown", escListener);
         close();
         try { handlers?.onCancel?.(); } catch (err) {}
       }
-    });
+    };
+    document.addEventListener("keydown", activeEscListener);
 
     requestAnimationFrame(() => overlay.classList.add("show"));
   }

@@ -2498,6 +2498,36 @@ try {
     placeholderRuntime.afterAsk.includes("Ctrl+Enter 发送") && placeholderRuntime.afterAsk.includes("@ 单发"),
     `actual: ${JSON.stringify(placeholderRuntime)}`);
 
+  // v5.0.0-beta fix: ChatModal escListener 不再泄漏（点按钮关 modal 后 document 上无残留 keydown）
+  const modalListenerLeak = await popupPage.evaluate(async () => {
+    // 准备：先清干净
+    if (!window.ChatModal) return { err: "ChatModal 未加载" };
+    window.ChatModal.close();
+    await new Promise(r => setTimeout(r, 50));
+
+    // 打开 modal
+    let primaryFired = 0;
+    window.ChatModal.show({
+      tone: "info", icon: "?", title: "test", message: "test",
+      primary: { label: "ok", onClick: () => { primaryFired++; } },
+      cancel: { label: "cancel" },
+    });
+    await new Promise(r => setTimeout(r, 50));
+
+    // 模拟用户点 primary 按钮关 modal（不按 ESC/Enter）
+    document.querySelector('[data-role="primary"]')?.click();
+    await new Promise(r => setTimeout(r, 250));   // 等 close setTimeout 180ms 移除
+
+    // 关键测试：现在用户按 Enter（想发消息），不应该再触发 primary.onClick
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await new Promise(r => setTimeout(r, 50));
+
+    return { primaryFired, modalGone: !document.querySelector(".arena-modal-overlay") };
+  });
+  check("v5.0.0-beta fix: 点按钮关 modal 后 Enter 不再泄漏触发 primary.onClick（修彻底重置 bug）",
+    !modalListenerLeak.err && modalListenerLeak.primaryFired === 1 && modalListenerLeak.modalGone === true,
+    `actual: ${JSON.stringify(modalListenerLeak)} — 期望 primaryFired===1（仅点按钮那一次），如果 >1 说明 Enter 泄漏 listener 又触发了`);
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。
