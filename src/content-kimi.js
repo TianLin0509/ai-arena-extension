@@ -101,7 +101,11 @@ function _extractEl(el) {
 
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]);
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last);
+  }
   return "";
 }
 
@@ -193,9 +197,11 @@ async function readLatestResponse() {
   await sleep(500);
   // v4.3.8: 直接 hardcoded Kimi 当前 DOM 结构 — 不依赖异步加载的 selectors
   // 顺序：精确 selector → markdown 通配 → heuristic 大文本块
+  // v5.2.6: helper 改用 getLastNonEmpty — 1 处改 4 个 fallback selector 全受益
   const tryGet = (sel) => {
     const els = document.querySelectorAll(sel);
-    return els.length ? els[els.length - 1] : null;
+    if (!els.length) return null;
+    return globalThis.ArenaShared?.getLastNonEmpty?.(els) || els[els.length - 1];
   };
   const direct = tryGet('div.segment.segment-assistant')
               || tryGet('div[class*="segment-assistant"]')
@@ -206,15 +212,19 @@ async function readLatestResponse() {
     if (t) return t;
   }
   // 1) 配置 selector
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器）
   const responses = queryBySelectors("response", { all: true });
   if (responses.length > 0) {
-    const t = _extractEl(responses[responses.length - 1]).trim();
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    const t = _extractEl(_last).trim();
     if (t) return t;
   }
   // 2) markdown 通配
+  // v5.2.6: 取最后一个有内容的（fallback prose 也兜底）
   const prose = document.querySelectorAll('.markdown-body, .prose, [class*="markdown"]');
   if (prose.length > 0) {
-    const t = _extractEl(prose[prose.length - 1]).trim();
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(prose) || prose[prose.length - 1];
+    const t = _extractEl(_last).trim();
     if (t) return t;
   }
   // 3) heuristic — 阈值降到 20 字适应短问候

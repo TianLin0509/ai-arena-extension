@@ -102,7 +102,11 @@ function _extractEl(el) {
 }
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]);
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last);
+  }
   return "";
 }
 
@@ -308,7 +312,11 @@ async function readLatestResponse() {
 
   // 兜底：旧 selector 路径（保留向后兼容，理论上不会执行到）
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]).trim();
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last).trim();
+  }
   return "";
 }
 

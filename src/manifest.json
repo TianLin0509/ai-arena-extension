@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Arena",
-  "version": "5.2.5",
-  "version_name": "5.2.5-storage-p1",
+  "version": "5.2.6",
+  "version_name": "5.2.6-extract-nonempty",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https:;"
   },
@@ -67,47 +67,47 @@
     },
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["inject-images.js", "content-claude.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-claude.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://gemini.google.com/*"],
-      "js": ["inject-images.js", "content-gemini.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-gemini.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://chatgpt.com/*"],
-      "js": ["inject-images.js", "content-chatgpt.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-chatgpt.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://chat.deepseek.com/*"],
-      "js": ["inject-images.js", "content-deepseek.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-deepseek.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://www.doubao.com/*"],
-      "js": ["inject-images.js", "content-doubao.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-doubao.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://tongyi.aliyun.com/*", "https://www.qianwen.com/*"],
-      "js": ["inject-images.js", "qwen-noise-filter.js", "content-qwen.js"],
+      "js": ["content-shared.js", "inject-images.js", "qwen-noise-filter.js", "content-qwen.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://kimi.moonshot.cn/*", "https://www.kimi.com/*"],
-      "js": ["inject-images.js", "content-kimi.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-kimi.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://yuanbao.tencent.com/*"],
-      "js": ["inject-images.js", "content-yuanbao.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-yuanbao.js"],
       "run_at": "document_idle"
     },
     {
       "matches": ["https://grok.com/*"],
-      "js": ["inject-images.js", "content-grok.js"],
+      "js": ["content-shared.js", "inject-images.js", "content-grok.js"],
       "run_at": "document_idle"
     }
   ],

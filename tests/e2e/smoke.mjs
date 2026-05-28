@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.3-beta", manifest.version_name === "5.2.3-beta", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 5.2.6-extract-nonempty", manifest.version_name === "5.2.6-extract-nonempty", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.3-beta", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.6-extract-nonempty", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.3-beta"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.6-extract-nonempty"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.3-beta", popupVersion === "v5.2.3-beta", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.6-extract-nonempty", popupVersion === "v5.2.6-extract-nonempty", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2652,12 +2652,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.3-beta", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.3-beta", "v5.2.3-beta"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.6-extract-nonempty", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.6-extract-nonempty", "v5.2.6-extract-nonempty"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.3-beta + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.6-extract-nonempty + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.3-beta" &&
+    v52ApiRuntime.curVer === "5.2.6-extract-nonempty" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2682,6 +2682,39 @@ try {
   check("v5.2.3: doubao response 保留 v5.2.2 fallback selector",
     /\[class\*="v_list_row"\]:not\(:has\(\[class\*="bg-g-send"\]\)\)/.test(selectorsV521),
     "doubao response 缺 v5.2.2 fallback selector");
+
+  // ── v5.2.6: content-shared.js helper 跨 9 平台共享，9 个 content-*.js 都用 ArenaShared.getLastNonEmpty 兜底末位空容器 ──
+  const sharedSrc = fs.readFileSync(path.join(EXT_PATH, "content-shared.js"), "utf8");
+  check("v5.2.6: content-shared.js 暴露 ArenaShared.getLastNonEmpty",
+    /globalThis\.ArenaShared\s*=/.test(sharedSrc) && /getLastNonEmpty/.test(sharedSrc),
+    "content-shared.js 缺 ArenaShared 或 getLastNonEmpty");
+  // helper 行为：从末位向前扫直到找到非空 — text.trim().length > 0
+  check("v5.2.6: getLastNonEmpty 从末位向前扫 + innerText/textContent + .trim()",
+    /for\s*\(\s*let\s+i\s*=\s*arr\.length\s*-\s*1/.test(sharedSrc) &&
+    /innerText\s*\|\|\s*\w+\.textContent/.test(sharedSrc) &&
+    /\.trim\(\)/.test(sharedSrc),
+    "getLastNonEmpty 实现不符合预期");
+
+  // 9 平台都引用 ArenaShared.getLastNonEmpty
+  const platforms = ["chatgpt", "claude", "deepseek", "doubao", "gemini", "grok", "kimi", "qwen", "yuanbao"];
+  for (const p of platforms) {
+    const src = fs.readFileSync(path.join(EXT_PATH, `content-${p}.js`), "utf8");
+    check(`v5.2.6: content-${p}.js 引用 ArenaShared.getLastNonEmpty`,
+      /globalThis\.ArenaShared\?\.getLastNonEmpty/.test(src),
+      `content-${p}.js 缺 ArenaShared.getLastNonEmpty 兜底`);
+  }
+
+  // manifest 9 个 content_scripts 项都把 content-shared.js 列在 inject-images.js 前
+  const manifestRaw = fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8");
+  const manifestObj = JSON.parse(manifestRaw);
+  const platformScripts = manifestObj.content_scripts.filter(cs => !cs.world); // 排除 MAIN world bootstrap
+  check(`v5.2.6: manifest 所有 platform content_scripts 项都先注入 content-shared.js`,
+    platformScripts.every(cs => {
+      const idx = cs.js.indexOf("content-shared.js");
+      const injIdx = cs.js.indexOf("inject-images.js");
+      return idx === 0 && (injIdx === -1 || idx < injIdx);
+    }),
+    `部分 content_scripts 项缺 content-shared.js 或位置不对`);
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

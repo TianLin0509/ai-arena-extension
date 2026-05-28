@@ -117,7 +117,11 @@ function _extractEl(el) {
 }
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]);
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last);
+  }
   return "";
 }
 
@@ -260,31 +264,44 @@ function _extractClaudeResponse(container) {
 
 function getLastAssistantText() {
   // 优先策略：用容器 + cleanup（剥 thinking 和 sr-only）
+  // v5.2.6: 取最后一个有内容的（fallback selector 也兜底）
   const claudeMsgs = document.querySelectorAll(".font-claude-message");
   if (claudeMsgs.length > 0) {
-    const r = _extractClaudeResponse(claudeMsgs[claudeMsgs.length - 1]);
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(claudeMsgs) || claudeMsgs[claudeMsgs.length - 1];
+    const r = _extractClaudeResponse(_last);
     if (r) return r;
   }
 
+  // v5.2.6: 取最后一个有内容的（fallback selector 也兜底）
   const testIdMsgs = document.querySelectorAll("[data-testid='chat-message-content']");
   if (testIdMsgs.length > 0) {
-    const r = _extractClaudeResponse(testIdMsgs[testIdMsgs.length - 1]);
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(testIdMsgs) || testIdMsgs[testIdMsgs.length - 1];
+    const r = _extractClaudeResponse(_last);
     if (r) return r;
   }
 
   // 选择器配置兜底
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return cleanClaudeText(_extractEl(responses[responses.length - 1]));
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：Claude thinking 容器空场景）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return cleanClaudeText(_extractEl(_last));
+  }
 
+  // v5.2.6: 取最后一个有内容的（fallback selector 也兜底）
   const streamContainers = document.querySelectorAll("[data-is-streaming]");
   if (streamContainers.length > 0) {
-    const last = streamContainers[streamContainers.length - 1];
+    const last = globalThis.ArenaShared?.getLastNonEmpty?.(streamContainers) || streamContainers[streamContainers.length - 1];
     const r = _extractClaudeResponse(last);
     if (r) return r;
   }
 
   const proseBlocks = document.querySelectorAll(".prose, .markdown");
-  if (proseBlocks.length > 0) return cleanClaudeText(_extractEl(proseBlocks[proseBlocks.length - 1]));
+  // v5.2.6: 取最后一个有内容的（fallback prose 也兜底）
+  if (proseBlocks.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(proseBlocks) || proseBlocks[proseBlocks.length - 1];
+    return cleanClaudeText(_extractEl(_last));
+  }
 
   const allBlocks = document.querySelectorAll('[class*="message"], [class*="response"], [class*="assistant"]');
   for (let i = allBlocks.length - 1; i >= 0; i--) {

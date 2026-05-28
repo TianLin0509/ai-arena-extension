@@ -103,7 +103,11 @@ function _extractEl(el) {
 
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]);
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last);
+  }
   return "";
 }
 
@@ -222,10 +226,18 @@ async function readLatestResponse() {
   if (isLoginBlocked()) throw new Error("需要登录");
 
   const responses = queryBySelectors("response", { all: true });
-  if (responses.length > 0) return _extractEl(responses[responses.length - 1]).trim();
+  // v5.2.6: 取最后一个有内容的（兜底末位空容器：思考链分容器场景）
+  if (responses.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    return _extractEl(_last).trim();
+  }
 
   const prose = document.querySelectorAll('.markdown-body, .prose');
-  if (prose.length > 0) return prose[prose.length - 1].innerText.trim();
+  // v5.2.6: 取最后一个有内容的（fallback prose 也兜底）
+  if (prose.length > 0) {
+    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(prose) || prose[prose.length - 1];
+    return _last.innerText.trim();
+  }
   return "";
 }
 
