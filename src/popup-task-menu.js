@@ -154,6 +154,15 @@
     try { window.ChatLog?.push?.({ ts: Date.now(), text: "重新提取完成，可再次尝试辩论", level: "ok" }); } catch (_) {}
   }
 
+  // v5.2.9 fix: hardReset 时把 task 重置回 ask
+  //   bug：用户切到 debate/summary/ppt/baton → 点彻底重置 → 加新 AI → 输入框打字 Ctrl+Enter
+  //   handleSend 看 menu.current().task !== "ask" 走 dispatch (debateRound/summary/etc)
+  //   不是 chatBroadcast → debate 检查 participants.length < 2 / summary 找不到 judge → 静默 fail
+  //   用户感知"按了没反应"。修：监听 hardReset 把 task 拉回 ask，跟视觉对齐
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "hardReset") setTask("ask");
+  });
+
   // 暴露给 popup.js handleSend 用
   window.ChatTaskMenu = {
     current: () => ({ ...current }),
