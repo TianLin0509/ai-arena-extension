@@ -1616,9 +1616,15 @@ body[data-mode="mini"] .mention-menu {
   border-radius: 10px; padding: 6px; min-width: 160px;
   box-shadow: 0 12px 32px rgba(0,0,0,0.18);
   display: none;
+  /* v5.2.8: 三级菜单深嵌时底部超出窗口 → 6 项里只看到 3 项；
+     max-height + 滚动兜底，让用户至少能滚到底部"我全都要" */
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 .menu-item.has-sub:hover > .sub-menu { display: block; }
 /* v5.2.4: 三级嵌套子菜单 — 内层用 :hover > 直接子选择器，避免外层 hover 时内层都显示 */
+/* v5.2.8: 三级菜单父项靠近窗口底部时 top:-6px 会让菜单整体超出 — bottom:auto + 让浏览器
+   保持默认 top:-6px，配合上面 max-height 滚动；同时三级菜单内容不多时不需要滚动条占位 */
 .sub-menu .menu-item.has-sub > .sub-menu { left: 100%; top: -6px; }
 /* "我全都要"高亮（5 风格列表底部的彩虹分隔项）*/
 .menu-item.ppt-all-pick {

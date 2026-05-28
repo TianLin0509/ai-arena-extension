@@ -476,13 +476,15 @@
       chrome.runtime.onMessage.addListener(_batonListener);
 
       // 6. 发起浓缩 — chatBroadcast 单发给浓缩官
+      // v5.2.8 fix: chat-bus._resolveTargetsWithSkipped 用 p.service 匹配 targets,
+      // 之前传 officerId（participant.id）匹配不上任何 service → "无可用参与者"
       $btn.disabled = true;
       $btn.textContent = "🪄 浓缩中…";
       pushLog(`🪄 接力棒：让 ${escapeHtml($officer.options[$officer.selectedIndex]?.text || officerService)} 浓缩对话…`, "info");
       const msgOut = {
         type: "chatBroadcast",
         text: metaPrompt,
-        targets: [officerId],
+        targets: [officerService],
         images: [],
       };
       chrome.runtime.sendMessage(msgOut, (resp) => {
