@@ -1,4 +1,5 @@
-/* popup-themes.css — 6 套主题色变量，激活通过 body[data-theme="X"] */
+/* popup-themes.css — 8 套主题色变量，激活通过 body[data-theme="X"]
+   v5.1.0: 新增 G 绛紫暮霭 / H 碧绿茶林 */
 
 body[data-theme="C"] {
   /* Aurora Glass */
@@ -62,4 +63,28 @@ body[data-theme="F"] {
   --accent: #ff8c42;
   --bubble-them: #fff;
   --bubble-me: #ff8c42;
+}
+
+body[data-theme="G"] {
+  /* v5.1.0: 绛紫暮霭 Dusk Magenta — 深紫红暗夜，比 D 霓虹更内敛 */
+  --bg: #1a0e2e;
+  --card: #2a1645;
+  --ink: #e8d5ff;
+  --ink-soft: #9d7fb8;
+  --border: #4a2870;
+  --accent: #a855f7;
+  --bubble-them: #2a1645;
+  --bubble-me: #a855f7;
+}
+
+body[data-theme="H"] {
+  /* v5.1.0: 碧绿茶林 Matcha Forest — 抹茶森林浅绿调，安静耐看 */
+  --bg: #f5f7f0;
+  --card: #fff;
+  --ink: #1f3527;
+  --ink-soft: #6b8870;
+  --border: #cfddc4;
+  --accent: #4d8b56;
+  --bubble-them: #fff;
+  --bubble-me: #4d8b56;
 }

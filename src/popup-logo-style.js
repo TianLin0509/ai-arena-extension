@@ -17,6 +17,7 @@
   //   - chick：黄色小鸡 meme 卡片（225×320 webp）
   //   - leader：AI 公司 CEO 手捧 logo（225×320 webp）；claude 暂无图，fileMap 兜底走 basic
   // v4.8.55: name 统一缩成 2 字（设置面板更紧凑，desc 仍承载详细说明）；leader 删 fileMap 兜底
+// v5.1.0: 新增 labubu（手办风潮玩）+ qq（QQ 经典怀旧头像），10 个 AI 各一张 PNG
   const STYLES = {
     basic:   { dir: "icons/brands",        name: "基础", desc: "纯品牌 logo·无装饰", ext: "svg",
                extOverrides: { huawei: "png" },
@@ -26,6 +27,8 @@
     cat:     { dir: "icons/heroes-cat",    name: "小猫", desc: "毛茸茸 Q 版萌猫", ext: "webp" },
     chick:   { dir: "icons/heroes-chick",  name: "小鸡", desc: "黄色小鸡 meme·童趣", ext: "webp" },
     leader:  { dir: "icons/heroes-leader", name: "领袖", desc: "AI 公司 CEO 手捧 logo", ext: "webp" },
+    labubu:  { dir: "icons/heroes-labubu", name: "潮玩", desc: "Labubu 潮玩手办主题风", ext: "png" },
+    qq:      { dir: "icons/heroes-qq",     name: "怀旧", desc: "QQ 经典怀旧头像·童年回忆", ext: "png" },
   };
   const IDS = ["claude","gemini","chatgpt","deepseek","doubao","qwen","kimi","yuanbao","grok","huawei"];
 

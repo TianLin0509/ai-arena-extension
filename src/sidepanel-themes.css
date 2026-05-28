@@ -308,6 +308,72 @@ body[data-theme="F"] .empty-hint { color: #c9a08a; }
 body[data-theme="F"] .scenario-menu { background: #1a0533; border-color: rgba(255,140,66,0.15); }
 body[data-theme="F"] ::-webkit-scrollbar-thumb { background: rgba(255,140,66,0.3); }
 
+/* ══════ v5.1.0: 绛紫暮霭 (G) — 深紫红夜调 ══════ */
+body[data-theme="G"] {
+  background: linear-gradient(135deg, #1a0e2e 0%, #2a1645 100%);
+  color: #e8d5ff;
+}
+body[data-theme="G"] .header { border-color: rgba(168,85,247,0.25); }
+body[data-theme="G"] .header h1 { background: linear-gradient(135deg, #a855f7, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="G"] .header .version { color: #c4a3e8; background: rgba(255,255,255,0.05); border: 1px solid rgba(168,85,247,0.2); }
+body[data-theme="G"] .section { background: rgba(255,255,255,0.05); border: 1px solid rgba(168,85,247,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+body[data-theme="G"] .section-title { color: #c4a3e8; }
+body[data-theme="G"] .btn-primary,
+body[data-theme="G"] .btn-debate,
+body[data-theme="G"] .btn-summary { background: linear-gradient(135deg, #a855f7, #6b21a8); color: #fff; box-shadow: 0 4px 16px rgba(168,85,247,0.32); }
+body[data-theme="G"] .btn-secondary,
+body[data-theme="G"] .btn-tiny { background: rgba(255,255,255,0.06); color: #c4a3e8; border-color: rgba(168,85,247,0.2); }
+body[data-theme="G"] .btn-add { border-color: rgba(255,255,255,0.1); background: transparent; color: #c4a3e8; }
+body[data-theme="G"] .participant-item { background: rgba(255,255,255,0.05); border-color: rgba(168,85,247,0.15); }
+body[data-theme="G"] .participant-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(168,85,247,0.3); }
+body[data-theme="G"] .participant-item .p-name { color: #e8d5ff; }
+body[data-theme="G"] .participant-item .p-chars { color: #a855f7; }
+body[data-theme="G"] .broadcast-editor,
+body[data-theme="G"] .custom-textarea { background: rgba(255,255,255,0.04); border-color: rgba(168,85,247,0.2); color: #e8d5ff; }
+body[data-theme="G"] .broadcast-editor:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+body[data-theme="G"] .broadcast-editor:empty::before { color: #9d7fb8; }
+body[data-theme="G"] .log { color: #c4a3e8; }
+body[data-theme="G"] .stat-val { background: linear-gradient(135deg, #a855f7, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="G"] .stat-label { color: #c4a3e8; }
+body[data-theme="G"] .round-badge { background: rgba(168,85,247,0.12); color: #a855f7; }
+body[data-theme="G"] .footer,
+body[data-theme="G"] .shortcuts-hint,
+body[data-theme="G"] .empty-hint { color: #c4a3e8; }
+body[data-theme="G"] ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); }
+
+/* ══════ v5.1.0: 碧绿茶林 (H) — 抹茶森林浅绿 ══════ */
+body[data-theme="H"] {
+  background: linear-gradient(135deg, #f5f7f0 0%, #e8f0e2 100%);
+  color: #1f3527;
+}
+body[data-theme="H"] .header { border-color: rgba(77,139,86,0.2); }
+body[data-theme="H"] .header h1 { background: linear-gradient(135deg, #4d8b56, #2d5e3d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="H"] .header .version { color: #6b8870; background: rgba(77,139,86,0.06); border: 1px solid rgba(77,139,86,0.18); }
+body[data-theme="H"] .section { background: #fff; border: 1px solid #cfddc4; box-shadow: 0 4px 12px rgba(77,139,86,0.06); }
+body[data-theme="H"] .section-title { color: #4d8b56; }
+body[data-theme="H"] .btn-primary,
+body[data-theme="H"] .btn-debate,
+body[data-theme="H"] .btn-summary { background: linear-gradient(135deg, #4d8b56, #6ba872); color: #fff; box-shadow: 0 4px 12px rgba(77,139,86,0.25); }
+body[data-theme="H"] .btn-secondary,
+body[data-theme="H"] .btn-tiny { background: #f5f7f0; color: #1f3527; border-color: #cfddc4; }
+body[data-theme="H"] .btn-add { border-color: #cfddc4; background: transparent; color: #4d8b56; }
+body[data-theme="H"] .participant-item { background: #fff; border-color: #d9e5ce; }
+body[data-theme="H"] .participant-item:hover { background: #fafdf7; border-color: #4d8b56; }
+body[data-theme="H"] .participant-item .p-name { color: #1f3527; }
+body[data-theme="H"] .participant-item .p-chars { color: #4d8b56; }
+body[data-theme="H"] .broadcast-editor,
+body[data-theme="H"] .custom-textarea { background: #fff; border-color: #cfddc4; color: #1f3527; }
+body[data-theme="H"] .broadcast-editor:focus { border-color: #4d8b56; box-shadow: 0 0 0 3px rgba(77,139,86,0.12); }
+body[data-theme="H"] .broadcast-editor:empty::before { color: #8ba591; }
+body[data-theme="H"] .log { color: #6b8870; }
+body[data-theme="H"] .stat-val { background: linear-gradient(135deg, #4d8b56, #2d5e3d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="H"] .stat-label { color: #6b8870; }
+body[data-theme="H"] .round-badge { background: rgba(77,139,86,0.1); color: #4d8b56; }
+body[data-theme="H"] .footer,
+body[data-theme="H"] .shortcuts-hint,
+body[data-theme="H"] .empty-hint { color: #6b8870; }
+body[data-theme="H"] ::-webkit-scrollbar-thumb { background: rgba(77,139,86,0.3); }
+
 /* ══════ Theme Switcher UI ══════ */
 .theme-switcher { position: relative; }
 .theme-btn { padding: 2px 8px; font-size: 10px; font-weight: 600; border: 1.5px solid #e5e7eb; border-radius: 6px; background: #fafafa; color: #888; cursor: pointer; white-space: nowrap; }
@@ -322,7 +388,11 @@ body[data-theme="F"] ::-webkit-scrollbar-thumb { background: rgba(255,140,66,0.3
 body[data-theme="A"] .theme-btn,
 body[data-theme="C"] .theme-btn,
 body[data-theme="D"] .theme-btn,
-body[data-theme="F"] .theme-btn { border-color: rgba(255,255,255,0.15); background: transparent; color: #aaa; }
+body[data-theme="F"] .theme-btn,
+body[data-theme="G"] .theme-btn { border-color: rgba(255,255,255,0.15); background: transparent; color: #aaa; }
+body[data-theme="G"] .theme-menu { background: #1a0e2e; border-color: rgba(168,85,247,0.18); }
+body[data-theme="G"] .theme-menu-item { color: #e8d5ff; }
+body[data-theme="G"] .theme-menu-item:hover { background: rgba(255,255,255,0.06); }
 body[data-theme="A"] .theme-menu,
 body[data-theme="C"] .theme-menu { background: #0f172a; border-color: rgba(255,255,255,0.12); }
 body[data-theme="A"] .theme-menu-item:hover,
