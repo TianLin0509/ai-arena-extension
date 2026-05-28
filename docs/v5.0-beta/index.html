@@ -1288,7 +1288,7 @@
     opacity: 0; pointer-events: none;
     transform: scale(0.97);
     transition: opacity 0.4s, transform 0.5s cubic-bezier(.4,0,.2,1);
-    padding: 56px 32px 80px;
+    padding: 14px 32px 16px;
   }
   .whatsnew-modal.show { opacity: 1; pointer-events: auto; transform: scale(1); }
   .whatsnew-modal .close-x {
@@ -1308,7 +1308,10 @@
   }
   .whatsnew-modal .close-x:hover { background: #af52de; border-color: #af52de; transform: rotate(90deg); }
   .whatsnew-inner { max-width: 1080px; margin: 0 auto; }
-  .whatsnew-modal .book-intro { padding: 24px 24px 16px; }
+  .whatsnew-modal .book-intro { padding: 0 24px 0; }
+  .whatsnew-modal .book-intro h2 { font-size: clamp(22px, 3.2vw, 34px); margin: 0 0 4px; line-height: 1.05; }
+  .whatsnew-modal .book-intro .book-intro-sub { font-size: 13px; margin-bottom: 0; }
+  .whatsnew-modal .book-intro::before { font-size: clamp(120px, 18vw, 220px); opacity: 0.05; }
   .whatsnew-modal .book-intro::before { color: #af52de; }
   .whatsnew-modal .book-intro h2 em {
     background: linear-gradient(120deg, #af52de 0%, #ff2d95 50%, #ff9f0a 100%);
@@ -1335,17 +1338,17 @@
     .diff-row .diff-arrow { display: none; }
   }
   .diff-label {
-    font-size: 14.5px; font-weight: 700; color: var(--ink);
-    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 700; color: var(--ink);
+    display: flex; align-items: center; gap: 6px;
   }
   .diff-arrow {
     display: flex; align-items: center; justify-content: center;
-    color: var(--ink-faint); font-size: 22px; font-weight: 700;
+    color: var(--ink-faint); font-size: 18px; font-weight: 700;
   }
   .diff-from, .diff-to {
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 14px; line-height: 1.55;
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-size: 13px; line-height: 1.45;
   }
   .diff-from {
     background: rgba(255, 59, 48, 0.08);
@@ -1359,9 +1362,9 @@
     font-weight: 500;
   }
   .diff-from .ver-tag, .diff-to .ver-tag {
-    display: block;
-    font-size: 10.5px; letter-spacing: 0.08em;
-    margin-bottom: 4px;
+    display: inline-block;
+    font-size: 10px; letter-spacing: 0.08em;
+    margin-right: 6px;
     font-weight: 800; text-transform: uppercase;
   }
   .diff-from .ver-tag { color: #ff6961; }
@@ -1369,12 +1372,12 @@
   .whatsnew-continue {
     display: flex; align-items: center; justify-content: center;
     gap: 8px;
-    margin: 36px auto 0;
-    padding: 14px 32px;
+    margin: 14px auto 0;
+    padding: 11px 28px;
     background: linear-gradient(135deg, var(--accent), #5ac8fa);
     color: #fff;
     border-radius: 999px;
-    font-size: 16px; font-weight: 700;
+    font-size: 14.5px; font-weight: 700;
     text-decoration: none;
     width: fit-content;
     box-shadow: 0 8px 24px rgba(10,132,255,0.40);
@@ -1386,22 +1389,20 @@
   .wn-tabs {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin: 24px 0 18px;
-    padding: 6px;
+    gap: 6px;
+    margin: 10px auto 8px;
+    padding: 4px;
     background: var(--bg-soft);
     border-radius: 999px;
     width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
     border: 1px solid var(--border);
   }
   .wn-tab-btn {
-    padding: 10px 22px;
+    padding: 7px 18px;
     border: none;
     background: transparent;
     color: var(--ink-soft);
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
     border-radius: 999px;
@@ -2254,10 +2255,6 @@
     </nav>
 
     <div class="wn-tab-panel active" data-wn-panel="visible">
-      <div class="wn-illust">
-        <img src="v5.0-screenshots/poster-ai-team.webp" alt="9 AI 卡牌头像" />
-        <div class="wn-illust-cap">↑ v5.0：9 AI 卡牌头像 + 王者卡槽 · v1.0 只是 6 个 <code>+Claude</code>/<code>+Gemini</code> 文本按钮</div>
-      </div>
     <div class="diff-grid">
       <div class="diff-row">
         <div class="diff-label">🖼️ 主界面</div>
@@ -2275,53 +2272,42 @@
         <div class="diff-label">📋 模板 / 角色帽</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>无 · 每次都要手敲 prompt</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span>📋 多场景模板（文献调研 / 代码审查 / PPT 工坊）· <b>5 顶通用角色帽</b>（澄清者 / 事实核查 / 批评者 / 裁判 / 行动派）</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span>多场景模板 + <b>5 顶通用角色帽</b>（澄清/核查/批评/裁判/行动）</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">🕰️ 时光机历史</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>无 · 翻历史就是滚屏拼记忆</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span><b>全文搜索 + 关键词高亮 + 日期分组</b>（今天/昨天/5月20日）· 默认折叠</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span><b>全文搜索 + 关键词高亮 + 日期分组</b> · 默认折叠</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">⚖️ 辩论总结</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>简单文本汇总</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span><b>arXiv 学术风 HTML 报告</b>（核心问题 / 各方主张 / 共识 / 分歧 / 推荐结论）· blob URL 一键打开</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span><b>arXiv 学术风 HTML 报告</b>（5 段结构化 · blob URL 一键打开）</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">🎨 主题 / Logo</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>单一默认主题 · 无 logo 风格</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span><b>6 主题</b>（极光琉璃 / 深海指挥 / 暖橙书页 / 霓虹赛博 / 月白极简 / 落日熔金）<b> × 4 Logo 风格</b>（经典/王者/小猫/小鸡）= 24 种组合</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span><b>6 主题 × 4 Logo</b> = 24 种风格组合（极光琉璃 / 霓虹赛博 / 月白极简 等）</div>
       </div>
-    </div>
-    <!-- 4 logo 小预览 -->
-    <div class="wn-logo-row">
-      <div class="wn-logo-cell"><img src="v5.0-screenshots/heroes/claude.webp" alt="经典英雄" /><div>经典英雄</div></div>
-      <div class="wn-logo-cell"><img src="v5.0-screenshots/heroes-leader/claude.webp" alt="王者卡牌" /><div>王者卡牌</div></div>
-      <div class="wn-logo-cell"><img src="v5.0-screenshots/heroes-cat/claude.webp" alt="小猫" /><div>小猫</div></div>
-      <div class="wn-logo-cell"><img src="v5.0-screenshots/heroes-chick/claude.webp" alt="小鸡" /><div>小鸡</div></div>
     </div>
     </div><!-- panel visible end -->
 
     <div class="wn-tab-panel" data-wn-panel="hidden">
-      <div class="wn-illust">
-        <img src="v5.0-screenshots/03-stats-tab.png" alt="统计 Tab · 168 cell 热力图" />
-        <div class="wn-illust-cap">↑ v5.0：统计 Tab 含 168 cell 周×小时热力图 · arena.ai 实力榜 · v1.0 完全没有这块</div>
-      </div>
     <div class="diff-grid">
       <div class="diff-row">
         <div class="diff-label">📊 统计</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>无 · 你用了多少 token 自己心里没数</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span>本次 / 累计 / 模型三 sub-tab · <b>168 cell 周×小时活跃热力图</b> · 7 天 Token 趋势 · arena.ai 实力榜</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span>本次/累计/模型三 sub-tab · <b>168 cell 活跃热力图</b> · arena.ai 实力榜</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">🛡️ 鲁棒性</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>选择器易失效 · 注入失败静默吞掉</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span><b>4 层 DOM 选择器兜底</b> · marker-free 流式检测 · reload 自愈 · 注入失败 <b>fail-loud</b> · too_short/same_as_last 实时警告</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span><b>4 层选择器兜底</b> + reload 自愈 + 注入失败 <b>fail-loud</b> + 可疑回答警告</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">🔋 后台 tab</div>
@@ -2333,7 +2319,7 @@
         <div class="diff-label">💬 气泡 actions</div>
         <div class="diff-from"><span class="ver-tag">v1.0</span>无 · 想复制一条得全选鼠标拖</div>
         <div class="diff-arrow">→</div>
-        <div class="diff-to"><span class="ver-tag">v5.0</span>每条 AI 回答自带 <b>5 actions</b>：复制 / 跳原页 / 重新提取 / 重发 / 跳过本轮 · 头像点击直跳原对话</div>
+        <div class="diff-to"><span class="ver-tag">v5.0</span><b>5 actions</b>：复制 / 跳原页 / 重提取 / 重发 / 跳过本轮 + 头像点击直跳原对话</div>
       </div>
       <div class="diff-row">
         <div class="diff-label">📐 Markdown / 数学</div>
@@ -2347,11 +2333,6 @@
         <div class="diff-arrow">→</div>
         <div class="diff-to"><span class="ver-tag">v5.0</span>输入框打 <code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;">@cla</code> <b>单点路由</b>，不广播给全员</div>
       </div>
-    </div>
-    <!-- GIF 实力证明 -->
-    <div class="wn-illust" style="margin-top: 16px;">
-      <img src="v5.0-screenshots/04-roster-demo.gif" alt="AI 卡槽 + 下轮预览 + @mention 真实录屏" />
-      <div class="wn-illust-cap">↑ v5.0：AI 卡槽 + 下轮发言预览 + @ 单点路由 · 整套对话指挥能力 · v1.0 完全没有</div>
     </div>
     </div><!-- panel hidden end -->
 
