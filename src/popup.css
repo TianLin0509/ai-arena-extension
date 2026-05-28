@@ -1617,7 +1617,20 @@ body[data-mode="mini"] .mention-menu {
   box-shadow: 0 12px 32px rgba(0,0,0,0.18);
   display: none;
 }
-.menu-item.has-sub:hover .sub-menu { display: block; }
+.menu-item.has-sub:hover > .sub-menu { display: block; }
+/* v5.2.4: 三级嵌套子菜单 — 内层用 :hover > 直接子选择器，避免外层 hover 时内层都显示 */
+.sub-menu .menu-item.has-sub > .sub-menu { left: 100%; top: -6px; }
+/* "我全都要"高亮（5 风格列表底部的彩虹分隔项）*/
+.menu-item.ppt-all-pick {
+  background: linear-gradient(90deg, rgba(255,159,10,0.10), rgba(10,132,255,0.10));
+  font-weight: 600;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.menu-item.ppt-all-pick:hover {
+  background: linear-gradient(90deg, rgba(255,159,10,0.22), rgba(10,132,255,0.22));
+}
 
 /* ── 微动效 + 字距 + 整体精致化 ── */
 body { letter-spacing: -0.01em; }
