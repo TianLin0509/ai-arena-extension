@@ -2450,6 +2450,54 @@ try {
     /handleSensitiveInSidepanel\(summaryMsg,\s*r,\s*"customInstruction"\)/.test(sideV492),
     "sidepanel.js 缺 handleSensitiveInSidepanel 或 3 处接入不全");
 
+  // ── v5.0.0-beta polish: placeholder 动态化 + 重置弹窗美化 ──
+  const taskMenuV5 = fs.readFileSync(path.join(EXT_PATH, "popup-task-menu.js"), "utf8");
+  const popupJsV5  = fs.readFileSync(path.join(EXT_PATH, "popup.js"), "utf8");
+  const tasksJsV5  = fs.readFileSync(path.join(EXT_PATH, "popup-tasks.js"), "utf8");
+
+  check("v5.0.0-beta polish ①: popup-task-menu 含 PLACEHOLDER_BY_TASK 4 模式 + updatePlaceholder",
+    /PLACEHOLDER_BY_TASK\s*=\s*\{[\s\S]{0,500}ask:[\s\S]{0,200}debate:[\s\S]{0,200}summary:[\s\S]{0,200}ppt:/.test(taskMenuV5) &&
+    /function updatePlaceholder/.test(taskMenuV5),
+    "popup-task-menu 缺 PLACEHOLDER_BY_TASK 或 updatePlaceholder");
+  check("v5.0.0-beta polish ①: setTask 和 menu click 都调 updatePlaceholder",
+    (taskMenuV5.match(/updatePlaceholder\(current\)/g) || []).length >= 3,
+    "updatePlaceholder 调用点不全（menu click / setTask / 首次 init 应至少 3 处）");
+  check("v5.0.0-beta polish ①: debate/summary placeholder 含'留空'提示",
+    /debate:[\s\S]{0,200}留空/.test(taskMenuV5) &&
+    /summary:[\s\S]{0,200}留空/.test(taskMenuV5),
+    "debate/summary placeholder 没提示用户可'留空直接发送'");
+
+  check("v5.0.0-beta polish ②: popup.js btn-hard-reset 改用 ChatModal.show",
+    /btn-hard-reset[\s\S]{0,500}window\.ChatModal\.show\(\{[\s\S]{0,300}title:\s*"彻底重置/.test(popupJsV5),
+    "btn-hard-reset 仍用原生 confirm");
+  check("v5.0.0-beta polish ②: popup.js btn-clear 改用 ChatModal.show",
+    /\$clear\.addEventListener[\s\S]{0,500}window\.ChatModal\.show\(\{[\s\S]{0,300}title:\s*"清空群聊/.test(popupJsV5),
+    "btn-clear 仍用原生 confirm");
+  check("v5.0.0-beta polish ②: popup-tasks #rp-btn-reset 改用 ChatModal.show",
+    /rp-btn-reset[\s\S]{0,500}window\.ChatModal\.show\(\{[\s\S]{0,300}title:\s*"重置会话/.test(tasksJsV5),
+    "rp-btn-reset 仍用原生 confirm");
+
+  // 运行时：popup 切到 debate 后 placeholder 同步变化
+  const placeholderRuntime = await popupPage.evaluate(async () => {
+    const $inp = document.getElementById("chat-input");
+    const before = $inp?.dataset?.placeholder || "";
+    // 触发 setTask("debate")
+    window.ChatTaskMenu?.setTask?.("debate");
+    await new Promise(r => setTimeout(r, 50));
+    const afterDebate = $inp?.dataset?.placeholder || "";
+    // 切回 ask
+    window.ChatTaskMenu?.setTask?.("ask");
+    await new Promise(r => setTimeout(r, 50));
+    const afterAsk = $inp?.dataset?.placeholder || "";
+    return { before, afterDebate, afterAsk };
+  });
+  check("v5.0.0-beta polish ① 运行时: setTask('debate') 后 placeholder 含'辩论引导'+'留空'",
+    placeholderRuntime.afterDebate.includes("辩论引导") && placeholderRuntime.afterDebate.includes("留空"),
+    `actual: ${JSON.stringify(placeholderRuntime)}`);
+  check("v5.0.0-beta polish ① 运行时: 切回 ask 后 placeholder 恢复原文",
+    placeholderRuntime.afterAsk.includes("Ctrl+Enter 发送") && placeholderRuntime.afterAsk.includes("@ 单发"),
+    `actual: ${JSON.stringify(placeholderRuntime)}`);
+
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
   //   用户点取消会 detach 所有 attach → 后台 AI tab 失反节流 → 流式渲染降到 1 fps。

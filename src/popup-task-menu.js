@@ -65,6 +65,20 @@
   }
   function escapeAttr(s) { return String(s).replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
 
+  // v5.0.0-beta: 任务切换时同步更新 chat-input placeholder
+  //   让用户知道辩论/总结/PPT 等可"留空直接发送"，不必非要输入文字
+  const PLACEHOLDER_BY_TASK = {
+    ask:     "输入消息…  Ctrl+Enter 发送  @ 单发",
+    debate:  "可选：辩论引导（如\"聚焦性能问题\"）·留空直接开始 · Ctrl+Enter",
+    summary: "可选：给裁判的额外指令·留空用默认模板 · Ctrl+Enter",
+    ppt:     "PPT 工坊请到右栏「任务」Tab 操作 prompt",
+  };
+  function updatePlaceholder(taskState) {
+    const $inp = document.getElementById("chat-input");
+    if (!$inp) return;
+    $inp.dataset.placeholder = PLACEHOLDER_BY_TASK[taskState?.task] || PLACEHOLDER_BY_TASK.ask;
+  }
+
   $menu.addEventListener("click", (e) => {
     const item = e.target.closest(".menu-item");
     if (!item) return;
@@ -85,6 +99,7 @@
       current = { task, kind: item.dataset.kind };
     }
     refreshPill();
+    updatePlaceholder(current);
     close();
     // 通知右栏任务 Tab 同步内容
     document.dispatchEvent(new CustomEvent("task:changed", {
@@ -93,6 +108,7 @@
   });
 
   refreshPill();
+  updatePlaceholder(current);
   // 首次启动也发一次 task:changed，让右栏任务 Tab 初始化
   document.dispatchEvent(new CustomEvent("task:changed", {
     detail: { ...current }
@@ -104,6 +120,7 @@
     else if (task === "debate") current = { task: "debate", style: current.style || "free" };
     else return;
     refreshPill();
+    updatePlaceholder(current);
     document.dispatchEvent(new CustomEvent("task:changed", { detail: { ...current } }));
   }
 

@@ -208,8 +208,18 @@
       }
     });
     root.querySelector("#rp-btn-reset")?.addEventListener("click", () => {
-      if (!confirm("重置当前会话上下文？所有未导出的内容会丢失。")) return;
-      chrome.runtime.sendMessage({ type: "hardReset" }, () => {});
+      // v5.0.0-beta: 用 ChatModal 替代原生 confirm，跟顶栏「彻底重置」视觉一致
+      const doReset = () => chrome.runtime.sendMessage({ type: "hardReset" }, () => {});
+      if (!window.ChatModal) { if (confirm("重置当前会话上下文？所有未导出的内容会丢失。")) doReset(); return; }
+      window.ChatModal.show({
+        tone: "warning",
+        icon: "⚡",
+        title: "重置会话上下文？",
+        message: "将清除当前会话的辩论轮次 / 总结上下文等未导出内容",
+        tip: "所有未导出的内容会丢失，不可恢复。",
+        primary: { label: "确认重置", onClick: doReset },
+        cancel: { label: "取消" },
+      });
     });
   }
 

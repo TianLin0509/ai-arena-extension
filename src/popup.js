@@ -405,23 +405,32 @@
       handleSend();
     }
   });
-  $clear.addEventListener("click", () => {
-    if (!confirm("清空群聊（不影响 AI 原页对话）？")) return;
+  // v5.0.0-beta: 清空群聊 改用 ChatModal 替代原生 confirm（视觉一致）
+  function doClearChat() {
     chrome.runtime.sendMessage({ type: "chatClear" }, () => {
       $messages.innerHTML = "";
       $messages.appendChild($empty);
       $empty.style.display = "";
       bubbleByKey.clear();
-      // 同步清空左侧历史目录
       window.ChatHistory?.clear();
+    });
+  }
+  $clear.addEventListener("click", () => {
+    if (!window.ChatModal) { if (confirm("清空群聊（不影响 AI 原页对话）？")) doClearChat(); return; }
+    window.ChatModal.show({
+      tone: "info",
+      icon: "🧹",
+      title: "清空群聊？",
+      message: "仅清群聊窗口和左侧历史记录，不影响 AI 网页上原本的对话",
+      primary: { label: "清空", onClick: doClearChat },
+      cancel: { label: "取消" },
     });
   });
 
   // ── 顶部彻底初始化按钮 ⚡ ──
-  document.getElementById("btn-hard-reset")?.addEventListener("click", () => {
-    if (!confirm("⚡ 彻底初始化将：\n  · 移除全部已加入的 AI 参与者\n  · 清空群聊窗口\n  · 清空辩论轮次 / 总结上下文\n\n确认继续？")) return;
+  // v5.0.0-beta: 彻底重置 改用 ChatModal 替代原生 confirm
+  function doHardReset() {
     chrome.runtime.sendMessage({ type: "hardReset" }, () => {
-      // 同步清 popup 端 UI
       $messages.innerHTML = "";
       $messages.appendChild($empty);
       $empty.style.display = "";
@@ -429,6 +438,18 @@
       window.ChatHistory?.clear();
       window.ChatMembers?.refresh?.();
       window.ChatStats?.refresh?.();
+    });
+  }
+  document.getElementById("btn-hard-reset")?.addEventListener("click", () => {
+    if (!window.ChatModal) { if (confirm("彻底重置？所有 AI + 群聊 + 辩论上下文 都会清零")) doHardReset(); return; }
+    window.ChatModal.show({
+      tone: "warning",
+      icon: "⚡",
+      title: "彻底重置？",
+      message: "将一次性清除：移除所有 AI 参与者 · 清空群聊窗口 · 清辩论轮次和总结上下文",
+      tip: "AI 网页上的原对话保留。插件这边的状态归零，不可恢复。",
+      primary: { label: "确认彻底重置", onClick: doHardReset },
+      cancel: { label: "取消" },
     });
   });
 
