@@ -95,9 +95,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function _extractEl(el) {
   if (!el) return "";
-  return typeof extractTextWithFences === "function"
-    ? extractTextWithFences(el)
-    : (el.innerText || el.textContent || "");
+  // v5.2.12: 优先 extractTextSafe（fenced 损坏自动回退 textContent，鲁棒 ≥ v1.0）
+  if (typeof extractTextSafe === "function") return extractTextSafe(el);
+  if (typeof extractTextWithFences === "function") return extractTextWithFences(el);
+  // 极端 fallback：textContent 优先（v1.0 风格，背景 tab 安全），innerText 兜底
+  return el.textContent || el.innerText || "";
 }
 
 // v5.2.3: 千问/夸克回答后追加"相关推荐"卡片（视频/笔记/网页 + hydrate JSON + 内联 CSS），

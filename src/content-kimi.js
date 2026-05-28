@@ -94,9 +94,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function _extractEl(el) {
   if (!el) return "";
-  return typeof extractTextWithFences === "function"
-    ? extractTextWithFences(el)
-    : (el.innerText || el.textContent || "");
+  // v5.2.12: 优先 extractTextSafe（fenced 损坏自动回退 textContent，鲁棒 ≥ v1.0）
+  if (typeof extractTextSafe === "function") return extractTextSafe(el);
+  if (typeof extractTextWithFences === "function") return extractTextWithFences(el);
+  return el.textContent || el.innerText || "";
 }
 
 function getLastResponseText() {

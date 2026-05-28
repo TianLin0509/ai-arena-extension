@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.10-send-fail-visible", manifest.version_name === "5.2.10-send-fail-visible", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 5.2.12-extract-robust-v1-parity", manifest.version_name === "5.2.12-extract-robust-v1-parity", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.10-send-fail-visible", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.12-extract-robust-v1-parity", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.10-send-fail-visible"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.12-extract-robust-v1-parity"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.10-send-fail-visible", popupVersion === "v5.2.10-send-fail-visible", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.12-extract-robust-v1-parity", popupVersion === "v5.2.12-extract-robust-v1-parity", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2652,12 +2652,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.10-send-fail-visible", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.10-send-fail-visible", "v5.2.10-send-fail-visible"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.12-extract-robust-v1-parity", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.12-extract-robust-v1-parity", "v5.2.12-extract-robust-v1-parity"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.10-send-fail-visible + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.12-extract-robust-v1-parity + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.10-send-fail-visible" &&
+    v52ApiRuntime.curVer === "5.2.12-extract-robust-v1-parity" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2743,6 +2743,23 @@ try {
   check("v5.2.10: popup-task-menu.js dispatch task=ask 分支加 alert 失败提示",
     /c\.task === "ask"[\s\S]*?if \(resp && !resp\.ok\) alert\(`发送失败：/.test(taskMenuSrc),
     "popup-task-menu.js task=ask 分支 alert 失败提示缺失");
+
+  // ── v5.2.12: extractTextSafe 双路 + fenced 损坏回退 textContent（v1.0 鲁棒性平价）──
+  const injSrc = fs.readFileSync(path.join(EXT_PATH, "inject-images.js"), "utf8");
+  check("v5.2.12: inject-images.js 加 extractTextSafe 双路提取函数",
+    /function extractTextSafe/.test(injSrc) && /el\.textContent/.test(injSrc),
+    "inject-images.js 缺 extractTextSafe");
+  check("v5.2.12: extractTextSafe 含 fenced 损坏回退（< plain * 0.6 阈值）",
+    /fenced\.length\s*>=\s*plain\.length\s*\*\s*0\.6/.test(injSrc),
+    "extractTextSafe 缺 0.6 阈值损坏检测");
+  // 9 平台 _extractEl 全部走 extractTextSafe 优先
+  const platforms2 = ["chatgpt", "claude", "deepseek", "doubao", "gemini", "grok", "kimi", "qwen", "yuanbao"];
+  for (const p of platforms2) {
+    const src = fs.readFileSync(path.join(EXT_PATH, `content-${p}.js`), "utf8");
+    check(`v5.2.12: content-${p}.js 优先 extractTextSafe（_extractEl 调用）`,
+      /extractTextSafe.*?===\s*"function"/.test(src) || /typeof extractTextSafe/.test(src),
+      `content-${p}.js 未优先 extractTextSafe`);
+  }
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，

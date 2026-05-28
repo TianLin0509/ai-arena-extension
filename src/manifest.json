@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Arena",
-  "version": "5.2.11",
-  "version_name": "5.2.11-baton-prompt-menu-fix",
+  "version": "5.2.12",
+  "version_name": "5.2.12-extract-robust-v1-parity",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https:;"
   },

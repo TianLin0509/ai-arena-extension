@@ -96,9 +96,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function _extractEl(el) {
   if (!el) return "";
-  return typeof extractTextWithFences === "function"
-    ? extractTextWithFences(el)
-    : (el.innerText || el.textContent || "");
+  // v5.2.12: 优先 extractTextSafe（fenced 损坏自动回退 textContent，鲁棒 ≥ v1.0）
+  if (typeof extractTextSafe === "function") return extractTextSafe(el);
+  if (typeof extractTextWithFences === "function") return extractTextWithFences(el);
+  return el.textContent || el.innerText || "";
 }
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
@@ -289,9 +290,12 @@ async function readLatestResponse() {
     //    clone 后排除 thinking 子节点防过渡内容污染
     const clone = last.cloneNode(true);
     clone.querySelectorAll(THINKING_SEL).forEach(el => el.remove());
-    const full = (typeof extractTextWithFences === "function"
-      ? extractTextWithFences(clone)
-      : (clone.innerText || clone.textContent || "")
+    // v5.2.12: 同 _extractEl 思路（双路 + 损坏回退）
+    const full = (typeof extractTextSafe === "function"
+      ? extractTextSafe(clone)
+      : typeof extractTextWithFences === "function"
+        ? extractTextWithFences(clone)
+        : (clone.textContent || clone.innerText || "")
     ).trim();
     if (full) return full;
 

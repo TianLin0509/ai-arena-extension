@@ -111,9 +111,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function _extractEl(el) {
   if (!el) return "";
-  return typeof extractTextWithFences === "function"
-    ? extractTextWithFences(el)
-    : (el.innerText || el.textContent || "");
+  // v5.2.12: 优先 extractTextSafe（fenced 损坏自动回退 textContent，鲁棒 ≥ v1.0）
+  if (typeof extractTextSafe === "function") return extractTextSafe(el);
+  if (typeof extractTextWithFences === "function") return extractTextWithFences(el);
+  return el.textContent || el.innerText || "";
 }
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
@@ -256,9 +257,11 @@ function _extractClaudeResponse(container) {
     if (/^(Thinking|思考|Pondering|Considering)\b/i.test(t)) el.remove();
   });
 
-  const text = typeof extractTextWithFences === "function"
-    ? extractTextWithFences(clone)
-    : (clone.innerText || clone.textContent || "");
+  // v5.2.12: 同 _extractEl 思路（双路 + 损坏回退）
+  let text = "";
+  if (typeof extractTextSafe === "function") text = extractTextSafe(clone);
+  else if (typeof extractTextWithFences === "function") text = extractTextWithFences(clone);
+  else text = clone.textContent || clone.innerText || "";
   return cleanClaudeText(text);
 }
 

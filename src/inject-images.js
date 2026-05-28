@@ -498,6 +498,28 @@ function extractTextWithFences(el) {
   }
 }
 
+// v5.2.12: 双路提取 + 损坏回退
+//   背景：v1.0 直接用 el.textContent，鲁棒（不受 cloneNode 游离 DOM 影响）。
+//   v5.x 改用 extractTextWithFences(cloneNode + innerText) 想要富文本（codeblock/img/table），
+//   但 cloneNode 后 innerText 在 Chrome 上不可靠（v4.3.8 注释自己承认），
+//   背景 tab / 深嵌套 / Tailwind 容器经常返回空 → 千问/元宝/Kimi 提取失败的真根因。
+//   策略：默认富文本 fenced，但如果 fenced 比 textContent 短太多（说明 cloneNode 吞内容）
+//        立即回退原始 el.textContent。"大幅超越 v1.0 + 任何情况不差于"原则。
+function extractTextSafe(el) {
+  if (!el) return "";
+  // textContent 是 DOM 标准，跨场景最稳（背景 tab / 游离 DOM 都可靠）— v1.0 的鲁棒策略
+  const plain = (el.textContent || "").trim();
+  // 富文本路径（v5.x 增量价值：codeblock / 图片 / 表格 / markdown 结构）
+  let fenced = "";
+  try {
+    fenced = (extractTextWithFences(el) || "").trim();
+  } catch (_) {}
+  // 损坏检测：fenced 长度 < plain 60% → 说明 cloneNode 路径吞了内容，退回 plain
+  // （fenced 含 ```/![...]/| ... | 等装饰字符，理论比 plain 略长一点；< 60% 必有问题）
+  if (fenced && fenced.length >= plain.length * 0.6) return fenced;
+  return plain || fenced;  // plain 也空就用 fenced（极端兜底）
+}
+
 // v4.5.4 F1: 共享给各 content-*.js 的 heuristic 前置检查
 // 没有任何用户消息 DOM 时，"找文档里最大文本块" heuristic 会把主页装饰文（如 Kimi 的
 // ![activity image](kimi-img.moonshot.cn/...) banner）误抓成 AI 回答 → 污染辩论上下文
