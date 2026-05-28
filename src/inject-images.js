@@ -275,6 +275,12 @@ function _doExtractWithFences(clone) {
     '[class*="related"]',
     '[class*="install"]',
     '[class*="download"]',
+    // v5.2.14: MCP 实测豆包"下载豆包电脑版"横幅 (banner-fLcH_s) 被混入 AI 回复
+    //   原 NOISE_SEL 漏了 banner，导致用户提取末尾常有"下载...更强大的 AI 能力"
+    '[class*="banner"]',
+    '[class*="popup"]',
+    '[class*="ads-"]',
+    '[class*="advert"]',
     '[class*="select-all"]',
     '[class*="select_all"]',
     '[class*="footer-tip"]',

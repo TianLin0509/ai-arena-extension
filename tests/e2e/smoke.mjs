@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.13-qwen-real-dom", manifest.version_name === "5.2.13-qwen-real-dom", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 5.2.14-decoration-banner-strip", manifest.version_name === "5.2.14-decoration-banner-strip", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.13-qwen-real-dom", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.14-decoration-banner-strip", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.13-qwen-real-dom"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.14-decoration-banner-strip"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.13-qwen-real-dom", popupVersion === "v5.2.13-qwen-real-dom", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.14-decoration-banner-strip", popupVersion === "v5.2.14-decoration-banner-strip", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2652,12 +2652,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.13-qwen-real-dom", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.13-qwen-real-dom", "v5.2.13-qwen-real-dom"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.14-decoration-banner-strip", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.14-decoration-banner-strip", "v5.2.14-decoration-banner-strip"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.13-qwen-real-dom + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.14-decoration-banner-strip + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.13-qwen-real-dom" &&
+    v52ApiRuntime.curVer === "5.2.14-decoration-banner-strip" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2775,6 +2775,16 @@ try {
   check("v5.2.13: chatgpt input ProseMirror 提到首位（避免 textarea 误抓 hidden fallback）",
     /div\.ProseMirror\[contenteditable='true'\]/.test(selSrc),
     "chatgpt input 缺 div.ProseMirror 显式主 selector");
+
+  // ── v5.2.14: NOISE_SEL 加 banner/popup/ads/advert（修豆包"下载电脑版"等横幅污染）──
+  check("v5.2.14: NOISE_SEL 含 banner（豆包下载横幅污染修复）",
+    /'\[class\*="banner"\]'/.test(injSrc),
+    "NOISE_SEL 缺 banner 装饰清理");
+  check("v5.2.14: NOISE_SEL 含 popup + ads + advert（通用广告类装饰清理）",
+    /'\[class\*="popup"\]'/.test(injSrc) &&
+    /'\[class\*="ads-"\]'/.test(injSrc) &&
+    /'\[class\*="advert"\]'/.test(injSrc),
+    "NOISE_SEL 缺 popup/ads-/advert");
 
   // v4.8.52: Tab 模式 debugger 提示
   //   chrome.debugger.attach 会强制显示"AI Arena 已开始调试此浏览器"横条，
