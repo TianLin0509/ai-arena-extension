@@ -132,23 +132,22 @@ const DEFAULT_SELECTORS = {
     ]
   },
   doubao: {
-    // v5.2.1: MCP playwright 实测豆包用了 Tailwind + Semi Design 命名（bg-g-send/receive/semi-input-textarea），
-    //   老的 [class*="bot-message"] / [class*="markdown"] / [class*="assistant"] 全失效（已实测 0 匹配）
-    //   按用户消息 bg-g-send 对称推断 AI 回复用 bg-g-receive；加多个 Tailwind 风兜底 selector
+    // v5.2.2: 用户登录态 console 实测确认真实命名（v5.2.1 的 bg-g-receive 推断错了，豆包不对称设计）
+    //   · 消息行容器：[class*="v_list_row"] （在 [class*="list_items"] 内）
+    //   · AI 回复 = v_list_row 内不含 bg-g-send 的（用户消息内才有 bg-g-send）
+    //   · 用户消息：[class*="bg-g-send"]
+    //   · 输入框：textarea.semi-input-textarea（Semi Design）
+    //   · 注意 [class*="inner-item-{hash}"] 含 CSS Modules hash 不能用
     input: [
-      'textarea.semi-input-textarea',                    // v5.2.1: 实测的主输入框
+      'textarea.semi-input-textarea',                    // 主输入框（实测）
       '[contenteditable="true"]',
       "textarea",
       '[class*="input"][class*="editor"]'
     ],
     response: [
-      // v5.2.1 新增（按 MCP 实测的 Tailwind/Semi 命名）：
-      '[class*="bg-g-receive"]',                          // 跟用户消息 bg-g-send 对称
-      '[class*="receive-msg-bubble"]',                    // 老命名习惯兜底
-      '[class*="receive-msg-content"]',
-      'div[class*="msg-bubble"]:not([class*="send"])',    // msg-bubble 排除 send（=receive）
-      '[class*="msg-content-receive"]',
-      // 老 selector（保留以防豆包再切回旧命名）：
+      // v5.2.2: 核心 selector — v_list_row 但不含 bg-g-send（=AI 消息行）
+      '[class*="v_list_row"]:not(:has([class*="bg-g-send"]))',
+      // 兜底：万一 v_list_row 命名变了，fallback 到老命名
       '[class*="assistant"] [class*="content"]',
       '[class*="bot-message"]',
       '[class*="markdown"]'
@@ -162,7 +161,7 @@ const DEFAULT_SELECTORS = {
       '[class*="send-btn"]'
     ],
     userMessage: [
-      // v5.2.1: 实测的新命名
+      // v5.2.2: 用户消息 = v_list_row 内含 bg-g-send；或直接抓 bg-g-send 块
       '[class*="bg-g-send"]',
       '[class*="send-msg-bubble-text"]',
       // 老 selector：
