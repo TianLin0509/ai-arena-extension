@@ -240,6 +240,8 @@
     { key: "compare",   name: "技术对比", desc: "As-Is / To-Be" },
     { key: "insight",   name: "技术洞察", desc: "新技术科普" },
     { key: "landscape", name: "技术全景", desc: "领域沙盘" },
+    // v5.2.4: "我全都要" — 让 AI 一次输出 5 种风格 5 张预览图
+    { key: "all",       name: "🌈 我全都要", desc: "一次输出 5 种风格 5 张预览图" },
   ];
 
   const pptUi = {
@@ -282,13 +284,15 @@
   }
 
   function bindPpt(root) {
-    // v4.9.x: 首次进入 PPT 工坊自动加载文案 prompt（不用用户再点"1️⃣ 文案"按钮）
-    // guard: autoLoaded 标志位 + prompt 为空，避免在 loadPptPrompt → render → bindPpt 循环里重复触发
+    // v4.9.x: 首次进入 PPT 工坊自动加载 prompt（不用用户再点 1/2/3 按钮）
+    // v5.2.3 fix: 之前 autoLoaded 强制 reset 成 "copy"，导致从菜单点"图片生成"/"PPT 生成"
+    //   右栏总跳到第 1 步文案 — 现在尊重 state.kind 当前值
     if (!pptUi.autoLoaded && !pptUi.prompt) {
       pptUi.autoLoaded = true;
-      pptUi.lastKind = "copy";
-      state.kind = "copy";
-      loadPptPrompt("copy").then(() => render());
+      const initialKind = state.kind || "copy";
+      pptUi.lastKind = initialKind;
+      state.kind = initialKind;
+      loadPptPrompt(initialKind).then(() => render());
     }
     // 1/2/3 step 按钮
     root.querySelectorAll(".rp-ppt-step").forEach(b => {
@@ -516,6 +520,15 @@
     if (d.style) state.style = d.style;
     if (d.judgeId) { state.judgeId = d.judgeId; state.judgeName = d.judgeName; }
     if (d.kind) state.kind = d.kind;
+    // v5.2.4: PPT 图片步骤从菜单带 template 进来 → 直接套用 + 触发对应 prompt
+    if (d.template && state.task === "ppt") {
+      pptUi.template = d.template;
+      // 切到 image 步骤跳转触发，让 panel 渲染对应 prompt
+      if (state.kind === "image") {
+        loadPptPrompt("image").then(() => render());
+        return;
+      }
+    }
     if (state.task === "summary" || state.task === "baton") {
       refreshJudges().then(render);
     } else {

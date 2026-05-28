@@ -14,6 +14,14 @@
     if (state.task === "debate") return state.style === "collab" ? "辩论·群策" : "辩论·自由";
     if (state.task === "summary") return `总结·${state.judgeName || "选裁判"}`;
     if (state.task === "ppt") {
+      // v5.2.4: 图片步骤显示具体模板名，方便用户一眼看出当前是哪种风格
+      if (state.kind === "image" && state.template) {
+        const tplNames = {
+          intro: "介绍", topic: "专题", compare: "对比",
+          insight: "洞察", landscape: "全景", all: "全风格",
+        };
+        return `PPT·图片·${tplNames[state.template] || state.template}`;
+      }
       const m = { copy: "PPT·文案", image: "PPT·图片", pptx: "PPT·生成" };
       return m[state.kind] || "PPT";
     }
@@ -98,7 +106,9 @@
     }
     else if (task === "ppt") {
       if (!item.dataset.kind) return;
+      // v5.2.4: 图片步骤 dataset.template 直接传到 panel（5 种风格 + 我全都要）
       current = { task, kind: item.dataset.kind };
+      if (item.dataset.template) current.template = item.dataset.template;
     }
     else if (task === "baton") current = { task };
     refreshPill();

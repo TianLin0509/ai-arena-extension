@@ -131,6 +131,32 @@ ${seed}
 最终只生成图像，不要输出解释文字。`;
 }
 
+// v5.2.4: "我全都要" — 让 AI 一次输出 5 种风格的 5 张华为风 PPT 预览图
+function buildAllImagePrompt(ctx) {
+  const copy = ctx.imageBrief || buildDiscussionFromContext(ctx || {});
+  const styleLines = Object.entries(PPT_TEMPLATE_META).map(([key, t], i) => {
+    return `${i + 1}. **${t.title}**\n   - 叙事角度：${t.angle}\n   - 版式骨架：${t.layout}\n   - 必须包含：${t.mustInclude}`;
+  }).join("\n\n");
+  return `你是华为风格企业技术汇报 PPT 的视觉生成器。请把前面已经形成的 PPT 文案，**一口气生成 5 张 16:9 华为内部技术评审 PPT 效果图**，每张对应以下 5 种不同的风格 / 版式：
+
+${styleLines}
+
+补充生图内容：
+${copy}
+
+视觉硬约束（5 张图通用）：
+- 页眉：左上红色结论标题，顶部红/灰细线，右上可放小黄色推进箭头
+- 页脚：左下小页码，中间放 Huawei Confidential 或 HUAWEI TECHNOLOGIES CO., LTD.
+- 配色：华为红 #CC0000 / 中蓝 #005691 / 浅灰 #F2F2F2，黄色仅作推进箭头或局部高亮
+- 信息纹理：每张图混合使用小型图表、公式、热力图、矩阵、微型架构图、表格、标注、箭头；文字/标注占框内 70%-90%
+- 5 张图风格<strong>必须显著不同</strong>，不能用同一套版式贴 5 次标签
+
+输出要求：
+- 按风格 1 → 风格 5 顺序依次输出 5 张图，每张独立成块
+- 每张图前用一行小字标注"风格 N · 模板名"
+- 最终只生成图像，不要输出解释文字`;
+}
+
 function buildPptxPrompt() {
   // v4.5.1: 从模板库取（用户可在 📋 模板 → 📊 PPT 风格 → PPT 生成 字段编辑）
   const store = (typeof self !== "undefined" ? self : globalThis).ArenaTemplateStore;
@@ -145,6 +171,7 @@ self.PptPrompts = {
   TEMPLATE_META: PPT_TEMPLATE_META,
   buildCopyPrompt,
   buildImagePrompt,
+  buildAllImagePrompt,
   buildPptxPrompt,
   buildDiscussionFromContext,
 };

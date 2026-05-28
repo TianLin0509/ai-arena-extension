@@ -563,6 +563,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             const ctx = { question, responses, imageBrief: msg.imageBrief || "" };
             let prompt = "";
             if (kind === "copy") prompt = self.PptPrompts.buildCopyPrompt(ctx);
+            // v5.2.4: image + template="all" → buildAllImagePrompt（一次生成 5 种风格）
+            else if (kind === "image" && templateKey === "all") prompt = self.PptPrompts.buildAllImagePrompt(ctx);
             else if (kind === "image") prompt = self.PptPrompts.buildImagePrompt(ctx, templateKey);
             else if (kind === "pptx") prompt = self.PptPrompts.buildPptxPrompt();
             else { sendResponse({ ok: false, error: `未知 kind: ${kind}` }); break; }

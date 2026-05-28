@@ -29,7 +29,7 @@
         <img class="chat-icon" src="icons/icon48.png" alt="">
         <span class="chat-name">AI Arena</span>
         <span class="chat-subtitle">群聊</span>
-        <span class="chat-version">v5.2.2-beta</span>
+        <span class="chat-version">v5.2.4-beta</span>
       </div>
       <div class="chat-actions">
         <!-- v4.8.15 F30: 折叠到顶 — mini bar 模式触发器 -->
@@ -228,7 +228,17 @@
           <div class="menu-item has-sub"><span class="em">📊</span><span>PPT 制作</span><span class="caret">▸</span>
             <div class="sub-menu">
               <div class="menu-item" data-task="ppt" data-kind="copy">📝 文案生成</div>
-              <div class="menu-item" data-task="ppt" data-kind="image">🎨 图片生成</div>
+              <!-- v5.2.4: 图片生成加三级子菜单 — 5 种风格直接选 + 我全都要 -->
+              <div class="menu-item has-sub"><span>🎨 图片生成</span><span class="caret">▸</span>
+                <div class="sub-menu">
+                  <div class="menu-item" data-task="ppt" data-kind="image" data-template="intro">技术介绍</div>
+                  <div class="menu-item" data-task="ppt" data-kind="image" data-template="topic">技术专题</div>
+                  <div class="menu-item" data-task="ppt" data-kind="image" data-template="compare">技术对比</div>
+                  <div class="menu-item" data-task="ppt" data-kind="image" data-template="insight">技术洞察</div>
+                  <div class="menu-item" data-task="ppt" data-kind="image" data-template="landscape">技术全景</div>
+                  <div class="menu-item ppt-all-pick" data-task="ppt" data-kind="image" data-template="all">🌈 我全都要</div>
+                </div>
+              </div>
               <div class="menu-item" data-task="ppt" data-kind="pptx">📊 PPT 生成</div>
             </div>
           </div>
