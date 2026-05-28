@@ -17,6 +17,7 @@
       const m = { copy: "PPT·文案", image: "PPT·图片", pptx: "PPT·生成" };
       return m[state.kind] || "PPT";
     }
+    if (state.task === "baton") return "AI接力棒";
     return "?";
   }
   // v4.8.23: refreshPill 同时把当前任务 task 写到 data-mode，让 CSS 按模式换配色
@@ -72,6 +73,7 @@
     debate:  "可选：辩论引导（如\"聚焦性能问题\"）·留空直接开始 · Ctrl+Enter",
     summary: "可选：给裁判的额外指令·留空用默认模板 · Ctrl+Enter",
     ppt:     "PPT 工坊请到右栏「任务」Tab 操作 prompt",
+    baton:   "🪄 接棒简报会自动生成到这里 — 在右栏选浓缩官后点「生成」",
   };
   function updatePlaceholder(taskState) {
     const $inp = document.getElementById("chat-input");
@@ -98,6 +100,7 @@
       if (!item.dataset.kind) return;
       current = { task, kind: item.dataset.kind };
     }
+    else if (task === "baton") current = { task };
     refreshPill();
     updatePlaceholder(current);
     close();

@@ -8,8 +8,14 @@
     kind: null,
     guidance: "",
     concise: false,
+    // v4.9.1: 接力棒任务状态
+    batonOfficerId: null,
+    batonLength: 500,
+    batonStance: "neutral",
   };
   let judgesList = [];
+  // v4.9.1: 当前在进行的接力棒生成 — 用于切换任务时清理监听
+  let _batonListener = null;
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
@@ -41,6 +47,11 @@
     if (state.task === "ppt") {
       root.innerHTML = renderPpt();
       bindPpt(root);
+      return;
+    }
+    if (state.task === "baton") {
+      root.innerHTML = renderBaton();
+      bindBaton(root);
       return;
     }
     root.innerHTML = `<div class="rp-empty">未识别任务</div>`;
@@ -338,6 +349,158 @@
     } catch (e) { console.warn("loadPptPrompt fail", e); }
   }
 
+  // ── v4.9.1: 🪄 AI接力棒 ─────────────────────────────────────────────
+  // 把当前对话浓缩成给新 AI 看的 prompt，流式回填到群聊主输入框
+  function renderBaton() {
+    const opts = judgesList.length
+      ? judgesList.map(j => `<option value="${escapeHtml(j.id)}" ${j.id === state.batonOfficerId ? "selected" : ""}>${escapeHtml(j.name)}</option>`).join("")
+      : `<option value="">（先添加参与者）</option>`;
+    return `
+      <div class="rp-section-title">🪄 AI接力棒</div>
+      <div class="rp-empty" style="font-size:11px;text-align:left;padding:2px 0 8px;color:var(--ink-soft);line-height:1.5">
+        把当前对话浓缩成 prompt，自动写到下方输入框 — 复制给任何新 AI 即可秒接话
+      </div>
+      <label class="rp-label" style="font-size:11px;color:var(--ink-soft);display:block;margin:8px 0 4px">浓缩官</label>
+      <select class="rp-select" id="rp-baton-officer">
+        <option value="">选浓缩官…</option>
+        ${opts}
+      </select>
+      <label class="rp-label" style="font-size:11px;color:var(--ink-soft);display:block;margin:8px 0 4px">长度</label>
+      <select class="rp-select" id="rp-baton-length">
+        <option value="300" ${state.batonLength === 300 ? "selected" : ""}>短（300 字以内）</option>
+        <option value="500" ${state.batonLength === 500 ? "selected" : ""}>中（500 字以内）</option>
+        <option value="800" ${state.batonLength === 800 ? "selected" : ""}>长（800 字以内）</option>
+      </select>
+      <label class="rp-label" style="font-size:11px;color:var(--ink-soft);display:block;margin:8px 0 4px">视角</label>
+      <select class="rp-select" id="rp-baton-stance">
+        <option value="neutral" ${state.batonStance === "neutral" ? "selected" : ""}>中立旁观（默认）</option>
+        <option value="pro-current" ${state.batonStance === "pro-current" ? "selected" : ""}>继承当前主流立场</option>
+        <option value="contrarian" ${state.batonStance === "contrarian" ? "selected" : ""}>鼓励反方观点</option>
+      </select>
+      <button class="rp-btn primary" id="rp-btn-baton" style="margin-top:10px">🪄 生成接棒简报并复制到输入框</button>
+      <div class="rp-empty" style="font-size:10.5px;padding:6px 0 0;color:var(--ink-soft);text-align:left;line-height:1.5">
+        ⓘ 浓缩官会在群聊里输出接棒简报，同时实时灌到主输入框；完成后可微调再发送/复制
+      </div>
+    `;
+  }
+
+  function bindBaton(root) {
+    const $officer = root.querySelector("#rp-baton-officer");
+    const $length  = root.querySelector("#rp-baton-length");
+    const $stance  = root.querySelector("#rp-baton-stance");
+    const $btn     = root.querySelector("#rp-btn-baton");
+    if (!$btn) return;
+
+    $officer?.addEventListener("change", () => { state.batonOfficerId = $officer.value; });
+    $length?.addEventListener("change",  () => { state.batonLength = parseInt($length.value, 10) || 500; });
+    $stance?.addEventListener("change",  () => { state.batonStance = $stance.value || "neutral"; });
+
+    $btn.addEventListener("click", async () => {
+      const officerId = $officer?.value;
+      if (!officerId) { alert("请先选择浓缩官"); return; }
+      const length = parseInt($length?.value || "500", 10);
+      const stance = $stance?.value || "neutral";
+
+      const pushLog = (text, level) => {
+        try { window.ChatLog?.push?.({ ts: Date.now(), text, level }); } catch (_) {}
+      };
+
+      // 1. 拿历史记录
+      const log = await new Promise(res => chrome.runtime.sendMessage({ type: "chatRestoreLog" }, resp => res(resp?.messages || [])));
+      if (!log.length) { alert("当前没有对话记录，先发几条消息再生成接棒简报"); return; }
+
+      // 2. 拼 transcript（按时间顺序 + 角色名 + 内容）
+      const transcript = log.map(m => {
+        const who = m.role === "user" ? "【用户】"
+                  : `【${m.aiName || m.service || "AI"}】`;
+        const text = (m.response || m.responsePreview || m.text || "").trim();
+        return text ? `${who}\n${text}` : "";
+      }).filter(Boolean).join("\n\n");
+
+      if (!transcript || transcript.length < 20) {
+        alert("当前对话过短，无需生成接棒简报");
+        return;
+      }
+
+      // 3. 构建 meta-prompt
+      const metaPrompt = window.BatonPrompts?.buildBatonMetaPrompt?.({ length, stance, transcript });
+      if (!metaPrompt) { alert("BatonPrompts 模板未加载，请刷新扩展"); return; }
+
+      // 4. 找浓缩官 service（chatStreamUpdate 用 service 作 participantId 字段）
+      let officerService = judgesList.find(j => j.id === officerId)?.service || null;
+      if (!officerService) {
+        try {
+          const r = await new Promise(res => chrome.runtime.sendMessage({ type: "getState" }, resp => res(resp || {})));
+          const p = (r.participants || []).find(pp => pp.id === officerId);
+          officerService = p?.service || null;
+        } catch (_) {}
+      }
+      if (!officerService) { alert("找不到该浓缩官，请刷新群聊"); return; }
+
+      // 5. 清空 chat-input、注册流式监听
+      const $input = document.getElementById("chat-input");
+      if ($input) { $input.textContent = ""; }
+
+      // 卸掉上次残留的监听（用户连续点）
+      if (_batonListener) {
+        try { chrome.runtime.onMessage.removeListener(_batonListener); } catch (_) {}
+        _batonListener = null;
+      }
+      let lastText = "";
+      _batonListener = (msg) => {
+        if (!msg || msg.type !== "chatStreamUpdate" || msg.role !== "ai") return;
+        if (msg.participantId !== officerService) return;
+        const txt = msg.displayText || msg.responsePreview || "";
+        if (txt && txt !== lastText) {
+          lastText = txt;
+          if ($input) $input.textContent = txt;
+        }
+        if (msg.isDone || msg.skipped || msg.emptyTimeout) {
+          try { chrome.runtime.onMessage.removeListener(_batonListener); } catch (_) {}
+          _batonListener = null;
+          $btn.textContent = "🪄 生成接棒简报并复制到输入框";
+          $btn.disabled = false;
+          if (msg.skipped || msg.emptyTimeout) {
+            pushLog("🪄 接棒简报生成中断", "warn");
+          } else {
+            pushLog("🪄 接棒简报已写入输入框，可微调后发送/复制", "ok");
+            // 完成后给输入框 focus，让用户能立刻 Ctrl+A / Ctrl+C
+            try { $input?.focus(); } catch (_) {}
+          }
+        }
+      };
+      chrome.runtime.onMessage.addListener(_batonListener);
+
+      // 6. 发起浓缩 — chatBroadcast 单发给浓缩官
+      $btn.disabled = true;
+      $btn.textContent = "🪄 浓缩中…";
+      pushLog(`🪄 接力棒：让 ${escapeHtml($officer.options[$officer.selectedIndex]?.text || officerService)} 浓缩对话…`, "info");
+      const msgOut = {
+        type: "chatBroadcast",
+        text: metaPrompt,
+        targets: [officerId],
+        images: [],
+      };
+      chrome.runtime.sendMessage(msgOut, (resp) => {
+        // 守门员拦截兜底（meta-prompt 含原文，可能被规则匹中）
+        if (window.ChatGatekeeperBridge?.handleResp?.(msgOut, resp, { textField: "text" })) {
+          try { chrome.runtime.onMessage.removeListener(_batonListener); } catch (_) {}
+          _batonListener = null;
+          $btn.disabled = false;
+          $btn.textContent = "🪄 生成接棒简报并复制到输入框";
+          return;
+        }
+        if (resp && !resp.ok) {
+          try { chrome.runtime.onMessage.removeListener(_batonListener); } catch (_) {}
+          _batonListener = null;
+          $btn.disabled = false;
+          $btn.textContent = "🪄 生成接棒简报并复制到输入框";
+          alert(`生成失败：${resp.error || "未知错误"}`);
+        }
+      });
+    });
+  }
+
   async function refreshJudges() {
     try {
       const r = await new Promise(res => {
@@ -353,7 +516,7 @@
     if (d.style) state.style = d.style;
     if (d.judgeId) { state.judgeId = d.judgeId; state.judgeName = d.judgeName; }
     if (d.kind) state.kind = d.kind;
-    if (state.task === "summary") {
+    if (state.task === "summary" || state.task === "baton") {
       refreshJudges().then(render);
     } else {
       render();
