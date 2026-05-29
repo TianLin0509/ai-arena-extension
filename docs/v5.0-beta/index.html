@@ -773,6 +773,66 @@
     font-weight: 600;
   }
 
+  /* ===== PPT 工坊 4 张真实效果图 2×2 gallery ===== */
+  .page.page-ppt { grid-template-columns: 1.55fr 1fr; }
+  .page.page-ppt .story-visual {
+    padding: 18px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 10px;
+  }
+  .page.page-ppt .story-visual img { max-height: none; box-shadow: none; }
+  .ppt-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+  .ppt-cell {
+    position: relative;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    aspect-ratio: 16 / 9;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ppt-cell:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(10,132,255,0.25);
+    z-index: 2;
+  }
+  .ppt-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .ppt-cell .ppt-cap {
+    position: absolute;
+    left: 6px; bottom: 6px;
+    padding: 3px 8px;
+    background: rgba(29,29,31,0.78);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    line-height: 1.3;
+    max-width: calc(100% - 12px);
+  }
+  .ppt-watermark {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .ppt-watermark b { color: var(--accent); font-weight: 700; }
+
   /* ===== Brand strip ===== */
   .brand-strip {
     display: flex;
@@ -2113,11 +2173,11 @@
 
 <!-- HOOK + BRAND STRIP 已并入 Hero -->
 
-  <!-- ============== Ch · 7 张王牌 ============== ============== -->
+  <!-- ============== Ch · 8 张王牌 ============== ============== -->
   <section class="ch section" id="stories" data-ch-id="stories">
-    <div class="book-intro" data-big="7">
-      <h2><em>7 张王牌</em></h2>
-      <p class="book-intro-sub">装上就停不下来的 7 个理由 · 配 v4.8.51 真实录屏</p>
+    <div class="book-intro" data-big="8">
+      <h2><em>8 张王牌</em></h2>
+      <p class="book-intro-sub">装上就停不下来的 8 个理由 · 配 v4.8.51 真实录屏 + 真·原生 PPT 实战图</p>
       <a class="book-intro-arrow" href="#stories">📖 ← → 翻看每张王牌</a>
     </div>
 
@@ -2329,10 +2389,54 @@
         </div>
       </div>
 
+      <!-- #08 PPT 工坊 · AI 圆桌产出真·原生 PPT -->
+      <div class="page flipped page-ppt">
+        <div class="story-visual">
+          <div class="ppt-gallery">
+            <div class="ppt-cell">
+              <img src="v5.0-screenshots/ppt-1-context.png" alt="长上下文治理 PPT" loading="lazy" />
+              <span class="ppt-cap">长上下文治理 · X-ray 剖面</span>
+            </div>
+            <div class="ppt-cell">
+              <img src="v5.0-screenshots/ppt-2-router.png" alt="多模型路由 PPT" loading="lazy" />
+              <span class="ppt-cap">多模型路由 · 体验 1.25×</span>
+            </div>
+            <div class="ppt-cell">
+              <img src="v5.0-screenshots/ppt-3-risk.png" alt="AI 安全红队闭环 PPT" loading="lazy" />
+              <span class="ppt-cap">AI 安全红队 · 风险账本</span>
+            </div>
+            <div class="ppt-cell">
+              <img src="v5.0-screenshots/ppt-4-onside.png" alt="端侧 AI 部署 PPT" loading="lazy" />
+              <span class="ppt-cap">端侧部署 · 时延 -42%</span>
+            </div>
+          </div>
+          <div class="ppt-watermark">☝ 以上 4 张 <b>真·原生 PPT</b> 全部由 <b>AI 圆桌派</b> 同台讨论后产出（python-pptx 重建 · 非图片背景作弊）</div>
+        </div>
+        <div class="story-text">
+          <div class="story-head">
+            <div class="story-num">08</div>
+            <div class="story-title">📊 PPT 工坊 · 让 AI 同台产 PPT</div>
+          </div>
+          <div class="story-scene">
+            <span class="role">真实场景</span>
+            周五下午老板甩你一句"长上下文治理的方案 PPT 周一要交"。打开 Arena → 选「📊 PPT 工坊」预设 → 给 AI 圆桌一句话主题，三家 AI <b>讨论 → 投票 → 出大纲 → 自动写 python-pptx 代码</b>。你只动了 1 次鼠标，<b>15 分钟拿一份华为 SSS 级 PPT</b>。
+          </div>
+          <div class="story-body">
+            <b>真·原生</b>，不是图片背景作弊 —— 每个标题/箭头/表格都是 PPT 形状，<b>能改、能复用、能进汇报模板库</b>。AI 写代码，你审视觉，分工清晰。覆盖 <b>架构图 / 流程图 / 数据对比 / Before-After</b> 等高频汇报版式。
+          </div>
+          <div class="story-chips">
+            <span class="chip">原生 .pptx</span>
+            <span class="chip">python-pptx</span>
+            <span class="chip">多 AI 协作</span>
+            <span class="chip accent">华为风模板</span>
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="book-controls">
       <button class="book-btn" data-book-prev="stories">← 上一页</button>
-      <span class="book-idx">第 <b data-book-idx="stories">1</b> 页 / 共 7 页</span>
+      <span class="book-idx">第 <b data-book-idx="stories">1</b> 页 / 共 8 页</span>
       <button class="book-btn" data-book-next="stories">下一页 →</button>
     </div>
     <div class="book-dots" data-book-dots="stories"></div>
@@ -2341,9 +2445,9 @@
 
   <!-- ============== 4 硬实力 · 翻书页 ============== -->
   <section class="ch section" id="hard-section" data-ch-id="hard">
-    <div class="book-intro" data-big="5">
-      <h2><em>5 道护城河</em></h2>
-      <p class="book-intro-sub">看不见的硬核底座 · 鲁棒性 / 统计 / 气泡 / Markdown / 安全守门员</p>
+    <div class="book-intro" data-big="6">
+      <h2><em>6 道护城河</em></h2>
+      <p class="book-intro-sub">看不见的硬核底座 · 鲁棒性 / 下轮发言调度 / 统计 / 气泡 / Markdown / 安全守门员</p>
       <a class="book-intro-arrow" href="#hard-section">⚡ ← → 翻看每道护城河</a>
     </div>
 
@@ -2365,9 +2469,24 @@
         </div>
       </div></div>
 
-      <!-- B 统计 -->
+      <!-- B 下轮发言精准调度 -->
       <div class="page hard-page"><div class="hard-card">
-        <div class="h"><div class="num">B</div><div class="ttl">统计 · 你和 AI 的健身房记录</div></div>
+        <div class="h"><div class="num">B</div><div class="ttl">🎯 下轮发言精准调度</div></div>
+        <div class="body">辩论中下一轮谁说话、说什么 —— <b>你说了算</b>。点状态栏 AI 气泡即可锁定本轮发言对象，告别"大锅烩 / 全员同步广播"。</div>
+        <ul>
+          <li><b>状态栏「下轮发言」实时显示</b>：当前轮等谁、谁还在打字一目了然</li>
+          <li><b>点 AI 气泡 = 锁定</b>：本轮只发给 ta，<b>1v1 深聊不被打断</b></li>
+          <li><b>跳过本轮 / 等待中</b> 状态可视化，避免"一家卡死全员阻塞"</li>
+          <li><b>锁定模式 + @-mention 联动</b>：精准追问，不广播</li>
+        </ul>
+        <div class="hard-thumb">
+          <img src="v5.0-screenshots/B-next-speaker-pill.png" alt="下轮发言 pill · 3 AI 气泡 + 锁定" />
+        </div>
+      </div></div>
+
+      <!-- C 统计（原 B） -->
+      <div class="page hard-page"><div class="hard-card">
+        <div class="h"><div class="num">C</div><div class="ttl">统计 · 你和 AI 的健身房记录</div></div>
         <div class="body">本次 / 累计 / 模型三 sub-tab，把"你跟 AI 的关系"量化到日 / 周 / 月维度。</div>
         <ul>
           <li><b>本次心流</b>：柱状图 + 任务分布饼图</li>
@@ -2382,7 +2501,7 @@
 
       <!-- C 气泡 actions -->
       <div class="page hard-page"><div class="hard-card">
-        <div class="h"><div class="num">C</div><div class="ttl">气泡 5-action 工具栏</div></div>
+        <div class="h"><div class="num">D</div><div class="ttl">气泡 5-action 工具栏</div></div>
         <div class="body">每条 AI 回答都是独立工作单元 —— 5 个动作 + 头像点击直跳原对话页。</div>
         <ul>
           <li><b>5 actions</b>：复制 / 跳原页 / 重新提取 / 重发 / 跳过本轮</li>
@@ -2397,7 +2516,7 @@
 
       <!-- D Markdown -->
       <div class="page hard-page"><div class="hard-card">
-        <div class="h"><div class="num">D</div><div class="ttl">Markdown / 数学公式渲染</div></div>
+        <div class="h"><div class="num">E</div><div class="ttl">Markdown / 数学公式渲染</div></div>
         <div class="body">AI 答的内容长什么样，扩展里就是什么样 —— 标题、列表、表格、代码、公式，统统原汁原味。</div>
         <ul>
           <li><b>完整 markdown</b>：标题 / 列表 / 加粗 / 表格 / fenced code</li>
@@ -2426,7 +2545,7 @@
 
       <!-- E 安全守门员 v4.9.0 -->
       <div class="page hard-page"><div class="hard-card">
-        <div class="h"><div class="num">E</div><div class="ttl">🛡️ 敏感信息守门员 <span style="font-size:12px;font-weight:600;color:#34c759;background:rgba(52,199,89,0.15);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle">v4.9.0 新增</span></div></div>
+        <div class="h"><div class="num">F</div><div class="ttl">🛡️ 敏感信息守门员 <span style="font-size:12px;font-weight:600;color:#34c759;background:rgba(52,199,89,0.15);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle">v4.9.0 新增</span></div></div>
         <div class="body">出站 prompt 自动扫一遍 —— 工号 / 内网 IP / 客户名 / 保密词，<b>拦在嘴边</b>，免去"手抖发出去就晚了"的恐慌。</div>
         <ul>
           <li><b>7 类内置规则</b>：工号 · 内网 IP · 内部邮箱 · 手机号 · 内部域名 · 客户 · 保密词</li>
@@ -2456,7 +2575,7 @@
     </div>
     <div class="book-controls">
       <button class="book-btn" data-book-prev="hard">← 上一项</button>
-      <span class="book-idx">第 <b data-book-idx="hard">1</b> 项 / 共 5 项</span>
+      <span class="book-idx">第 <b data-book-idx="hard">1</b> 项 / 共 6 项</span>
       <button class="book-btn" data-book-next="hard">下一项 →</button>
     </div>
     <div class="book-dots" data-book-dots="hard"></div>
@@ -2994,8 +3113,8 @@
   const ORDER = ['hero', 'stories', 'hard', 'cta', 'numbers', 'play', 'roadmap'];
   const META = {
     hero:    { tag: '第 0 章 · 开场',  big: '3 大痛点 · 1 个解药', sub: '9 AI 同台辩论 · 互找茬 · 互补盲 · 1+1+1 > 3' },
-    stories: { tag: '第 1 章 · 王牌',  big: '7 张王牌',        sub: '装上就停不下来的 7 个理由' },
-    hard:    { tag: '第 2 章 · 底座',  big: '5 道护城河',      sub: '鲁棒 · 统计 · 气泡 · Markdown · 安全守门员' },
+    stories: { tag: '第 1 章 · 王牌',  big: '8 张王牌',        sub: '装上就停不下来的 7 个理由' },
+    hard:    { tag: '第 2 章 · 底座',  big: '6 道护城河',      sub: '鲁棒 · 下轮调度 · 统计 · 气泡 · Markdown · 安全守门员' },
     cta:     { tag: '第 3 章 · 上车',  big: '上车吗？',        sub: '首批 100 名 Beta · 30 秒后你就在指挥 3 个 AI' },
     numbers: { tag: '彩蛋 · 实证',     big: '数字不撒谎',      sub: 'v4.0 → v5.0.1 的硬核数据' },
     play:    { tag: '彩蛋 · 上瘾',     big: '装完就玩',        sub: '3 个挑战预设 · 截图发朋友圈' },
