@@ -52,8 +52,28 @@
     });
   }
 
-  // v4.8.67: 暴露给运行时 E2E 验证翻页行为
-  window.ChatTutorial = { showPage, current: () => currentPage };
+  // v5.0.6: 设置 tab"新手教程"按钮触发 — 把 tutorial 升级为浮动 modal 覆盖在 popup 上，
+  //   不依赖 empty-state 可见性（有对话时也能查看）。close 按钮仍 dismiss + 设 storage。
+  function show() {
+    const $el = document.getElementById("es-tutorial");
+    if (!$el) return;
+    $el.classList.add("es-tutorial-modal");
+    $el.hidden = false;
+    showPage(1);
+    // close 按钮在 modal 模式下只关 modal 不写 storage（避免误把"我手动开的"当成"用户永久不看"）
+    const $close = document.getElementById("es-tutorial-close");
+    if ($close && !$close.dataset.modalListenerBound) {
+      $close.dataset.modalListenerBound = "1";
+      $close.addEventListener("click", () => {
+        if ($el.classList.contains("es-tutorial-modal")) {
+          $el.classList.remove("es-tutorial-modal");
+          $el.hidden = true;
+        }
+      }, true); // capture 阶段先于原 close handler
+    }
+  }
+  // v4.8.67: 暴露给运行时 E2E 验证翻页行为；v5.0.6: 加 show
+  window.ChatTutorial = { showPage, show, current: () => currentPage };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

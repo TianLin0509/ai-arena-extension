@@ -37,7 +37,25 @@
         </div>`;
     }).join("");
 
+    // v5.0.6: AI 窗口布局 + 检查更新 + GitHub + 新手教程 从顶栏迁到设置 tab
+    const curWinMode = window.ChatWindowMode?.current || "tiled";
     root.innerHTML = `
+      <div class="rp-section-title">应用</div>
+      <div class="rp-app-group">
+        <div class="rp-app-row">
+          <span class="rp-app-row-lbl">AI 窗口布局</span>
+          <div class="hdr-mode-toggle" id="hdr-mode-toggle" role="group" aria-label="AI 窗口布局">
+            <button type="button" class="hdr-mode-btn ${curWinMode === 'tab' ? 'active' : ''}" data-mode="tab" title="所有 AI 同窗口不同标签页">Tab</button>
+            <button type="button" class="hdr-mode-btn ${curWinMode === 'tiled' ? 'active' : ''}" data-mode="tiled" title="每个 AI 独立窗口并列">并列</button>
+          </div>
+        </div>
+        <div class="rp-app-row rp-app-row-btns">
+          <button class="rp-app-btn" id="rp-check-update" title="调 GitHub Releases API 比对版本">↻ 检查更新</button>
+          <button class="rp-app-btn" id="rp-open-github" title="在新标签页打开 GitHub 仓库">⎘ GitHub</button>
+          <button class="rp-app-btn" id="rp-open-tutorial" title="重新打开新手教程">📘 新手教程</button>
+        </div>
+      </div>
+
       <div class="rp-section-title">主题</div>
       <div class="rp-theme-grid">
         ${THEMES.map(t => `
@@ -59,6 +77,24 @@
         <div><span class="rp-kbd">@all</span> 显式全发</div>
       </div>
     `;
+
+    // v5.0.6: 应用区块事件绑定
+    root.querySelectorAll(".hdr-mode-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        window.ChatWindowMode?.set?.(b.dataset.mode);
+        // 立即更新 active 视觉（ChatWindowMode.set 是 async，先本地反馈）
+        root.querySelectorAll(".hdr-mode-btn").forEach(x => x.classList.toggle("active", x.dataset.mode === b.dataset.mode));
+      });
+    });
+    root.querySelector("#rp-check-update")?.addEventListener("click", () => {
+      window.ChatUpdateCheck?.checkAndShow?.({ manual: true }).catch(() => {});
+    });
+    root.querySelector("#rp-open-github")?.addEventListener("click", () => {
+      try { chrome.tabs.create({ url: "https://github.com/TianLin0509/ai-arena-extension" }); } catch (_) {}
+    });
+    root.querySelector("#rp-open-tutorial")?.addEventListener("click", () => {
+      window.ChatTutorial?.show?.();
+    });
 
     root.querySelectorAll(".rp-theme-item").forEach(el => {
       el.addEventListener("click", () => setTheme(el.dataset.theme));
