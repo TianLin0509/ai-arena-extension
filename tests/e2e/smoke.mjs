@@ -67,9 +67,9 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.21", manifest.version_name === "5.2.21", `actual: ${manifest.version_name}`);
-  // v5.2.21: 正式改名 AI圆桌派
-  check("v5.2.21: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
+  check("manifest version_name = 5.2.22", manifest.version_name === "5.2.22", `actual: ${manifest.version_name}`);
+  // v5.2.19+: 正式改名 AI圆桌派（v5.2.22 仍保持）
+  check("v5.2.19+: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -77,10 +77,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.21", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.22", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.21"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.22"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -98,7 +98,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.21", popupVersion === "v5.2.21", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.22", popupVersion === "v5.2.22", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2654,12 +2654,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.21", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.21", "v5.2.21"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.22", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.22", "v5.2.22"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.21 + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.22 + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.21" &&
+    v52ApiRuntime.curVer === "5.2.22" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2873,6 +2873,14 @@ try {
   check("v5.2.21-B: STREAM_DONE_THRESHOLD_FORCE 缩短到 6（12s→9s 后台兜底更快）",
     /STREAM_DONE_THRESHOLD_FORCE\s*=\s*6/.test(busSrc21),
     "force 阈值未缩短到 6");
+
+  // ── v5.2.22: pollOnce 防重入守卫（修千问 renderer 卡死时 setInterval 堆积 → SW 雪崩拖累所有 AI）──
+  check("v5.2.22: pollOnce 加 state.inFlight 防重入守卫（首句 if (state.inFlight) return）",
+    /async function pollOnce[\s\S]{0,800}?if \(state\.inFlight\) return;\s*state\.inFlight = true;/.test(busSrc21),
+    "pollOnce 缺 inFlight 守卫（千问雪崩温床未防护）");
+  check("v5.2.22: pollOnce finally 块释放 inFlight（保证完成/超时/断开后下一 tick 可执行）",
+    /\}\s*finally\s*\{[\s\S]{0,200}?state\.inFlight = false;\s*\}/.test(busSrc21),
+    "pollOnce 缺 finally 释放 inFlight");
 
   // ── v5.2.14: NOISE_SEL 加 banner/popup/ads/advert（修豆包"下载电脑版"等横幅污染）──
   check("v5.2.14: NOISE_SEL 含 banner（豆包下载横幅污染修复）",

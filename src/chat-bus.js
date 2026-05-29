@@ -524,6 +524,13 @@ const ChatBus = (() => {
   }
 
   async function pollOnce(participant, state) {
+    // v5.2.22 Bug A 根治：防重入堆积 — 上一次轮询（含 await sendMessage）未返回时跳过本 tick。
+    //   千问回答变长致单次往返 >POLL_INTERVAL_MS 时，setInterval 会无脑积压多个并发 pollOnce，
+    //   它们共享同一 state → 并发污染 sameCount/stableKey + 每个独立判完成 → 重复完成 N 次，
+    //   N 倍下游任务（readOneResponse/startWatch/sendToPopup）挤爆单线程 SW → 拖累所有 AI。
+    //   守卫后同一时刻只有 1 个 pollOnce 实质执行，雪崩根除。
+    if (state.inFlight) return;
+    state.inFlight = true;
     const { tabId, service } = participant;
     try {
       // v4.5.5 F5: 全局 tick 上限兜底
@@ -669,6 +676,9 @@ const ChatBus = (() => {
         participantId: service, text: `⚠ ${participant.name} 已断开`,
         isDone: true,
       });
+    } finally {
+      // v5.2.22 Bug A：本次轮询结束（含完成/超时/断开 return），释放重入锁允许下一 tick
+      state.inFlight = false;
     }
   }
 
