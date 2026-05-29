@@ -67,8 +67,8 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.22", manifest.version_name === "5.2.22", `actual: ${manifest.version_name}`);
-  // v5.2.19+: 正式改名 AI圆桌派（v5.2.22 仍保持）
+  check("manifest version_name = 5.2.23", manifest.version_name === "5.2.23", `actual: ${manifest.version_name}`);
+  // v5.2.19+: 正式改名 AI圆桌派（v5.2.23 仍保持）
   check("v5.2.19+: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
@@ -77,10 +77,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.22", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.23", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.22"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.23"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -98,7 +98,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.22", popupVersion === "v5.2.22", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.23", popupVersion === "v5.2.23", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2654,12 +2654,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.22", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.22", "v5.2.22"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.23", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.23", "v5.2.23"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.22 + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.23 + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.22" &&
+    v52ApiRuntime.curVer === "5.2.23" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2881,6 +2881,26 @@ try {
   check("v5.2.22: pollOnce finally 块释放 inFlight（保证完成/超时/断开后下一 tick 可执行）",
     /\}\s*finally\s*\{[\s\S]{0,200}?state\.inFlight = false;\s*\}/.test(busSrc21),
     "pollOnce 缺 finally 释放 inFlight");
+
+  // ── v5.2.23: 千问与其他 AI 互斥（千问 Web 上下文窗口过短，不允许辩论组队）──
+  const bgSrc23 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
+  check('v5.2.23: background.addParticipant 加千问互斥守卫（QWEN_INCOMPATIBLE）',
+    /QWEN_INCOMPATIBLE/.test(bgSrc23) &&
+    /service === "qwen" && others > 0/.test(bgSrc23) &&
+    /service !== "qwen" && qwens > 0/.test(bgSrc23),
+    "background 缺千问互斥守卫");
+  check('v5.2.23: 守卫错误消息含"千问 Web 版本功能受限"用户友好文案',
+    /千问 Web 版本功能受限/.test(bgSrc23) && /上下文窗口过短/.test(bgSrc23),
+    "守卫缺用户友好文案");
+  const pmSrc23 = fs.readFileSync(path.join(EXT_PATH, "popup-members.js"), "utf8");
+  check('v5.2.23: popup-members.js addParticipant 接 response 检测 QWEN_INCOMPATIBLE 弹 alert',
+    /r\?\.error === "QWEN_INCOMPATIBLE"/.test(pmSrc23) && /alert\(r\.message\)/.test(pmSrc23),
+    "popup-members 未接 QWEN_INCOMPATIBLE alert");
+  const spSrc23 = fs.readFileSync(path.join(EXT_PATH, "sidepanel.js"), "utf8");
+  check('v5.2.23: sidepanel.js 两处 addParticipant 接 response 检测 QWEN_INCOMPATIBLE 弹 alert',
+    (spSrc23.match(/r\?\.error === "QWEN_INCOMPATIBLE"/g) || []).length >= 2 &&
+    (spSrc23.match(/alert\(r\.message\)/g) || []).length >= 2,
+    "sidepanel 两处入口未接 QWEN_INCOMPATIBLE alert");
 
   // ── v5.2.14: NOISE_SEL 加 banner/popup/ads/advert（修豆包"下载电脑版"等横幅污染）──
   check("v5.2.14: NOISE_SEL 含 banner（豆包下载横幅污染修复）",

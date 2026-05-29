@@ -119,7 +119,10 @@ function renderParticipants() {
           width: window.screen.availWidth, height: window.screen.availHeight,
           left: window.screen.availLeft || 0, top: window.screen.availTop || 0,
         };
-        chrome.runtime.sendMessage({ type: "addParticipant", service: chip.dataset.service, screen });
+        chrome.runtime.sendMessage({ type: "addParticipant", service: chip.dataset.service, screen }, (r) => {
+          // v5.2.23: 千问与其他 AI 互斥 — background 守卫拒绝时弹提示
+          if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) { try { alert(r.message); } catch (_) {} }
+        });
       });
     });
   } else {
@@ -570,7 +573,9 @@ $$(".btn-add").forEach(b => b.addEventListener("click", async () => {
   if (participants.length >= 3) { addLog("最多 3 个参与者", "error"); return; }
   addLog(`添加 ${b.dataset.service}...`);
   const screen = await getCurrentScreenInfo();
-  await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service, screen });
+  // v5.2.23: 千问与其他 AI 互斥 — background 守卫拒绝时弹提示
+  const r = await chrome.runtime.sendMessage({ type: "addParticipant", service: b.dataset.service, screen });
+  if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) { try { alert(r.message); } catch (_) {} }
 }));
 
 // ── 文件管理 ──

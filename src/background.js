@@ -682,6 +682,20 @@ async function addParticipant(service) {
     notifyStatus(`最多 ${MAX_PARTICIPANTS} 个参与者`);
     return { ok: false, error: `最多 ${MAX_PARTICIPANTS} 个参与者` };
   }
+  // v5.2.23: 千问与其他 AI 互斥 — 千问 Web 上下文窗口过短（实测 1 轮 ~9000 字回答后即触发
+  //   send button 持续 disabled 137s+ / 上下文超限），无法支持多轮辩论。已加这条策略阻止
+  //   "千问 + 其他 AI" 组合，避免用户进入辩论后才发现千问拖累所有 AI。
+  const others = StateMachine.participants.filter(p => p.service !== "qwen").length;
+  const qwens = StateMachine.participants.filter(p => p.service === "qwen").length;
+  const QWEN_HINT = "由于千问 Web 版本功能受限，上下文窗口过短无法支持辩论，建议采用单 AI 问答方式或替换为其他 AI。";
+  if (service === "qwen" && others > 0) {
+    notifyStatus(QWEN_HINT);
+    return { ok: false, error: "QWEN_INCOMPATIBLE", message: QWEN_HINT };
+  }
+  if (service !== "qwen" && qwens > 0) {
+    notifyStatus(QWEN_HINT);
+    return { ok: false, error: "QWEN_INCOMPATIBLE", message: QWEN_HINT };
+  }
   const info = SERVICES[service];
   if (!info) return { ok: false };
   const count = StateMachine.participants.filter(p => p.service === service).length + 1;
