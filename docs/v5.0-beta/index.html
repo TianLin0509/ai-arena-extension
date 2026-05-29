@@ -1672,6 +1672,127 @@
   }
   .guide-go-wechat:hover { background: var(--card-soft, var(--bg-soft)); border-color: var(--accent); color: var(--accent); }
 
+  /* ===== 安装教程翻页（重构后）===== */
+  .guide-modal { padding: 16px 28px 18px; }
+  .guide-modal .guide-title { margin: 4px 0 14px; font-size: 22px; }
+  .guide-stage {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 28px;
+    min-height: 380px;
+    position: relative;
+  }
+  .guide-page { display: none; animation: gp-in 0.35s ease; }
+  .guide-page.active { display: block; }
+  @keyframes gp-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .gp-head {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .gp-num {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), #5ac8fa);
+    color: #fff;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .gp-ttl { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .gp-ttl code { background: var(--chip-bg); padding: 2px 8px; border-radius: 4px; font-size: 0.85em; color: var(--accent); }
+  .gp-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  @media (max-width: 720px) { .gp-grid { grid-template-columns: 1fr; gap: 16px; } }
+  .gp-visual {
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+  .gp-visual svg { width: 100%; height: auto; display: block; }
+  .gp-text { font-size: 14.5px; line-height: 1.7; color: var(--ink); }
+  .gp-text p { margin: 0 0 10px; }
+  .gp-text p:last-child { margin-bottom: 0; }
+  .gp-text b { color: var(--accent); font-weight: 700; }
+  .gp-text code {
+    background: var(--chip-bg); padding: 1px 6px;
+    border-radius: 4px; font-family: "SF Mono","Consolas",monospace;
+    font-size: 0.9em; color: var(--accent);
+  }
+  .gp-text .guide-ol { margin: 0 0 10px; padding-left: 22px; line-height: 1.85; }
+
+  /* 第 1 页下载按钮（不复用 download-btn 避免冲突） */
+  .guide-dl-btn {
+    display: inline-block;
+    margin: 6px 0 10px;
+    padding: 12px 22px;
+    background: linear-gradient(135deg, #0a84ff, #5ac8fa);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 15px; font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(10,132,255,0.40);
+    transition: all 0.2s;
+  }
+  .guide-dl-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(10,132,255,0.55); }
+
+  /* 翻页控件 */
+  .guide-nav {
+    margin-top: 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .guide-nav-btn {
+    padding: 9px 22px;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .guide-nav-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .guide-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .guide-nav-btn.primary {
+    background: linear-gradient(135deg, var(--accent), #5ac8fa);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 14px rgba(10,132,255,0.4);
+  }
+  .guide-nav-btn.primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(10,132,255,0.55); }
+  .guide-nav-btn.done {
+    background: linear-gradient(135deg, #34c759, #30b753);
+    box-shadow: 0 4px 14px rgba(52,199,89,0.45);
+  }
+  .guide-dots {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .guide-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.25s;
+  }
+  .guide-dot:hover:not(.active) { background: var(--ink-soft); }
+  .guide-dot.active {
+    background: var(--accent);
+    width: 28px;
+    border-radius: 5px;
+  }
+
 </style>
 </head>
 <body class="spa-body">
@@ -2213,7 +2334,7 @@
     <p>明天就要面对那份没头绪的报告？现在装上，让 9 大 AI 帮你想答案。</p>
     <div class="actions">
       <a class="btn btn-cta" href="release/ai-arena-extension-v4.8.66.zip" download data-trigger-guide>⬇️ 一键下载安装包（1.7 MB）</a>
-      <a class="btn btn-cta-ghost" href="https://github.com/TianLin0509/ai-arena-extension" target="_blank">查看 GitHub 源码 →</a>
+      <a class="btn btn-cta-ghost" href="#" data-show-guide>📖 安装教程（小白版 · 翻页 5 步）</a>
     </div>
     <div class="wechat-qr">
       <img src="release/wechat-qrcode.png" alt="作者微信二维码" />
@@ -2340,80 +2461,218 @@
   </div>
 </div>
 
-<!-- ===== 下载后立即弹出的使用指南模态 ===== -->
+<!-- ===== 安装教程模态（翻页式 · 5 步图文）===== -->
 <div class="guide-modal" data-guide>
   <button class="close-x" data-guide-close aria-label="关闭">×</button>
   <div class="guide-inner">
-    <div class="guide-banner">
-      <div class="guide-banner-ico">⬇️</div>
-      <div>
-        <div class="guide-banner-title">下载已开始 · ai-arena-extension-v4.8.66.zip</div>
-        <div class="guide-banner-sub">⏳ 浏览器正在下载到你的「下载」文件夹 · 1.7 MB · 几秒钟就好</div>
+    <h2 class="guide-title">📖 安装教程 · 小白版（一步一页 · 跟着翻就行）</h2>
+    <div class="guide-stage" data-guide-stage>
+
+      <!-- 步骤 1 -->
+      <div class="guide-page active">
+        <div class="gp-head">
+          <div class="gp-num">1</div>
+          <div class="gp-ttl">下载安装包</div>
+        </div>
+        <div class="gp-grid">
+          <div class="gp-visual">
+            <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">
+              <rect width="240" height="160" rx="10" fill="#0a84ff" opacity="0.08"/>
+              <g transform="translate(80,30)">
+                <rect width="80" height="90" rx="6" fill="#0a84ff" opacity="0.15"/>
+                <rect x="0" y="0" width="80" height="20" rx="6" fill="#0a84ff"/>
+                <text x="40" y="14" text-anchor="middle" font-family="-apple-system" font-size="11" font-weight="700" fill="#fff">ZIP</text>
+                <text x="40" y="50" text-anchor="middle" font-family="-apple-system" font-size="10" fill="#0a84ff">ai-arena</text>
+                <text x="40" y="65" text-anchor="middle" font-family="-apple-system" font-size="10" fill="#0a84ff">v4.8.66</text>
+                <text x="40" y="80" text-anchor="middle" font-family="-apple-system" font-size="10" fill="#0a84ff">1.7 MB</text>
+              </g>
+              <g transform="translate(120,130)">
+                <text text-anchor="middle" font-family="-apple-system" font-size="14" fill="#0a84ff">⬇</text>
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" repeatCount="indefinite"/>
+              </g>
+            </svg>
+          </div>
+          <div class="gp-text">
+            <p>点下方大蓝按钮，浏览器立即开始下载安装包到你的 <b>「下载」文件夹</b>。</p>
+            <a class="guide-dl-btn" href="release/ai-arena-extension-v4.8.66.zip" download>⬇️ 一键下载 · 1.7 MB</a>
+            <p class="guide-tip">💡 已下载过的可以直接点「下一步 →」</p>
+          </div>
+        </div>
       </div>
+
+      <!-- 步骤 2 -->
+      <div class="guide-page">
+        <div class="gp-head">
+          <div class="gp-num">2</div>
+          <div class="gp-ttl">解压到 <code>C:\AI-Arena</code> ⭐</div>
+        </div>
+        <div class="gp-grid">
+          <div class="gp-visual">
+            <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">
+              <rect width="240" height="160" rx="10" fill="#ff9f0a" opacity="0.08"/>
+              <g transform="translate(20,40)">
+                <rect width="70" height="80" rx="6" fill="#ff9f0a" opacity="0.15"/>
+                <rect x="0" y="0" width="70" height="14" rx="6" fill="#ff9f0a"/>
+                <text x="35" y="11" text-anchor="middle" font-family="-apple-system" font-size="9" font-weight="700" fill="#fff">ZIP</text>
+                <text x="35" y="50" text-anchor="middle" font-family="-apple-system" font-size="9" fill="#ff9f0a">右键</text>
+                <text x="35" y="65" text-anchor="middle" font-family="-apple-system" font-size="9" fill="#ff9f0a">解压</text>
+              </g>
+              <g transform="translate(105,75)">
+                <text text-anchor="middle" font-family="-apple-system" font-size="22" fill="#ff9f0a">→</text>
+              </g>
+              <g transform="translate(140,30)">
+                <rect width="80" height="100" rx="6" fill="#34c759" opacity="0.15"/>
+                <rect x="0" y="0" width="80" height="18" rx="6" fill="#34c759"/>
+                <text x="40" y="13" text-anchor="middle" font-family="-apple-system" font-size="9" font-weight="700" fill="#fff">📁 文件夹</text>
+                <text x="40" y="40" text-anchor="middle" font-family="-apple-system" font-size="9" fill="#34c759">C:\AI-Arena\</text>
+                <text x="40" y="58" text-anchor="middle" font-family="-apple-system" font-size="8" fill="#34c759">manifest.json</text>
+                <text x="40" y="73" text-anchor="middle" font-family="-apple-system" font-size="8" fill="#34c759">popup.html</text>
+                <text x="40" y="88" text-anchor="middle" font-family="-apple-system" font-size="8" fill="#34c759">background.js</text>
+              </g>
+            </svg>
+          </div>
+          <div class="gp-text">
+            <p>右键刚下载的 zip → <b>"全部解压"</b> → 在弹窗里粘贴推荐路径：</p>
+            <div class="guide-path">
+              <code>C:\AI-Arena</code>
+              <button class="guide-copy" data-copy="C:\AI-Arena">📋 复制</button>
+            </div>
+            <p class="guide-tip">💡 解压完打开这个文件夹 · <b>能看到 manifest.json 就是对的</b></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤 3 -->
+      <div class="guide-page">
+        <div class="gp-head">
+          <div class="gp-num">3</div>
+          <div class="gp-ttl">打开 Chrome 扩展页</div>
+        </div>
+        <div class="gp-grid">
+          <div class="gp-visual">
+            <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+              <rect width="280" height="160" rx="10" fill="#34c759" opacity="0.06"/>
+              <!-- Chrome 地址栏 -->
+              <rect x="20" y="30" width="240" height="36" rx="18" fill="#fff" stroke="#34c759" stroke-width="2"/>
+              <text x="36" y="53" font-family="SF Mono,monospace" font-size="13" fill="#1d1d1f">chrome://extensions</text>
+              <g transform="translate(232,40)">
+                <circle cx="0" cy="8" r="10" fill="#34c759"/>
+                <text x="0" y="13" text-anchor="middle" font-family="-apple-system" font-size="11" font-weight="700" fill="#fff">↵</text>
+              </g>
+              <!-- 提示 -->
+              <text x="140" y="100" text-anchor="middle" font-family="-apple-system" font-size="11" font-weight="600" fill="#34c759">↑ 粘贴这一行到地址栏，按回车</text>
+              <text x="140" y="130" text-anchor="middle" font-family="-apple-system" font-size="10" fill="#34c759">就会打开 Chrome 扩展管理页面</text>
+            </svg>
+          </div>
+          <div class="gp-text">
+            <p>打开 Chrome → 在地址栏粘贴这一行（复制后粘）：</p>
+            <div class="guide-path">
+              <code>chrome://extensions</code>
+              <button class="guide-copy" data-copy="chrome://extensions">📋 复制</button>
+            </div>
+            <p>回车 → 进入 <b>扩展程序管理页</b>。</p>
+            <p class="guide-tip">💡 别用 360 / QQ 浏览器，要 <b>Google Chrome 或 Edge</b>。Edge 也支持，地址换成 <code>edge://extensions</code></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤 4 -->
+      <div class="guide-page">
+        <div class="gp-head">
+          <div class="gp-num">4</div>
+          <div class="gp-ttl">开启开发者模式 + 加载扩展</div>
+        </div>
+        <div class="gp-grid">
+          <div class="gp-visual">
+            <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg">
+              <rect width="280" height="180" rx="10" fill="#af52de" opacity="0.06"/>
+              <!-- 顶栏 -->
+              <rect x="14" y="14" width="252" height="34" rx="6" fill="#1d1d1f"/>
+              <text x="22" y="35" font-family="-apple-system" font-size="11" fill="#fff">扩展程序</text>
+              <!-- 开发者模式开关（右上）-->
+              <text x="160" y="34" font-family="-apple-system" font-size="10" fill="#af52de" font-weight="700">开发者模式</text>
+              <rect x="222" y="22" width="32" height="18" rx="9" fill="#af52de"/>
+              <circle cx="245" cy="31" r="7" fill="#fff"/>
+              <!-- 加载按钮 -->
+              <rect x="20" y="62" width="180" height="32" rx="6" fill="#af52de"/>
+              <text x="110" y="83" text-anchor="middle" font-family="-apple-system" font-size="12" font-weight="700" fill="#fff">加载已解压的扩展程序</text>
+              <text x="20" y="115" font-family="-apple-system" font-size="11" fill="#af52de" font-weight="600">↑ 点这个按钮 → 选 C:\AI-Arena</text>
+              <!-- 安装结果 -->
+              <rect x="20" y="130" width="240" height="36" rx="6" fill="#34c759" opacity="0.18" stroke="#34c759" stroke-width="1"/>
+              <text x="140" y="153" text-anchor="middle" font-family="-apple-system" font-size="12" fill="#34c759" font-weight="700">✓ AI Arena 卡片出现 = 安装成功</text>
+            </svg>
+          </div>
+          <div class="gp-text">
+            <ol class="guide-ol">
+              <li>页面 <b>右上角</b> 打开「开发者模式」开关</li>
+              <li>页面 <b>左上角</b> 点「加载已解压的扩展程序」按钮</li>
+              <li>在弹窗中选刚才解压的 <code>C:\AI-Arena</code> 文件夹</li>
+              <li>看到 "AI Arena" 卡片出现 = 成功 ✓</li>
+            </ol>
+            <p class="guide-warn">⚠️ 报错"找不到 manifest.json" = 选错文件夹层级 · 应该直接选 <code>C:\AI-Arena</code></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步骤 5 -->
+      <div class="guide-page">
+        <div class="gp-head">
+          <div class="gp-num">5</div>
+          <div class="gp-ttl">登录 AI 网站，开始使用 🎉</div>
+        </div>
+        <div class="gp-grid">
+          <div class="gp-visual">
+            <svg viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg">
+              <rect width="280" height="180" rx="10" fill="#0a84ff" opacity="0.06"/>
+              <text x="140" y="28" text-anchor="middle" font-family="-apple-system" font-size="12" font-weight="700" fill="#0a84ff">🇨🇳 国内 5 家 · 直接登录</text>
+              <!-- 5 chip -->
+              <g font-family="-apple-system" font-size="10" font-weight="600">
+                <rect x="14" y="42" width="50" height="22" rx="11" fill="#0a84ff" opacity="0.18"/>
+                <text x="39" y="57" text-anchor="middle" fill="#0a84ff">DeepSeek</text>
+                <rect x="68" y="42" width="36" height="22" rx="11" fill="#0a84ff" opacity="0.18"/>
+                <text x="86" y="57" text-anchor="middle" fill="#0a84ff">豆包</text>
+                <rect x="108" y="42" width="50" height="22" rx="11" fill="#0a84ff" opacity="0.18"/>
+                <text x="133" y="57" text-anchor="middle" fill="#0a84ff">通义千问</text>
+                <rect x="162" y="42" width="40" height="22" rx="11" fill="#0a84ff" opacity="0.18"/>
+                <text x="182" y="57" text-anchor="middle" fill="#0a84ff">Kimi</text>
+                <rect x="206" y="42" width="36" height="22" rx="11" fill="#0a84ff" opacity="0.18"/>
+                <text x="224" y="57" text-anchor="middle" fill="#0a84ff">元宝</text>
+              </g>
+              <text x="140" y="90" text-anchor="middle" font-family="-apple-system" font-size="12" font-weight="700" fill="#ff9f0a">🌐 海外 4 家 · 需自备代理</text>
+              <g font-family="-apple-system" font-size="10" font-weight="600">
+                <rect x="42" y="104" width="44" height="22" rx="11" fill="#ff9f0a" opacity="0.18"/>
+                <text x="64" y="119" text-anchor="middle" fill="#ff9f0a">Claude</text>
+                <rect x="92" y="104" width="46" height="22" rx="11" fill="#ff9f0a" opacity="0.18"/>
+                <text x="115" y="119" text-anchor="middle" fill="#ff9f0a">Gemini</text>
+                <rect x="144" y="104" width="50" height="22" rx="11" fill="#ff9f0a" opacity="0.18"/>
+                <text x="169" y="119" text-anchor="middle" fill="#ff9f0a">ChatGPT</text>
+                <rect x="198" y="104" width="38" height="22" rx="11" fill="#ff9f0a" opacity="0.18"/>
+                <text x="217" y="119" text-anchor="middle" fill="#ff9f0a">Grok</text>
+              </g>
+              <text x="140" y="160" text-anchor="middle" font-family="-apple-system" font-size="14" font-weight="800" fill="#34c759">✓ 至少登录 3 家就能开始</text>
+            </svg>
+          </div>
+          <div class="gp-text">
+            <p>扩展<b>不存账号</b>，对话走你浏览器里已登录的 AI 官网。<b>至少登录 3 家</b>：</p>
+            <div class="guide-ai-grid">
+              <a class="guide-ai" href="https://chat.deepseek.com" target="_blank">🔵 DeepSeek</a>
+              <a class="guide-ai" href="https://www.doubao.com" target="_blank">🥟 豆包</a>
+              <a class="guide-ai" href="https://tongyi.aliyun.com" target="_blank">🐫 通义千问</a>
+              <a class="guide-ai" href="https://kimi.moonshot.cn" target="_blank">🌙 Kimi</a>
+              <a class="guide-ai" href="https://yuanbao.tencent.com" target="_blank">💰 元宝</a>
+            </div>
+            <p class="guide-tip">🎉 完成！点 Chrome 工具栏的 AI Arena 图标即可使用</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <h2 class="guide-title">📖 接下来 4 步搞定（小白看这里）</h2>
-
-    <div class="guide-steps">
-
-      <div class="guide-step">
-        <div class="guide-num">1</div>
-        <div class="guide-body">
-          <h4>找到下载好的 zip</h4>
-          <p>打开 <b>文件资源管理器</b> → 左侧「下载」文件夹 → 找到 <code>ai-arena-extension-v4.8.66.zip</code></p>
-          <p class="guide-tip">💡 Win + E 一键打开文件资源管理器 · 或者按 Ctrl+J 在浏览器看下载列表</p>
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-num">2</div>
-        <div class="guide-body">
-          <h4>解压到推荐位置 ⭐</h4>
-          <p>右键 zip → <b>"全部解压"</b> → 在「选择目标位置」框里粘贴这个路径：</p>
-          <div class="guide-path">
-            <code>C:\AI-Arena</code>
-            <button class="guide-copy" data-copy="C:\AI-Arena">📋 复制路径</button>
-          </div>
-          <p class="guide-tip">💡 解压完会得到 <code>C:\AI-Arena\manifest.json</code> 等文件 · 后续步骤都基于这个路径</p>
-          <p class="guide-warn">⚠️ 如果系统盘 C: 权限不够，可以用 <code>D:\AI-Arena</code> 或者桌面 <code>C:\Users\&lt;你的用户名&gt;\Desktop\AI-Arena</code></p>
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-num">3</div>
-        <div class="guide-body">
-          <h4>Chrome 加载扩展（关键 4 小步）</h4>
-          <ol class="guide-ol">
-            <li>Chrome 地址栏粘贴：<code>chrome://extensions</code> → 回车</li>
-            <li>打开右上角 <b>"开发者模式"</b> 开关</li>
-            <li>点 <b>"加载已解压的扩展程序"</b> 按钮</li>
-            <li>选刚才解压的 <code>C:\AI-Arena</code> 文件夹 → 看到 "AI Arena" 卡片 ✓</li>
-          </ol>
-          <p class="guide-tip">💡 选目录时，文件夹里应该<b>能直接看到 manifest.json</b> · 看不到说明选错层级</p>
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-num">4</div>
-        <div class="guide-body">
-          <h4>登录至少 3 个 AI 网站</h4>
-          <p>扩展<b>不存账号</b>，所有对话走你浏览器里已登录的 AI 官网。推荐国内三巨头：</p>
-          <div class="guide-ai-grid">
-            <a class="guide-ai" href="https://chat.deepseek.com" target="_blank">🔵 DeepSeek</a>
-            <a class="guide-ai" href="https://www.doubao.com" target="_blank">🥟 豆包</a>
-            <a class="guide-ai" href="https://tongyi.aliyun.com" target="_blank">🐫 通义千问</a>
-            <a class="guide-ai" href="https://kimi.moonshot.cn" target="_blank">🌙 Kimi</a>
-            <a class="guide-ai" href="https://yuanbao.tencent.com" target="_blank">💰 元宝</a>
-          </div>
-          <p class="guide-tip">💡 海外四家（Claude / Gemini / ChatGPT / Grok）需自备代理</p>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="guide-footer">
-      <a class="guide-go-cta" href="#" data-guide-close>✅ 全部搞定 · 开始使用 AI Arena</a>
-      <a class="guide-go-wechat" href="#" data-guide-show-wechat>📱 装好后扫码加作者微信，问问题</a>
+    <!-- 翻页控件 -->
+    <div class="guide-nav">
+      <button class="guide-nav-btn" data-guide-prev>← 上一步</button>
+      <div class="guide-dots" data-guide-dots></div>
+      <button class="guide-nav-btn primary" data-guide-next>下一步 →</button>
     </div>
   </div>
 </div>
@@ -2571,24 +2830,66 @@
     });
   });
 
-  // guide modal（下载后弹出的使用指南）
+  // guide modal · 翻页式安装教程
   const guide = document.querySelector('[data-guide]');
-  const guideClose = document.querySelector('[data-guide-close]');
-  function showGuide() { if (guide) guide.classList.add('show'); }
-  function hideGuide() { if (guide) guide.classList.remove('show'); }
-  guideClose?.addEventListener('click', hideGuide);
-  document.querySelectorAll('[data-guide-close]').forEach(el => el.addEventListener('click', hideGuide));
-  document.querySelector('[data-guide-show-wechat]')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    hideGuide();
-    // 滚到 CTA 章节看微信二维码
-    setTimeout(() => goTo(ORDER.indexOf('cta')), 220);
+  const guideStage = document.querySelector('[data-guide-stage]');
+  const guidePages = guide ? Array.from(guide.querySelectorAll('.guide-page')) : [];
+  const guideDotsEl = document.querySelector('[data-guide-dots]');
+  const guidePrev = document.querySelector('[data-guide-prev]');
+  const guideNext = document.querySelector('[data-guide-next]');
+  let guideCur = 0;
+
+  function showGuide(toFirst = true) {
+    if (!guide) return;
+    if (toFirst) gpGoTo(0);
+    guide.classList.add('show');
+  }
+  function hideGuide() { guide?.classList.remove('show'); }
+  function gpGoTo(i) {
+    if (i < 0 || i >= guidePages.length) return;
+    guideCur = i;
+    guidePages.forEach((p, j) => p.classList.toggle('active', j === i));
+    guideDotsEl?.querySelectorAll('.guide-dot').forEach((d, j) => d.classList.toggle('active', j === i));
+    if (guidePrev) guidePrev.disabled = i === 0;
+    if (guideNext) {
+      const isLast = i === guidePages.length - 1;
+      guideNext.textContent = isLast ? '✅ 完成 · 开始使用' : '下一步 →';
+      guideNext.classList.toggle('done', isLast);
+    }
+    guideStage?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // 生成圆点
+  if (guideDotsEl) {
+    guidePages.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'guide-dot' + (i === 0 ? ' active' : '');
+      b.setAttribute('aria-label', `第 ${i + 1} 步`);
+      b.addEventListener('click', () => gpGoTo(i));
+      guideDotsEl.appendChild(b);
+    });
+  }
+  guidePrev?.addEventListener('click', () => gpGoTo(guideCur - 1));
+  guideNext?.addEventListener('click', () => {
+    if (guideCur === guidePages.length - 1) {
+      hideGuide();
+    } else {
+      gpGoTo(guideCur + 1);
+    }
   });
-  // 点下载按钮 = 浏览器自然下载 + 弹出指南
+  // 初始化按钮状态
+  if (guidePages.length) gpGoTo(0);
+
+  document.querySelectorAll('[data-guide-close]').forEach(el => el.addEventListener('click', hideGuide));
+  // 下载按钮：让浏览器原生下载 + 0.3s 后弹模态
   document.querySelectorAll('[data-trigger-guide]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // 不 preventDefault — 让浏览器走原生下载流程
-      setTimeout(showGuide, 280);
+    btn.addEventListener('click', () => setTimeout(showGuide, 280));
+  });
+  // CTA "📖 安装教程" 按钮：直接弹模态（不下载）
+  document.querySelectorAll('[data-show-guide]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showGuide();
     });
   });
   // 复制路径按钮
