@@ -10,9 +10,9 @@
 
 <br>
 
-[![version](https://img.shields.io/badge/version-v5.0.2--beta-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
+[![version](https://img.shields.io/badge/version-v5.0.1--beta-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
 
-### [🚀 在线推广页（强烈推荐先看）](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/) &nbsp;·&nbsp; [⬇️ 一键下载安装包](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.2.zip)
+### [🚀 在线推广页（强烈推荐先看）](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/) &nbsp;·&nbsp; [⬇️ 一键下载安装包](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.1.zip)
 
 <br>
 
@@ -167,7 +167,7 @@ HTML / 文本双模式
 
 ### ⬇️ 一键下载（最快）
 
-[![下载安装包](https://img.shields.io/badge/⬇%20点这里直接下载%20ai--arena--extension--v5.0.2.zip%20·%202.1MB-0a84ff?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.2.zip)
+[![下载安装包](https://img.shields.io/badge/⬇%20点这里直接下载%20ai--arena--extension--v5.0.1.zip%20·%202.1MB-0a84ff?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.1.zip)
 
 </div>
 
