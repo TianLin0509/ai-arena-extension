@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Arena",
-  "version": "5.2.15",
-  "version_name": "5.2.15-sendbutton-aria-fallback",
+  "version": "5.2.16",
+  "version_name": "5.2.16-extract-safe-decoration-fix",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https:;"
   },

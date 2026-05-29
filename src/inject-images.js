@@ -256,10 +256,10 @@ async function postProcessBlobUrls(text) {
   return out;
 }
 
-function _doExtractWithFences(clone) {
-  // 公共抽取逻辑（被 extractTextWithFences 异步/同步版复用）
-  // v4.3.10: 先移除 UI 噪声容器（工具栏、推荐卡片、安装按钮等），再抽文本
-  const NOISE_SEL = [
+// v5.2.16: NOISE_SEL 提到模块级 — extractTextSafe 的 plain 损坏基准也要用它清装饰
+//   （否则 fenced 清掉装饰后变短，被 0.6 阈值误判为 cloneNode 吞内容 → 回退裸 textContent
+//    把刚清掉的装饰又带回来。详见 extractTextSafe 注释）
+const ARENA_NOISE_SEL = [
     'button',
     '[role="button"]',
     '[class*="action-bar"]',
@@ -290,7 +290,12 @@ function _doExtractWithFences(clone) {
     '[class*="prompt-card"]',
     '[class*="discover"]',
   ].join(",");
-  try { clone.querySelectorAll(NOISE_SEL).forEach(el => el.remove()); } catch {}
+
+function _doExtractWithFences(clone) {
+  // 公共抽取逻辑（被 extractTextWithFences 异步/同步版复用）
+  // v4.3.10: 先移除 UI 噪声容器（工具栏、推荐卡片、安装按钮等），再抽文本
+  //   v5.2.16: NOISE_SEL 已提到模块级 ARENA_NOISE_SEL（extractTextSafe 复用）
+  try { clone.querySelectorAll(ARENA_NOISE_SEL).forEach(el => el.remove()); } catch {}
 
   // v4.6.5: KaTeX / MathJax 数学公式去重 + 输出干净 LaTeX 源码
   // ChatGPT / Claude / Gemini 等 AI 网页用 KaTeX 渲染公式，典型 DOM 结构：
@@ -513,17 +518,31 @@ function extractTextWithFences(el) {
 //        立即回退原始 el.textContent。"大幅超越 v1.0 + 任何情况不差于"原则。
 function extractTextSafe(el) {
   if (!el) return "";
-  // textContent 是 DOM 标准，跨场景最稳（背景 tab / 游离 DOM 都可靠）— v1.0 的鲁棒策略
-  const plain = (el.textContent || "").trim();
   // 富文本路径（v5.x 增量价值：codeblock / 图片 / 表格 / markdown 结构）
   let fenced = "";
   try {
     fenced = (extractTextWithFences(el) || "").trim();
   } catch (_) {}
-  // 损坏检测：fenced 长度 < plain 60% → 说明 cloneNode 路径吞了内容，退回 plain
-  // （fenced 含 ```/![...]/| ... | 等装饰字符，理论比 plain 略长一点；< 60% 必有问题）
-  if (fenced && fenced.length >= plain.length * 0.6) return fenced;
-  return plain || fenced;  // plain 也空就用 fenced（极端兜底）
+
+  // v5.2.16: 损坏基准 = "清掉装饰后的 textContent"，而非裸 el.textContent。
+  //   旧逻辑 bug：plain 用裸 textContent（含推荐问题 / banner / 按钮文字），fenced 走
+  //   NOISE_SEL 清掉装饰后变短。当装饰占比 > 40% 时 fenced < plain*0.6，被误判为
+  //   "cloneNode 吞内容" → 回退裸 plain → 把刚清掉的装饰全带回来（打脸 v5.2.14 清理）。
+  //   修复：plain 基准也清装饰，使 fenced vs plain 的差异只剩 innerText-vs-textContent
+  //   的可靠性问题（这才是损坏检测真正要判断的）。
+  let plainClean = "";
+  try {
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll(ARENA_NOISE_SEL).forEach(n => n.remove());
+    plainClean = (clone.textContent || "").trim();
+  } catch (_) {}
+  // 终极兜底：clone 失败时用裸 textContent（v1.0 鲁棒策略，跨场景最稳）
+  const plainRaw = (el.textContent || "").trim();
+
+  // fenced 比 plainClean 短太多（< 60%）= cloneNode 后 innerText 吞内容 → 用 plainClean
+  // 两者都已清装饰，差异纯粹来自 innerText（游离 DOM 不稳）vs textContent（稳）
+  if (fenced && fenced.length >= plainClean.length * 0.6) return fenced;
+  return plainClean || fenced || plainRaw;  // 逐级兜底，永不返回空（除非真没内容）
 }
 
 // v4.5.4 F1: 共享给各 content-*.js 的 heuristic 前置检查

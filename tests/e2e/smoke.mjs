@@ -67,7 +67,7 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.2.15-sendbutton-aria-fallback", manifest.version_name === "5.2.15-sendbutton-aria-fallback", `actual: ${manifest.version_name}`);
+  check("manifest version_name = 5.2.16-extract-safe-decoration-fix", manifest.version_name === "5.2.16-extract-safe-decoration-fix", `actual: ${manifest.version_name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
   const sidepanelPage = await context.newPage();
@@ -75,10 +75,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.2.15-sendbutton-aria-fallback", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.2.16-extract-safe-decoration-fix", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.2.15-sendbutton-aria-fallback"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.2.16-extract-safe-decoration-fix"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -96,7 +96,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  check("popup chat-version = v5.2.15-sendbutton-aria-fallback", popupVersion === "v5.2.15-sendbutton-aria-fallback", `actual: "${popupVersion}"`);
+  check("popup chat-version = v5.2.16-extract-safe-decoration-fix", popupVersion === "v5.2.16-extract-safe-decoration-fix", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
   const assetsOk = await popupPage.evaluate(async (extId) => {
@@ -2652,12 +2652,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.15-sendbutton-aria-fallback", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.15-sendbutton-aria-fallback", "v5.2.15-sendbutton-aria-fallback"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.2.16-extract-safe-decoration-fix", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.2.16-extract-safe-decoration-fix", "v5.2.16-extract-safe-decoration-fix"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.15-sendbutton-aria-fallback + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.2.16-extract-safe-decoration-fix + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.2.15-sendbutton-aria-fallback" &&
+    v52ApiRuntime.curVer === "5.2.16-extract-safe-decoration-fix" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2749,9 +2749,24 @@ try {
   check("v5.2.12: inject-images.js 加 extractTextSafe 双路提取函数",
     /function extractTextSafe/.test(injSrc) && /el\.textContent/.test(injSrc),
     "inject-images.js 缺 extractTextSafe");
-  check("v5.2.12: extractTextSafe 含 fenced 损坏回退（< plain * 0.6 阈值）",
-    /fenced\.length\s*>=\s*plain\.length\s*\*\s*0\.6/.test(injSrc),
+  check("v5.2.12/16: extractTextSafe 含 fenced 损坏回退（< plainClean * 0.6 阈值）",
+    /fenced\.length\s*>=\s*plainClean\.length\s*\*\s*0\.6/.test(injSrc),
     "extractTextSafe 缺 0.6 阈值损坏检测");
+
+  // ── v5.2.16: NOISE_SEL 提模块级 + extractTextSafe plainClean 也清装饰（修损坏检测歧义）──
+  check("v5.2.16: ARENA_NOISE_SEL 提到模块级常量",
+    /const ARENA_NOISE_SEL\s*=\s*\[/.test(injSrc),
+    "ARENA_NOISE_SEL 未提到模块级");
+  check("v5.2.16: extractTextSafe plainClean 基准也清装饰（cloneNode + ARENA_NOISE_SEL）",
+    /plainClean[\s\S]*?clone\.querySelectorAll\(ARENA_NOISE_SEL\)/.test(injSrc),
+    "extractTextSafe plainClean 未清装饰 — 损坏检测会把装饰带回来");
+  check("v5.2.16: extractTextSafe 保留 plainRaw 终极兜底（= v1/v2 textContent 策略）",
+    /plainRaw\s*=\s*\(el\.textContent/.test(injSrc) &&
+    /plainClean\s*\|\|\s*fenced\s*\|\|\s*plainRaw/.test(injSrc),
+    "extractTextSafe 缺 plainRaw 终极兜底（v1/v2 鲁棒性保底）");
+  check("v5.2.16: _doExtractWithFences 不再有局部 NOISE_SEL 定义（避免与模块级重复）",
+    !/function _doExtractWithFences[\s\S]*?const NOISE_SEL\s*=\s*\[/.test(injSrc),
+    "_doExtractWithFences 仍有局部 NOISE_SEL 残留");
   // 9 平台 _extractEl 全部走 extractTextSafe 优先
   const platforms2 = ["chatgpt", "claude", "deepseek", "doubao", "gemini", "grok", "kimi", "qwen", "yuanbao"];
   for (const p of platforms2) {
