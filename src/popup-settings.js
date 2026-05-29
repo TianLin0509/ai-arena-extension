@@ -15,7 +15,8 @@
   ];
   const THEME_KEY = "uiTheme";
 
-  let currentTheme = "C";
+  // v5.2.25: 新用户默认主题改为 A 深海指挥（用户已设置过 → storage 覆盖此默认，保留选择）
+  let currentTheme = "A";
 
   function render() {
     const root = document.getElementById("rp-panel-settings");

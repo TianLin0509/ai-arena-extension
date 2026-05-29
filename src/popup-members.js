@@ -164,7 +164,7 @@
               <div class="hero-slot-name">${escapeHtml(meta.name)}</div>
               <div class="hero-slot-status"><span class="rp-status-dot ${status}"></span></div>
               <span class="hero-slot-check">✓</span>
-              <button class="hero-slot-more" data-pid="${escapeHtml(p.id)}" title="操作">⋯</button>
+              <button class="hero-slot-remove" data-pid="${escapeHtml(p.id)}" title="移除">×</button>
               ${sparks}
             </div>
             <!-- v4.8.41 + v4.8.42 + v4.8.43: 卡片下方 3 快捷按钮 icon-only，浏览器原生 title 显示文本 -->
@@ -202,11 +202,11 @@
     root.querySelectorAll(".rp-add-btn").forEach(b => {
       b.addEventListener("click", () => addParticipant(b.dataset.service));
     });
-    // v4.8.0: 卡槽里的更多操作按钮 (.hero-slot-more 取代 .rp-more)
-    root.querySelectorAll(".hero-slot-more").forEach(el => {
+    // v5.2.25: 右上角 × 直接移除（替代 v4.8.0 三点菜单——重发/重新提取已在下方 hqa-btn）
+    root.querySelectorAll(".hero-slot-remove").forEach(el => {
       el.addEventListener("click", (e) => {
         e.stopPropagation();
-        openActionMenu(e, el.dataset.pid);
+        removeParticipant(el.dataset.pid);
       });
     });
     // v4.8.41: 卡片下方快捷按钮（重发/提取/跳过）
@@ -284,36 +284,7 @@
     chrome.runtime.sendMessage({ type: "chatSkipParticipant", participantId: service }, () => {});
   }
 
-  function openActionMenu(ev, pid) {
-    ev.stopPropagation();
-    closeActionMenu();
-    const menu = document.createElement("div");
-    menu.className = "rp-action-menu";
-    menu.innerHTML = `
-      <div class="ai" data-act="resend">🔄 重发</div>
-      <div class="ai" data-act="reextract">📥 重新提取</div>
-      <div class="ai" data-act="remove">🗑 移除</div>
-    `;
-    document.body.appendChild(menu);
-    const rect = ev.target.getBoundingClientRect();
-    menu.style.top = (rect.bottom + 4) + "px";
-    const leftCandidate = rect.right - 130;
-    menu.style.left = Math.max(8, leftCandidate) + "px";
-    menu.querySelectorAll(".ai").forEach(item => {
-      item.addEventListener("click", () => {
-        const act = item.dataset.act;
-        closeActionMenu();
-        if (act === "resend") retryInject(pid);
-        else if (act === "reextract") reextractOne(pid);
-        else if (act === "remove") removeParticipant(pid);
-      });
-    });
-    setTimeout(() => document.addEventListener("click", closeActionMenu, { once: true }), 0);
-  }
-
-  function closeActionMenu() {
-    document.querySelectorAll(".rp-action-menu").forEach(el => el.remove());
-  }
+  // v5.2.25: 删除 openActionMenu/closeActionMenu — 卡牌右上角 × 直接移除，重发/重新提取已在下方 hqa-btn
 
   document.addEventListener("rp:activated", (e) => {
     if (e.detail?.tab === "members") refresh();

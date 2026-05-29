@@ -2164,14 +2164,7 @@ body { letter-spacing: -0.01em; }
   font-size: 11px; padding: 20px 10px;
   line-height: 1.6;
 }
-.rp-action-menu {
-  position: absolute; background: #1d1d1f; color: #fff;
-  border-radius: 6px; padding: 4px 0; font-size: 11px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  z-index: 1000; min-width: 130px;
-}
-.rp-action-menu .ai { padding: 6px 12px; cursor: pointer; }
-.rp-action-menu .ai:hover { background: rgba(255,255,255,0.1); }
+/* v5.2.25: .rp-action-menu 已删（三点菜单移除，右上 × 直接 removeParticipant） */
 
 /* ────── v4.3.0 精致化：成员卡片 + 添加按钮 logo + 跳过气泡 + 折叠目录 + danger 按钮 ────── */
 
@@ -3299,23 +3292,25 @@ body { letter-spacing: -0.01em; }
   z-index: 4;
   box-shadow: 0 1px 3px rgba(94,234,212,0.5);
 }
-.hero-slot-more {
+/* v5.2.25: 右上角 × 移除按钮（替代 v4.8.0 的左上 ⋯ 三点菜单） */
+.hero-slot-remove {
   position: absolute;
-  top: 4px; left: 4px;
+  top: 4px; right: 4px;
   width: 18px; height: 18px;
   border: none;
   background: rgba(0,0,0,0.3);
   color: rgba(255,255,255,0.7);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1;
   display: flex; align-items: center; justify-content: center;
   z-index: 4;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
 }
-.hero-slot:hover .hero-slot-more { opacity: 1; }
-.hero-slot-more:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.hero-slot:hover .hero-slot-remove { opacity: 1; }
+.hero-slot-remove:hover { background: rgba(255,68,68,0.85); color: #fff; }
 
 .hero-slot-plus {
   font-size: 26px;
