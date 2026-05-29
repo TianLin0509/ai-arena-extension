@@ -32,7 +32,15 @@ const ChatBus = (() => {
       console.log("[chat-bus] v4.8.57 sanity: discard polluted popupBounds height=", data[STORAGE_KEYS.bounds].height);
       await chrome.storage.local.remove(STORAGE_KEYS.bounds).catch(() => {});
     }
-    if (data[STORAGE_KEYS.miniBounds]) popupMiniBounds = data[STORAGE_KEYS.miniBounds];
+    // v5.0.5: miniBounds 加 sanity check 对称 popupBounds — height >= 600 视为被 full 模式
+    //   污染（mini 默认 200，用户拉到 600+ 已不合理）→ 丢弃，下次走 defaultMiniBounds。
+    //   修"折叠到顶但窗口大小不变"：miniBounds 存了大值导致折叠时窗口不缩小。
+    if (data[STORAGE_KEYS.miniBounds] && data[STORAGE_KEYS.miniBounds].height < 600) {
+      popupMiniBounds = data[STORAGE_KEYS.miniBounds];
+    } else if (data[STORAGE_KEYS.miniBounds]) {
+      console.log("[chat-bus] v5.0.5 sanity: discard polluted popupMiniBounds height=", data[STORAGE_KEYS.miniBounds].height);
+      await chrome.storage.local.remove(STORAGE_KEYS.miniBounds).catch(() => {});
+    }
     if (data[STORAGE_KEYS.mode] === "mini" || data[STORAGE_KEYS.mode] === "full") {
       popupMode = data[STORAGE_KEYS.mode];
     }
@@ -162,8 +170,13 @@ const ChatBus = (() => {
         target = popupBounds || await defaultBounds();
       }
       try {
+        // v5.0.5: 分两步 update — chrome 把 state+size 合一时，maximized→normal 异步
+        //   过渡期内 size 可能被吞，导致窗口"切到 mini 模式但物理尺寸不变"。
+        //   先 state 改 normal 等 80ms，再 update bounds，保证 size 真生效。
+        await chrome.windows.update(popupWindowId, { state: "normal" });
+        await new Promise(r => setTimeout(r, 80));
         await chrome.windows.update(popupWindowId, {
-          state: "normal", focused: true,
+          focused: true,
           left: target.left, top: target.top,
           width: target.width, height: target.height,
         });
