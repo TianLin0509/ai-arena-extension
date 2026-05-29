@@ -96,6 +96,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       handleInjectImages(msg.images).then(sendResponse).catch(e => sendResponse({ status: "error", error: e.message }));
       return true;
     }
+    // v5.0.3: chat-bus 检测到 prompt-echo（polling 提取到的"回答"就是用户问题本身 → Claude 网页没真发送）
+    //   时，调此 action 在 Claude 网页补一次发送。不重新 inject 文本（textbox 里已有 prompt），
+    //   只找 send button click，找不到/disabled 时 fallback Enter。
+    if (msg.action === "resubmit") {
+      (async () => {
+        for (let i = 0; i < 15; i++) {
+          const btn = findSendButton();
+          if (btn && !btn.disabled && btn.getAttribute("aria-disabled") !== "true") {
+            btn.click();
+            sendResponse({ ok: true, via: "button" });
+            return;
+          }
+          await sleep(200);
+        }
+        const el = queryBySelectors("input");
+        if (el) {
+          el.focus();
+          el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+          el.dispatchEvent(new KeyboardEvent("keypress", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+          el.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", code: "Enter", keyCode: 13, which: 13, bubbles: true }));
+          sendResponse({ ok: true, via: "enter" });
+          return;
+        }
+        sendResponse({ ok: false, error: "no send button / no input" });
+      })();
+      return true;
+    }
     if (msg.action === "checkCompletion") {
       const text = getLastResponseText();
       const isStreaming = _detectStreaming();

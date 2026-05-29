@@ -67,8 +67,8 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.0.2", manifest.version_name === "5.0.2", `actual: ${manifest.version_name}`);
-  // v5.2.19+: 正式改名 AI圆桌派（v5.0.2 特别Beta版 仍保持）
+  check("manifest version_name = 5.0.3", manifest.version_name === "5.0.3", `actual: ${manifest.version_name}`);
+  // v5.2.19+: 正式改名 AI圆桌派（v5.0.3 特别Beta版 仍保持）
   check("v5.2.19+: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
 
   // 3) 打开 sidepanel.html（作为普通 tab），验证 DOM
@@ -77,10 +77,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.0.2", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === "v5.0.3", `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.0.2"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes("v5.0.3"), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -98,7 +98,7 @@ try {
   await popupPage.waitForLoadState("domcontentloaded");
 
   const popupVersion = await popupPage.locator(".chat-version").textContent();
-  // v5.0.2: popup chat-version 改为对外文案"特别Beta版"，不再 mirror manifest 版本号
+  // v5.0.3: popup chat-version 改为对外文案"特别Beta版"，不再 mirror manifest 版本号
   check("popup chat-version = 特别Beta版", popupVersion === "特别Beta版", `actual: "${popupVersion}"`);
 
   // 图标资产验证（v4.0.11）
@@ -2655,12 +2655,12 @@ try {
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.0.2", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.0.2", "v5.0.2"),
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.0.3", "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.0.3", "v5.0.3"),
   }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.0.2 + hasNewer 比对逻辑正确",
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.0.3 + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.0.2" &&
+    v52ApiRuntime.curVer === "5.0.3" &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
