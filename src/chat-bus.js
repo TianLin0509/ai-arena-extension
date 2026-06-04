@@ -333,10 +333,29 @@ const ChatBus = (() => {
     return `m${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   }
 
+  // v5.0.8 perf: pushLog 节流写盘 — 单轮辩论 6+ 次 pushLog（1 user + 3 ai final +
+  //   watcher 追加 N 次），每次都把 100 条 chatLog 整数组序列化。500ms 窗口合并：
+  //   chatLog 内存先 push（popup 实时刷新不受影响），storage 写入合并到尾部一次。
+  //   onSuspend 兜底 flush 防 SW 30s idle 回收丢未刷数据。
+  let _logFlushTimer = null;
+  let _logFlushPending = false;
+  function _flushLogToStorage() {
+    _logFlushPending = false;
+    chrome.storage.local.set({ [STORAGE_KEYS.log]: chatLog }).catch(() => {});
+  }
   function pushLog(entry) {
     chatLog.push(entry);
     while (chatLog.length > MAX_LOG) chatLog.shift();
-    chrome.storage.local.set({ [STORAGE_KEYS.log]: chatLog }).catch(() => {});
+    _logFlushPending = true;
+    if (_logFlushTimer != null) return;
+    _logFlushTimer = setTimeout(() => {
+      _logFlushTimer = null;
+      if (_logFlushPending) _flushLogToStorage();
+    }, 500);
+  }
+  function flushLogSync() {
+    if (_logFlushTimer != null) { clearTimeout(_logFlushTimer); _logFlushTimer = null; }
+    if (_logFlushPending) _flushLogToStorage();
   }
 
   // v4.8.36: 用户期望的 service 列表 → 实际可用列表 + 丢失列表
@@ -691,18 +710,26 @@ const ChatBus = (() => {
           catch (e) { console.warn("[chat-bus] startWatch fail:", e?.message); }
         }
       } else {
+        // v5.0.8 perf: 文本与上次完全一致时跳过 sendToPopup（流式 90% tick 文本未增长，
+        //   popup updateAIBubble + renderMarkdown 整段重渲是主线程大头）。
+        //   sameCount 已在 stableKey 分支累加，这里 fallthrough 到广播：仅当文本真变化才推。
+        const textChanged = text !== state.lastText;
         state.lastStableKey = stableKey;
         state.lastText = text;
         state.sameCount = 0;
-        sendToPopup({
-          type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
-          participantId: service, text, isDone: false,
-        });
+        if (textChanged) {
+          sendToPopup({
+            type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
+            participantId: service, text, isDone: false,
+          });
+        }
       }
     } catch (e) {
       // tab 关闭或 content script 失联
       clearInterval(state.intervalId);
-      pollers.delete(service);
+      // v5.0.8 perf: pollers.delete 加身份校验 — 防 removeParticipant 后同 service 立即
+      //   re-add 时新 poller 已占用 service slot，旧 catch 误删新 poller 让新 AI 气泡不更新
+      if (pollers.get(service) === state) pollers.delete(service);
       releaseCDPFor(state, tabId);
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
@@ -726,7 +753,9 @@ const ChatBus = (() => {
     }
     pollers.clear();
     // v4.6.9 F19: 一并清 watchers 防失效 tabId 调用
+    // v5.0.8: watcher 改用 setTimeout 链式（state.timerId），兼容老 intervalId 字段双清
     for (const [, state] of watchers) {
+      try { clearTimeout(state.timerId); } catch (_) {}
       try { clearInterval(state.intervalId); } catch (_) {}
     }
     watchers.clear();
@@ -735,12 +764,18 @@ const ChatBus = (() => {
 
   // v4.6.9 F19: polling 判完成后启动兜底 watcher
   // 单 slot 限制：启动新 watch 时清掉旧 service 的 watcher 防累积
+  // v5.0.8 perf: setInterval → setTimeout 链式，文本稳定 30s 后 tick 间隔 3s→8s
+  //   减少长时间无追加场景的 SW 唤醒频率（旧版 watcher 跑满 600s = 200 次空 tick）
+  //   原 WATCH_INTERVAL_MS = 3000 仍是初始/有追加时的 tick 间隔
+  const WATCH_INTERVAL_IDLE_MS = 8000;
+  const WATCH_STABLE_DOWNGRADE_MS = 30000;
   function startWatch(participant, msgId, finalText) {
     const { service, tabId } = participant;
     // 单 slot：清掉所有现有 watchers
     if (watchers.size >= WATCH_MAX_SLOTS) {
       for (const [, st] of watchers) {
-        try { clearInterval(st.intervalId); } catch (_) {}
+        try { clearTimeout(st.timerId); } catch (_) {}
+        try { clearInterval(st.intervalId); } catch (_) {}  // 兼容老字段
       }
       watchers.clear();
     }
@@ -748,20 +783,26 @@ const ChatBus = (() => {
       msgId,
       lastText: finalText || "",
       startTs: Date.now(),
+      lastChangeTs: Date.now(),
     };
-    state.intervalId = setInterval(async () => {
-      // 60s 总兜底（唯一停止条件 — v4.6.10 去掉了 15s 稳定提前停）
+    const scheduleNext = (delay) => {
+      state.timerId = setTimeout(tickFn, delay);
+    };
+    const tickFn = async () => {
+      // 600s 总兜底（v4.8.40）
       if (Date.now() - state.startTs > WATCH_MAX_DURATION_MS) {
-        clearInterval(state.intervalId);
-        watchers.delete(service);
+        if (watchers.get(service) === state) watchers.delete(service);
         return;
       }
+      // v5.0.8: 身份校验 — 如果本 state 已被 startWatch 替换，停止本 tick 链
+      if (watchers.get(service) !== state) return;
       try {
         const r = await chrome.tabs.sendMessage(tabId, { action: "readResponse" });
         const text = (r?.text || "").trim();
         // 文本比上次长且非残留 → 追加更新（用同 msgId 让 popup updateAIBubble 直接覆盖气泡）
         if (text && text.length > state.lastText.length && text !== state.lastText) {
           state.lastText = text;
+          state.lastChangeTs = Date.now();
           // v4.8.40 核心修复：watcher 必须写 p.response，否则下一轮辩论 handleDebateRound
           //   读 p.response 还是 polling 完成时的初始文本（ChatGPT Pro 思考片段），
           //   导致辩论用旧的思考做上下文。setParticipantResponse 同时更新
@@ -779,12 +820,15 @@ const ChatBus = (() => {
           });
         }
         // v4.6.10: 文本不变也不停 watcher，继续跑满总兜底时长覆盖晚到追加
+        // v5.0.8: 文本稳定 30s+ 后 tick 间隔 3s→8s
+        const stableMs = Date.now() - state.lastChangeTs;
+        scheduleNext(stableMs > WATCH_STABLE_DOWNGRADE_MS ? WATCH_INTERVAL_IDLE_MS : WATCH_INTERVAL_MS);
       } catch (_) {
         // tab 失效 / content script 失联 → 停 watcher
-        clearInterval(state.intervalId);
-        watchers.delete(service);
+        if (watchers.get(service) === state) watchers.delete(service);
       }
-    }, WATCH_INTERVAL_MS);
+    };
+    scheduleNext(WATCH_INTERVAL_MS);
     watchers.set(service, state);
   }
   async function jumpToOrigin(participantId) {
@@ -945,7 +989,15 @@ const ChatBus = (() => {
     miniMenuExpand,  // v4.8.28
     getActivePollingServices,  // v4.8.38
     // setMiniSkippedServices 在 v4.8.31 删除（mini 点击改 removeParticipant）
+    _flushLogSync: flushLogSync,  // v5.0.8: onSuspend 兜底
   };
 })();
 
 self.ChatBus = ChatBus;
+
+// v5.0.8 perf: SW 30s idle 回收前 flush chatLog 节流写盘，防最后几条聊天记录丢失
+try {
+  chrome.runtime.onSuspend.addListener(() => {
+    try { ChatBus._flushLogSync?.(); } catch (_) {}
+  });
+} catch (_) {}

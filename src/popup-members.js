@@ -226,10 +226,14 @@
     // v4.8.1: 800ms 后移除 .just-added，避免下次 render 重启动画（用户 hover 仍能触发短暂流光）
     // animation 时长 0.45s bounce + 2*2.6s shimmer = 5.65s 但 CSS animation 只跑 1 次后保持终态，
     // 这里只需保证 class 在下次 render 前能消失即可
-    setTimeout(() => {
+    // v5.0.8 perf: clearTimeout 旧句柄防多次 render 累积 pending setTimeout
+    if (_justAddedTimer) clearTimeout(_justAddedTimer);
+    _justAddedTimer = setTimeout(() => {
+      _justAddedTimer = null;
       root.querySelectorAll(".hero-slot.just-added").forEach(el => el.classList.remove("just-added"));
     }, 6000);
   }
+  let _justAddedTimer = null;
 
   async function refresh() {
     try {

@@ -4,6 +4,10 @@
 //   content-{service}.js 内的 `typeof postProcessBlobUrls === "function"` 会失败 → 功能断
 //   重复注入只是重复创建 function（function declaration 允许重声明），开销可忽略
 //   防 listener 重复注册的责任在使用者：函数体内若 addEventListener，应自带 guard 标志
+// v5.0.9 contract（血泪补充，2026-06-01 inject-images const 重复声明翻车）：
+//   ⚠ 顶层禁止 `const` / `let` / `class` 声明 — 重复注入会抛 SyntaxError 让整个 content script 死掉。
+//   需要模块级变量时挂 `globalThis.__arenaXxx__ = globalThis.__arenaXxx__ || init()` + `var` 短路。
+//   参考 `_extractCache` 模式（line ~558）。
 
 // 轮询等待图片上传完成（检测预览缩略图出现 & 上传进度消失）
 function waitForImageUpload(expectedCount, timeoutMs = 15000) {
@@ -547,8 +551,28 @@ function extractTextWithFences(el) {
 //   背景 tab / 深嵌套 / Tailwind 容器经常返回空 → 千问/元宝/Kimi 提取失败的真根因。
 //   策略：默认富文本 fenced，但如果 fenced 比 textContent 短太多（说明 cloneNode 吞内容）
 //        立即回退原始 el.textContent。"大幅超越 v1.0 + 任何情况不差于"原则。
+// v5.0.8 perf: 廉价指纹缓存 — extractTextSafe 在 polling 热路径每 1.5s × 9 AI 触发，
+//   原始走 cloneNode(true) + 47 处 querySelectorAll（KaTeX/MathJax/img/code/strong 等）
+//   + extractTextWithFences 整段重提，万字 DOM 单次 50-200ms。流式时 90% tick 文本未变化，
+//   先用 textContent.length + 头部 50 字 + 尾部 50 字算指纹比对，命中就复用上次结果。
+//   WeakMap 按 DOM 节点弱引用，节点被 GC 时自动清，零内存泄漏。
+// v5.0.8 bugfix: inject-images.js 故意不包 IIFE 且会被重复注入（见文件顶部 v4.8.60 注释），
+//   const/let 重复声明会抛 SyntaxError → 整个 content script 加载失败。
+//   用 globalThis 挂载 + var（允许重声明）+ || 短路保证多次注入幂等。
+if (!globalThis.__arenaExtractCache__) globalThis.__arenaExtractCache__ = new WeakMap();
+var _extractCache = globalThis.__arenaExtractCache__; // el -> { fpLen, fpHead, fpTail, result }
+
 function extractTextSafe(el) {
   if (!el) return "";
+  // v5.0.8 perf 短路 — 同 el 节点指纹未变直接复用上次结果，跳过 cloneNode + 47 querySelectorAll
+  const rawText = el.textContent || "";
+  const fpLen = rawText.length;
+  const fpHead = rawText.slice(0, 50);
+  const fpTail = rawText.slice(-50);
+  const cached = _extractCache.get(el);
+  if (cached && cached.fpLen === fpLen && cached.fpHead === fpHead && cached.fpTail === fpTail) {
+    return cached.result;
+  }
   // 富文本路径（v5.x 增量价值：codeblock / 图片 / 表格 / markdown 结构）
   let fenced = "";
   try {
@@ -568,7 +592,7 @@ function extractTextSafe(el) {
     plainClean = (clone.textContent || "").trim();
   } catch (_) {}
   // 终极兜底：clone 失败时用裸 textContent（v1.0 鲁棒策略，跨场景最稳）
-  const plainRaw = (el.textContent || "").trim();
+  const plainRaw = rawText.trim();
 
   // fenced 比 plainClean 短太多 = cloneNode 后 innerText 吞内容 → 用 plainClean
   // 两者都已清装饰，差异纯粹来自 innerText（游离 DOM 不稳）vs textContent（稳）
@@ -578,8 +602,12 @@ function extractTextSafe(el) {
   //   空白通常比 innerText 长，fenced/plainClean 正常比值约 0.7-0.95，阈值不能太高（如 0.9
   //   会因空白膨胀误判正常 fenced 损坏 → 回退丢失富文本结构）。0.7 = 丢 30% 以上才回退，
   //   兼顾"保留富文本结构"与"不差于 v1/v2 全文"。
-  if (fenced && fenced.length >= plainClean.length * 0.7) return fenced;
-  return plainClean || fenced || plainRaw;  // 逐级兜底，永不返回空（除非真没内容）
+  const result = (fenced && fenced.length >= plainClean.length * 0.7)
+    ? fenced
+    : (plainClean || fenced || plainRaw);
+  // 缓存命中下次相同指纹 tick — 注意 el 引用稳定时（流式同一 latest container）才有意义
+  try { _extractCache.set(el, { fpLen, fpHead, fpTail, result }); } catch (_) {}
+  return result;
 }
 
 // v4.5.4 F1: 共享给各 content-*.js 的 heuristic 前置检查

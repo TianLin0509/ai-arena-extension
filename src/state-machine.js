@@ -40,7 +40,34 @@ const StateMachine = {
     if (data.sm_pendingSummary) this.pendingSummary = data.sm_pendingSummary;
   },
 
+  // v5.0.8 perf: save() 改为节流写盘 — 单轮辩论原本触发 20+ 次 setLastSent/setParticipantResponse
+  //   各嵌一次 save，每次都把 8 个字段（含大对象 debateSession.rounds / participants）整包序列化
+  //   写 chrome.storage.local。100ms 窗口合并：高频字段连续改只在尾部写一次，单轮 IO 降到 ~2 次。
+  //   关键路径（hardReset / resetSession / setPendingSummary）保留 saveSync 同步写盘兜底。
+  //   chrome.runtime.onSuspend 在 SW 30s idle 回收前 flush pending save，防丢状态。
+  _saveTimer: null,
+  _savePending: false,
   save() {
+    this._savePending = true;
+    if (this._saveTimer != null) return;
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = null;
+      if (this._savePending) {
+        this._savePending = false;
+        this._writeToStorage();
+      }
+    }, 100);
+  },
+  saveSync() {
+    // 关键路径用：立即写盘，跳过节流窗口（hardReset/pendingSummary 等）
+    if (this._saveTimer != null) {
+      clearTimeout(this._saveTimer);
+      this._saveTimer = null;
+    }
+    this._savePending = false;
+    this._writeToStorage();
+  },
+  _writeToStorage() {
     chrome.storage.local.set({
       sm_flowState: this.flowState,
       sm_participants: this.participants,
@@ -133,7 +160,7 @@ const StateMachine = {
       p.response = null;
       p.responsePreview = null;
     });
-    this.save();
+    this.saveSync();  // v5.0.8: 与 hardReset 对齐 — 重置状态属关键路径，必须立即落盘
   },
 
   hardReset() {
@@ -147,7 +174,7 @@ const StateMachine = {
     // v4.6.6 F13: 清 pendingSummary — 防重置后 nextId 重排 → 新 p3 完成回答
     // 被误判为旧 pendingSummary.judgeId="p3" 触发 → 普通气泡被当裁判总结渲染 HTML 报告
     this.pendingSummary = null;
-    this.save();
+    this.saveSync();  // v5.0.8: 关键路径同步写盘
   },
 
   setLastSent(pid, text) {
@@ -157,13 +184,25 @@ const StateMachine = {
 
   // v4.5.5 F6: 显式 setter 保证 pendingSummary 改动一定 save，
   // SW 重启时才能从 storage 恢复
+  // v5.0.8: 用 saveSync — pendingSummary 是 finalize summary 的"信号位"，丢失即裁判总结报告永不出
   setPendingSummary(payload) {
     this.pendingSummary = payload || null;
-    this.save();
+    this.saveSync();
   },
 
   // ── 状态广播到 sidepanel ──
+  // v5.0.8 perf: _broadcastStateUpdate 加节流（200ms 合并） — 连续 setParticipantResponse
+  //   多次调用只 broadcast 一次。完整 response 仍然广播（popup-roster 编辑器/pill 依赖，
+  //   v4.8.45 明确要求），仅消除高频抖动。
+  _broadcastTimer: null,
   _broadcastStateUpdate() {
+    if (this._broadcastTimer != null) return;
+    this._broadcastTimer = setTimeout(() => {
+      this._broadcastTimer = null;
+      this._doBroadcast();
+    }, 200);
+  },
+  _doBroadcast() {
     chrome.runtime.sendMessage({
       type: "stateUpdate",
       flowState: this.flowState,
@@ -197,3 +236,16 @@ const StateMachine = {
 
 // v4.8.43: 暴露到 self 便于 SW console / 单测访问（不影响生产，importScripts 已让全局可见）
 try { self.StateMachine = StateMachine; } catch (_) {}
+
+// v5.0.8 perf: SW 30s idle 回收前 flush pending save，防 100ms 节流窗口内的状态丢失
+try {
+  chrome.runtime.onSuspend.addListener(() => {
+    try {
+      if (StateMachine._savePending) StateMachine.saveSync();
+      if (StateMachine._broadcastTimer != null) {
+        clearTimeout(StateMachine._broadcastTimer);
+        StateMachine._broadcastTimer = null;
+      }
+    } catch (_) {}
+  });
+} catch (_) {}

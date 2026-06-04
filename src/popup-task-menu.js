@@ -154,6 +154,21 @@
     try { window.ChatLog?.push?.({ ts: Date.now(), text: "重新提取完成，可再次尝试辩论", level: "ok" }); } catch (_) {}
   }
 
+  // v5.0.11: showPartialDebateInject modal "补发缺失"按钮回调 — 对每个 missing AI 调
+  //   retryDebateInjectForParticipant，background 用暂存的辩论 prompt 重 inject + 启 polling
+  async function _resendMissingDebate(missing) {
+    if (!Array.isArray(missing) || !missing.length) return;
+    try { window.ChatLog?.push?.({ ts: Date.now(), text: `补发辩论给 ${missing.length} 个缺失 AI…`, level: "info" }); } catch (_) {}
+    const results = await Promise.allSettled(missing.map(m => new Promise(res => {
+      chrome.runtime.sendMessage(
+        { type: "retryDebateInjectForParticipant", participantId: m.id },
+        resp => res({ name: m.name || m.service, resp })
+      );
+    })));
+    const okCount = results.filter(r => r.status === "fulfilled" && r.value?.resp?.ok).length;
+    try { window.ChatLog?.push?.({ ts: Date.now(), text: `补发完成：${okCount}/${missing.length} 成功`, level: okCount === missing.length ? "ok" : "warn" }); } catch (_) {}
+  }
+
   // v5.2.9 fix: hardReset 时把 task 重置回 ask
   //   bug：用户切到 debate/summary/ppt/baton → 点彻底重置 → 加新 AI → 输入框打字 Ctrl+Enter
   //   handleSend 看 menu.current().task !== "ask" 走 dispatch (debateRound/summary/etc)
@@ -210,6 +225,15 @@
                 } else {
                   res({ ok: false, cancelled: true });
                 }
+                return;
+              }
+              // v5.0.11: partial inject 警告 — 候选 AI 部分 inject 失败被静默丢，弹窗补发
+              if (resp?.partialInject && window.ChatModal?.showPartialDebateInject) {
+                window.ChatModal.showPartialDebateInject(resp, {
+                  onResend: (missing) => _resendMissingDebate(missing),
+                  onSkip: () => {},
+                });
+                res(resp);
                 return;
               }
               if (resp && !resp.ok) {

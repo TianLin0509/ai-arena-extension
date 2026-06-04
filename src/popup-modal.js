@@ -175,5 +175,40 @@
     requestAnimationFrame(() => overlay.classList.add("show"));
   }
 
-  window.ChatModal = { show, close, showInsufficientResponses, showSensitiveBlocked };
+  // v5.0.11: 辩论 partial inject 警告专用 modal
+  //   场景：handleDebateRound 候选 N 个 AI，实际 inject 成功 M 个（M < N），缺 N-M 个被静默丢
+  //   ctx: { missing: [{id, name, service, error}], sentCount, totalCount, debateStarted }
+  //   handlers: { onResend(missing), onSkip() }
+  function showPartialDebateInject(ctx, handlers) {
+    const { missing = [], sentCount = 0, totalCount = 0, debateStarted = true } = ctx || {};
+    const missingNames = missing.map(m => m.name || m.service).filter(Boolean).join(" · ") || "未知 AI";
+    const firstErr = missing.find(m => m.error)?.error || "";
+    const errorTip = firstErr ? `失败原因：${firstErr}` : "可能是 tab 失联、注入超时或页面未就绪";
+
+    const title = debateStarted
+      ? "辩论部分发送成功 · 有 AI 漏掉了"
+      : "辩论发送失败 · 有效接收方不足";
+    const message = debateStarted
+      ? `辩论 prompt 已发给 ${sentCount} / ${totalCount} 个 AI，${missing.length} 个 AI 漏掉了。`
+      : `仅 ${sentCount} / ${totalCount} 个 AI 接收成功，不足以开始辩论。`;
+    const primaryLabel = missing.length === 1
+      ? `🔄 补发给 ${missingNames}`
+      : `🔄 补发给 ${missing.length} 个 AI`;
+    const secondaryLabel = debateStarted
+      ? `⏭ 跳过 · 用 ${sentCount} 个 AI 继续`
+      : "⏭ 跳过 · 关闭弹窗";
+
+    show({
+      tone: "warning",
+      icon: "⚠",
+      title,
+      message,
+      tip: `缺失：${missingNames}。${errorTip}`,
+      primary: { label: primaryLabel, onClick: () => handlers?.onResend?.(missing) },
+      secondary: { label: secondaryLabel, onClick: () => handlers?.onSkip?.() },
+      cancel: { label: "关闭" },
+    });
+  }
+
+  window.ChatModal = { show, close, showInsufficientResponses, showSensitiveBlocked, showPartialDebateInject };
 })();

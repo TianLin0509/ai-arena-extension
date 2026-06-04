@@ -110,8 +110,11 @@ const AI_URL_PATTERNS = [
   "https://grok.com/*",
 ];
 // v4.8.21 F32+: cooldown + 失败重试 + onUpdated 兜底
+// v5.0.8 perf: 5s → 30s — 减少 onUpdated/navigation 频繁触发 executeScript IPC 开销
+//   IIFE 顶部已有 __arenaMainWorldPatched guard 保证幂等，cooldown 主要是减少 chrome
+//   API 调用本身的成本。30s 内 navigation 多次完成不重新注入仍然安全。
 const _lastBootstrapInject = new Map();  // tabId -> timestamp
-const BOOTSTRAP_INJECT_COOLDOWN_MS = 5000;
+const BOOTSTRAP_INJECT_COOLDOWN_MS = 30000;
 
 async function injectBootstrapToTab(tabId, url, reason) {
   const last = _lastBootstrapInject.get(tabId);
@@ -145,18 +148,22 @@ async function injectBootstrapToTab(tabId, url, reason) {
 // v4.8.46: AI URL → 业务 content scripts 映射（与 manifest content_scripts 对齐）
 //   reload 扩展后 manifest 不会自动重注入，需要主动执行；ping 失败时也按需重注入
 // v4.8.47: 加 service 字段，用于 globalThis flag 检查避免重复注入
+// v5.0.8 perf: files 头部加 content-shared.js（千问额外加 qwen-noise-filter.js）—
+//   原 fallback 漏注入 content-shared.js 时，content-{ai}.js 调 globalThis.ArenaShared?.xxx
+//   全部走可选链短路返回 undefined → streaming 检测失效 → polling 拖到 9-12s 兜底完成。
+//   content-shared.js 内有 _loaded guard 保证幂等。
 const AI_PATTERN_TO_SCRIPTS = [
-  { re: /^https:\/\/claude\.ai\//, service: "claude", files: ["inject-images.js", "content-claude.js"] },
-  { re: /^https:\/\/gemini\.google\.com\//, service: "gemini", files: ["inject-images.js", "content-gemini.js"] },
-  { re: /^https:\/\/chatgpt\.com\//, service: "chatgpt", files: ["inject-images.js", "content-chatgpt.js"] },
-  { re: /^https:\/\/chat\.deepseek\.com\//, service: "deepseek", files: ["inject-images.js", "content-deepseek.js"] },
-  { re: /^https:\/\/www\.doubao\.com\//, service: "doubao", files: ["inject-images.js", "content-doubao.js"] },
-  { re: /^https:\/\/tongyi\.aliyun\.com\//, service: "qwen", files: ["inject-images.js", "content-qwen.js"] },
-  { re: /^https:\/\/www\.qianwen\.com\//, service: "qwen", files: ["inject-images.js", "content-qwen.js"] },
-  { re: /^https:\/\/kimi\.moonshot\.cn\//, service: "kimi", files: ["inject-images.js", "content-kimi.js"] },
-  { re: /^https:\/\/www\.kimi\.com\//, service: "kimi", files: ["inject-images.js", "content-kimi.js"] },
-  { re: /^https:\/\/yuanbao\.tencent\.com\//, service: "yuanbao", files: ["inject-images.js", "content-yuanbao.js"] },
-  { re: /^https:\/\/grok\.com\//, service: "grok", files: ["inject-images.js", "content-grok.js"] },
+  { re: /^https:\/\/claude\.ai\//, service: "claude", files: ["content-shared.js", "inject-images.js", "content-claude.js"] },
+  { re: /^https:\/\/gemini\.google\.com\//, service: "gemini", files: ["content-shared.js", "inject-images.js", "content-gemini.js"] },
+  { re: /^https:\/\/chatgpt\.com\//, service: "chatgpt", files: ["content-shared.js", "inject-images.js", "content-chatgpt.js"] },
+  { re: /^https:\/\/chat\.deepseek\.com\//, service: "deepseek", files: ["content-shared.js", "inject-images.js", "content-deepseek.js"] },
+  { re: /^https:\/\/www\.doubao\.com\//, service: "doubao", files: ["content-shared.js", "inject-images.js", "content-doubao.js"] },
+  { re: /^https:\/\/tongyi\.aliyun\.com\//, service: "qwen", files: ["content-shared.js", "inject-images.js", "qwen-noise-filter.js", "content-qwen.js"] },
+  { re: /^https:\/\/www\.qianwen\.com\//, service: "qwen", files: ["content-shared.js", "inject-images.js", "qwen-noise-filter.js", "content-qwen.js"] },
+  { re: /^https:\/\/kimi\.moonshot\.cn\//, service: "kimi", files: ["content-shared.js", "inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/www\.kimi\.com\//, service: "kimi", files: ["content-shared.js", "inject-images.js", "content-kimi.js"] },
+  { re: /^https:\/\/yuanbao\.tencent\.com\//, service: "yuanbao", files: ["content-shared.js", "inject-images.js", "content-yuanbao.js"] },
+  { re: /^https:\/\/grok\.com\//, service: "grok", files: ["content-shared.js", "inject-images.js", "content-grok.js"] },
 ];
 
 function getAiContentScriptsForUrl(url) {
@@ -252,26 +259,35 @@ async function injectBootstrapToExistingTabs() {
   // v4.8.30 F38-①: 等 windowMode 真加载完（tab/tiled 影响下面的 CDP 路由）
   try { await _windowModeLoaded; } catch (_) {}
   console.log(`[F32+] scan existing AI tabs (mode=${windowMode})`);
-  let injected = 0, failed = 0, totalMatched = 0;
-  const aiTabIds = [];
-  for (const pattern of AI_URL_PATTERNS) {
-    try {
-      const tabs = await chrome.tabs.query({ url: pattern });
-      totalMatched += tabs.length;
-      for (const tab of tabs) {
-        aiTabIds.push({ id: tab.id, windowId: tab.windowId });
-        const r = await injectBootstrapToTab(tab.id, tab.url, "startup");
-        if (r.ok && !r.skipped) injected++;
-        else if (!r.ok) failed++;
-        // v4.8.46: 顺带重注入业务 content scripts（content-{service}.js + inject-images.js）
-        //   解决：reload 扩展后已存在 AI tab 的 content script 失联，
-        //         chrome.tabs.sendMessage 报 "Could not establish connection. Receiving end does not exist"
-        //   ensureContentScriptInjected 内部先 ping，已 ready 则跳过避免双 listener
-        try { await ensureContentScriptInjected(tab.id, tab.url); } catch (_) {}
-      }
-    } catch (e) {
-      console.warn(`[F32+] query fail pattern=${pattern}:`, e?.message);
+  // v5.0.8 perf: 全部 AI tab 并行 inject —
+  //   原 for-loop 串行 await 每个 tab 至少 100-500ms RTT，9 个 tab 累计 1-5s 卡死 SW 启动。
+  //   各 tab inject 互相独立，无需顺序保证；executeScript 内部 cooldown + IIFE guard 保证幂等。
+  //   tab query 先全部收齐再并行，避免 query 本身串行
+  const queryResults = await Promise.allSettled(
+    AI_URL_PATTERNS.map(p => chrome.tabs.query({ url: p }))
+  );
+  const allTabs = [];
+  for (const r of queryResults) {
+    if (r.status === "fulfilled" && Array.isArray(r.value)) {
+      for (const t of r.value) allTabs.push(t);
+    } else if (r.status === "rejected") {
+      console.warn(`[F32+] query fail:`, r.reason?.message);
     }
+  }
+  const totalMatched = allTabs.length;
+  const aiTabIds = allTabs.map(t => ({ id: t.id, windowId: t.windowId }));
+  // 并行 inject bootstrap + 业务 content scripts
+  const results = await Promise.allSettled(
+    allTabs.map(async (tab) => {
+      const r = await injectBootstrapToTab(tab.id, tab.url, "startup");
+      try { await ensureContentScriptInjected(tab.id, tab.url); } catch (_) {}
+      return r;
+    })
+  );
+  let injected = 0, failed = 0;
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value?.ok && !r.value.skipped) injected++;
+    else if (r.status === "rejected" || !r.value?.ok) failed++;
   }
   console.log(`[F32+] scan DONE matched=${totalMatched} injected=${injected} failed=${failed}`);
 
@@ -423,8 +439,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "sendPromptToService": {
           // v4.9.0.2 fix I1: bubble resend 按钮发送时 msg.text 为空（实际 prompt 在 lastSentByPid），
           // 用 fallback 取出真实 prompt 让守门员扫描，避免被空文本短路绕过
+          // v5.0.10: scanText 取值优先级与 sendPromptToService 内对齐 —
+          //   originalQuestion → lastSentByPid，保证守门员扫描的就是真正要发的 prompt
           let scanText = msg.text || "";
           if (!scanText.trim()) {
+            scanText = (StateMachine.debateSession?.originalQuestion || "").trim();
+          }
+          if (!scanText) {
             const svc = msg.service || "chatgpt";
             const p = (StateMachine.participants || []).find(x => x.service === svc);
             scanText = (p && StateMachine.lastSentByPid?.[p.id]) || "";
@@ -515,6 +536,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           break;
         case "retryInject":
           sendResponse(await retryInjectParticipant(msg.id));
+          break;
+        case "retryDebateInjectForParticipant":
+          // v5.0.11: 弹窗"补发缺失 AI"按钮触发 — 用暂存的辩论 prompt 重新 inject 给指定 AI
+          sendResponse(await retryDebateInjectForParticipant(msg.participantId));
           break;
         case "resetSession":
           StateMachine.resetSession();
@@ -962,16 +987,24 @@ async function sendToOneParticipant(participantId) {
 // v4.8.7 F26: text 缺省时从 StateMachine.lastSentByPid 取完整 prompt
 //   修复辩论/总结场景重发 bug — popup user 气泡显示的是 "⚔️ 第N轮辩论..." 短文本
 //   不是完整 prompt，气泡 🔄 重发取 popup 显示文本会丢完整内容
+// v5.0.10 fix: 气泡 🔄 重发**优先取 originalQuestion**（最新一次用户广播原题），
+//   而非 lastSentByPid（被辩论/总结 prompt 污染）。
+//   用户场景：广播 Q1 → 辩论 3 轮 → 在 R1 气泡点 🔄，期望"用最新提问重答"而不是"重发第 3 轮辩论 prompt"。
+//   originalQuestion 只在 broadcast / handleBroadcast 路径被覆盖，是"用户最近输入框原题"的可靠源。
+//   仅当 originalQuestion 也为空（从未广播过）才 fallback 到 lastSentByPid。
 async function sendPromptToService(service, text) {
   const p = StateMachine.participants.find(x => x.service === service);
   if (!p?.tabId) return { ok: false, error: `未找到已打开的 ${SERVICES[service]?.name || service} 参与者` };
 
-  // v4.8.7 F26: 缺省 text 时 fallback 到 lastSentByPid 取最近发出的完整 prompt
   let prompt = (text || "").trim();
   if (!prompt) {
+    prompt = (StateMachine.debateSession?.originalQuestion || "").trim();
+  }
+  if (!prompt) {
+    // 兜底（从未广播过、PPT 等非常规调用路径）— 仍用 lastSentByPid
     prompt = (StateMachine.lastSentByPid?.[p.id] || "").trim();
   }
-  if (!prompt) return { ok: false, error: "无可重发的 prompt（未找到上次发送内容）" };
+  if (!prompt) return { ok: false, error: "无可重发的 prompt（未找到最新提问也无上次发送内容）" };
 
   // v4.8.5 F25: 立刻推 popup loading 占位（pendingMsgId 复用模式，类似 F20/F21）
   const pendingMsgId = `m${Date.now()}_resend_${p.id}`;
@@ -1186,10 +1219,19 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
   });
 
   const sendResults = {};
+  // v5.0.11: 暂存每个 pid 的辩论 prompt — 用于"补发缺失 AI"按钮（用户场景：3 选其中 1 个
+  //   inject 失败被静默丢，弹窗让用户点补发，background 用这里暂存的 prompt 重 inject）
+  const promptsByPid = {};
   await Promise.all(Object.keys(responses).map(async (id) => {
     const p = StateMachine.getParticipant(id);
-    if (!p?.tabId) return;
+    if (!p?.tabId) {
+      // v5.0.11: tab 失联也记一条 error 进 sendResults，让下方 missingIds 检测能捕获
+      //   原逻辑直接 return → sendResults[id] 缺失 → sentIds 不含它 → 静默丢失（用户感知 bug）
+      sendResults[id] = { site: p?.service || id, status: "error", error: "tab 失联（参与者未打开）" };
+      return;
+    }
     const prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
+    promptsByPid[id] = prompt;  // v5.0.11
     // 记录"刚发给该 p 的 prompt"——sanity check 用
     StateMachine.setLastSent(id, prompt);
     try {
@@ -1225,9 +1267,39 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
 
   StateMachine.save();
   StateMachine.setFlowState(sentIds.length > 0 ? FlowState.AWAITING_RESPONSES : FlowState.IDLE);
+
+  // v5.0.11: 检测 partial inject — 候选 AI 中实际 inject 成功的少于全部
+  //   场景：3 个 AI 都已回答原题（response 都非空），但发起辩论时 1 个 inject 失败/tab 失联
+  //   被静默丢。新增 partialInject 信号让 popup 弹窗，用户选"补发"或"跳过"
+  const candidateIds = Object.keys(responses);
+  const missingIds = candidateIds.filter(id => !sentIds.includes(id));
+  const missingPayload = missingIds.map(id => {
+    const p = StateMachine.getParticipant(id);
+    return {
+      id, name: p?.name || id, service: p?.service || "",
+      error: sendResults[id]?.error || sendResults[id]?.status || "未知原因",
+    };
+  });
+  // 暂存 missing AI 的 prompt（弹窗"补发"按钮会调 retryDebateInjectForParticipant 用这个）
+  if (missingIds.length > 0) {
+    StateMachine._lastPartialDebatePrompts = {};
+    for (const id of missingIds) {
+      if (promptsByPid[id]) StateMachine._lastPartialDebatePrompts[id] = promptsByPid[id];
+    }
+  }
+
   if (sentIds.length < 2) {
     notifyStatus("辩论发送失败：有效接收方不足");
-    return { ok: false, error: "有效接收方不足", roundNum, activeIds: sentIds, results: sendResults };
+    return {
+      ok: false, error: "有效接收方不足",
+      roundNum, activeIds: sentIds, results: sendResults,
+      // v5.0.11: 即使辩论未启动也带 partialInject 让弹窗能提示
+      partialInject: missingIds.length > 0,
+      missing: missingPayload,
+      sentCount: sentIds.length,
+      totalCount: candidateIds.length,
+      debateStarted: false,
+    };
   }
   notifyStatus(`第${roundNum}轮辩论已发送`);
 
@@ -1238,7 +1310,82 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     ChatBus.notifyRoundStart(displayText, services, pendingMsgId);
   } catch (e) { console.warn("[chat-bus] notifyRoundStart failed:", e.message); }
 
-  return { ok: true, roundNum, activeIds: sentIds, results: sendResults };
+  return {
+    ok: true, roundNum, activeIds: sentIds, results: sendResults,
+    // v5.0.11: 辩论已开始但有 AI 漏掉 → popup 弹窗让用户补发
+    partialInject: missingIds.length > 0,
+    missing: missingPayload,
+    sentCount: sentIds.length,
+    totalCount: candidateIds.length,
+    debateStarted: true,
+  };
+}
+
+// v5.0.11: 补发辩论 prompt 给 partial inject 失败的 AI
+//   触发场景：弹窗 showPartialDebateInject 用户点"补发缺失"按钮 → popup 对每个 missing
+//   AI 调本 message。用 StateMachine._lastPartialDebatePrompts 暂存的同一轮辩论 prompt
+//   重新 inject（保证 prompt 与该轮其他 AI 收到的语义一致），并启动 polling 让回答能进 popup。
+async function retryDebateInjectForParticipant(pid) {
+  const p = StateMachine.getParticipant(pid);
+  if (!p?.tabId) return { ok: false, error: "参与者无效或 tab 失联" };
+  const prompt = StateMachine._lastPartialDebatePrompts?.[pid];
+  if (!prompt) return { ok: false, error: "无可补发的辩论 prompt（已过期或已被重置）" };
+
+  const pendingMsgId = `m${Date.now()}_partial_retry_${pid}`;
+  // 推 popup 占位气泡
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "ai",
+      msgId: pendingMsgId, participantId: p.service,
+      text: "", isDone: false,
+    }).catch(() => {});
+  } catch (_) {}
+
+  // inject 带 1 次重试 + 15s 超时
+  let injectResult = null;
+  let lastError = "未知错误";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ready = await waitForContentScript(p.tabId);
+      if (!ready) {
+        lastError = "页面未就绪 (content script 失联)";
+      } else {
+        StateMachine.setLastSent(p.id, prompt);
+        const result = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+        if (result?.status === "sent" || result?.status === "inputted") {
+          injectResult = result;
+          break;
+        }
+        lastError = result?.error || `inject 异常状态: ${result?.status}`;
+      }
+    } catch (e) {
+      lastError = e?.message || lastError;
+    }
+    if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+  }
+
+  if (injectResult) {
+    // 启动 polling 让该 AI 的辩论回答能同步进 popup
+    try {
+      ChatBus.notifyRoundStart(`🔄 补发辩论给 ${p.name}`, [p.service], pendingMsgId);
+    } catch (e) { console.warn("[bg] notifyRoundStart fail (partial retry):", e?.message); }
+    // 一次性使用，清除暂存
+    if (StateMachine._lastPartialDebatePrompts) delete StateMachine._lastPartialDebatePrompts[pid];
+    notifyStatus(`已补发辩论给 ${p.name}`);
+    return { ok: true, result: injectResult };
+  }
+
+  // 失败 — 用同 msgId 更新气泡告知用户
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "ai",
+      msgId: pendingMsgId, participantId: p.service,
+      text: `⚠ 补发失败：${lastError}\n\n请检查 ${p.name} 页面是否可用`,
+      isDone: true,
+    }).catch(() => {});
+  } catch (_) {}
+  notifyStatus(`⚠ 补发给 ${p.name} 失败: ${lastError}`);
+  return { ok: false, error: lastError };
 }
 
 // ── 辩论总结 ──

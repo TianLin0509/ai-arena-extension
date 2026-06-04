@@ -60,6 +60,10 @@ function mergeParticipants(remote) {
   });
 }
 let injectResults = {}; // { participantId: "ok" | "failed" }
+// v5.0.8 perf: 渲染签名缓存 — schedulePollTick 每 500ms 触发 renderParticipants，绝大部分 tick
+//   状态完全相同（_pollStatus / _textLength / responsePreview 都没变）；签名比对短路避免
+//   重复 listEl.innerHTML 整列重建 + 重新 addEventListener。
+let _lastParticipantsRenderSig = "";
 
 // ── 状态标签映射 ──
 const STATE_LABELS = {
@@ -94,6 +98,27 @@ function addLog(msg, type = "info") {
 
 // ── 渲染参与者（状态卡片） ──
 function renderParticipants() {
+  // v5.0.8 perf: 签名比对短路 — 0.5s polling tick 90% 状态完全不变，跳过整列 innerHTML 重建
+  //   关键字段：参与者数量/轮次/flow 状态 + 每个 p 的 service/tabId/_pollStatus/_textLength/
+  //   responsePreview/userEdited/injectResults。任一变化才真正重渲。
+  try {
+    const sig = JSON.stringify({
+      n: participants.length,
+      r: debateSession?.rounds?.length || 0,
+      f: flowState,
+      p: participants.map(p => ([
+        p.id, p.service, p.tabId,
+        p._pollStatus || "", p._textLength || 0,
+        // v5.0.8 fix: 用 responsePreview 头 20 字而非 !! — 防"内容变化但有无状态没变"
+        //   的边缘场景下签名误命中（如第二轮辩论直接覆盖 responsePreview，没经过 null 中间态）
+        p.responsePreview ? p.responsePreview.slice(0, 20) : "",
+        !!p.userEdited,
+        injectResults[p.id] || "",
+      ])),
+    });
+    if (sig === _lastParticipantsRenderSig) return;
+    _lastParticipantsRenderSig = sig;
+  } catch (_) { /* JSON.stringify 失败兜底走重渲 */ }
   countEl.textContent = participants.length;
   const rounds = debateSession?.rounds?.length || 0;
   if (rounds > 0) { roundBadge.style.display = ""; roundBadge.textContent = `第${rounds}轮`; }
@@ -493,8 +518,11 @@ chrome.runtime.onMessage.addListener((msg) => {
   } catch {}
 })();
 
-// 定期刷新
-setInterval(async () => {
+// v5.0.8 perf: 删除 5s setInterval 兜底 — 旧版每 5s 唤醒 SW 拉 getState，多数情况是无用功
+//   （stateUpdate 主动推送已覆盖所有真实状态变化）。改成可见性事件驱动：用户切走 sidepanel
+//   再切回时单次刷新，避免持续轮询拖累 SW idle 回收。
+//   兜底保留：document.visibilitychange + window.focus 都触发一次 getState。
+async function _refreshFromBackground() {
   try {
     const r = await chrome.runtime.sendMessage({ type: "getState" });
     if (r) {
@@ -503,7 +531,11 @@ setInterval(async () => {
       if (!streamingPollTimer) renderParticipants();
     }
   } catch {}
-}, 5000);
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) _refreshFromBackground();
+});
+window.addEventListener("focus", _refreshFromBackground);
 
 // ── 窗口模式切换 ──
 $$(".mode-opt").forEach(btn => {
@@ -629,8 +661,15 @@ fileInput.addEventListener("change", async () => {
   fileInput.value = "";
 });
 
+// v5.0.8 perf: input 事件 debounce 100ms — 纯文字快速输入时不需要每键击都扫整个 contenteditable
+//   找 img；仅当用户停顿 100ms+ 时才触发扫描（粘贴图片场景仍及时处理）
+let _inputImgScanTimer = null;
 broadcastInput.addEventListener("input", () => {
-  broadcastInput.querySelectorAll("img").forEach(img => { if (img.src.startsWith("data:")) { addImage(img.src); img.remove(); } });
+  if (_inputImgScanTimer) clearTimeout(_inputImgScanTimer);
+  _inputImgScanTimer = setTimeout(() => {
+    _inputImgScanTimer = null;
+    broadcastInput.querySelectorAll("img").forEach(img => { if (img.src.startsWith("data:")) { addImage(img.src); img.remove(); } });
+  }, 100);
 });
 
 // ── 广播 ──

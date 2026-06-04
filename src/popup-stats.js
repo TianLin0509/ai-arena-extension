@@ -251,9 +251,16 @@
   }
 
   // ============== 渲染调度 ==============
+  // v5.0.8 perf: stats panel 非激活时跳过 SVG 重渲，仅在 panel 被切到时由 rp:activated → refresh() 重建
+  function _isStatsActive() {
+    const root = document.getElementById("rp-panel-stats");
+    return !!(root && root.classList.contains("active"));
+  }
   function render() {
     const root = document.getElementById("rp-panel-stats");
     if (!root) return;
+    // v5.0.8: 非激活 panel 跳过 innerHTML 重建（heatmap/折线/饼图 SVG 都很重）
+    if (!root.classList.contains("active")) return;
     root.innerHTML = `
       <div class="rp-substat-tabs">
         <div class="rp-substat-tab ${activeSub === "session" ? "active" : ""}" data-sub="session">本次</div>
@@ -415,8 +422,19 @@
     }
   }
 
+  // v5.0.8 perf: _selfWriting 计数器切断"自己写 storage → onChanged 监听到 → render() 自掐 loop"
+  //   原现象：流式时每条 ai update 调 persistLifetime（写 STATS_KEY）→ storage.onChanged 触发
+  //   监听器 → 又调 render() 渲 SVG 折线/168 cell 热力图/饼图，CPU 长期不空闲。
+  //   修复：persistLifetime 写入前计数器 +1，监听器消费一次 -1（与写入次数严格匹配）。
+  //   用计数器而非布尔，防 Chrome 不合并 onChanged 时漏拦截（每次 set 都会触发回调）。
+  let _selfWritingCount = 0;
   function persistLifetime() {
-    try { chrome.storage.local.set({ [STATS_KEY]: lifetimeStats }); } catch (_) {}
+    try {
+      _selfWritingCount++;
+      chrome.storage.local.set({ [STATS_KEY]: lifetimeStats });
+    } catch (_) {
+      _selfWritingCount = Math.max(0, _selfWritingCount - 1);  // set 同步阶段抛错才会进这里
+    }
   }
   try {
     chrome.runtime.onMessage.addListener((msg) => {
@@ -451,13 +469,21 @@
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "local" && changes[STATS_KEY]) {
+        // v5.0.8 perf: 自己写入触发的回调直接 return（消除自掐 loop）— 计数器每次消费 1
+        if (_selfWritingCount > 0) { _selfWritingCount--; return; }
         lifetimeStats = { ...lifetimeStats, ...(changes[STATS_KEY].newValue || {}) };
         if (!lifetimeStats.models) lifetimeStats.models = {};
         if (!lifetimeStats.daily) lifetimeStats.daily = {};
         if (!Array.isArray(lifetimeStats.heatmap) || lifetimeStats.heatmap.length !== 168) {
           lifetimeStats.heatmap = new Array(168).fill(0);
         }
-        render();
+        // v5.0.8 perf: stats panel 非激活时跳过昂贵 SVG 重渲（renderBody → 7 天趋势 +
+        //   168 cell 热力图 + 饼图 + 模型柱状图）。其他 panel 切回 stats 时 rp:activated
+        //   会触发 refresh() 拉最新数据。
+        const statsRoot = document.getElementById("rp-panel-stats");
+        if (statsRoot && statsRoot.classList.contains("active")) {
+          render();
+        }
       }
     });
   } catch (_) {}

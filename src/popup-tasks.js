@@ -108,6 +108,15 @@
             if (window.confirm(resp.message)) sendOnce(true);
             return;
           }
+          // v5.0.11: partial inject 警告（无论辩论是否成功启动都可能带这个字段）
+          //   场景：3 个 AI 候选，inject 失败 1 个被静默丢 → 弹窗让用户补发或跳过
+          if (resp?.partialInject && window.ChatModal?.showPartialDebateInject) {
+            window.ChatModal.showPartialDebateInject(resp, {
+              onResend: (missing) => resendMissingDebate(missing),
+              onSkip: () => {},  // 已开始的辩论保持 / 未开始的不动，关弹窗即可
+            });
+            return;
+          }
           if (resp && !resp.ok) {
             if (resp.reason === "insufficient_responses" && window.ChatModal) {
               window.ChatModal.showInsufficientResponses(resp, {
@@ -125,6 +134,25 @@
     root.querySelector("#rp-btn-debate-retry")?.addEventListener("click", () => {
       chrome.runtime.sendMessage({ type: "retryInject" }, () => {});
     });
+  }
+
+  // v5.0.11: showPartialDebateInject modal 的"补发缺失"回调 — 对每个 missing AI 调
+  //   retryDebateInjectForParticipant，background 用 _lastPartialDebatePrompts 暂存的
+  //   辩论 prompt 重 inject + 启 polling
+  async function resendMissingDebate(missing) {
+    if (!Array.isArray(missing) || !missing.length) return;
+    const pushLog = (text, level) => {
+      try { window.ChatLog?.push?.({ ts: Date.now(), text, level }); } catch (_) {}
+    };
+    pushLog(`补发辩论给 ${missing.length} 个缺失 AI…`, "info");
+    const results = await Promise.allSettled(missing.map(m => new Promise(res => {
+      chrome.runtime.sendMessage(
+        { type: "retryDebateInjectForParticipant", participantId: m.id },
+        resp => res({ name: m.name || m.service, resp })
+      );
+    })));
+    const okCount = results.filter(r => r.status === "fulfilled" && r.value?.resp?.ok).length;
+    pushLog(`补发完成：${okCount}/${missing.length} 成功`, okCount === missing.length ? "ok" : "warn");
   }
 
   // v4.8.65: insufficient_responses modal 的"重新提取所有"回调 — 优先只提取缺失的 AI，

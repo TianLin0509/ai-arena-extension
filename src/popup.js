@@ -123,7 +123,7 @@
           <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
           <span class="acts">
             <button data-act="reextract" title="重新提取">${window.ChatActionIcons?.svg("reextract") || "🔄"}</button>
-            <button data-act="resend" title="重新发送">${window.ChatActionIcons?.svg("resend") || "📤"}</button>
+            <button data-act="resend" title="用最新提问重发">${window.ChatActionIcons?.svg("resend") || "📤"}</button>
             <button data-act="skip" title="跳过本轮（避免卡住流程）">${window.ChatActionIcons?.svg("skip") || "⏭"}</button>
             <button data-act="copy" title="复制">${window.ChatActionIcons?.svg("copy") || "📋"}</button>
             <button data-act="jump" title="跳原页">${window.ChatActionIcons?.svg("jump") || "↗"}</button>
