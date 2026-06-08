@@ -25,18 +25,36 @@
     } catch (_) { return "unknown"; }
   }
 
-  // 把 "v5.1.0-beta" / "5.1.0-beta" / "5.1.0a-beta" 归一化为可比文本
-  function normalizeTag(s) {
-    return String(s || "").trim().replace(/^v/i, "");
+  // 解析 "v5.1.0-beta" / "5.1.0" → { nums: [5,1,0], pre: "beta" }
+  // 解析失败返回 null（hasNewer 据此 fail-safe 为 false，不乱弹）
+  function parseSemver(s) {
+    const m = String(s || "").trim().replace(/^v/i, "")
+      .match(/^(\d+)\.(\d+)(?:\.(\d+))?(?:-(.+))?$/);
+    if (!m) return null;
+    return {
+      nums: [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3] || "0", 10)],
+      pre: m[4] || "",
+    };
   }
 
-  // 判断 latest 是否比 current "新"
-  // MVP 用文本不等即认为有新版（GitHub release 按 tag 排序，最近发布的是"最新"）
+  // a vs b: -1 / 0 / 1。规则：主次补段按数字比；pre-release 段（-beta 等）按 semver 视为更小
+  function compareSemver(a, b) {
+    const pa = parseSemver(a), pb = parseSemver(b);
+    if (!pa || !pb) return 0;
+    for (let i = 0; i < 3; i++) {
+      if (pa.nums[i] !== pb.nums[i]) return pa.nums[i] < pb.nums[i] ? -1 : 1;
+    }
+    if (pa.pre && !pb.pre) return -1;
+    if (!pa.pre && pb.pre) return 1;
+    if (pa.pre < pb.pre) return -1;
+    if (pa.pre > pb.pre) return 1;
+    return 0;
+  }
+
+  // 判断 latest 是否严格比 current 新（latest > current 才提示）
+  // 避免反向 bug：当 GitHub latest 因任何原因回退到老版本时，新版本用户不再被错误提示
   function hasNewer(currentVer, latestTag) {
-    const cur = normalizeTag(currentVer);
-    const latest = normalizeTag(latestTag);
-    if (!cur || !latest) return false;
-    return cur !== latest;
+    return compareSemver(currentVer, latestTag) < 0;
   }
 
   async function fetchLatestRelease() {

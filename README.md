@@ -10,13 +10,13 @@
 
 <br>
 
-[![version](https://img.shields.io/badge/version-v5.0.11-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![Gitee 镜像](https://img.shields.io/badge/Gitee%20%E9%95%9C%E5%83%8F-v5.0.11-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
+[![version](https://img.shields.io/badge/version-v5.0.12-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![Gitee 镜像](https://img.shields.io/badge/Gitee%20%E9%95%9C%E5%83%8F-v5.0.12-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
 
 ### [🚀 在线推广页（强烈推荐先看）](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
 
-### ⬇️ 一键下载 v5.0.11 · 双源任选
+### ⬇️ 一键下载 v5.0.12 · 双源任选
 
-[🌐 GitHub 源](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.11.zip) &nbsp;·&nbsp; [🇨🇳 **Gitee 源**（国内推荐 · 无需翻墙）](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.11/ai-arena-github-v5.0.11.zip)
+[🌐 GitHub 源](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.12.zip) &nbsp;·&nbsp; [🇨🇳 **Gitee 源**（国内推荐 · 无需翻墙）](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.12/ai-arena-github-v5.0.12.zip)
 
 <br>
 
@@ -171,7 +171,7 @@ HTML / 文本双模式
 
 ### ⬇️ 一键下载（最快）
 
-[![GitHub 源](https://img.shields.io/badge/🌐%20GitHub%20源%20·%20v5.0.11%20·%202.0MB-0a84ff?style=for-the-badge&logo=github)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.11.zip) [![Gitee 源](https://img.shields.io/badge/🇨🇳%20Gitee%20源%20·%20国内推荐%20·%20无需翻墙-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.11/ai-arena-github-v5.0.11.zip)
+[![GitHub 源](https://img.shields.io/badge/🌐%20GitHub%20源%20·%20v5.0.12%20·%202.0MB-0a84ff?style=for-the-badge&logo=github)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.12.zip) [![Gitee 源](https://img.shields.io/badge/🇨🇳%20Gitee%20源%20·%20国内推荐%20·%20无需翻墙-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.12/ai-arena-github-v5.0.12.zip)
 
 </div>
 
