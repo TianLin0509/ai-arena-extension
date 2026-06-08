@@ -68,14 +68,35 @@
     }
   }
 
-  function toggleMode() {
+  let toggleSeq = 0;
+
+  async function getCurrentWindowId() {
+    try {
+      const w = await chrome.windows.getCurrent();
+      return typeof w?.id === "number" ? w.id : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function persistMode(mode) {
+    try { chrome.storage.local.set({ [STORAGE_KEY]: mode }).catch(() => {}); } catch (_) {}
+  }
+
+  async function toggleMode() {
+    const seq = ++toggleSeq;
     const cur = document.body.getAttribute("data-mode") === "mini" ? "mini" : "full";
     const next = cur === "mini" ? "full" : "mini";
     applyMode(next);
-    chrome.storage.local.set({ [STORAGE_KEY]: next }).catch(() => {});
-    chrome.runtime.sendMessage({ type: "miniModeToggle", mode: next }, () => {
-      if (chrome.runtime.lastError) {
-        console.warn("[mini-mode] toggle msg fail:", chrome.runtime.lastError?.message);
+    persistMode(next);
+    const windowId = await getCurrentWindowId();
+    chrome.runtime.sendMessage({ type: "miniModeToggle", mode: next, windowId }, (resp) => {
+      if (seq !== toggleSeq) return;
+      const err = chrome.runtime.lastError?.message || resp?.error;
+      if (err || !resp?.ok) {
+        console.warn("[mini-mode] toggle msg fail:", err || "resize failed");
+        applyMode(cur);
+        persistMode(cur);
       }
     });
   }

@@ -491,6 +491,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           sendResponse(await ChatBus.openChatPopup()); break;
         case "miniModeToggle":
           // v4.8.15 F30: popup-mini-mode.js 触发，resize popup window 到 mini/full
+          // v5.0.12: MV3 SW 重启后内存里的 popupWindowId 会丢；点击时带 windowId 重新登记。
+          if (typeof msg.windowId === "number") ChatBus.setPopupWindowId(msg.windowId);
           sendResponse(await ChatBus.toggleMiniMode(msg.mode)); break;
         case "miniMenuExpand":
           // v4.8.28: mini 模式下 task-menu 打开时临时撑大窗口让菜单向下露出
