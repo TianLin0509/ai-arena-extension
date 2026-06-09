@@ -12,6 +12,8 @@
 
   function applyActiveClass() {
     $$btns().forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+    const focusBtn = document.getElementById("btn-focus-ai-tabs");
+    if (focusBtn) focusBtn.hidden = mode !== "tab";
   }
 
   // v4.8.52: 检查并提醒 Tab 模式下 chrome 调试横条
@@ -79,6 +81,14 @@
     // 绑定点击
     $$btns().forEach(b => {
       b.addEventListener("click", () => setMode(b.dataset.mode));
+    });
+    document.getElementById("btn-focus-ai-tabs")?.addEventListener("click", async () => {
+      try {
+        const r = await chrome.runtime.sendMessage({ type: "focusAllAiTabs" });
+        if (!r?.ok) console.warn("[window-mode] focusAllAiTabs failed:", r?.error || r);
+      } catch (e) {
+        console.warn("[window-mode] focusAllAiTabs failed:", e?.message || e);
+      }
     });
     // 监听其他端的修改（sidepanel 端切到 Tab → popup 端也提醒）
     try {

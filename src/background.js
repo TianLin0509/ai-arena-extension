@@ -7,7 +7,7 @@ let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
 // 并列模式走 MAIN world visibility patch（无黄条）— 两套并存按需启用
 // v4.9.0: 加入 gatekeeper 三个模块（rules → store → engine 顺序，store/engine 依赖 BUILTIN_RULES）
 // v5.2.4-storage-p1: arena-errors.js 最先 importScripts，让其余子模块都能用 makeArenaError/ArenaErrorCode/ArenaStage
-importScripts("arena-errors.js", "selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js");
+importScripts("arena-errors.js", "selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "captain-mode.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js");
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -435,6 +435,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           break;
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
+        case "focusAllAiTabs":    sendResponse(await focusAllAiTabs()); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
         case "sendPromptToService": {
           // v4.9.0.2 fix I1: bubble resend 按钮发送时 msg.text 为空（实际 prompt 在 lastSentByPid），
@@ -825,20 +826,23 @@ async function handleBroadcast(text, images) {
   StateMachine._broadcastStateUpdate();
 
   const results = {};
+  const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+  const allParticipants = StateMachine.participants || [];
   await Promise.all(StateMachine.participants.map(async (p) => {
     if (!p.tabId) {
       results[p.id] = { name: p.name, status: "error", error: "未打开", code: "TAB_NOT_FOUND", snapshot: { service: p.service, stage: "injecting" } };
       return;
     }
+    const prompt = self.ArenaCaptainMode.decoratePrompt(text, p, allParticipants, captainEnabled);
     // 记录"刚发给该 p 的 prompt"——readOneResponse 用此校验防把用户消息当成 AI 回复
-    StateMachine.setLastSent(p.id, text);
+    StateMachine.setLastSent(p.id, prompt);
     const tryInject = async () => {
       const ready = await waitForContentScript(p.tabId);
       if (!ready) return { name: p.name, status: "error", error: "页面未就绪" };
       if (images && images.length > 0) {
         await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
       }
-      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text });
+      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
       return { name: p.name, ...result };
     };
     try {
@@ -974,6 +978,7 @@ async function sendToOneParticipant(participantId) {
     }
 
     if (!text) return { ok: false, error: "无可发送内容" };
+    text = await self.ArenaCaptainMode.apply(text, p, StateMachine.participants);
     // 记录"刚发给该 p 的 prompt"——sanity check 用
     StateMachine.setLastSent(participantId, text);
     const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text });
@@ -1224,6 +1229,8 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
   // v5.0.11: 暂存每个 pid 的辩论 prompt — 用于"补发缺失 AI"按钮（用户场景：3 选其中 1 个
   //   inject 失败被静默丢，弹窗让用户点补发，background 用这里暂存的 prompt 重 inject）
   const promptsByPid = {};
+  const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+  const allParticipants = StateMachine.participants || [];
   await Promise.all(Object.keys(responses).map(async (id) => {
     const p = StateMachine.getParticipant(id);
     if (!p?.tabId) {
@@ -1232,7 +1239,8 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
       sendResults[id] = { site: p?.service || id, status: "error", error: "tab 失联（参与者未打开）" };
       return;
     }
-    const prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
+    let prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
+    prompt = self.ArenaCaptainMode.decoratePrompt(prompt, p, allParticipants, captainEnabled);
     promptsByPid[id] = prompt;  // v5.0.11
     // 记录"刚发给该 p 的 prompt"——sanity check 用
     StateMachine.setLastSent(id, prompt);
@@ -1619,6 +1627,26 @@ async function handleFocusTab(id) {
     await chrome.windows.update(tab.windowId, { focused: true });
     return { ok: true };
   } catch { p.tabId = null; StateMachine.save(); return { ok: false }; }
+}
+
+async function focusAllAiTabs() {
+  if (windowMode !== "tab") return { ok: false, error: "仅 Tab 模式可用" };
+  const parts = (StateMachine.participants || []).filter(p => p.tabId);
+  if (!parts.length) return { ok: false, error: "没有可唤起的 AI Tab" };
+  let focused = 0;
+  const errors = [];
+  for (const p of parts) {
+    try {
+      const tab = await chrome.tabs.get(p.tabId);
+      await chrome.windows.update(tab.windowId, { focused: true });
+      await chrome.tabs.update(p.tabId, { active: true });
+      focused++;
+      await new Promise(r => setTimeout(r, 120));
+    } catch (e) {
+      errors.push({ service: p.service, error: e?.message || String(e) });
+    }
+  }
+  return { ok: focused > 0, focused, total: parts.length, errors };
 }
 
 // ── 导出 ──

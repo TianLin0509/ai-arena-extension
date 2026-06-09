@@ -4180,6 +4180,12 @@ body[data-logo-style="basic"] .msg-avatar img {
   color: #fff;
   border-color: var(--accent, #0a84ff);
 }
+.rp-app-btn.active {
+  background: linear-gradient(135deg, #5eead4, #34c759);
+  color: #0a1024;
+  border-color: transparent;
+  font-weight: 700;
+}
 
 /* 新手教程 — 浮动 modal 模式（点设置 tab"新手教程"按钮触发） */
 .es-tutorial.es-tutorial-modal {

@@ -14,9 +14,11 @@
     { id: "H", name: "碧绿茶林",  gradient: "linear-gradient(135deg,#4d8b56,#a3d9a5)" },
   ];
   const THEME_KEY = "uiTheme";
+  const CAPTAIN_KEY = "captainModeEnabled";
 
   // v5.2.25: 新用户默认主题改为 A 深海指挥（用户已设置过 → storage 覆盖此默认，保留选择）
   let currentTheme = "A";
+  let captainMode = true;
 
   function render() {
     const root = document.getElementById("rp-panel-settings");
@@ -48,6 +50,12 @@
             <button type="button" class="hdr-mode-btn ${curWinMode === 'tab' ? 'active' : ''}" data-mode="tab" title="所有 AI 同窗口不同标签页">Tab</button>
             <button type="button" class="hdr-mode-btn ${curWinMode === 'tiled' ? 'active' : ''}" data-mode="tiled" title="每个 AI 独立窗口并列">并列</button>
           </div>
+        </div>
+        <div class="rp-app-row">
+          <span class="rp-app-row-lbl">协作身份</span>
+          <button class="rp-app-btn ${captainMode ? 'active' : ''}" id="rp-captain-toggle" title="切换队长模式 / 普通模式">
+            ${captainMode ? '队长模式' : '普通模式'}
+          </button>
         </div>
         <div class="rp-app-row rp-app-row-btns">
           <button class="rp-app-btn" id="rp-check-update" title="调 GitHub Releases API 比对版本">↻ 检查更新</button>
@@ -95,6 +103,11 @@
     root.querySelector("#rp-open-tutorial")?.addEventListener("click", () => {
       window.ChatTutorial?.show?.();
     });
+    root.querySelector("#rp-captain-toggle")?.addEventListener("click", () => {
+      captainMode = !captainMode;
+      try { chrome.storage.local.set({ [CAPTAIN_KEY]: captainMode }); } catch (_) {}
+      render();
+    });
 
     root.querySelectorAll(".rp-theme-item").forEach(el => {
       el.addEventListener("click", () => setTheme(el.dataset.theme));
@@ -118,7 +131,7 @@
   async function refresh() {
     try {
       const r = await new Promise(res => {
-        chrome.storage.local.get([THEME_KEY], resp => res(resp || {}));
+        chrome.storage.local.get([THEME_KEY, CAPTAIN_KEY], resp => res(resp || {}));
       });
       if (r[THEME_KEY]) {
         currentTheme = r[THEME_KEY];
@@ -126,6 +139,7 @@
       } else {
         document.body.setAttribute("data-theme", currentTheme);
       }
+      captainMode = r[CAPTAIN_KEY] !== false;
     } catch (_) {}
     render();
   }

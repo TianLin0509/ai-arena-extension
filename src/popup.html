@@ -27,7 +27,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.11</span>
+        <span class="chat-name">AI圆桌派-5.0.15</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -35,6 +35,14 @@
         <button class="btn-mini-mode" id="btn-mini-mode" type="button" title="折叠到顶部一行 / 展开恢复">⇲ 折叠到顶</button>
         <!-- v4.8.41: 简洁模式 — 长回答超 100 字自动折叠为一行（提取中即生效）-->
         <button class="btn-compact-mode" id="btn-compact-mode" type="button" aria-pressed="false" title="简洁模式 — 长回答超 100 字自动折叠为一行">⊟ 简洁</button>
+        <button class="btn-icon with-label" id="btn-focus-ai-tabs" type="button" hidden title="依次唤起所有 AI Tab">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 5h16v14H4z"/>
+            <path d="M8 9h8"/>
+            <path d="m13 6 3 3-3 3"/>
+          </svg>
+          <span class="btn-icon-label">唤起 AI</span>
+        </button>
         <!-- v5.0.6: Tab/并列 和 检查更新 已迁到「设置」tab，顶栏只留高频按钮 -->
         <!-- v4.8.65: 清空按钮 icon + 文字（图标 + "清空群聊"标签更直观） -->
         <button class="btn-icon with-label" id="btn-clear" title="仅清空群聊窗口（不动 AI / 辩论上下文）" aria-label="清空群聊">

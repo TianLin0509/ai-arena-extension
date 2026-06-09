@@ -414,9 +414,6 @@ const ChatBus = (() => {
       targetList.forEach(p => {
         p.response = null;
         p.responsePreview = null;
-        if (typeof StateMachine.setLastSent === "function") {
-          StateMachine.setLastSent(p.id, text);
-        }
       });
       if (typeof StateMachine.setFlowState === "function" && typeof FlowState !== "undefined") {
         StateMachine.setFlowState(FlowState.BROADCASTING);
@@ -433,12 +430,18 @@ const ChatBus = (() => {
     sendToPopup({ type: "chatStreamUpdate", role: "user", msgId, text });
 
     // 对每个目标 AI: 注入 + 启动 polling
+    const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+    const allParticipants = StateMachine.participants || [];
     for (const p of targetList) {
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId,
         participantId: p.service, text: "", isDone: false,
       });
-      injectAndPoll(p, msgId, text);
+      const prompt = self.ArenaCaptainMode.decoratePrompt(text, p, allParticipants, captainEnabled);
+      if (typeof StateMachine.setLastSent === "function") {
+        StateMachine.setLastSent(p.id, prompt);
+      }
+      injectAndPoll(p, msgId, prompt);
     }
     // v4.8.36: 对已离开的 service 创建警告气泡（fail loud）
     _emitSkippedWarning(msgId, skippedServices);
