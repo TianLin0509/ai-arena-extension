@@ -2,6 +2,9 @@
 
 > 适用版本：v5.0.15+
 > 后台地址：https://chrome.google.com/webstore/devconsole
+>
+> **2026-06-09 修订**：首次提交被 Yellow Argon 政策（关键字垃圾内容）退回，
+> 已重写描述去除品牌名罗列，请使用本版文案重新提交。
 
 ---
 
@@ -14,22 +17,22 @@ AI圆桌派
 
 ### 1.2 简短说明（Summary，最多 132 字符）
 ```
-让 Claude、Gemini、ChatGPT 等主流 AI 同时回答同一个问题，并支持多轮辩论和总结，一个侧边栏统一调度。
+让多个主流 AI 同时回答同一个问题，并支持多轮辩论和汇总，一个侧边栏统一调度，省去手动切换标签页的麻烦。
 ```
 
 ### 1.3 详细描述（Description）
 
 ```
-AI圆桌派是一个让你同时与多个主流 AI 对话的 Chrome 扩展。
+AI圆桌派是一个让你同时与多个主流大语言模型对话的 Chrome 扩展。
 
 【能做什么】
-• 一键把同一个问题广播给 Claude、Gemini、ChatGPT、DeepSeek、豆包、通义千问、Kimi、元宝、Grok 中任意 3 个
+• 一键把同一个问题广播给最多 3 个 AI 平台，并排显示各方回答
 • 让不同 AI 相互辩论、或围绕同一个问题群策群力
-• 自动汇总对比各方回答
+• 自动汇总对比各方回答的差异和共识
 • 支持图片和文本文件上传
-• 辩论轮次感知提示，自动引导每轮深化
-• 队长模式默认开启，第一个 AI 会主动归纳其他 AI 队员观点；第一轮没有队员发言时不会强行总结
-• Tab 模式新增“一键唤起 AI”，可依次把所有 AI 页面切到前台，方便检查网页登录和发送状态
+• 辩论轮次感知提示，自动引导每一轮深化讨论
+• 队长模式：第一位 AI 主动归纳其他成员观点
+• Tab 模式:"一键唤起 AI"依次把所有 AI 页面切到前台，方便确认登录和发送状态
 • 一键复制对话摘要到新窗口继续追问
 
 【适合谁】
@@ -38,10 +41,10 @@ AI圆桌派是一个让你同时与多个主流 AI 对话的 Chrome 扩展。
 • 希望让不同模型互相补充知识盲区的学习者
 
 【使用前提】
-使用本扩展前，请先在浏览器中分别登录你要使用的 AI 官网（Claude、Gemini、ChatGPT 等）。扩展本身不提供账号，也不代替你登录。
+使用本扩展前，请先在浏览器中登录你要使用的 AI 官网。扩展本身不提供账号，也不代替你登录。完整的兼容平台列表请参考下方 GitHub 仓库说明。
 
 【隐私承诺】
-本扩展不收集、不上传任何用户数据。所有对话内容仅在你的浏览器和你已登录的各 AI 官网之间流动。
+本扩展不收集、不上传任何用户数据。所有对话内容仅在你的浏览器和你已登录的 AI 官网之间流动。
 完整政策：https://TianLin0509.github.io/ai-arena-extension/privacy.html
 
 【开源】
@@ -112,7 +115,7 @@ https://TianLin0509.github.io/ai-arena-extension/privacy.html
 | `contextMenus` | To offer a right-click shortcut for sending selected text to the extension. |
 | `scripting` | To inject the prompt into each AI platform's chat box and read the streaming response back. Runs only on the listed host_permissions domains. |
 | `downloads` | To allow the user to export a debate transcript or summary as a local file via the "Save" action. |
-| `debugger` | **CRITICAL — write carefully**: Used exclusively as a fallback on specific AI platforms (Claude, Gemini) where standard content-script messaging cannot reliably detect streaming completion or read the assistant's output due to Shadow DOM and cross-frame isolation. The extension attaches the debugger only to tabs the user has explicitly added to a debate session, never to arbitrary tabs, and detaches as soon as the response is captured. No remote code is downloaded or executed; the debugger protocol is used only for local DOM observation. |
+| `debugger` | **CRITICAL — write carefully**: Used exclusively as a fallback on certain AI chat platforms whose pages rely heavily on Shadow DOM and cross-frame isolation, where standard content-script messaging cannot reliably detect streaming completion or read the assistant's output. The extension attaches the debugger only to tabs the user has explicitly added to a debate session, never to arbitrary tabs, and detaches as soon as the response is captured. No remote code is downloaded or executed; the debugger protocol is used only for local DOM observation. |
 | `host_permissions` (10 origins) | Limited to the exact origins of the supported AI platforms: claude.ai, gemini.google.com, chatgpt.com, chat.deepseek.com, doubao.com, tongyi.aliyun.com, kimi.com/kimi.moonshot.cn, yuanbao.tencent.com, grok.com. Used only to inject prompts and read responses for the platforms the user has chosen to broadcast to. |
 
 注：store 版 build 时已自动剥离 `declarativeNetRequest` 权限和 `dnr-rules.json`，无需填该项。

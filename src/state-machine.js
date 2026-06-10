@@ -9,6 +9,19 @@ const FlowState = {
   SUMMARY: "summary"
 };
 
+const DEBATE_FULL_ROUNDS_KEEP = 12;
+const DEBATE_ARCHIVE_RESPONSE_CHARS = 4000;
+const DEBATE_ACTIVE_RESPONSE_CHARS = 60000;
+
+function compactTextForStorage(text, maxChars) {
+  if (typeof text !== "string" || text.length <= maxChars) return text;
+  const head = Math.max(0, Math.floor(maxChars * 0.75));
+  const tail = Math.max(0, maxChars - head - 60);
+  // v5.0.16: 标记改中文短句 — 截断版只进 storage，但 SW 重启后会被恢复进内存并可能
+  //   进入辩论 prompt / 裁判总结，中文省略标记对 AI 和用户都可理解，不引入英文噪音
+  return `${text.slice(0, head)}\n……（中间省略 ${text.length - head - tail} 字符）……\n${text.slice(-tail)}`;
+}
+
 // ── 状态管理器 ──
 const StateMachine = {
   flowState: FlowState.IDLE,
@@ -67,12 +80,53 @@ const StateMachine = {
     this._savePending = false;
     this._writeToStorage();
   },
+  // v5.0.16: 压缩只发生在写盘序列化时，且作用于**副本** — 旧版（未发布 WIP）原地 mutate
+  //   this.debateSession，被截断的 text 会被 buildDebatePrompt / 裁判总结直接引用，
+  //   辩论上下文和总结质量被悄悄降级。现在内存态永远保持全文；只有 SW 被回收后从
+  //   storage 恢复的旧轮才是截断版（quota 保护的代价，活跃轮 60k 上限极少触发）。
+  compactDebateSessionForStorage() {
+    const session = this.debateSession;
+    const rounds = session?.rounds;
+    if (!Array.isArray(rounds) || !rounds.length) return session;
+    const fullStart = Math.max(0, rounds.length - DEBATE_FULL_ROUNDS_KEEP);
+    const limitFor = (i) => (i >= fullStart ? DEBATE_ACTIVE_RESPONSE_CHARS : DEBATE_ARCHIVE_RESPONSE_CHARS);
+    const needsCompact = (round, i) => {
+      const responses = round?.responses;
+      if (!responses || typeof responses !== "object") return false;
+      const limit = limitFor(i);
+      return Object.values(responses).some(item =>
+        item && typeof item === "object" && typeof item.text === "string" && item.text.length > limit);
+    };
+    // 快路径：全部在限内 → 不拷贝直接写原对象
+    if (!rounds.some(needsCompact)) return session;
+    return {
+      ...session,
+      rounds: rounds.map((round, i) => {
+        if (!needsCompact(round, i)) return round;
+        const limit = limitFor(i);
+        const responses = {};
+        for (const [key, item] of Object.entries(round.responses)) {
+          if (item && typeof item === "object" && typeof item.text === "string" && item.text.length > limit) {
+            responses[key] = {
+              ...item,
+              originalTextLength: item.originalTextLength || item.text.length,
+              compactedForStorage: true,
+              text: compactTextForStorage(item.text, limit),
+            };
+          } else {
+            responses[key] = item;
+          }
+        }
+        return { ...round, responses };
+      }),
+    };
+  },
   _writeToStorage() {
     chrome.storage.local.set({
       sm_flowState: this.flowState,
       sm_participants: this.participants,
       sm_nextId: this.nextId,
-      sm_debateSession: this.debateSession,
+      sm_debateSession: this.compactDebateSessionForStorage(),
       sm_markerRound: this.markerRound,
       sm_lastSentByPid: this.lastSentByPid,
       sm_lastAcceptedByPid: this.lastAcceptedByPid,

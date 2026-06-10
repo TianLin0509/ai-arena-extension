@@ -27,6 +27,9 @@ fs.mkdirSync(ARTIFACTS, { recursive: true });
 
 const MODE = (process.argv[2] || "login-check").toLowerCase();
 
+// v5.0.16: 允许 E2E_SERVICES=deepseek,kimi 覆盖场景默认参与者（按当晚登录态选可用站点）
+const ENV_SERVICES = (process.env.E2E_SERVICES || "").split(",").map(s => s.trim()).filter(Boolean);
+
 // 8 个 AI 站（跳过 Claude）+ 登录态探针 selector
 const AI_PROBES = [
   { name: "gemini",   url: "https://gemini.google.com/app",        loggedInProbe: 'rich-textarea, [contenteditable="true"]', loginProbe: 'a[href*="accounts.google.com"]' },
@@ -245,8 +248,8 @@ async function scenario1() {
   await callBG(panel, "setWindowMode", { mode: "tiled" });
   console.log(`[scenario1] hardReset + mode=tiled OK`);
 
-  // 2) 加 3 个 AI：gemini + deepseek + chatgpt
-  const services = ["gemini", "deepseek"];
+  // 2) 加参与 AI（默认 gemini+deepseek，可用 E2E_SERVICES 覆盖）
+  const services = ENV_SERVICES.length ? ENV_SERVICES : ["gemini", "deepseek"];
   const addedIds = [];
   for (const s of services) {
     const r = await callBG(panel, "addParticipant", { service: s });
@@ -304,7 +307,7 @@ async function scenario1() {
 // 完整辩论流程：初始回答 → 2 轮辩论 → 裁判总结
 // 验证 F31/F35/F36/F39 修复，覆盖辩论轮统计、第二次发问、mini bar
 async function scenario2(opts = {}) {
-  const services = opts.services || ["gemini", "deepseek"];
+  const services = opts.services || (ENV_SERVICES.length ? ENV_SERVICES : ["gemini", "deepseek"]);
   const debateRounds = opts.rounds || 2;
   const judgeService = opts.judgeId || services[0];
 

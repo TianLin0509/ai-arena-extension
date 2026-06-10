@@ -9,6 +9,8 @@ const ChatBus = (() => {
   let popupMode = "full";          // v4.8.15 F30: "full" | "mini"
   const chatLog = [];              // 最近 100 条消息
   const MAX_LOG = 100;
+  const MAX_LOG_TEXT_CHARS = 750000;
+  const MAX_LOG_ENTRY_TEXT_CHARS = 120000;
   const STORAGE_KEYS = {
     log: "chatLog",
     bounds: "chatPopupBounds",
@@ -22,7 +24,10 @@ const ChatBus = (() => {
       STORAGE_KEYS.log, STORAGE_KEYS.bounds,
       STORAGE_KEYS.miniBounds, STORAGE_KEYS.mode,
     ]);
-    if (Array.isArray(data[STORAGE_KEYS.log])) chatLog.push(...data[STORAGE_KEYS.log].slice(-MAX_LOG));
+    if (Array.isArray(data[STORAGE_KEYS.log])) {
+      chatLog.push(...data[STORAGE_KEYS.log].slice(-MAX_LOG).map(normalizeLogEntry));
+      trimLogBudget();
+    }
     // v4.8.37: sanity check — 清理 toggleMiniMode race 留下的污染数据
     //   popupBounds.height 应为 full 模式合理值；< 400 视为被 mini 大小污染 → 丢弃
     //   （v4.8.57: 阈值从 200 升到 400 — 因 mini default 升到 200，旧 >= 200 已无法区分污染）
@@ -343,9 +348,35 @@ const ChatBus = (() => {
     _logFlushPending = false;
     chrome.storage.local.set({ [STORAGE_KEYS.log]: chatLog }).catch(() => {});
   }
-  function pushLog(entry) {
-    chatLog.push(entry);
+  function textSizeOfLogEntry(entry) {
+    if (!entry || typeof entry !== "object") return 0;
+    return (entry.text ? String(entry.text).length : 0)
+      + (entry.msgId ? String(entry.msgId).length : 0)
+      + (entry.participantId ? String(entry.participantId).length : 0);
+  }
+  function normalizeLogEntry(entry) {
+    if (!entry || typeof entry !== "object") return entry;
+    const out = { ...entry };
+    if (typeof out.text === "string" && out.text.length > MAX_LOG_ENTRY_TEXT_CHARS) {
+      // v5.0.16: Math.max 防御常量改小后 slice(0, 负数) 截空全文；标记改中文（用户在 popup 历史可见）
+      const head = out.text.slice(0, Math.max(0, MAX_LOG_ENTRY_TEXT_CHARS - 80));
+      out.text = `${head}\n\n……（聊天记录过长，已截断显示：原文 ${out.text.length} 字符）`;
+      out.truncatedForLog = true;
+      out.originalTextLength = entry.text.length;
+    }
+    return out;
+  }
+  function trimLogBudget() {
     while (chatLog.length > MAX_LOG) chatLog.shift();
+    let total = chatLog.reduce((sum, item) => sum + textSizeOfLogEntry(item), 0);
+    while (chatLog.length > 1 && total > MAX_LOG_TEXT_CHARS) {
+      const removed = chatLog.shift();
+      total -= textSizeOfLogEntry(removed);
+    }
+  }
+  function pushLog(entry) {
+    chatLog.push(normalizeLogEntry(entry));
+    trimLogBudget();
     _logFlushPending = true;
     if (_logFlushTimer != null) return;
     _logFlushTimer = setTimeout(() => {

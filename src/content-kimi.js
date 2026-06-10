@@ -46,13 +46,8 @@ function getHeuristicElement(action, options = {}) {
     // 直接放弃 heuristic，避免抓到主页装饰文本（实测 408 字符 ![activity image]...）当 AI 回答
     if (!hasUserMessageInDom()) return options.all ? [] : null;
     const blocks = document.querySelectorAll('div, article, section');
-    for (let i = blocks.length - 1; i >= 0; i--) {
-      const text = blocks[i].innerText?.trim();
-      if (text && text.length > 100 && blocks[i].getBoundingClientRect().height > 50) {
-        return options.all ? [blocks[i]] : blocks[i];
-      }
-    }
-    return options.all ? [] : null;
+    const block = globalThis.ArenaShared?.findReadableBlock?.(blocks, { minTextLength: 100, minHeight: 50, limit: 80 });
+    return options.all ? (block ? [block] : []) : block;
   }
   if (action === "sendButton") {
     const btns = [...document.querySelectorAll("button")];
@@ -64,16 +59,23 @@ function getHeuristicElement(action, options = {}) {
 // v5.2.20: streaming 判定改用 ArenaShared.detectStreaming（限定最新回答容器 + 视口可见，
 //   不再全文档 querySelector + 裸 width>0），修第二/三轮起 isStreaming 误卡 true 导致提取拖延/超时。
 function _detectStreaming() {
-  let latest = null;
   const rs = queryBySelectors("response", { all: true });
-  if (rs && rs.length) latest = globalThis.ArenaShared?.getLastNonEmpty?.(rs) || rs[rs.length - 1];
+  const latest = rs && rs.length ? latestResponseElement(rs) : null;
   return globalThis.ArenaShared?.detectStreaming?.(selectors?.streaming || [], latest, window, document) || false;
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") { sendResponse({ ready: true }); return false; }
-    if (msg.action === "inject") { injectAndSend(msg.text).then(sendResponse).catch(e => sendResponse({ site: SITE, status: "error", error: e.message })); return true; }
+    if (msg.action === "inject") {
+      // v5.0.16: 发送失败时清 cursor 锚点 → 提取回退尾部候选，防错误基准截掉真实新回答
+      const respondInject = (result) => {
+        if (!result || result.status !== "sent") { try { globalThis.ArenaShared?.clearResponseCursorAnchor?.(SITE); } catch (_) {} }
+        sendResponse(result);
+      };
+      injectAndSend(msg.text).then(respondInject).catch(e => respondInject({ site: SITE, status: "error", error: e.message }));
+      return true;
+    }
     if (msg.action === "readResponse") {
       readLatestResponse().then(async text => {
         if (typeof postProcessBlobUrls === "function") { text = await postProcessBlobUrls(text); }
@@ -107,11 +109,28 @@ function _extractEl(el) {
   return el.textContent || el.innerText || "";
 }
 
+function latestResponseElement(elements) {
+  const picked = globalThis.ArenaShared?.getLatestResponseCandidate?.(elements, SITE);
+  if (picked) return picked;
+  if (globalThis.ArenaShared?.hasResponseCursor?.(SITE)) return null;
+  if (!elements || !elements.length) return null;
+  return globalThis.ArenaShared?.getLastNonEmpty?.(elements) || elements[elements.length - 1];
+}
+
+function rememberCurrentResponseCursor() {
+  // v5.0.16: 只用站点自身 response 选择器建锚点，且与提取同源（indexOf 可直接命中）。
+  //   旧版追加的广谱通配（[class*='assistant'] / [class*='response'] 等）会把侧边栏、
+  //   设置按钮等无关元素收进候选，锚点可能落在对话区之后，把真实新回答整体过滤掉。
+  try {
+    globalThis.ArenaShared?.rememberResponseCursor?.(SITE, queryBySelectors("response", { all: true }));
+  } catch (_) {}
+}
+
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
   // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
   if (responses.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    const _last = latestResponseElement(responses);
     return _extractEl(_last);
   }
   return "";
@@ -166,6 +185,7 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
+    rememberCurrentResponseCursor();
     const el = queryBySelectors("input");
     if (!el) return { site: SITE, status: "error", error: "未找到输入框", code: "INJECT_NO_INPUT", snapshot: { service: SITE, stage: "injecting", hitSelectors: { input: null }, domTextLen: 0, bootstrapReady: !!globalThis.__arenaBootstrap, pageUrl: location.href } };
 
@@ -215,7 +235,7 @@ async function readLatestResponse() {
   const tryGet = (sel) => {
     const els = document.querySelectorAll(sel);
     if (!els.length) return null;
-    return globalThis.ArenaShared?.getLastNonEmpty?.(els) || els[els.length - 1];
+    return latestResponseElement(els);
   };
   const direct = tryGet('div.segment.segment-assistant')
               || tryGet('div[class*="segment-assistant"]')
@@ -229,7 +249,7 @@ async function readLatestResponse() {
   // v5.2.6: 取最后一个有内容的（兜底末位空容器）
   const responses = queryBySelectors("response", { all: true });
   if (responses.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    const _last = latestResponseElement(responses);
     const t = _extractEl(_last).trim();
     if (t) return t;
   }
@@ -237,7 +257,7 @@ async function readLatestResponse() {
   // v5.2.6: 取最后一个有内容的（fallback prose 也兜底）
   const prose = document.querySelectorAll('.markdown-body, .prose, [class*="markdown"]');
   if (prose.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(prose) || prose[prose.length - 1];
+    const _last = latestResponseElement(prose);
     const t = _extractEl(_last).trim();
     if (t) return t;
   }
@@ -245,14 +265,15 @@ async function readLatestResponse() {
   // v4.5.4 F1: 无用户消息 DOM → 当前是登录/首页/空会话页，主页 banner 装饰文本会被误当 AI 回答
   if (typeof hasUserMessageInDom === "function" && !hasUserMessageInDom()) return "";
   const all = document.querySelectorAll("div, article, section");
-  for (let i = all.length - 1; i >= 0; i--) {
-    const el = all[i];
-    if (el.closest("nav, header, footer, [role=banner], [role=navigation]")) continue;
-    if (el.querySelector("textarea, input, [contenteditable]")) continue;
-    const t = (el.innerText || el.textContent || "").trim();
-    if (t.length > 20 && el.getBoundingClientRect().height > 30) {
-      return _extractEl(el).trim() || t;
-    }
+  const fallback = globalThis.ArenaShared?.findReadableBlock?.(all, {
+    minTextLength: 20,
+    minHeight: 30,
+    limit: 80,
+    reject: (el) => !!(el.closest("nav, header, footer, [role=banner], [role=navigation]") || el.querySelector("textarea, input, [contenteditable]")),
+  });
+  if (fallback) {
+    const t = (fallback.innerText || fallback.textContent || "").trim();
+    return _extractEl(fallback).trim() || t;
   }
   return "";
 }

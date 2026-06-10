@@ -58,6 +58,8 @@
   // ── 状态 ──
   // bubbleByKey: key = `${msgId}-${participantId}` → DOM element
   const bubbleByKey = new Map();
+  const STREAM_RENDER_DEBOUNCE_MS = 220;
+  const streamRenderState = new Map();
 
   // ── 渲染 ──
   function ensureEmptyHidden() {
@@ -171,6 +173,52 @@
   }
 
   // v4.8.41: compact mode 切换时，对所有已渲染气泡重新评估折叠状态
+  function renderStreamingText(text) {
+    const safe = escapeHtml(text || "").replace(/\n/g, "<br>");
+    return safe ? `<p>${safe}</p>` : `<span class="msg-typing"><span></span><span></span><span></span></span>`;
+  }
+
+  function setAIStat(stat, isDone, hasText) {
+    if (!stat) return;
+    if (isDone) {
+      stat.className = "stat done";
+      stat.innerHTML = `<span class="pip"></span>Done`;
+    } else if (hasText) {
+      stat.className = "stat streaming";
+      stat.innerHTML = `<span class="pip"></span>Streaming`;
+    }
+  }
+
+  function appendRichPill(bubble, participantId, richTypes) {
+    if (!bubble || !richTypes?.length) return;
+    const pill = document.createElement("a");
+    pill.className = "msg-rich-pill";
+    pill.dataset.participantId = participantId;
+    pill.innerHTML = `View ${richTypes.join("/")} in ${NAME[participantId] || participantId}`;
+    pill.addEventListener("click", (e) => {
+      e.preventDefault();
+      chrome.runtime.sendMessage({ type: "chatJumpToOrigin", participantId });
+    });
+    bubble.appendChild(pill);
+  }
+
+  function renderAIBubbleContent(row, bubble, participantId, text, isDone, hasRichContent, richTypes, renderMarkdownNow) {
+    if (!bubble) return;
+    bubble.innerHTML = text
+      ? (renderMarkdownNow ? renderMarkdown(text) : renderStreamingText(text))
+      : `<span class="msg-typing"><span></span><span></span><span></span></span>`;
+    if (text) applyFoldClass(bubble, text, isDone);
+    const stat = row?.querySelector(".msg-meta .stat");
+    setAIStat(stat, isDone, !!text);
+    if (isDone && hasRichContent && richTypes?.length) appendRichPill(bubble, participantId, richTypes);
+    scrollToBottom();
+  }
+
+  function clearStreamRenderTimer(key) {
+    const state = streamRenderState.get(key);
+    if (state?.timer) clearTimeout(state.timer);
+    streamRenderState.delete(key);
+  }
   document.addEventListener("compact:changed", () => {
     document.querySelectorAll(".msg.ai").forEach(row => {
       const bubble = row.querySelector(".msg-bubble");
@@ -183,34 +231,34 @@
   });
 
   function updateAIBubble(msgId, participantId, text, isDone, hasRichContent, richTypes) {
-    const row = bubbleByKey.get(`${msgId}-${participantId}`);
+    const key = `${msgId}-${participantId}`;
+    const row = bubbleByKey.get(key);
     if (!row) return appendAIBubble(msgId, participantId, text, !text);
     const bubble = row.querySelector(".msg-bubble");
     const stat = row.querySelector(".msg-meta .stat");
     if (!bubble) return;
-    bubble.innerHTML = text ? renderMarkdown(text) : `<span class="msg-typing"><span></span><span></span><span></span></span>`;
-    if (text) applyFoldClass(bubble, text, isDone);
-    if (stat) {
-      if (isDone) {
-        stat.className = "stat done";
-        stat.innerHTML = `<span class="pip"></span>已完成`;
-      } else if (text) {
-        stat.className = "stat streaming";
-        stat.innerHTML = `<span class="pip"></span>提取中`;
+    if (!isDone && text) {
+      let state = streamRenderState.get(key);
+      if (!state) state = {};
+      state.row = row;
+      state.bubble = bubble;
+      state.participantId = participantId;
+      state.text = text;
+      if (!state.timer) {
+        state.timer = setTimeout(() => {
+          const latest = streamRenderState.get(key);
+          if (!latest) return;
+          latest.timer = null;
+          streamRenderState.delete(key);
+          renderAIBubbleContent(latest.row, latest.bubble, latest.participantId, latest.text, false, false, [], false);
+        }, STREAM_RENDER_DEBOUNCE_MS);
       }
+      streamRenderState.set(key, state);
+      setAIStat(stat, false, true);
+      return;
     }
-    if (isDone && hasRichContent && richTypes?.length) {
-      const pill = document.createElement("a");
-      pill.className = "msg-rich-pill";
-      pill.dataset.participantId = participantId;
-      pill.innerHTML = `📦 含 ${richTypes.join("/")} ↗ 在 ${NAME[participantId]} 查看`;
-      pill.addEventListener("click", (e) => {
-        e.preventDefault();
-        chrome.runtime.sendMessage({ type: "chatJumpToOrigin", participantId });
-      });
-      bubble.appendChild(pill);
-    }
-    scrollToBottom();
+    clearStreamRenderTimer(key);
+    renderAIBubbleContent(row, bubble, participantId, text, isDone, hasRichContent, richTypes, true);
   }
 
   function escapeHtml(s) {

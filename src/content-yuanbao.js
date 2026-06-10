@@ -45,13 +45,8 @@ function getHeuristicElement(action, options = {}) {
     // v4.5.4 F1: 无用户消息 DOM → 不在对话页，放弃 heuristic 防误抓装饰元素
     if (typeof hasUserMessageInDom === "function" && !hasUserMessageInDom()) return options.all ? [] : null;
     const blocks = document.querySelectorAll('div, article, section');
-    for (let i = blocks.length - 1; i >= 0; i--) {
-      const text = blocks[i].innerText?.trim();
-      if (text && text.length > 100 && blocks[i].getBoundingClientRect().height > 50) {
-        return options.all ? [blocks[i]] : blocks[i];
-      }
-    }
-    return options.all ? [] : null;
+    const block = globalThis.ArenaShared?.findReadableBlock?.(blocks, { minTextLength: 100, minHeight: 50, limit: 80 });
+    return options.all ? (block ? [block] : []) : block;
   }
   if (action === "sendButton") {
     const btns = [...document.querySelectorAll("button")];
@@ -63,16 +58,23 @@ function getHeuristicElement(action, options = {}) {
 // v5.2.20: streaming 判定改用 ArenaShared.detectStreaming（限定最新回答容器 + 视口可见，
 //   不再全文档 querySelector + 裸 width>0），修第二/三轮起 isStreaming 误卡 true 导致提取拖延/超时。
 function _detectStreaming() {
-  let latest = null;
   const rs = queryBySelectors("response", { all: true });
-  if (rs && rs.length) latest = globalThis.ArenaShared?.getLastNonEmpty?.(rs) || rs[rs.length - 1];
+  const latest = rs && rs.length ? latestResponseElement(rs) : null;
   return globalThis.ArenaShared?.detectStreaming?.(selectors?.streaming || [], latest, window, document) || false;
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   try {
     if (msg.action === "ping") { sendResponse({ ready: true }); return false; }
-    if (msg.action === "inject") { injectAndSend(msg.text).then(sendResponse).catch(e => sendResponse({ site: SITE, status: "error", error: e.message })); return true; }
+    if (msg.action === "inject") {
+      // v5.0.16: 发送失败时清 cursor 锚点 → 提取回退尾部候选，防错误基准截掉真实新回答
+      const respondInject = (result) => {
+        if (!result || result.status !== "sent") { try { globalThis.ArenaShared?.clearResponseCursorAnchor?.(SITE); } catch (_) {} }
+        sendResponse(result);
+      };
+      injectAndSend(msg.text).then(respondInject).catch(e => respondInject({ site: SITE, status: "error", error: e.message }));
+      return true;
+    }
     if (msg.action === "readResponse") {
       readLatestResponse().then(async text => {
         if (typeof postProcessBlobUrls === "function") { text = await postProcessBlobUrls(text); }
@@ -106,11 +108,28 @@ function _extractEl(el) {
   return el.textContent || el.innerText || "";
 }
 
+function latestResponseElement(elements) {
+  const picked = globalThis.ArenaShared?.getLatestResponseCandidate?.(elements, SITE);
+  if (picked) return picked;
+  if (globalThis.ArenaShared?.hasResponseCursor?.(SITE)) return null;
+  if (!elements || !elements.length) return null;
+  return globalThis.ArenaShared?.getLastNonEmpty?.(elements) || elements[elements.length - 1];
+}
+
+function rememberCurrentResponseCursor() {
+  // v5.0.16: 只用站点自身 response 选择器建锚点，且与提取同源（indexOf 可直接命中）。
+  //   旧版追加的广谱通配（[class*='assistant'] / [class*='response'] 等）会把侧边栏、
+  //   设置按钮等无关元素收进候选，锚点可能落在对话区之后，把真实新回答整体过滤掉。
+  try {
+    globalThis.ArenaShared?.rememberResponseCursor?.(SITE, queryBySelectors("response", { all: true }));
+  } catch (_) {}
+}
+
 function getLastResponseText() {
   const responses = queryBySelectors("response", { all: true });
   // v5.2.6: 取最后一个有内容的（兜底末位空容器：streaming / spacer / 装饰）
   if (responses.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    const _last = latestResponseElement(responses);
     return _extractEl(_last);
   }
   return "";
@@ -165,6 +184,7 @@ async function robustInject(el, text) {
 
 async function injectAndSend(text) {
   try {
+    rememberCurrentResponseCursor();
     // v4.8.28 F36: 等上一条 streaming 完成才 inject（防第二次发问失败）
     const waitStart = Date.now();
     while (Date.now() - waitStart < 15000) {
@@ -222,14 +242,16 @@ async function readLatestResponse() {
   const responses = queryBySelectors("response", { all: true });
   // v5.2.6: 取最后一个有内容的（兜底末位空容器）
   if (responses.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(responses) || responses[responses.length - 1];
+    const _last = latestResponseElement(responses);
     return _extractEl(_last).trim();
   }
   const prose = document.querySelectorAll('.markdown-body, .prose, [class*="markdown"]');
   // v5.2.6: 取最后一个有内容的（fallback prose 也兜底）
   if (prose.length > 0) {
-    const _last = globalThis.ArenaShared?.getLastNonEmpty?.(prose) || prose[prose.length - 1];
-    return _last.innerText.trim();
+    const _last = latestResponseElement(prose);
+    // v5.0.16: 改走 _extractEl（fenced 代码块安全提取，与主路径一致）；
+    //   裸 innerText 会丢代码块反引号，且 _last 为 null（cursor 已建、新回答未出现）时直接抛错
+    return _extractEl(_last).trim();
   }
   return "";
 }
