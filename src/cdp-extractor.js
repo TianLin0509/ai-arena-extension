@@ -31,6 +31,11 @@
 
   async function attachAndWake(tabId) {
     if (!tabId) return { ok: false, error: "no tabId" };
+    // v5.0.18: store 版 manifest 不声明 debugger 权限（CWS 审核），API 整体缺失时优雅降级 —
+    //   Tab 模式防节流仍有 bootstrap-main-world.js visibility patch 兜底
+    if (!chrome.debugger?.attach) {
+      return { ok: false, error: "debugger API 不可用（store 版未声明该权限）", code: "no_api" };
+    }
     if (attachedTabs.has(tabId)) {
       return { ok: true, reused: true };
     }

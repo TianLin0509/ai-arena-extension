@@ -123,17 +123,36 @@ const StateMachine = {
     };
   },
   _writeToStorage() {
-    chrome.storage.local.set({
-      sm_flowState: this.flowState,
-      sm_participants: this.participants,
-      sm_nextId: this.nextId,
-      sm_debateSession: this.compactDebateSessionForStorage(),
-      sm_markerRound: this.markerRound,
-      sm_lastSentByPid: this.lastSentByPid,
-      sm_lastAcceptedByPid: this.lastAcceptedByPid,
-      sm_pendingSummary: this.pendingSummary,  // v4.5.5 F6
-      sm_lastSentTs: this.lastSentTs || 0,     // v5.0.17 P0-4
-    });
+    // v5.0.18 P2-1: 写盘失败不再 100% 静默 — storage.local 配额满（5MB）时所有状态
+    //   持久化失效，SW 回收后辩论历史/参与者全丢。失败时告警让用户知道该重置会话。
+    try {
+      const ret = chrome.storage.local.set({
+        sm_flowState: this.flowState,
+        sm_participants: this.participants,
+        sm_nextId: this.nextId,
+        sm_debateSession: this.compactDebateSessionForStorage(),
+        sm_markerRound: this.markerRound,
+        sm_lastSentByPid: this.lastSentByPid,
+        sm_lastAcceptedByPid: this.lastAcceptedByPid,
+        sm_pendingSummary: this.pendingSummary,  // v4.5.5 F6
+        sm_lastSentTs: this.lastSentTs || 0,     // v5.0.17 P0-4
+      });
+      if (ret && typeof ret.catch === "function") ret.catch((e) => this._onStorageWriteError(e));
+    } catch (e) {
+      this._onStorageWriteError(e);
+    }
+  },
+  _onStorageWriteError(e) {
+    console.error("[StateMachine] 状态写盘失败:", e?.message || e);
+    const now = Date.now();
+    if (this._lastStorageWarnTs && now - this._lastStorageWarnTs < 60000) return;  // 60s 限频
+    this._lastStorageWarnTs = now;
+    try {
+      chrome.runtime.sendMessage({
+        type: "chatStreamUpdate", role: "user", msgId: `m${now}_storagewarn`,
+        text: `⚠ 扩展状态保存失败（${e?.message || "未知错误"}）。可能是本地存储配额已满，长辩论历史有丢失风险，建议尽快"彻底重置"释放空间。`,
+      }).catch(() => {});
+    } catch (_) {}
   },
 
   // ── Flow 状态转换 ──

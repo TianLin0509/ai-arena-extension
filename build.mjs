@@ -48,7 +48,10 @@ async function copySrc(target, { storeMode = false } = {}) {
 async function patchStoreManifest(target) {
   const p = resolve(target, "manifest.json");
   const m = JSON.parse(await readFile(p, "utf8"));
-  m.permissions = m.permissions.filter(x => x !== "declarativeNetRequest");
+  // v5.0.18: store 版同步剥离 debugger — CWS 最敏感权限（严格人工审核 + 用户侧常驻
+  //   "正在调试此浏览器"黄条）。Tab 模式防节流由 bootstrap-main-world.js 的 visibility
+  //   patch 覆盖，cdp-extractor 对 chrome.debugger 缺失有 no_api 优雅降级。
+  m.permissions = m.permissions.filter(x => x !== "declarativeNetRequest" && x !== "debugger");
   delete m.declarative_net_request;
   await writeFile(p, JSON.stringify(m, null, 2) + "\n", "utf8");
   const dnr = resolve(target, "dnr-rules.json");

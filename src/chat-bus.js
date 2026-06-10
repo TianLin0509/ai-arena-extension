@@ -325,7 +325,18 @@ const ChatBus = (() => {
   async function sendToPopup(payload) {
     try {
       await chrome.runtime.sendMessage(payload);
-    } catch {}
+    } catch (e) {
+      // v5.0.18 P2-3: popup 关闭时的预期错误继续静默（F17 设计）；其他系统级错误
+      //   （消息格式异常 / 通道损坏）低频 warn —— 这是每 1.5s 的高频路径，出问题时
+      //   旧版完全无日志不可诊断（"气泡停更"无从排查）。30s 限频防刷屏。
+      const msg = e?.message || "";
+      if (/Receiving end does not exist|message port closed|Could not establish connection/i.test(msg)) return;
+      const now = Date.now();
+      if (!sendToPopup._lastWarnTs || now - sendToPopup._lastWarnTs > 30000) {
+        sendToPopup._lastWarnTs = now;
+        console.warn("[chat-bus] sendToPopup 非预期异常:", msg);
+      }
+    }
   }
 
   // v4.6.7 F17: popup 启动时主动告知 SW 自己的 windowId
@@ -833,6 +844,8 @@ const ChatBus = (() => {
       //   re-add 时新 poller 已占用 service slot，旧 catch 误删新 poller 让新 AI 气泡不更新
       if (pollers.get(service) === state) pollers.delete(service);
       releaseCDPFor(state, tabId);
+      // v5.0.18 P2-2: 同步清该 service 的兜底 watcher — 失联后让它再空 tick 一次没有意义
+      try { stopWatch(service); } catch (_) {}
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
         participantId: service, text: `⚠ ${participant.name} 已断开`,
@@ -862,6 +875,15 @@ const ChatBus = (() => {
     }
     watchers.clear();
     // v4.8.19 F32: 已无 CDP attach 需要 detach
+  }
+
+  // v5.0.18 P2-2: 显式停掉某 service 的 watcher（pollOnce 失联清理用）
+  function stopWatch(service) {
+    const st = watchers.get(service);
+    if (!st) return;
+    try { clearTimeout(st.timerId); } catch (_) {}
+    try { clearInterval(st.intervalId); } catch (_) {}
+    watchers.delete(service);
   }
 
   // v4.6.9 F19: polling 判完成后启动兜底 watcher
