@@ -483,11 +483,35 @@ const ChatBus = (() => {
     };
   }
 
+  // v5.0.17 P0-3: 从 notifyRoundStart / injectAndPoll 抽出的单 AI polling 启动器。
+  //   辩论解耦的核心：每个 AI inject 成功即调它，不等其他 AI（旧版统一启动被
+  //   Promise.all 屏障阻塞，千问慢会拖累 gemini/豆包的回答提取）。
+  //   pollers.has 清旧防重复启动。
+  function startPollingForService(participant, msgId) {
+    if (pollers.has(participant.service)) {
+      const old = pollers.get(participant.service);
+      clearInterval(old.intervalId);
+      releaseCDPFor(old, participant.tabId);
+    }
+    // v4.5.6 F11: 记录上一轮已采纳回答 → pollOnce 拒绝残留
+    const state = {
+      lastText: "", sameCount: 0, msgId,
+      prevAccepted: StateMachine.lastAcceptedByPid?.[participant.id] || "",
+      cdpAttached: false,
+    };
+    tryAttachCDPForPolling(state, participant.tabId);
+    state.intervalId = setInterval(() => pollOnce(participant, state), POLL_INTERVAL_MS);
+    pollers.set(participant.service, state);
+    return state;
+  }
+
   // 外部触发的轮次（辩论 / 总结 / 手动发送）：不再 inject（外部已 inject），只显示用户气泡+启动 polling
   // displayText = popup 用户气泡显示文本（如"⚔️ 第1轮辩论·自由"）
   // participantServices = 受影响的参与者 service id 列表（如 ["claude","gemini","chatgpt"]）
   // presetMsgId = v4.6.13 F20: 外部预生成 msgId（用于辩论 pending 占位 → 正式状态复用同气泡）
-  function notifyRoundStart(displayText, participantServices, presetMsgId) {
+  // opts.skipPolling = v5.0.17 P0-3: 辩论路径已在 inject 成功时逐 AI 启动 polling，
+  //   这里只更新气泡/日志，不再统一启动（避免重启 polling 重置 state 计数）
+  function notifyRoundStart(displayText, participantServices, presetMsgId, opts = {}) {
     // v4.8.36: 复用 _resolveTargetsWithSkipped，对辩论/总结路径同样 fail loud
     const { targetList, skippedServices } = _resolveTargetsWithSkipped(participantServices);
     if (!targetList.length) return { ok: false, error: "无目标参与者", skippedTargets: skippedServices };
@@ -502,24 +526,60 @@ const ChatBus = (() => {
         participantId: p.service, text: "", isDone: false,
       });
       // 启动该 participant 的 polling（不 inject）
-      if (pollers.has(p.service)) {
-        const old = pollers.get(p.service);
-        clearInterval(old.intervalId);
-        releaseCDPFor(old, p.tabId);
-      }
-      // v4.5.6 F11: 记录上一轮已采纳回答 → pollOnce 拒绝残留
-      const state = {
-        lastText: "", sameCount: 0, msgId,
-        prevAccepted: StateMachine.lastAcceptedByPid?.[p.id] || "",
-        cdpAttached: false,
-      };
-      tryAttachCDPForPolling(state, p.tabId);
-      state.intervalId = setInterval(() => pollOnce(p, state), POLL_INTERVAL_MS);
-      pollers.set(p.service, state);
+      if (!opts.skipPolling) startPollingForService(p, msgId);
     }
     // v4.8.36: 对已离开的 service 创建警告气泡
     _emitSkippedWarning(msgId, skippedServices);
     return { ok: true, msgId, skippedTargets: skippedServices };
+  }
+
+  // v5.0.17 P0-4: SW 被回收后 pollers/watchers（内存 setInterval）全部蒸发，StateMachine
+  //   只把状态读回内存，没人重启 polling → 用户感知"AI 在网页里答完了，扩展气泡永远转圈"。
+  //   SW 重启 init 完成后扫描：流程在等待回答中 + 参与者还没拿到回答 + tab 活着 → 重建 polling。
+  //   时间窗 10 分钟：超窗视为陈旧会话（隔天重开浏览器等），不自动恢复避免提取过期内容。
+  const RESUME_POLL_WINDOW_MS = 10 * 60 * 1000;
+  async function resumePollingForPending() {
+    try {
+      const fs = StateMachine.flowState;
+      const waiting = (typeof FlowState !== "undefined")
+        ? [FlowState.BROADCASTING, FlowState.AWAITING_RESPONSES, FlowState.DEBATING, FlowState.SUMMARY].includes(fs)
+        : ["broadcasting", "awaiting_responses", "debating", "summary"].includes(fs);
+      if (!waiting) return { resumed: 0 };
+      const lastTs = StateMachine.lastSentTs || 0;
+      if (!lastTs || Date.now() - lastTs > RESUME_POLL_WINDOW_MS) return { resumed: 0, reason: "stale" };
+
+      const pending = [];
+      for (const p of StateMachine.participants || []) {
+        if (!p?.tabId || !p.service) continue;
+        if (p.response) continue;             // 已有回答的不用恢复
+        if (pollers.has(p.service)) continue; // 已在轮询（同生命周期内重复调用防御）
+        try { await chrome.tabs.get(p.tabId); } catch (_) { continue; } // tab 已关闭
+        pending.push(p);
+      }
+      if (!pending.length) return { resumed: 0 };
+
+      const msgId = newMsgId();
+      const names = pending.map(p => p.name).join("、");
+      const tip = `🔄 后台连接已恢复，继续接收 ${names} 的回答`;
+      pushLog({ role: "user", msgId, text: tip, ts: Date.now() });
+      sendToPopup({ type: "chatStreamUpdate", role: "user", msgId, text: tip });
+      for (const p of pending) {
+        // v5.0.17: 裁判总结恢复时复用 pendingSummary 存的原 msgId — 完成气泡落回原占位
+        //   气泡而非新增孤立气泡（finalize 触发链依赖 pollOnce 完成，msgId 一致 UX 才连贯）
+        const ps = StateMachine.pendingSummary;
+        const useMsgId = (ps && ps.judgeId === p.id && ps.msgId) ? ps.msgId : msgId;
+        sendToPopup({
+          type: "chatStreamUpdate", role: "ai", msgId: useMsgId,
+          participantId: p.service, text: "", isDone: false,
+        });
+        startPollingForService(p, useMsgId);
+      }
+      console.log(`[chat-bus] v5.0.17 SW 重启恢复 polling × ${pending.length}: ${names}`);
+      return { resumed: pending.length };
+    } catch (e) {
+      console.warn("[chat-bus] resumePollingForPending fail:", e?.message);
+      return { resumed: 0, error: e?.message };
+    }
   }
 
   // v4.8.19 F32: 完全废弃 chrome.debugger 路线
@@ -572,21 +632,8 @@ const ChatBus = (() => {
       // 不发 popup notification（避免提早惊扰用户，让 polling 安静兜底）
       // 仅记日志方便后续 diagnose
     }
-    // 启动 polling
-    if (pollers.has(service)) {
-      const old = pollers.get(service);
-      clearInterval(old.intervalId);
-      releaseCDPFor(old, tabId);
-    }
-    // v4.5.6 F11: 记录上一轮已采纳回答 → pollOnce 拒绝残留
-    const state = {
-      lastText: "", sameCount: 0, msgId,
-      prevAccepted: StateMachine.lastAcceptedByPid?.[participant.id] || "",
-      cdpAttached: false,
-    };
-    tryAttachCDPForPolling(state, tabId);
-    state.intervalId = setInterval(() => pollOnce(participant, state), POLL_INTERVAL_MS);
-    pollers.set(service, state);
+    // 启动 polling（v5.0.17: 复用 startPollingForService）
+    startPollingForService(participant, msgId);
   }
 
   async function pollOnce(participant, state) {
@@ -724,8 +771,29 @@ const ChatBus = (() => {
           // 截图证据：DeepSeek/千问 popup 显示"已完成"+ 文本（sendToPopup 路径），
           //          但 p.response 空（readOneResponse 失败），用户辩论时报错
           if (typeof readOneResponse === "function") {
+            // v5.0.17 P1-5: 落库失败 fail-loud — 旧版静默吞掉，用户看到气泡有完整回答，
+            //   但 p.response 为空，点"开始辩论"报"回答不足"完全无从排查。
+            //   现在把原因追加到气泡 + 写进 chatLog（popup 重开后历史里警告也在）。
+            const _storeFailLoud = (reason) => {
+              const warnText = `${text}\n\n⚠ 该回答未能落库（${reason || "未知原因"}），发起辩论前请点 🔄 重新提取`;
+              pushLog({
+                role: "ai", msgId: state.msgId, participantId: service,
+                text: warnText, ts: Date.now(), hasRichContent: hasRich, richTypes,
+                responseStoreError: true,
+              });
+              sendToPopup({
+                type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
+                participantId: service, text: warnText, isDone: true,
+                hasRichContent: hasRich, richTypes, responseStoreError: true,
+              });
+            };
             readOneResponse(participant.id)
-              .catch(() => {})
+              .then((rr) => { if (rr && rr.ok === false) _storeFailLoud(rr.error); })
+              .catch((e) => {
+                // v5.0.17: reject 路径同样可见（旧版 catch(()=>{}) 全吞）
+                console.warn("[chat-bus] readOneResponse reject:", service, e?.message);
+                _storeFailLoud(e?.message);
+              })
               .finally(() => releaseCDPFor(state, tabId));
           } else {
             releaseCDPFor(state, tabId);
@@ -1011,6 +1079,8 @@ const ChatBus = (() => {
     getActivePollerCount: () => pollers.size,
     broadcast,
     notifyRoundStart,
+    startPollingForService,    // v5.0.17 P0-3: 辩论路径逐 AI 启动 polling
+    resumePollingForPending,   // v5.0.17 P0-4: SW 重启后恢复进行中的轮询
     getLog,
     clearLog,
     clearAllPollers,

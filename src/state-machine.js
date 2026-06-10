@@ -42,7 +42,7 @@ const StateMachine = {
     // v4.5.5 F6: sm_pendingSummary 加入持久化列表 — SW 30s 空闲被回收重启时，
     // pendingSummary（"等待裁判 AI 输出 → 触发 finalize"标记）会丢，用户感知就是
     // 点了"裁判总结"按钮但永远不出 HTML 报告
-    const data = await chrome.storage.local.get(["sm_flowState", "sm_participants", "sm_nextId", "sm_debateSession", "sm_markerRound", "sm_lastSentByPid", "sm_lastAcceptedByPid", "sm_pendingSummary"]);
+    const data = await chrome.storage.local.get(["sm_flowState", "sm_participants", "sm_nextId", "sm_debateSession", "sm_markerRound", "sm_lastSentByPid", "sm_lastAcceptedByPid", "sm_pendingSummary", "sm_lastSentTs"]);
     if (data.sm_flowState) this.flowState = data.sm_flowState;
     if (data.sm_participants) this.participants = data.sm_participants;
     if (data.sm_nextId) this.nextId = data.sm_nextId;
@@ -51,6 +51,7 @@ const StateMachine = {
     if (data.sm_lastSentByPid) this.lastSentByPid = data.sm_lastSentByPid;
     if (data.sm_lastAcceptedByPid) this.lastAcceptedByPid = data.sm_lastAcceptedByPid;
     if (data.sm_pendingSummary) this.pendingSummary = data.sm_pendingSummary;
+    if (data.sm_lastSentTs) this.lastSentTs = data.sm_lastSentTs;  // v5.0.17 P0-4
   },
 
   // v5.0.8 perf: save() 改为节流写盘 — 单轮辩论原本触发 20+ 次 setLastSent/setParticipantResponse
@@ -131,6 +132,7 @@ const StateMachine = {
       sm_lastSentByPid: this.lastSentByPid,
       sm_lastAcceptedByPid: this.lastAcceptedByPid,
       sm_pendingSummary: this.pendingSummary,  // v4.5.5 F6
+      sm_lastSentTs: this.lastSentTs || 0,     // v5.0.17 P0-4
     });
   },
 
@@ -233,6 +235,9 @@ const StateMachine = {
 
   setLastSent(pid, text) {
     this.lastSentByPid[pid] = text || "";
+    // v5.0.17 P0-4: 记录最近一次发送时间 — SW 重启恢复 polling 的时间窗判据
+    //   （10 分钟内的等待才恢复，隔夜陈旧会话不自动提取）
+    this.lastSentTs = Date.now();
     this.save();
   },
 

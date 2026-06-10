@@ -37,6 +37,12 @@ const _windowModeLoaded = new Promise(resolve => {
 // ── 初始化 ──
 const initPromise = Promise.all([StateMachine.init(), ChatBus.init(), _windowModeLoaded]);
 
+// v5.0.17 P0-4: SW 重启后恢复进行中的轮询 — pollers 是内存 setInterval，SW 30s 空闲被
+//   回收后全部蒸发；不恢复的话长辩论必然僵死（AI 在网页里答完，扩展气泡永远转圈）。
+initPromise.then(() => {
+  try { ChatBus.resumePollingForPending?.(); } catch (e) { console.warn("[bg] resumePolling fail:", e?.message); }
+}).catch((e) => console.warn("[bg] init failed:", e?.message));
+
 // v4.2.0 Phase 2: 默认点扩展图标 → 开 popup 群聊窗口（而非 sidepanel）
 // sidepanel 仍可通过 popup 内"打开 sidepanel"按钮或 openSidepanel message 进入
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
@@ -622,6 +628,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     } catch (e) {
       sendResponse({ ok: false, error: e.message });
     }
+  }).catch((e) => {
+    // v5.0.17 P0-5: initPromise reject（storage 损坏等）时旧版 .then 不执行，sendResponse
+    //   永不被调但 return true 已承诺异步回应 → popup 所有按钮点了无反应像死机且无提示。
+    //   兜底保证 sendResponse 任何路径都被调用。
+    try { sendResponse({ ok: false, error: `SW 初始化失败: ${e?.message || e}` }); } catch (_) {}
   });
   return true;
 });
@@ -840,9 +851,17 @@ async function handleBroadcast(text, images) {
       const ready = await waitForContentScript(p.tabId);
       if (!ready) return { name: p.name, status: "error", error: "页面未就绪" };
       if (images && images.length > 0) {
-        await chrome.tabs.sendMessage(p.tabId, { action: "injectImages", images });
+        // v5.0.17 P1-6: 注图失败不再让整个 participant 的 async 回调直接 throw —
+        //   旧版 results[p.id] 缺失，该 AI 不注入、不 polling、气泡永远空白且无提示。
+        //   图片注入失败降级为"只发文字"，并在结果里标记让 popup 可见。
+        try {
+          await sendMessageWithTimeout(p.tabId, { action: "injectImages", images }, 15000);
+        } catch (e) {
+          console.warn(`[bg] injectImages 失败 (${p.service})，降级只发文字:`, e?.message);
+          notifyStatus(`⚠ ${p.name} 图片注入失败，已只发送文字`);
+        }
       }
-      const result = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
+      const result = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
       return { name: p.name, ...result };
     };
     try {
@@ -1237,6 +1256,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
       // v5.0.11: tab 失联也记一条 error 进 sendResults，让下方 missingIds 检测能捕获
       //   原逻辑直接 return → sendResults[id] 缺失 → sentIds 不含它 → 静默丢失（用户感知 bug）
       sendResults[id] = { site: p?.service || id, status: "error", error: "tab 失联（参与者未打开）" };
+      _endDebateLoadingBubble(pendingMsgId, p, "tab 失联（参与者未打开）");
       return;
     }
     let prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
@@ -1244,16 +1264,31 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     promptsByPid[id] = prompt;  // v5.0.11
     // 记录"刚发给该 p 的 prompt"——sanity check 用
     StateMachine.setLastSent(id, prompt);
+    // v5.0.17 P0-3: 裸 sendMessage 改 15s 超时（对齐 retry 路径）— content script 收到消息
+    //   但 promise 链异常永不 sendResponse（tab 冻结边缘态）时，旧版整轮 Promise.all 永挂。
     try {
-      sendResults[id] = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
+      sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
     } catch (e) {
       await new Promise(ok => setTimeout(ok, 2000));
       try {
-        sendResults[id] = await chrome.tabs.sendMessage(p.tabId, { action: "inject", text: prompt });
+        sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
       } catch (e2) {
         sendResults[id] = { site: p.service, status: "error", error: e2.message };
         notifyStatus(`注入 ${p.name} 失败: ${e2.message}`);
       }
+    }
+    // v5.0.17 P0-3 解耦核心：inject 成功立即启动该 AI 自己的 polling，不等其他 AI。
+    //   旧版"全部发完才统一启 polling"（Promise.all 屏障后 notifyRoundStart），千问 inject
+    //   慢/失败会拖累 gemini/豆包早已就绪的回答提取（用户实锤：去掉千问一切正常）。
+    //   已知 tradeoff：sendMessageWithTimeout 超时 ≠ 未发送（content script 可能 15s 后仍完成
+    //   发送），重试存在小概率双发；与旧版 catch+重试行为一致，根治需幂等 token 协议，暂记录。
+    const st = sendResults[id]?.status;
+    if (st === "sent" || st === "inputted") {
+      try { ChatBus.startPollingForService(p, pendingMsgId); }
+      catch (e) { console.warn("[bg] startPollingForService fail:", p.service, e?.message); }
+    } else {
+      // v5.0.17: 终结该 AI 的 loading 占位气泡 — 旧版 inject 失败的 AI 气泡永远转圈无提示
+      _endDebateLoadingBubble(pendingMsgId, p, sendResults[id]?.error || sendResults[id]?.status || "未知原因");
     }
   }));
 
@@ -1266,13 +1301,9 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
       roundNum, style, guidance,
       responses: Object.fromEntries(Object.entries(responses).map(([id, r]) => [id, { name: r.name, text: r.text }]))
     });
-
-    StateMachine.participants.forEach(p => {
-      if (sentIds.includes(p.id)) {
-        p.response = null;
-        p.responsePreview = null;
-      }
-    });
+    // v5.0.17 P0-3: 删除此处对 sentIds 的二次 response 清空 — 入口处（inject 前）已统一清过。
+    //   解耦后 polling 在 inject 成功即启动，快 AI 可能在 Promise.all 屏障结束前就完成回答
+    //   并写入 p.response，这里再清会把刚到手的辩论回答抹掉。
   }
 
   StateMachine.save();
@@ -1313,12 +1344,17 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
   }
   notifyStatus(`第${roundNum}轮辩论已发送`);
 
-  // 同步 popup 群聊：显示用户气泡 + 启动 polling 给每个参与者
+  // 同步 popup 群聊：显示用户气泡（polling 已在各 AI inject 成功时逐个启动，skipPolling 防重启重置计数）
   // v4.6.13 F20: 用 pendingMsgId 复用入口时推的占位气泡 → popup 收到时更新文本而非新增气泡
   try {
     const services = sentIds.map(id => StateMachine.getParticipant(id)?.service).filter(Boolean);
-    ChatBus.notifyRoundStart(displayText, services, pendingMsgId);
-  } catch (e) { console.warn("[chat-bus] notifyRoundStart failed:", e.message); }
+    ChatBus.notifyRoundStart(displayText, services, pendingMsgId, { skipPolling: true });
+  } catch (e) {
+    // v5.0.17 P1-7: fail-loud — 旧版只 console.warn，polling 启动失败时气泡永远 loading 无提示。
+    //   解耦后 polling 已逐 AI 启动，这里失败只影响气泡文本，但仍通知用户避免困惑。
+    console.warn("[chat-bus] notifyRoundStart failed:", e.message);
+    notifyStatus(`⚠ 辩论已发送但群聊气泡更新失败: ${e.message}`);
+  }
 
   return {
     ok: true, roundNum, activeIds: sentIds, results: sendResults,
@@ -1329,6 +1365,19 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     totalCount: candidateIds.length,
     debateStarted: true,
   };
+}
+
+// v5.0.17: 辩论 inject 失败时终结该 AI 的 loading 占位气泡（isDone:true），
+//   配合 partialInject 弹窗给用户"补发"指引；旧版气泡永远转圈且无提示。
+function _endDebateLoadingBubble(msgId, p, reason) {
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "ai",
+      msgId, participantId: p?.service,
+      text: `⚠ ${p?.name || p?.service || "该 AI"} 辩论注入失败：${reason}（可在弹窗中点"补发缺失"重试）`,
+      isDone: true, injectError: true,
+    }).catch(() => {});
+  } catch (_) {}
 }
 
 // v5.0.11: 补发辩论 prompt 给 partial inject 失败的 AI
@@ -1432,6 +1481,11 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
   StateMachine.setFlowState(FlowState.SUMMARY);
   // v4.4.0: 仅 html 模式设置 pendingSummary（text 模式走老路径，气泡显示散文即可）
   // v4.5.5 F6: 用 setPendingSummary 触发 save，SW 重启时可恢复
+  // v4.6.14 F21: 占位气泡 msgId 提前生成 — v5.0.17 把它一并存进 pendingSummary，
+  //   SW 重启恢复 polling 时复用原 msgId，完成气泡落回原占位而非新增孤立气泡
+  const displayText = `📋 裁判总结请求 → ${judge.name}${customInstruction ? '：' + customInstruction : ''}`;
+  const pendingMsgId = `m${Date.now()}_s${judge.id}`;
+
   StateMachine.setPendingSummary(useJsonHtml ? {
     judgeId: judge.id,
     judgeName: judge.name,
@@ -1441,13 +1495,12 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
     rounds: StateMachine.debateSession.rounds.length || 0,
     participants: StateMachine.participants.map(p => p.name),
     ts: Date.now(),
+    msgId: pendingMsgId,  // v5.0.17 P0-4
   } : null);
   notifyStatus(`正在由 ${judge.name} 总结...`);
 
   // v4.6.14 F21: 立刻推 pending 占位气泡 — 同 F20 模式，inject 1-3s 等待前先反馈
   // 避免用户按下"裁判总结"后觉得卡住。inject 完成后用同 msgId 替换为正式 displayText。
-  const displayText = `📋 裁判总结请求 → ${judge.name}${customInstruction ? '：' + customInstruction : ''}`;
-  const pendingMsgId = `m${Date.now()}_s${judge.id}`;
   try {
     chrome.runtime.sendMessage({
       type: "chatStreamUpdate", role: "user",
@@ -1463,7 +1516,8 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
 
   try {
     StateMachine.setLastSent(judge.id, prompt);
-    const result = await chrome.tabs.sendMessage(judge.tabId, { action: "inject", text: prompt });
+    // v5.0.17: 对齐辩论路径 — 15s 超时防 tab 冻结挂死总结流程
+    const result = await sendMessageWithTimeout(judge.tabId, { action: "inject", text: prompt }, 15000);
     if (result?.status === "error") {
       const error = result.error || "注入失败";
       notifyStatus(`总结失败: ${error}`);
@@ -1480,7 +1534,10 @@ async function handleSummary(judgeId, customInstruction = "", format = "html") {
     } catch (e) { console.warn("[chat-bus] notifyRoundStart failed:", e.message); }
     return { ok: true, result };
   } catch (e) {
-    StateMachine.pendingSummary = null;
+    // v5.0.17 P1-4: 改用 setPendingSummary(null)（saveSync 落盘）— 旧版直接赋值只清内存，
+    //   storage 残留过期 pendingSummary，SW 重启恢复后下一个完成的回答会被误判成裁判总结，
+    //   弹出内容驴唇不对马嘴的"幽灵报告"
+    StateMachine.setPendingSummary(null);
     notifyStatus(`总结失败: ${e.message}`);
     return { ok: false, error: e.message };
   }

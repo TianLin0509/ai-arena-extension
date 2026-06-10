@@ -19,7 +19,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const EXT_PATH = path.join(PROJECT_ROOT, "src");
-const USER_DATA_DIR = path.join(__dirname, ".userdata");
+// v5.0.17: E2E_PROFILE_DIR 可指向其他持久化 profile（如 playwright-arena-profile 的登录态）
+const USER_DATA_DIR = process.env.E2E_PROFILE_DIR || path.join(__dirname, ".userdata");
 const ARTIFACTS = path.join(PROJECT_ROOT, ".arena", "artifacts", "real-debate");
 const CHROME_EXE = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
