@@ -80,10 +80,12 @@
       document.dispatchEvent(new CustomEvent("roster:changed", { detail: { selected: [...selected] } }));
       return;
     }
+    // v5.0.20 UX-1: 队长 = participants[0]（≥2 人，开关开启时）
+    const captainSvc = (window.ArenaCaptainInfo?.enabled?.() !== false && participants.length >= 2) ? participants[0]?.service : null;
     $items.innerHTML = participants.map(p => {
       const sel = selected.has(p.service);
       const src = BRAND_SVG[p.service] || "icons/brands/claude.svg";
-      const name = NAME[p.service] || p.service;
+      const name = (p.service === captainSvc ? "👑 " : "") + (NAME[p.service] || p.service);
       // v5.2.20: p.response（完成态权威值）优先，fallback 流式缓存（实时同步气泡）
       const resp = (p.response || streamPreview.get(p.service) || "").trim();
       const previewText = resp ? truncate(resp, 18) : "等待回复…";
@@ -108,6 +110,9 @@
       closeEditor();
     }
   }
+
+  // v5.0.20 UX-1: 队长模式开关变化 → 重绘 pill 徽章
+  document.addEventListener("captain:changed", () => { try { render(); } catch (_) {} });
 
   // ── pill 点击：logo = toggle，preview = 编辑 ──
   $items.addEventListener("click", (e) => {

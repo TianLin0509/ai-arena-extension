@@ -111,6 +111,22 @@ async function runPlatform(page, platform, { spaRerender = false } = {}) {
   if (!spaRerender) {
     assert.ok(!read.text.includes("OLD_RESPONSE_SHOULD_NOT_BE_RETURNED"), `${platform} should not extract the old response`);
   }
+
+  // v5.0.20 PERF-1 回归：同文本省略协议
+  // ① 全量响应必须带 textHash
+  assert.ok(read.textHash, `${platform} readResponse should return textHash`);
+  // ② 带相同 knownHash 再读 → sameText:true 且不回传 text
+  const same = await page.evaluate((h) => window.__sendArenaMessage({ action: "readResponse", knownHash: h }), read.textHash);
+  assert.equal(same.sameText, true, `${platform} should elide identical text, got: ${JSON.stringify(same)}`);
+  assert.ok(!("text" in same), `${platform} sameText response should not carry text`);
+  // ③ 文本追加后旧 knownHash 失效 → 回传新全文 + 新哈希
+  await page.evaluate(() => {
+    const el = document.querySelector(".arena-response:last-of-type");
+    el.textContent += " APPENDED_TAIL";
+  });
+  const grown = await page.evaluate((h) => window.__sendArenaMessage({ action: "readResponse", knownHash: h }), read.textHash);
+  assert.ok(grown.text && grown.text.includes("APPENDED_TAIL"), `${platform} grown text should be returned in full`);
+  assert.ok(grown.textHash && grown.textHash !== read.textHash, `${platform} grown text should carry a new hash`);
 }
 
 const browser = await chromium.launch({ headless: true });

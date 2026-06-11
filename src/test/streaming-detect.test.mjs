@@ -124,6 +124,17 @@ test("发送失败清锚点（clearResponseCursorAnchor）→ 提取回退尾部
   assert.equal(getLatestResponseCandidate([oldAnswer], "unit-cursor-clear"), oldAnswer);
 });
 
+test("textHash：同文本同哈希、异文本异哈希、内嵌长度防碰撞（v5.0.20 同文本省略协议）", () => {
+  const { textHash } = globalThis.ArenaShared;
+  const a = "这是一段回答".repeat(100);
+  assert.equal(textHash(a), textHash(a));
+  assert.notEqual(textHash(a), textHash(a + "尾巴"));
+  assert.ok(textHash(a).endsWith(":" + a.length), "哈希串内嵌长度");
+  assert.equal(textHash(""), textHash(""));
+  assert.notEqual(textHash(""), textHash(" "));
+  assert.equal(typeof textHash(null), "string");
+});
+
 test("fallback block scan is bounded to the tail candidates", () => {
   const makeBlock = (text, height = 80) => ({
     innerText: text,

@@ -103,6 +103,9 @@
   // v4.3.15: 排行榜折叠状态（持久化）
   let lbCollapsed = false;
 
+  // v5.0.20 UX-1: 队长模式开关/队长变化 → 重绘卡槽徽章
+  document.addEventListener("captain:changed", () => { try { render(); } catch (_) {} });
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -142,12 +145,15 @@
     const MAX_SLOTS = 3;
     const currentPidSet = new Set(joined.map(p => p.id));
     const newPids = [...currentPidSet].filter(pid => !_lastPidSet.has(pid));
+    // v5.0.20 UX-1: 队长 = joined[0]（≥2 人才有队长语义，与 captain-mode isCaptain 一致）
+    const captainSvc = (window.ArenaCaptainInfo?.enabled?.() !== false && joined.length >= 2) ? joined[0]?.service : null;
     const slotsHtml = Array.from({ length: MAX_SLOTS }, (_, i) => {
       const p = joined[i];
       if (p) {
         const meta = SERVICE_MAP[p.service] || { name: p.service, logo: null, heroLogo: null };
         const status = statusOf(p);
         const isNew = newPids.includes(p.id);
+        const captainMark = p.service === captainSvc ? '<div class="hero-slot-captain" title="队长：负责整合队友观点">👑</div>' : "";
         // v4.8.7: 优先用卡牌版 heroLogo；旧 svg 作为兜底
         // v4.8.14: heroLogo 走 ArenaLogoStyle.heroPath() 动态切换风格（classic/anime）
         const heroSrc = (window.ArenaLogoStyle?.heroPath(p.service)) || meta.heroLogo || meta.logo;
@@ -161,6 +167,7 @@
               ${heroSrc
                 ? `<img class="hero-slot-logo" src="${heroSrc}" alt="${escapeHtml(meta.name)}">`
                 : `<span class="hero-slot-fb">${escapeHtml((meta.name || "?")[0])}</span>`}
+              ${captainMark}
               <div class="hero-slot-name">${escapeHtml(meta.name)}</div>
               <div class="hero-slot-status"><span class="rp-status-dot ${status}"></span></div>
               <span class="hero-slot-check">✓</span>
@@ -179,8 +186,15 @@
     }).join("");
     _lastPidSet = currentPidSet;
 
+    // v5.0.20 UX-2: 本轮回答进度 — streamStatus 有任何记录（本轮发过问）才显示
+    const _roundStatuses = joined.map(p => streamStatus.get(p.service)).filter(Boolean);
+    const _doneN = joined.filter(p => streamStatus.get(p.service) === "ready").length;
+    const progressHtml = _roundStatuses.length
+      ? ` <span class="rp-round-progress${_doneN === joined.length ? " all-done" : ""}">本轮 ${_doneN}/${joined.length} 已答</span>`
+      : "";
+
     root.innerHTML = `
-      <div class="rp-section-title">已加入 <span class="rp-count">${joined.length}/${MAX_SLOTS}</span></div>
+      <div class="rp-section-title">已加入 <span class="rp-count">${joined.length}/${MAX_SLOTS}</span>${progressHtml}</div>
       <div class="hero-slots">
         ${slotsHtml}
       </div>

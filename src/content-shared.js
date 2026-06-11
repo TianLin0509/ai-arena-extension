@@ -128,6 +128,17 @@
     return null;
   }
 
+  // v5.0.20: 快速文本哈希（djb2-xor，结果内嵌长度）— readResponse 同文本省略协议用。
+  //   非加密用途，只判定"同一 tab 本轮文本是否变化"；哈希+长度双重比对，碰撞可忽略。
+  function textHash(str) {
+    const s = String(str == null ? "" : str);
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) + h) ^ s.charCodeAt(i);
+    }
+    return (h >>> 0).toString(36) + ":" + s.length;
+  }
+
   // v5.2.17: 安全往 contenteditable 注入多行文本（替代 innerHTML 拼接用户 prompt）
   //   多方审查 Codex 高危发现：robustInject 兜底 `el.innerHTML = text.split("\n").map(
   //   l => `<p>${l}</p>`)` 把用户 prompt 直接拼进 innerHTML —— prompt 含 < > & 或
@@ -191,6 +202,7 @@
     getResponseTailCandidates,
     getLatestResponseCandidate,
     findReadableBlock,
+    textHash,
     setEditableLines,
     detectStreaming,
   };

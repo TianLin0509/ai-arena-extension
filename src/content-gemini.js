@@ -81,10 +81,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "readResponse") {
       readLatestResponse().then(async text => {
         if (typeof postProcessBlobUrls === "function") { text = await postProcessBlobUrls(text); }
-        const { hasRichContent, richTypes } = detectRichContent();
+        // v5.0.20: imagesPending 一并透传 — 旧版被解构丢弃，pollOnce 的"图片加载中不算空超时"保护失效
+        const { hasRichContent, richTypes, imagesPending } = detectRichContent();
         // v4.6.8 F18: readResponse 返回 isStreaming 让 chat-bus pollOnce 判完成时纳入条件
         const isStreaming = _detectStreaming();
-        sendResponse({ site: SITE, text, hasRichContent, richTypes, isStreaming });
+        // v5.0.20: 同文本省略 — 与 SW 上次收到的一致时只回 sameText 不整段回传
+        const t = (text || "").trim();
+        const h = globalThis.ArenaShared?.textHash?.(t) || null;
+        if (msg.knownHash && h && h === msg.knownHash) {
+          sendResponse({ site: SITE, sameText: true, hasRichContent, richTypes, imagesPending, isStreaming });
+          return;
+        }
+        sendResponse({ site: SITE, text: t, textHash: h, hasRichContent, richTypes, imagesPending, isStreaming });
       }).catch(e => sendResponse({ site: SITE, text: "", error: e.message }));
       return true;
     }

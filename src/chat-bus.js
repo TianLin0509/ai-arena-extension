@@ -688,8 +688,20 @@ const ChatBus = (() => {
         return;
       }
 
-      const r = await chrome.tabs.sendMessage(tabId, { action: "readResponse" });
-      const text = (r?.text || "").trim();
+      // v5.0.20 同文本省略：带上次文本哈希，content 端一致时只回 sameText 不传全文 —
+      //   长回答（1-2 万字）在"已稳定等完成判定"的 3-12s 窗口里每 1.5s 整段跨进程序列化
+      //   是消息层最大浪费，省略后该窗口传输量降 ~95%
+      const r = await chrome.tabs.sendMessage(tabId, {
+        action: "readResponse",
+        knownHash: (state.lastText && state.lastTextHash) || null,
+      });
+      let text;
+      if (r?.sameText && state.lastText != null) {
+        text = state.lastText;
+      } else {
+        text = (r?.text || "").trim();
+        state.lastTextHash = r?.textHash || null;
+      }
       const hasRich = !!r?.hasRichContent;
       const richTypes = r?.richTypes || [];
 
@@ -831,7 +843,8 @@ const ChatBus = (() => {
           } catch (e) { console.warn("[chat-bus] pendingSummary check fail:", e?.message); }
           // v4.6.9 F19: 启动兜底 watcher 监听 60s，发现 text 追加用同 msgId 覆盖气泡
           // 防 F18 streaming selector 失效 / 完成后异步追加场景
-          try { startWatch(participant, state.msgId, text); }
+          // v5.0.20: 传 lastTextHash 让 watcher 也走同文本省略（无追加时不整段回传）
+          try { startWatch(participant, state.msgId, text, state.lastTextHash); }
           catch (e) { console.warn("[chat-bus] startWatch fail:", e?.message); }
         }
       } else {
@@ -905,7 +918,7 @@ const ChatBus = (() => {
   //   原 WATCH_INTERVAL_MS = 3000 仍是初始/有追加时的 tick 间隔
   const WATCH_INTERVAL_IDLE_MS = 8000;
   const WATCH_STABLE_DOWNGRADE_MS = 30000;
-  function startWatch(participant, msgId, finalText) {
+  function startWatch(participant, msgId, finalText, finalTextHash) {
     const { service, tabId } = participant;
     // 单 slot：清掉所有现有 watchers
     if (watchers.size >= WATCH_MAX_SLOTS) {
@@ -918,6 +931,7 @@ const ChatBus = (() => {
     const state = {
       msgId,
       lastText: finalText || "",
+      lastTextHash: finalTextHash || null,  // v5.0.20: 同文本省略
       startTs: Date.now(),
       lastChangeTs: Date.now(),
     };
@@ -933,11 +947,16 @@ const ChatBus = (() => {
       // v5.0.8: 身份校验 — 如果本 state 已被 startWatch 替换，停止本 tick 链
       if (watchers.get(service) !== state) return;
       try {
-        const r = await chrome.tabs.sendMessage(tabId, { action: "readResponse" });
-        const text = (r?.text || "").trim();
+        // v5.0.20: watcher 也走同文本省略 — 600s 兜底期每 3-8s 一次的全文回传是大头
+        const r = await chrome.tabs.sendMessage(tabId, {
+          action: "readResponse",
+          knownHash: (state.lastText && state.lastTextHash) || null,
+        });
+        const text = r?.sameText ? state.lastText : (r?.text || "").trim();
         // 文本比上次长且非残留 → 追加更新（用同 msgId 让 popup updateAIBubble 直接覆盖气泡）
         if (text && text.length > state.lastText.length && text !== state.lastText) {
           state.lastText = text;
+          state.lastTextHash = r?.textHash || null;  // v5.0.20: 增长必然带新哈希
           state.lastChangeTs = Date.now();
           // v4.8.40 核心修复：watcher 必须写 p.response，否则下一轮辩论 handleDebateRound
           //   读 p.response 还是 polling 完成时的初始文本（ChatGPT Pro 思考片段），

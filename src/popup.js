@@ -59,7 +59,53 @@
   // bubbleByKey: key = `${msgId}-${participantId}` → DOM element
   const bubbleByKey = new Map();
   const STREAM_RENDER_DEBOUNCE_MS = 220;
+  // v5.0.20 PERF-2: 长文本（>8k 字）流式渲染降频 220→600ms — escapeHtml + innerHTML 整段
+  //   替换是 O(n)，长回答尾段每秒多次重排无感知收益，拉长窗口省主线程
+  const STREAM_RENDER_DEBOUNCE_LONG_MS = 600;
+  const STREAM_RENDER_LONG_CHARS = 8000;
   const streamRenderState = new Map();
+
+  // v5.0.20 UX-1: 队长徽章 — 用户普遍"主看一个 AI"，把队长（participants[0]，
+  //   prompt 被注入整合指令的那个）在气泡/成员卡/底部 pill 上可视化
+  let captainService = null;
+  let captainEnabled = true;
+  function _refreshCaptainBadges() {
+    document.querySelectorAll(".msg.ai .captain-badge").forEach(b => {
+      const row = b.closest(".msg.ai");
+      const show = captainEnabled && captainService && row?.dataset?.participantId === captainService;
+      b.style.display = show ? "" : "none";
+    });
+  }
+  function _setCaptainInfo(participants) {
+    const next = (participants && participants.length >= 2) ? (participants[0]?.service || null) : null;
+    if (next !== captainService) {
+      captainService = next;
+      _refreshCaptainBadges();
+      document.dispatchEvent(new CustomEvent("captain:changed"));
+    }
+  }
+  window.ArenaCaptainInfo = {
+    service: () => captainService,
+    enabled: () => captainEnabled,
+    isCaptain: (svc) => !!(captainEnabled && captainService && svc === captainService),
+  };
+  try {
+    chrome.storage.local.get(["captainModeEnabled"], (d) => {
+      captainEnabled = d?.captainModeEnabled !== false;
+      _refreshCaptainBadges();
+      document.dispatchEvent(new CustomEvent("captain:changed"));
+    });
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes.captainModeEnabled) {
+        captainEnabled = changes.captainModeEnabled.newValue !== false;
+        _refreshCaptainBadges();
+        document.dispatchEvent(new CustomEvent("captain:changed"));
+      }
+    });
+    chrome.runtime.sendMessage({ type: "getState" }, (r) => {
+      if (r?.participants) _setCaptainInfo(r.participants);
+    });
+  } catch (_) {}
 
   // ── 渲染 ──
   function ensureEmptyHidden() {
@@ -121,6 +167,7 @@
       <div class="msg-body">
         <div class="msg-meta">
           <span class="name">${name}</span>
+          <span class="captain-badge" title="队长：负责整合队友观点，主看它即可" style="display:${window.ArenaCaptainInfo?.isCaptain?.(participantId) ? "" : "none"}">👑 队长</span>
           <span class="time">${escapeHtml(ts)}</span>
           <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
           <span class="acts">
@@ -245,13 +292,15 @@
       state.participantId = participantId;
       state.text = text;
       if (!state.timer) {
+        // v5.0.20 PERF-2: 长文本流式降频（220→600ms），短文本保持原响应速度
+        const deferMs = text.length > STREAM_RENDER_LONG_CHARS ? STREAM_RENDER_DEBOUNCE_LONG_MS : STREAM_RENDER_DEBOUNCE_MS;
         state.timer = setTimeout(() => {
           const latest = streamRenderState.get(key);
           if (!latest) return;
           latest.timer = null;
           streamRenderState.delete(key);
           renderAIBubbleContent(latest.row, latest.bubble, latest.participantId, latest.text, false, false, [], false);
-        }, STREAM_RENDER_DEBOUNCE_MS);
+        }, deferMs);
       }
       streamRenderState.set(key, state);
       setAIStat(stat, false, true);
@@ -525,6 +574,9 @@
       const { msgId, role, participantId, text, isDone, hasRichContent, richTypes } = msg;
       if (role === "user") appendUserMessage(text, msgId);
       else updateAIBubble(msgId, participantId, text, isDone, hasRichContent, richTypes);
+    } else if (msg.type === "stateUpdate") {
+      // v5.0.20 UX-1: 跟踪 participants[0] = 队长（与 background captain-mode isCaptain 同逻辑）
+      if (msg.participants) _setCaptainInfo(msg.participants);
     } else if (msg.type === "chatLogPayload") {
       restoreLog(msg.messages);
     } else if (msg.type === "debateSummaryReady") {
