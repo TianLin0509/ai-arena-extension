@@ -113,6 +113,8 @@
           if (resp?.partialInject && window.ChatModal?.showPartialDebateInject) {
             window.ChatModal.showPartialDebateInject(resp, {
               onResend: (missing) => resendMissingDebate(missing),
+              // v5.0.19: 压缩后补发 — background 重建压缩版 prompt（应对网关上传限额）
+              onResendCompressed: (missing) => resendMissingDebate(missing, { compress: true }),
               onSkip: () => {},  // 已开始的辩论保持 / 未开始的不动，关弹窗即可
             });
             return;
@@ -139,15 +141,15 @@
   // v5.0.11: showPartialDebateInject modal 的"补发缺失"回调 — 对每个 missing AI 调
   //   retryDebateInjectForParticipant，background 用 _lastPartialDebatePrompts 暂存的
   //   辩论 prompt 重 inject + 启 polling
-  async function resendMissingDebate(missing) {
+  async function resendMissingDebate(missing, opts = {}) {
     if (!Array.isArray(missing) || !missing.length) return;
     const pushLog = (text, level) => {
       try { window.ChatLog?.push?.({ ts: Date.now(), text, level }); } catch (_) {}
     };
-    pushLog(`补发辩论给 ${missing.length} 个缺失 AI…`, "info");
+    pushLog(`${opts.compress ? "🗜 压缩后" : ""}补发辩论给 ${missing.length} 个缺失 AI…`, "info");
     const results = await Promise.allSettled(missing.map(m => new Promise(res => {
       chrome.runtime.sendMessage(
-        { type: "retryDebateInjectForParticipant", participantId: m.id },
+        { type: "retryDebateInjectForParticipant", participantId: m.id, compress: !!opts.compress },
         resp => res({ name: m.name || m.service, resp })
       );
     })));

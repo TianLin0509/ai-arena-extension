@@ -647,6 +647,18 @@ const ChatBus = (() => {
     startPollingForService(participant, msgId);
   }
 
+  // v5.0.19: 失败气泡的超长 prompt 提示 — 用户场景：多轮辩论后队友回答全文转发让单次
+  //   上传到 1 万+ 字，偶发触发公司网关上传限额，表现为发送失败/掉线/提取不到。
+  //   本轮发给该 AI 的内容超阈值时在失败气泡里给出压缩指引（开了压缩后自然不会超）。
+  const LONG_PROMPT_HINT_CHARS = 8000;
+  function _longPromptHintFor(participant) {
+    try {
+      const sentLen = (StateMachine.lastSentByPid?.[participant.id] || "").length;
+      if (sentLen <= LONG_PROMPT_HINT_CHARS) return "";
+      return `\n💡 本轮发给它的内容有 ${sentLen} 字，可能被公司网关/站点上传限额拦截 — 可在设置开启「上下文压缩」，或在辩论补发弹窗选「🗜 压缩后补发」。`;
+    } catch (_) { return ""; }
+  }
+
   async function pollOnce(participant, state) {
     // v5.2.22 Bug A 根治：防重入堆积 — 上一次轮询（含 await sendMessage）未返回时跳过本 tick。
     //   千问回答变长致单次往返 >POLL_INTERVAL_MS 时，setInterval 会无脑积压多个并发 pollOnce，
@@ -692,7 +704,7 @@ const ChatBus = (() => {
           clearInterval(state.intervalId);
           pollers.delete(service);
           releaseCDPFor(state, tabId);
-          const fallbackText = "⚠ 未提取到内容，请点击气泡的 🔄 重新提取或 ⏭ 跳过本轮。";
+          const fallbackText = "⚠ 未提取到内容，请点击气泡的 🔄 重新提取或 ⏭ 跳过本轮。" + _longPromptHintFor(participant);
           pushLog({
             role: "ai", msgId: state.msgId, participantId: service,
             text: fallbackText, ts: Date.now(), emptyTimeout: true,
@@ -848,7 +860,7 @@ const ChatBus = (() => {
       try { stopWatch(service); } catch (_) {}
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
-        participantId: service, text: `⚠ ${participant.name} 已断开`,
+        participantId: service, text: `⚠ ${participant.name} 已断开${_longPromptHintFor(participant)}`,
         isDone: true,
       });
     } finally {

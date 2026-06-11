@@ -548,7 +548,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           break;
         case "retryDebateInjectForParticipant":
           // v5.0.11: 弹窗"补发缺失 AI"按钮触发 — 用暂存的辩论 prompt 重新 inject 给指定 AI
-          sendResponse(await retryDebateInjectForParticipant(msg.participantId));
+          // v5.0.19: msg.compress=true → 重建压缩版 prompt 后补发（应对网关上传限额）
+          sendResponse(await retryDebateInjectForParticipant(msg.participantId, { compress: !!msg.compress }));
           break;
         case "resetSession":
           StateMachine.resetSession();
@@ -1249,6 +1250,9 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
   //   inject 失败被静默丢，弹窗让用户点补发，background 用这里暂存的 prompt 重 inject）
   const promptsByPid = {};
   const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+  // v5.0.19: 上下文压缩开关（设置 tab，默认关）— 多轮辩论队友回答全文转发会偶发触顶
+  //   公司网关上传限额；开启后按预算压缩队友回答（详见 debate-engine compactTextForRelay）
+  const contextCompress = await _isContextCompressEnabled();
   const allParticipants = StateMachine.participants || [];
   await Promise.all(Object.keys(responses).map(async (id) => {
     const p = StateMachine.getParticipant(id);
@@ -1259,7 +1263,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
       _endDebateLoadingBubble(pendingMsgId, p, "tab 失联（参与者未打开）");
       return;
     }
-    let prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise);
+    let prompt = DebateEngine.buildDebatePrompt(id, responses, style, roundNum, guidance, concise, contextCompress);
     prompt = self.ArenaCaptainMode.decoratePrompt(prompt, p, allParticipants, captainEnabled);
     promptsByPid[id] = prompt;  // v5.0.11
     // 记录"刚发给该 p 的 prompt"——sanity check 用
@@ -1327,6 +1331,16 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     for (const id of missingIds) {
       if (promptsByPid[id]) StateMachine._lastPartialDebatePrompts[id] = promptsByPid[id];
     }
+    // v5.0.19: 一并暂存本轮构建上下文 — "压缩后补发"用它重建压缩版 prompt
+    //   （直接压缩已拼好的 prompt 字符串无法区分模板/队友回答边界，必须重建）
+    StateMachine._lastPartialDebateContext = { responses, style, roundNum, guidance, concise };
+  }
+
+  // v5.0.19: 超长 prompt 提醒 — 未开压缩且本轮有 prompt 超阈值时提示用户（仅提示不拦截）
+  const maxPromptLen = Math.max(0, ...Object.values(promptsByPid).map(s => s?.length || 0));
+  const longPromptHint = !contextCompress && maxPromptLen > LONG_PROMPT_WARN_CHARS;
+  if (longPromptHint) {
+    notifyStatus(`⚠ 本轮辩论 prompt 最长 ${maxPromptLen} 字，可能触发公司网关上传限额；可在设置开启「上下文压缩」`);
   }
 
   if (sentIds.length < 2) {
@@ -1340,6 +1354,7 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
       sentCount: sentIds.length,
       totalCount: candidateIds.length,
       debateStarted: false,
+      longPromptHint, maxPromptLen,  // v5.0.19: 弹窗可提示"压缩后补发"
     };
   }
   notifyStatus(`第${roundNum}轮辩论已发送`);
@@ -1364,7 +1379,20 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     sentCount: sentIds.length,
     totalCount: candidateIds.length,
     debateStarted: true,
+    longPromptHint, maxPromptLen,  // v5.0.19
   };
+}
+
+// v5.0.19: 上下文压缩开关 + 超长 prompt 阈值
+const CONTEXT_COMPRESS_KEY = "debateContextCompressEnabled";
+const LONG_PROMPT_WARN_CHARS = 8000;
+async function _isContextCompressEnabled() {
+  try {
+    const data = await chrome.storage.local.get([CONTEXT_COMPRESS_KEY]);
+    return data?.[CONTEXT_COMPRESS_KEY] === true;  // 默认关，用户显式打开才压缩
+  } catch (_) {
+    return false;
+  }
 }
 
 // v5.0.17: 辩论 inject 失败时终结该 AI 的 loading 占位气泡（isDone:true），
@@ -1384,11 +1412,28 @@ function _endDebateLoadingBubble(msgId, p, reason) {
 //   触发场景：弹窗 showPartialDebateInject 用户点"补发缺失"按钮 → popup 对每个 missing
 //   AI 调本 message。用 StateMachine._lastPartialDebatePrompts 暂存的同一轮辩论 prompt
 //   重新 inject（保证 prompt 与该轮其他 AI 收到的语义一致），并启动 polling 让回答能进 popup。
-async function retryDebateInjectForParticipant(pid) {
+async function retryDebateInjectForParticipant(pid, opts = {}) {
   const p = StateMachine.getParticipant(pid);
   if (!p?.tabId) return { ok: false, error: "参与者无效或 tab 失联" };
-  const prompt = StateMachine._lastPartialDebatePrompts?.[pid];
+  let prompt = StateMachine._lastPartialDebatePrompts?.[pid];
   if (!prompt) return { ok: false, error: "无可补发的辩论 prompt（已过期或已被重置）" };
+
+  // v5.0.19: "压缩后补发" — 用暂存的本轮构建上下文重建压缩版 prompt（含队长装饰），
+  //   应对超长 prompt 触发公司网关上传限额导致的发送失败
+  if (opts.compress) {
+    const ctx = StateMachine._lastPartialDebateContext;
+    if (ctx?.responses) {
+      try {
+        let rebuilt = DebateEngine.buildDebatePrompt(pid, ctx.responses, ctx.style, ctx.roundNum, ctx.guidance, ctx.concise, true);
+        const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+        rebuilt = self.ArenaCaptainMode.decoratePrompt(rebuilt, p, StateMachine.participants || [], captainEnabled);
+        notifyStatus(`🗜 压缩后补发给 ${p.name}：${prompt.length} → ${rebuilt.length} 字`);
+        prompt = rebuilt;
+      } catch (e) {
+        console.warn("[bg] 压缩重建失败，退回原 prompt:", e?.message);
+      }
+    }
+  }
 
   const pendingMsgId = `m${Date.now()}_partial_retry_${pid}`;
   // 推 popup 占位气泡
@@ -1430,6 +1475,10 @@ async function retryDebateInjectForParticipant(pid) {
     } catch (e) { console.warn("[bg] notifyRoundStart fail (partial retry):", e?.message); }
     // 一次性使用，清除暂存
     if (StateMachine._lastPartialDebatePrompts) delete StateMachine._lastPartialDebatePrompts[pid];
+    // v5.0.19: 全部补发完 → 一并清重建上下文，防陈旧 ctx 被未来路径误用
+    if (Object.keys(StateMachine._lastPartialDebatePrompts || {}).length === 0) {
+      StateMachine._lastPartialDebateContext = null;
+    }
     notifyStatus(`已补发辩论给 ${p.name}`);
     return { ok: true, result: injectResult };
   }

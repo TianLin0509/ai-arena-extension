@@ -11,8 +11,25 @@ function _store() {
   return (typeof self !== "undefined" ? self : globalThis).ArenaTemplateStore;
 }
 
+// v5.0.19: 上下文压缩（用户开关，默认关）— 多轮辩论转发队友回答全文会让单次请求
+//   上传量到 10-20k 字，偶发触发公司网关上传限额 → 发送失败/掉线。
+//   策略与存储压缩同款：头 75% + 尾部 + 中文省略标记，AI 知道中段被省略。
+const RELAY_PER_TEAMMATE_CHARS = 3000;   // 单个队友回答转发上限
+const RELAY_TOTAL_BUDGET_CHARS = 8000;   // 全部队友合计预算（超出则均分收紧）
+const RELAY_MIN_PER_TEAMMATE_CHARS = 800;
+
+function compactTextForRelay(text, maxChars) {
+  if (typeof text !== "string" || text.length <= maxChars) return text;
+  const head = Math.max(0, Math.floor(maxChars * 0.75));
+  const tail = Math.max(0, maxChars - head - 60);
+  // tail=0 时 slice(-0) 会返回全文（slice(0) 语义），必须单独处理
+  if (tail === 0) return `${text.slice(0, head)}\n……（后续 ${text.length - head} 字已省略）……`;
+  return `${text.slice(0, head)}\n……（中间省略 ${text.length - head - tail} 字，要点见首尾）……\n${text.slice(-tail)}`;
+}
+
 const DebateEngine = {
-  buildDebatePrompt(participantId, responses, style, roundNum, guidance, concise) {
+  // compress = v5.0.19: true 时按预算压缩队友回答（设置 tab「上下文压缩」开关 / 压缩后补发）
+  buildDebatePrompt(participantId, responses, style, roundNum, guidance, concise, compress) {
     const isCollab = style === "collab";
     const binding = isCollab ? "debate.collab" : "debate.free";
     const store = _store();
@@ -34,9 +51,18 @@ const DebateEngine = {
       ? "\n\n⚠️ 简洁模式：请控制回答在 1000 字以内，用要点列表呈现核心观点，避免长篇大论。每个论点简明扼要。"
       : "";
 
-    const contextText = Object.entries(responses)
-      .filter(([id, r]) => id !== participantId && r.text)
-      .map(([, r]) => `【${r.name} 的回答】:\n${r.text}`)
+    const entries = Object.entries(responses)
+      .filter(([id, r]) => id !== participantId && r.text);
+    let relayCap = Infinity;
+    if (compress && entries.length) {
+      relayCap = RELAY_PER_TEAMMATE_CHARS;
+      const projected = entries.reduce((sum, [, r]) => sum + Math.min(r.text.length, relayCap), 0);
+      if (projected > RELAY_TOTAL_BUDGET_CHARS) {
+        relayCap = Math.max(RELAY_MIN_PER_TEAMMATE_CHARS, Math.floor(RELAY_TOTAL_BUDGET_CHARS / entries.length));
+      }
+    }
+    const contextText = entries
+      .map(([, r]) => `【${r.name} 的回答】:\n${compress ? compactTextForRelay(r.text, relayCap) : r.text}`)
       .join("\n\n");
 
     let prompt = `${roundHint}\n\n${mainPrompt}\n\n${contextText}${conciseRule}`;
@@ -105,3 +131,5 @@ ${allText}
 // v4.5.0: 显式挂载到全局，方便 worker.evaluate 注入代码访问
 (typeof self !== "undefined" ? self : globalThis).DebateEngine = DebateEngine;
 (typeof self !== "undefined" ? self : globalThis).DEBATE_STYLES = DEBATE_STYLES;
+// v5.0.19: 暴露给单测
+(typeof self !== "undefined" ? self : globalThis).compactTextForRelay = compactTextForRelay;

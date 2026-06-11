@@ -177,13 +177,19 @@
 
   // v5.0.11: 辩论 partial inject 警告专用 modal
   //   场景：handleDebateRound 候选 N 个 AI，实际 inject 成功 M 个（M < N），缺 N-M 个被静默丢
-  //   ctx: { missing: [{id, name, service, error}], sentCount, totalCount, debateStarted }
-  //   handlers: { onResend(missing), onSkip() }
+  //   ctx: { missing: [{id, name, service, error}], sentCount, totalCount, debateStarted,
+  //          longPromptHint, maxPromptLen }
+  //   handlers: { onResend(missing), onResendCompressed(missing), onSkip() }
+  // v5.0.19: 第二按钮改为「压缩后补发」（原"跳过"是空操作，并入"关闭"）——
+  //   超长 prompt 触发公司网关上传限额是补发失败的常见原因，压缩重发是对症操作
   function showPartialDebateInject(ctx, handlers) {
-    const { missing = [], sentCount = 0, totalCount = 0, debateStarted = true } = ctx || {};
+    const { missing = [], sentCount = 0, totalCount = 0, debateStarted = true, longPromptHint = false, maxPromptLen = 0 } = ctx || {};
     const missingNames = missing.map(m => m.name || m.service).filter(Boolean).join(" · ") || "未知 AI";
     const firstErr = missing.find(m => m.error)?.error || "";
     const errorTip = firstErr ? `失败原因：${firstErr}` : "可能是 tab 失联、注入超时或页面未就绪";
+    const lenTip = longPromptHint
+      ? `本轮 prompt 最长 ${maxPromptLen} 字，可能被公司网关/站点上传限额拦截，建议「压缩后补发」。`
+      : "";
 
     const title = debateStarted
       ? "辩论部分发送成功 · 有 AI 漏掉了"
@@ -194,19 +200,16 @@
     const primaryLabel = missing.length === 1
       ? `🔄 补发给 ${missingNames}`
       : `🔄 补发给 ${missing.length} 个 AI`;
-    const secondaryLabel = debateStarted
-      ? `⏭ 跳过 · 用 ${sentCount} 个 AI 继续`
-      : "⏭ 跳过 · 关闭弹窗";
 
     show({
       tone: "warning",
       icon: "⚠",
       title,
       message,
-      tip: `缺失：${missingNames}。${errorTip}`,
+      tip: `缺失：${missingNames}。${errorTip}${lenTip ? `\n${lenTip}` : ""}`,
       primary: { label: primaryLabel, onClick: () => handlers?.onResend?.(missing) },
-      secondary: { label: secondaryLabel, onClick: () => handlers?.onSkip?.() },
-      cancel: { label: "关闭" },
+      secondary: { label: "🗜 压缩后补发", onClick: () => (handlers?.onResendCompressed || handlers?.onResend)?.(missing) },
+      cancel: { label: debateStarted ? `⏭ 跳过 · 用 ${sentCount} 个 AI 继续` : "⏭ 关闭" },
     });
   }
 
