@@ -27,7 +27,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.20</span>
+        <span class="chat-name">AI圆桌派-5.0.21</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -296,6 +296,13 @@
           </svg>
           <span>模板</span>
         </button>
+        <button class="rp-tab" data-tab="memos" aria-label="备忘录">
+          <svg class="rp-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 17v5"/>
+            <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/>
+          </svg>
+          <span>备忘</span>
+        </button>
         <button class="rp-tab" data-tab="settings" aria-label="设置">
           <svg class="rp-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="4" y1="21" x2="4" y2="14"/>
@@ -315,6 +322,7 @@
       <div class="rp-panel" data-rp-panel="tasks" id="rp-panel-tasks"></div>
       <div class="rp-panel" data-rp-panel="stats" id="rp-panel-stats"></div>
       <div class="rp-panel" data-rp-panel="templates" id="rp-panel-templates"></div>
+      <div class="rp-panel" data-rp-panel="memos" id="rp-panel-memos"></div>
       <div class="rp-panel" data-rp-panel="settings" id="rp-panel-settings"></div>
       </div><!-- /.rp-top -->
       <div class="rp-bottom" id="rp-bottom">
@@ -367,6 +375,7 @@
   <script src="templates-builtin.js"></script>
   <script src="template-store.js"></script>
   <script src="popup-templates.js"></script>
+  <script src="popup-memos.js"></script>
   <script src="popup-role-hats.js"></script>
   <script src="popup-task-menu.js"></script>
   <script src="popup.js"></script>

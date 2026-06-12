@@ -17,11 +17,14 @@
   const CAPTAIN_KEY = "captainModeEnabled";
   // v5.0.19: 上下文压缩 — 多轮辩论转发队友回答时压缩超长部分（防公司网关上传限额），默认关
   const COMPRESS_KEY = "debateContextCompressEnabled";
+  // v5.0.21: 划线收藏 — AI 原网页选中文本浮出"存入备忘录"按钮，默认开
+  const MEMOCLIP_KEY = "memoClipEnabled";
 
   // v5.2.25: 新用户默认主题改为 A 深海指挥（用户已设置过 → storage 覆盖此默认，保留选择）
   let currentTheme = "A";
   let captainMode = true;
   let contextCompress = false;
+  let memoClip = true;
 
   function render() {
     const root = document.getElementById("rp-panel-settings");
@@ -64,6 +67,12 @@
           <span class="rp-app-row-lbl">上下文压缩</span>
           <button class="rp-app-btn ${contextCompress ? 'active' : ''}" id="rp-compress-toggle" title="多轮辩论转发队友回答时压缩超长部分（保留首尾要点），防止单次发送过长触发公司网关/站点上传限额">
             ${contextCompress ? '已开启' : '已关闭'}
+          </button>
+        </div>
+        <div class="rp-app-row">
+          <span class="rp-app-row-lbl">划线收藏</span>
+          <button class="rp-app-btn ${memoClip ? 'active' : ''}" id="rp-memoclip-toggle" title="在 AI 原网页选中文本时浮出「存入圆桌备忘录」按钮（圆桌主界面的划线收藏始终可用）">
+            ${memoClip ? '已开启' : '已关闭'}
           </button>
         </div>
         <div class="rp-app-row rp-app-row-btns">
@@ -122,6 +131,11 @@
       try { chrome.storage.local.set({ [COMPRESS_KEY]: contextCompress }); } catch (_) {}
       render();
     });
+    root.querySelector("#rp-memoclip-toggle")?.addEventListener("click", () => {
+      memoClip = !memoClip;
+      try { chrome.storage.local.set({ [MEMOCLIP_KEY]: memoClip }); } catch (_) {}
+      render();
+    });
 
     root.querySelectorAll(".rp-theme-item").forEach(el => {
       el.addEventListener("click", () => setTheme(el.dataset.theme));
@@ -145,7 +159,7 @@
   async function refresh() {
     try {
       const r = await new Promise(res => {
-        chrome.storage.local.get([THEME_KEY, CAPTAIN_KEY, COMPRESS_KEY], resp => res(resp || {}));
+        chrome.storage.local.get([THEME_KEY, CAPTAIN_KEY, COMPRESS_KEY, MEMOCLIP_KEY], resp => res(resp || {}));
       });
       if (r[THEME_KEY]) {
         currentTheme = r[THEME_KEY];
@@ -155,6 +169,7 @@
       }
       captainMode = r[CAPTAIN_KEY] !== false;
       contextCompress = r[COMPRESS_KEY] === true;  // v5.0.19: 默认关，显式打开才压缩
+      memoClip = r[MEMOCLIP_KEY] !== false;        // v5.0.21: 默认开
     } catch (_) {}
     render();
   }

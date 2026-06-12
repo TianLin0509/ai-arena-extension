@@ -4228,3 +4228,36 @@ body[data-logo-style="basic"] .msg-avatar img {
   border: 1px solid currentColor; opacity: .85;
 }
 .rp-round-progress.all-done { color: #34c759; }
+
+/* ── v5.0.21: 备忘录 Tab + 划线收藏 ── */
+.memo-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.memo-item {
+  background: var(--rp-card-bg, rgba(255,255,255,.05));
+  border: 1px solid var(--rp-border, rgba(255,255,255,.12));
+  border-radius: 10px; padding: 9px 11px;
+}
+.memo-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; opacity: .85; }
+.memo-src {
+  font-weight: 700; padding: 1px 7px; border-radius: 7px;
+  background: rgba(110,231,255,.16); color: var(--rp-accent, #6ee7ff);
+}
+.memo-time { opacity: .7; }
+.memo-acts { margin-left: auto; display: flex; gap: 2px; }
+.memo-acts button {
+  background: none; border: none; cursor: pointer; color: inherit;
+  font-size: 12px; padding: 2px 5px; border-radius: 6px; opacity: .7;
+}
+.memo-acts button:hover { opacity: 1; background: rgba(255,255,255,.1); }
+.memo-text {
+  font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+  max-height: 120px; overflow-y: auto;
+}
+.memo-empty { font-size: 12.5px; line-height: 1.7; opacity: .75; padding: 14px 4px; }
+.memo-header-acts { margin-left: auto; display: inline-flex; gap: 6px; float: right; }
+.memo-clip-btn {
+  position: fixed; z-index: 9999;
+  background: #1d1d1f; color: #f5f5f7;
+  font: 600 12px/1 -apple-system, "PingFang SC", sans-serif;
+  padding: 7px 12px; border-radius: 14px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35); user-select: none;
+}

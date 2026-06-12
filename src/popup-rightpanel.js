@@ -1,6 +1,6 @@
 // popup-rightpanel.js — 右栏 4 Tab 切换调度器
 (function () {
-  const TABS = ["members", "tasks", "stats", "templates", "settings"];
+  const TABS = ["members", "tasks", "stats", "templates", "memos", "settings"];  // v5.0.21: +备忘录
   let currentTab = "members";
 
   function activate(name) {

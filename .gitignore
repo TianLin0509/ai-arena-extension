@@ -11,3 +11,4 @@ dist/
 .DS_Store
 Thumbs.db
 tests/e2e/.userdata/
+tests/e2e/.memo-profile/

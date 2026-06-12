@@ -127,6 +127,29 @@ async function runPlatform(page, platform, { spaRerender = false } = {}) {
   const grown = await page.evaluate((h) => window.__sendArenaMessage({ action: "readResponse", knownHash: h }), read.textHash);
   assert.ok(grown.text && grown.text.includes("APPENDED_TAIL"), `${platform} grown text should be returned in full`);
   assert.ok(grown.textHash && grown.textHash !== read.textHash, `${platform} grown text should carry a new hash`);
+
+  // v5.0.21 划线收藏回归：选中回答文本 → mouseup → 浮钮出现 → 点击 → memoAdd 消息发出
+  const memoResult = await page.evaluate(() => new Promise((res) => {
+    const el = document.querySelector(".arena-response:last-of-type");
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+    setTimeout(() => {
+      const btn = document.getElementById("arena-memo-clip-btn");
+      if (!btn) return res({ noBtn: true });
+      btn.click();
+      setTimeout(() => {
+        res({ msg: window.__arenaMessages.find(m => m && m.type === "memoAdd") || null, btnText: btn.textContent });
+      }, 60);
+    }, 80);
+  }));
+  assert.ok(!memoResult.noBtn, `${platform} memo clip button should appear on selection`);
+  assert.ok(memoResult.msg, `${platform} clicking clip button should send memoAdd`);
+  assert.ok(memoResult.msg.text.includes(`NEW_RESPONSE_FROM_${platform}`), `${platform} memoAdd should carry selected text`);
+  assert.equal(memoResult.msg.source?.type, "site");
 }
 
 const browser = await chromium.launch({ headless: true });

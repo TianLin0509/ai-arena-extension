@@ -193,6 +193,91 @@
     return false;
   }
 
+  // ── v5.0.21: 划线收藏 — AI 原网页选中文本旁浮出"存入圆桌备忘录"按钮 ──
+  //   用户场景：迭代过程中看到金句手动保留。设置 memoClipEnabled 可关（默认开）。
+  //   纯 inline style + fixed 定位 + 顶级 z-index，不注入 CSS、不碰站点 DOM 结构。
+  (function initMemoClip() {
+    try {
+      if (typeof document === "undefined" || !globalThis.chrome?.runtime?.sendMessage) return;
+      let enabled = true;
+      try {
+        chrome.storage?.local?.get?.(["memoClipEnabled"], (d) => { enabled = d?.memoClipEnabled !== false; });
+        chrome.storage?.onChanged?.addListener?.((ch, area) => {
+          if (area === "local" && ch.memoClipEnabled) enabled = ch.memoClipEnabled.newValue !== false;
+        });
+      } catch (_) {}
+
+      let btn = null;
+      function hideBtn() { if (btn) { try { btn.remove(); } catch (_) {} btn = null; } }
+      function showBtn(x, y, text) {
+        hideBtn();
+        btn = document.createElement("div");
+        btn.id = "arena-memo-clip-btn";
+        btn.textContent = "📌 存入圆桌备忘录";
+        btn.setAttribute("style", [
+          "position:fixed", `left:${Math.round(x)}px`, `top:${Math.round(y)}px`,
+          "z-index:2147483646", "background:#1d1d1f", "color:#f5f5f7",
+          "font:600 12px/1 -apple-system,'PingFang SC',sans-serif",
+          "padding:8px 13px", "border-radius:15px", "cursor:pointer",
+          "box-shadow:0 4px 14px rgba(0,0,0,.35)", "user-select:none",
+        ].join(";"));
+        // mousedown 阻断防点击瞬间 selection 被清掉
+        btn.addEventListener("mousedown", (e) => { e.preventDefault(); e.stopPropagation(); });
+        btn.addEventListener("click", (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const el = btn;
+          // 实测：各 content-*.js 顶层 const SITE 跨脚本不可见 → 用 hostname 映射定 service
+          const MEMO_SITE_MAP = {
+            "claude.ai": "claude", "gemini.google.com": "gemini", "chatgpt.com": "chatgpt",
+            "chat.deepseek.com": "deepseek", "www.doubao.com": "doubao",
+            "tongyi.aliyun.com": "qwen", "www.qianwen.com": "qwen",
+            "kimi.moonshot.cn": "kimi", "www.kimi.com": "kimi",
+            "yuanbao.tencent.com": "yuanbao", "grok.com": "grok",
+          };
+          try {
+            chrome.runtime.sendMessage({
+              type: "memoAdd",
+              text,
+              source: {
+                type: "site",
+                service: MEMO_SITE_MAP[location.hostname] || location.hostname || "",
+                url: location.href,
+                title: document.title,
+              },
+            }, (resp) => {
+              if (el) el.textContent = (resp && resp.ok) ? "✓ 已存入备忘录" : `⚠ ${resp?.error || "保存失败"}`;
+              setTimeout(hideBtn, 900);
+            });
+          } catch (_) { hideBtn(); }
+        });
+        document.documentElement.appendChild(btn);
+      }
+
+      document.addEventListener("mouseup", (e) => {
+        if (!enabled) return;
+        if (btn && (e.target === btn || btn.contains(e.target))) return;
+        setTimeout(() => {  // 等 selection 状态落定
+          try {
+            const sel = window.getSelection();
+            const text = (sel && !sel.isCollapsed ? String(sel) : "").trim();
+            if (!text || text.length < 8 || text.length > 10000) return hideBtn();
+            // 选区在输入框/编辑器内（用户在编辑 prompt）不打扰
+            const anchor = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement);
+            if (anchor?.closest?.("textarea, input, [contenteditable='true'], [contenteditable=''], [role='textbox']")) return hideBtn();
+            const rect = sel.getRangeAt(0).getBoundingClientRect();
+            if (!rect || (!rect.width && !rect.height)) return hideBtn();
+            const x = Math.min(Math.max(rect.left + rect.width / 2 - 70, 8), Math.max(8, window.innerWidth - 170));
+            const y = Math.min(rect.bottom + 8, Math.max(8, window.innerHeight - 46));
+            showBtn(x, y, text);
+          } catch (_) {}
+        }, 10);
+      }, true);
+      document.addEventListener("mousedown", (e) => { if (btn && e.target !== btn && !btn.contains(e.target)) hideBtn(); }, true);
+      window.addEventListener("scroll", hideBtn, true);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideBtn(); });
+    } catch (_) {}
+  })();
+
   globalThis.ArenaShared = {
     _loaded: true,
     getLastNonEmpty,

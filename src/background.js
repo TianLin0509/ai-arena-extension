@@ -7,7 +7,7 @@ let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
 // 并列模式走 MAIN world visibility patch（无黄条）— 两套并存按需启用
 // v4.9.0: 加入 gatekeeper 三个模块（rules → store → engine 顺序，store/engine 依赖 BUILTIN_RULES）
 // v5.2.4-storage-p1: arena-errors.js 最先 importScripts，让其余子模块都能用 makeArenaError/ArenaErrorCode/ArenaStage
-importScripts("arena-errors.js", "selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "captain-mode.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js");
+importScripts("arena-errors.js", "selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "captain-mode.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js", "memo-store.js");
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -551,6 +551,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           // v5.0.19: msg.compress=true → 重建压缩版 prompt 后补发（应对网关上传限额）
           sendResponse(await retryDebateInjectForParticipant(msg.participantId, { compress: !!msg.compress }));
           break;
+        // v5.0.21: 划线收藏（备忘录）— 来源：AI 原网页浮钮（content-shared）/ 圆桌主界面（popup-memos）
+        case "memoAdd":    sendResponse(await self.ArenaMemoStore.add(msg.text, msg.source)); break;
+        case "memoList":   sendResponse({ ok: true, items: await self.ArenaMemoStore.list() }); break;
+        case "memoRemove": sendResponse(await self.ArenaMemoStore.remove(msg.id)); break;
+        case "memoClear":  sendResponse(await self.ArenaMemoStore.clear()); break;
         case "resetSession":
           StateMachine.resetSession();
           notifyStatus("会话已重置");
