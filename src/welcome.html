@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欢迎使用 AI圆桌派</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #fff; --ink: #1d1d1f; --ink-soft: #6e6e73;
+    --border: #d2d2d7; --accent: #0071e3; --success: #34c759;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1d1d1f; --card: #2c2c2e; --ink: #f5f5f7; --ink-soft: #aeaeb2;
+      --border: #38383a; --accent: #0a84ff;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px;
+  }
+  .wrap { max-width: 660px; text-align: center; }
+  .logo { width: 88px; height: 88px; border-radius: 22px; margin-bottom: 18px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .sub { color: var(--ink-soft); font-size: 16px; line-height: 1.6; margin-bottom: 34px; }
+  .pin-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px 28px; margin-bottom: 26px; text-align: left;
+  }
+  .pin-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .pin-steps { display: flex; gap: 14px; flex-wrap: wrap; }
+  .pin-step {
+    flex: 1; min-width: 170px; background: var(--bg); border-radius: 12px;
+    padding: 14px 16px; font-size: 13.5px; line-height: 1.6; color: var(--ink);
+  }
+  .pin-step .num {
+    display: inline-flex; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 12px; font-weight: 700;
+    align-items: center; justify-content: center; margin-bottom: 6px;
+  }
+  .pin-step .big { font-size: 22px; }
+  .cta {
+    display: inline-block; background: var(--accent); color: #fff; border: none;
+    font-size: 17px; font-weight: 600; padding: 14px 38px; border-radius: 14px;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 20px rgba(0, 113, 227, 0.35);
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+  .cta:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .cta-done { margin-top: 14px; color: var(--success); font-weight: 600; display: none; }
+  .foot { margin-top: 26px; color: var(--ink-soft); font-size: 13px; line-height: 1.7; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="logo" src="icons/icon128.png" alt="AI圆桌派">
+    <h1>欢迎使用 AI圆桌派</h1>
+    <div class="sub">让多个 AI 同台回答、互相辩论 — 比只问一个 AI 更接近真相。<br>接下来 1 分钟，带你完成第一次圆桌。</div>
+
+    <div class="pin-card">
+      <div class="pin-title">📌 第一步（重要）：把图标钉在工具栏，以后一点就开</div>
+      <div class="pin-steps">
+        <div class="pin-step"><span class="num">1</span><br>点浏览器右上角的<br><span class="big">🧩</span> 拼图图标</div>
+        <div class="pin-step"><span class="num">2</span><br>找到「AI圆桌派」<br>点旁边的 <span class="big">📌</span> 图钉</div>
+        <div class="pin-step"><span class="num">3</span><br>以后点工具栏图标<br>随时打开圆桌 <span class="big">🚀</span></div>
+      </div>
+    </div>
+
+    <button class="cta" id="btn-open">🚀 打开 AI 圆桌派，开始 1 分钟新手之旅</button>
+    <div class="cta-done" id="cta-done">✓ 已打开！在新窗口里跟着左下角的「🎯 新手之旅」走即可</div>
+
+    <div class="foot">
+      圆桌的原理：插件替你同时操作各家 AI 的官方网页，所以<b>用哪个 AI 就需要登录哪个 AI 的网站</b>（没有账号用手机号注册即可）。所有数据只存在你自己的电脑里。
+    </div>
+  </div>
+  <script src="welcome.js"></script>
+</body>
+</html>

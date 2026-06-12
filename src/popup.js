@@ -314,6 +314,22 @@
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // v5.0.23 F: 登录警告气泡尾部追加「🔑 去登录页」按钮（isDone 渲染完成后 append，不会被流式重绘冲掉）
+  function attachLoginAction(msgId, participantId, pid) {
+    const row = bubbleByKey.get(`${msgId}-${participantId}`);
+    const bubble = row?.querySelector(".msg-bubble");
+    if (!bubble || bubble.querySelector(".bubble-login-btn")) return;
+    const btn = document.createElement("button");
+    btn.className = "bubble-login-btn";
+    btn.textContent = "🔑 去登录页";
+    btn.title = "打开该 AI 的网页去登录，登录后会自动就绪";
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      try { chrome.runtime.sendMessage({ type: "activateParticipantTab", id: pid }, () => { void chrome.runtime.lastError; }); } catch (_) {}
+    });
+    bubble.appendChild(btn);
+  }
+
   // ── 智能 auto-follow 滚动 ──
   // 用户贴底时自动跟随新消息；用户向上滚浏览历史时停止跟随，回到接近底部时恢复
   const FOLLOW_THRESHOLD_PX = 80;  // 距底 < 80px 视为"贴底"
@@ -573,7 +589,11 @@
     if (msg.type === "chatStreamUpdate") {
       const { msgId, role, participantId, text, isDone, hasRichContent, richTypes } = msg;
       if (role === "user") appendUserMessage(text, msgId);
-      else updateAIBubble(msgId, participantId, text, isDone, hasRichContent, richTypes);
+      else {
+        updateAIBubble(msgId, participantId, text, isDone, hasRichContent, richTypes);
+        // v5.0.23 F: 未登录警告气泡内嵌可点按钮 — 萌新读得懂"去登录"但不知道页面在哪
+        if (msg.loginWarning && msg.loginPid) attachLoginAction(msgId, participantId, msg.loginPid);
+      }
     } else if (msg.type === "stateUpdate") {
       // v5.0.20 UX-1: 跟踪 participants[0] = 队长（与 background captain-mode isCaptain 同逻辑）
       if (msg.participants) _setCaptainInfo(msg.participants);

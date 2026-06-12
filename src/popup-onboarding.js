@@ -63,14 +63,15 @@
 
   const EXAMPLE_Q = "5000 元预算买手机：iPhone 还是华为？给出明确推荐";
 
-  function fillExample() {
+  function fillExample(text) {
+    const q = typeof text === "string" && text ? text : EXAMPLE_Q;
     const input = document.getElementById("chat-input");
     if (!input) return;
     // 与 popup-memos 引用同款：追加文本节点（不动已有内容），不派发 input 事件防 @ 菜单误触
     if (input.textContent && !/\s$/.test(input.textContent)) {
       input.appendChild(document.createTextNode("\n"));
     }
-    input.appendChild(document.createTextNode(EXAMPLE_Q));
+    input.appendChild(document.createTextNode(q));
     try {
       const range = document.createRange();
       range.selectNodeContents(input);
@@ -299,6 +300,13 @@
     render();
     try { window.ChatToast?.show("🎯 新手之旅已重新开始", { type: "ok" }); } catch (_) {}
   }
+
+  // v5.0.23 E: 空状态示例问题 chips → 一键填入输入框（与新手之旅步骤 3 同一条填充链路）
+  document.getElementById("es-starters")?.addEventListener("click", (e) => {
+    const chip = e.target?.closest?.(".es-starter");
+    if (!chip?.dataset?.q) return;
+    fillExample(chip.dataset.q);
+  });
 
   window.ChatOnboarding = { restart, getFacts: () => facts };
 

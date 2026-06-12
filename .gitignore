@@ -13,3 +13,4 @@ Thumbs.db
 tests/e2e/.userdata/
 tests/e2e/.memo-profile/
 tests/e2e/.onboarding-profile/
+tests/e2e/.welcome-profile/

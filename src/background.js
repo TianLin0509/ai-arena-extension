@@ -319,6 +319,19 @@ async function injectBootstrapToExistingTabs() {
 // v4.8.34: activateAiWindowsOnce / _activatedOnce / storage.session activatedOnce 整套删除
 // （视觉抖动元凶；详见上方注释）
 
+// v5.0.23 D(萌新友好): 全新安装自动打开欢迎页（教钉图标 + 一键开圆桌）。
+//   双保险防重复：reason 严格 === "install"（本项目 onInstalled 在 SW 重启/reload 时
+//   也会触发，见 ensureContextMenu 注释）+ storage welcomeShown 标记。
+chrome.runtime.onInstalled.addListener(async (details) => {
+  if (details?.reason !== "install") return;
+  try {
+    const d = await chrome.storage.local.get(["welcomeShown"]);
+    if (d.welcomeShown) return;
+    await chrome.storage.local.set({ welcomeShown: true });
+    chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") }).catch(() => {});
+  } catch (_) {}
+});
+
 // 触发 1: 安装 / 启动 / SW 唤醒
 chrome.runtime.onInstalled.addListener(() => { injectBootstrapToExistingTabs(); });
 chrome.runtime.onStartup.addListener(() => { injectBootstrapToExistingTabs(); });
@@ -421,6 +434,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // v5.0.22 B: 登录红绿灯 — popup 驱动复检 + 一键去登录页
         case "recheckLogin": sendResponse(await recheckLoginFor(msg.id)); break;
         case "activateParticipantTab": sendResponse(await activateParticipantTab(msg.id)); break;
+        // v5.0.23 D: 欢迎页 CTA → 打开圆桌窗口
+        case "openArenaPopup":
+          try { await ChatBus.openChatPopup(); sendResponse({ ok: true }); }
+          catch (e) { sendResponse({ ok: false, error: e?.message }); }
+          break;
         case "broadcast":
           sendResponse(await guardedSend({
             text: msg.text || "",
@@ -751,9 +769,10 @@ async function checkLoginStatus(participantId, displayName, service) {
       chrome.runtime.sendMessage({
         type: "chatStreamUpdate", role: "ai",
         msgId: tipMsgId, participantId: service,
-        text: `⚠ ${displayName} 似乎未登录。请到 ${displayName} 网页登录（成员卡上有「🔑 去登录」按钮），登录后会自动就绪。`,
+        text: `⚠ ${displayName} 似乎未登录。请到 ${displayName} 网页登录（没有账号用手机号注册即可），登录后会自动就绪。`,
         isDone: true,
         loginWarning: true,
+        loginPid: participantId,   // v5.0.23 F: 气泡内嵌「去登录页」按钮要用
       }).catch(() => {});
       notifyStatus(`⚠ ${displayName} 未登录，提问前请先登录`);
     }

@@ -4338,6 +4338,23 @@ body[data-mode="mini"] #arena-onboarding { display: none; }
 }
 .rp-add-group-lbl.rp-add-group-intl { margin-top: 12px; }
 
+/* ── v5.0.23: 示例问题 chips + 登录气泡行动按钮 ── */
+.es-starters { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; align-items: center; }
+.es-starters-lbl { font-size: 12px; color: var(--ink-soft); }
+.es-starter {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  color: var(--ink); font-size: 12.5px; padding: 7px 16px; cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  max-width: 360px;
+}
+.es-starter:hover { border-color: var(--accent); transform: translateY(-1px); }
+.bubble-login-btn {
+  display: block; margin-top: 8px;
+  background: #ff9f0a; color: #fff; border: none; border-radius: 9px;
+  font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer;
+}
+.bubble-login-btn:hover { filter: brightness(1.1); }
+
 /* 成员卡登录红绿灯角标 */
 .hero-slot-login {
   position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
