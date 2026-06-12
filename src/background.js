@@ -418,6 +418,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           if (msg.screen) lastKnownScreen = msg.screen;
           sendResponse(await addParticipant(msg.service)); break;
         case "removeParticipant": sendResponse(await removeParticipant(msg.id)); break;
+        // v5.0.22 B: 登录红绿灯 — popup 驱动复检 + 一键去登录页
+        case "recheckLogin": sendResponse(await recheckLoginFor(msg.id)); break;
+        case "activateParticipantTab": sendResponse(await activateParticipantTab(msg.id)); break;
         case "broadcast":
           sendResponse(await guardedSend({
             text: msg.text || "",
@@ -477,6 +480,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           _modeSwitchPromise = _modeSwitchPromise.then(async () => {
             if (!self.CDPExtractor) return;
             if (msg.mode === "tab" && oldMode !== "tab") {
+              // v5.0.22 C: 切到 Tab 模式且有成员 → 即将 attach，先安抚黄条
+              if (StateMachine.participants.length) maybeNotifyDebuggerNotice();
               console.log(`[F37] mode → tab, attaching ${StateMachine.participants.length} AI tabs (serial)`);
               for (const p of StateMachine.participants) {
                 if (p.tabId) await self.CDPExtractor.attachAndWake(p.tabId).catch(() => {});
@@ -646,13 +651,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // ── v4.7.2 F22: 添加 AI 时检测登录状态 ──
 // 用 chrome.scripting.executeScript 在 AI tab 跑通用启发式：DOM 含登录关键字 +
 // 没有对话输入框 → 未登录。比依赖每个 content-*.js 的 isLoginBlocked 更通用。
-async function checkLoginStatus(tabId, displayName, service) {
-  try {
-    // 等页面初步加载（DOM ready），但不强求 complete（部分 SPA 永远不到 complete）
-    await new Promise(r => setTimeout(r, 3500));
-    const results = await chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => {
+// v5.0.22 B(萌新友好): 登录检测从"一次性文字警告"升级为参与者红绿灯 —
+//   participant.loginStatus: "checking" | "ok" | "login_required"，随 stateUpdate 广播，
+//   popup 成员卡渲染 🔑去登录 角标；login_required 期间 popup 每 8s 发 recheckLogin
+//   复检（popup 侧驱动，规避 MV3 SW 30s 空闲回收杀掉长 setTimeout 链的问题），
+//   用户登录完成自动翻绿。探测无结论（tab 关/脚本失败）→ 不误报，维持原状。
+const LOGIN_PROBE_FUNC = () => {
         // v4.7.5 F22 启发式：CTA / Modal / URL / not-login class 四个维度任一命中即未登录
 
         // 1. 找登录 CTA 按钮 — selector 扩展到 div/span/li（Kimi 用 <div class="not-login-container">登录</div>）
@@ -700,16 +704,54 @@ async function checkLoginStatus(tabId, displayName, service) {
 
         const loggedIn = !(hasLoginCTA || hasLoginModal || urlLooksLikeLogin || hasNotLoginClass);
         return { loggedIn, hasLoginCTA, hasLoginModal, urlLooksLikeLogin, hasNotLoginClass, ctaCount: ctas.length };
-      },
-    }).catch(() => null);
-    const r = results?.[0]?.result;
-    if (r && r.loggedIn === false) {
+};
+
+async function probeLoginOnce(tabId) {
+  const results = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: LOGIN_PROBE_FUNC,
+  }).catch(() => null);
+  return results?.[0]?.result || null;
+}
+
+// 探测结果落到参与者状态 + 广播；翻绿时发 toast 级提示。返回最新 loginStatus。
+function applyLoginProbe(participantId, probe) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p || !probe) return null;
+  const next = probe.loggedIn ? "ok" : "login_required";
+  if (p.loginStatus !== next) {
+    const wasRequired = p.loginStatus === "login_required";
+    p.loginStatus = next;
+    StateMachine.save();
+    StateMachine._broadcastStateUpdate();
+    if (next === "ok" && wasRequired) notifyStatus(`✓ ${p.name} 已登录就绪`);
+  }
+  return next;
+}
+
+async function checkLoginStatus(participantId, displayName, service) {
+  try {
+    // 等页面初步加载（DOM ready），但不强求 complete（部分 SPA 永远不到 complete）
+    await new Promise(r => setTimeout(r, 3500));
+    let p = StateMachine.getParticipant(participantId);
+    if (!p) return;
+    let probe = await probeLoginOnce(p.tabId);
+    if (!probe) {
+      // 页面可能还在加载，4s 后再试一次；仍无结论则维持 checking（popup 侧有放行兜底）
+      await new Promise(r => setTimeout(r, 4000));
+      p = StateMachine.getParticipant(participantId);
+      if (!p) return;
+      probe = await probeLoginOnce(p.tabId);
+      if (!probe) return;
+    }
+    const status = applyLoginProbe(participantId, probe);
+    if (status === "login_required") {
       const tipMsgId = `m${Date.now()}_login_${service}`;
       // 用同一个 chatStreamUpdate 通道推一条 ai 警告气泡（popup updateAIBubble 自动按 service 加头像）
       chrome.runtime.sendMessage({
         type: "chatStreamUpdate", role: "ai",
         msgId: tipMsgId, participantId: service,
-        text: `⚠ ${displayName} 似乎未登录。请到 ${displayName} 网页登录后，点击气泡 🔄 重试 / 重新加入。`,
+        text: `⚠ ${displayName} 似乎未登录。请到 ${displayName} 网页登录（成员卡上有「🔑 去登录」按钮），登录后会自动就绪。`,
         isDone: true,
         loginWarning: true,
       }).catch(() => {});
@@ -718,6 +760,43 @@ async function checkLoginStatus(tabId, displayName, service) {
   } catch (_) {
     // 检测失败（tab 已关 / 没 scripting 权限等）不影响添加
   }
+}
+
+// popup 驱动的复检（login_required 期间每 8s 一次）— 用户在 AI 网页登录完成后自动翻绿
+async function recheckLoginFor(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p) return { ok: false, error: "participant not found" };
+  const probe = await probeLoginOnce(p.tabId);
+  if (!probe) return { ok: true, loginStatus: p.loginStatus || "checking" };
+  return { ok: true, loginStatus: applyLoginProbe(participantId, probe) };
+}
+
+// 萌新一键"去登录"：激活该参与者的 AI 标签页/窗口
+async function activateParticipantTab(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p?.tabId) return { ok: false, error: "tab not found" };
+  try {
+    const tab = await chrome.tabs.update(p.tabId, { active: true });
+    if (tab?.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e?.message || "activate failed" };
+  }
+}
+
+// v5.0.22 C(萌新友好): 首次 CDP attach 前安抚"已开始调试此浏览器"黄条 —
+//   萌新看到"调试"会恐慌点取消（导致后台提取降速）。只弹一次（storage 标记由 popup 写）。
+//   审查修复：storage 标记由 popup 收到消息后才写，addParticipant 与 setWindowMode 短窗内
+//   连续调用会双发 → 内存哨兵先行去重（SW 重启后哨兵清零，但届时 storage 标记已落盘兜底）
+let _debuggerNoticeSent = false;
+async function maybeNotifyDebuggerNotice() {
+  if (_debuggerNoticeSent) return;
+  _debuggerNoticeSent = true;
+  try {
+    const d = await chrome.storage.local.get(["debuggerNoticeShown"]);
+    if (d.debuggerNoticeShown) return;
+    chrome.runtime.sendMessage({ type: "debuggerNotice" }).catch(() => {});
+  } catch (_) {}
 }
 
 // ── 参与者管理 ──
@@ -774,10 +853,13 @@ async function addParticipant(service) {
   }
 
   StateMachine.addParticipant(id, service, tabId, `${info.name}-${count}`);
+  // v5.0.22 B: 登录红绿灯初始态 — checking；探测落定后翻 ok / login_required
+  const newP = StateMachine.getParticipant(id);
+  if (newP) newP.loginStatus = "checking";
   notifyStatus(`已添加 ${info.name}-${count}`);
   StateMachine._broadcastStateUpdate();
-  // v4.7.2 F22: 异步检测登录态，未登录推 popup 警告气泡（不阻塞 addParticipant 返回）
-  checkLoginStatus(tabId, `${info.name}-${count}`, service).catch(() => {});
+  // v4.7.2 F22 → v5.0.22: 异步检测登录态（带一次重试），结果落 participant.loginStatus
+  checkLoginStatus(id, `${info.name}-${count}`, service).catch(() => {});
 
   // 并列模式下自动排列窗口
   if (windowMode === "tiled") {
@@ -795,6 +877,8 @@ async function addParticipant(service) {
   // v4.8.29 F37 混合模式: Tab 模式持久 attach chrome.debugger（黄条不影响 tab UI），
   // 并列模式靠 MAIN world bootstrap-main-world.js 自动注入（已在 manifest content_scripts）
   if (windowMode === "tab" && self.CDPExtractor) {
+    // v5.0.22 C: 黄条出现前就地安抚（只弹一次）
+    maybeNotifyDebuggerNotice();
     setTimeout(async () => {
       // v4.8.30 F38-③: timeout 内重检 windowMode — 1.5s 内若切到 tiled，不该再 attach
       if (windowMode !== "tab") {

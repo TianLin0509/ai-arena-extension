@@ -83,9 +83,21 @@
       b.addEventListener("click", () => setMode(b.dataset.mode));
     });
     document.getElementById("btn-focus-ai-tabs")?.addEventListener("click", async () => {
+      if (mode !== "tab") {
+        applyActiveClass();
+        return;
+      }
       try {
         const r = await chrome.runtime.sendMessage({ type: "focusAllAiTabs" });
-        if (!r?.ok) console.warn("[window-mode] focusAllAiTabs failed:", r?.error || r);
+        if (!r?.ok) {
+          const err = r?.error || r;
+          if (err === "仅 Tab 模式可用") {
+            mode = "tiled";
+            applyActiveClass();
+            return;
+          }
+          console.warn("[window-mode] focusAllAiTabs failed:", err);
+        }
       } catch (e) {
         console.warn("[window-mode] focusAllAiTabs failed:", e?.message || e);
       }

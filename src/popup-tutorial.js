@@ -69,12 +69,9 @@
     const $el = document.getElementById("es-tutorial");
     if (!$el) return;
     ensureBindings(); // v5.0.7: dismissed 也要绑（show() 后才能用）
-    try {
-      const r = await new Promise(res => chrome.storage.local.get([STORAGE_KEY], resp => res(resp || {})));
-      if (r[STORAGE_KEY]) return;   // 已 dismiss → 不自动显示（但绑定已 ready，show() 可触发）
-    } catch (_) {}
-    $el.hidden = false;
-    showPage(1);
+    // v5.0.22 A: 取消首启自动弹 5 页教程 — 萌新的真实行为是直接 ✕ 关掉（一次性灌 5 页
+    //   说明书无效）。首启引导改由 popup-onboarding.js 任务式新手之旅接管（状态驱动、
+    //   每步一句话）。本教程降级为"完整手册"：设置 Tab → 📘 新手教程 随时可看。
   }
 
   // v5.0.6: 设置 tab"新手教程"按钮触发 — 把 tutorial 升级为浮动 modal 覆盖在 popup 上，

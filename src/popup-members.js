@@ -3,16 +3,18 @@
   // v4.8.7: heroLogo 是 codex 画的 Q 版英雄卡（webp 17KB/张），仅 hero-slot 卡槽用；
   // logo 仍是简单 svg，给"添加"按钮、排行榜等小图标场景
   // v4.8.22 B2: 加 desc 字段（"厂商 · 一句话定位"），添加按钮显示副标题
+  // v5.0.22 B: cn 标记 — 国内可直连（手机号注册门槛低）排前面，国际站点单独分组并注明
+  //   网络要求，避免萌新点了 Claude 看到打不开的报错页以为"插件是坏的"
   const ALL_SERVICES = [
-    { id: "claude",   name: "Claude",   logo: "icons/brands/claude.svg",   heroLogo: "icons/heroes/claude.webp",   desc: "Anthropic · 推理稳健" },
-    { id: "gemini",   name: "Gemini",   logo: "icons/brands/gemini.svg",   heroLogo: "icons/heroes/gemini.webp",   desc: "Google · 多模态强" },
-    { id: "chatgpt",  name: "GPT",      logo: "icons/brands/openai.svg",   heroLogo: "icons/heroes/chatgpt.webp",  desc: "OpenAI · 全能选手" },
-    { id: "deepseek", name: "DeepSeek", logo: "icons/brands/deepseek.svg", heroLogo: "icons/heroes/deepseek.webp", desc: "深度求索 · 代码强" },
-    { id: "doubao",   name: "豆包",     logo: "icons/brands/doubao.svg",   heroLogo: "icons/heroes/doubao.webp",   desc: "字节 · 中文友好" },
-    { id: "qwen",     name: "千问",     logo: "icons/brands/qwen.svg",     heroLogo: "icons/heroes/qwen.webp",     desc: "阿里 · 长文档强" },
-    { id: "kimi",     name: "Kimi",     logo: "icons/brands/kimi.svg",     heroLogo: "icons/heroes/kimi.webp",     desc: "月之暗面 · 超长上下文" },
-    { id: "yuanbao",  name: "元宝",     logo: "icons/brands/yuanbao.svg",  heroLogo: "icons/heroes/yuanbao.webp",  desc: "腾讯 · 微信生态" },
-    { id: "grok",     name: "Grok",     logo: "icons/brands/grok.svg",     heroLogo: "icons/heroes/grok.webp",     desc: "xAI · 实时网络" },
+    { id: "deepseek", name: "DeepSeek", cn: true,  logo: "icons/brands/deepseek.svg", heroLogo: "icons/heroes/deepseek.webp", desc: "深度求索 · 代码强" },
+    { id: "doubao",   name: "豆包",     cn: true,  logo: "icons/brands/doubao.svg",   heroLogo: "icons/heroes/doubao.webp",   desc: "字节 · 中文友好" },
+    { id: "kimi",     name: "Kimi",     cn: true,  logo: "icons/brands/kimi.svg",     heroLogo: "icons/heroes/kimi.webp",     desc: "月之暗面 · 超长上下文" },
+    { id: "yuanbao",  name: "元宝",     cn: true,  logo: "icons/brands/yuanbao.svg",  heroLogo: "icons/heroes/yuanbao.webp",  desc: "腾讯 · 微信生态" },
+    { id: "qwen",     name: "千问",     cn: true,  logo: "icons/brands/qwen.svg",     heroLogo: "icons/heroes/qwen.webp",     desc: "阿里 · 长文档强" },
+    { id: "claude",   name: "Claude",   cn: false, logo: "icons/brands/claude.svg",   heroLogo: "icons/heroes/claude.webp",   desc: "Anthropic · 推理稳健" },
+    { id: "gemini",   name: "Gemini",   cn: false, logo: "icons/brands/gemini.svg",   heroLogo: "icons/heroes/gemini.webp",   desc: "Google · 多模态强" },
+    { id: "chatgpt",  name: "GPT",      cn: false, logo: "icons/brands/openai.svg",   heroLogo: "icons/heroes/chatgpt.webp",  desc: "OpenAI · 全能选手" },
+    { id: "grok",     name: "Grok",     cn: false, logo: "icons/brands/grok.svg",     heroLogo: "icons/heroes/grok.webp",     desc: "xAI · 实时网络" },
   ];
   const SERVICE_MAP = Object.fromEntries(ALL_SERVICES.map(s => [s.id, s]));
 
@@ -112,6 +114,29 @@
     }[c]));
   }
 
+  // v5.0.22 B: 添加区按网络可达性分两组 — 国内直连在前（萌新默认看到点了就能用的）
+  function renderAddGroups(remaining) {
+    const cnList = remaining.filter(s => s.cn);
+    const intlList = remaining.filter(s => !s.cn);
+    const btn = s => `
+          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)} — ${escapeHtml(s.desc || "")}">
+            <img class="rp-add-logo" src="${s.logo}" alt="">
+            <span class="rp-add-name">${escapeHtml(s.name)}</span>
+          </button>`;
+    let html = "";
+    if (cnList.length) {
+      html += `
+      <div class="rp-add-group-lbl">🟢 国内直连 · 手机号即可注册</div>
+      <div class="rp-add-grid">${cnList.map(btn).join("")}</div>`;
+    }
+    if (intlList.length) {
+      html += `
+      <div class="rp-add-group-lbl rp-add-group-intl">🌐 需国际网络环境</div>
+      <div class="rp-add-grid">${intlList.map(btn).join("")}</div>`;
+    }
+    return html;
+  }
+
   function statusOf(p) {
     // v4.3.11: 优先使用 streamStatus（跟主区气泡同步）
     const s = streamStatus.get(p.service);
@@ -133,9 +158,48 @@
     return "等待中";
   }
 
+  // ── v5.0.22 B: 登录复检（popup 驱动，规避 MV3 SW 空闲回收）+ 翻绿 toast ──
+  let _recheckTimer = null;
+  const _prevLoginStatus = new Map();
+  function manageLoginRecheck() {
+    const need = (state.participants || []).some(p => p.loginStatus === "login_required");
+    if (need && !_recheckTimer) {
+      _recheckTimer = setInterval(() => {
+        (state.participants || [])
+          .filter(p => p.loginStatus === "login_required")
+          .forEach(p => {
+            try { chrome.runtime.sendMessage({ type: "recheckLogin", id: p.id }, () => { void chrome.runtime.lastError; }); } catch (_) {}
+          });
+      }, 8000);
+    } else if (!need && _recheckTimer) {
+      clearInterval(_recheckTimer);
+      _recheckTimer = null;
+    }
+  }
+  // 审查修复：popup 关闭时清 interval（popup window 上下文销毁本会带走它，
+  //   但 sidepanel 等 persistent 宿主复用本文件时会泄漏，显式清理兜底）
+  window.addEventListener("unload", () => {
+    if (_recheckTimer) { clearInterval(_recheckTimer); _recheckTimer = null; }
+  });
+
+  function trackLoginTransitions() {
+    const alive = new Set();
+    (state.participants || []).forEach(p => {
+      alive.add(p.id);
+      const prev = _prevLoginStatus.get(p.id);
+      if (prev === "login_required" && p.loginStatus === "ok") {
+        try { window.ChatToast?.show(`✓ ${p.name} 已登录就绪，可以提问了`, { type: "ok" }); } catch (_) {}
+      }
+      _prevLoginStatus.set(p.id, p.loginStatus);
+    });
+    [..._prevLoginStatus.keys()].forEach(id => { if (!alive.has(id)) _prevLoginStatus.delete(id); });
+  }
+
   function render() {
     const root = document.getElementById("rp-panel-members");
     if (!root) return;
+    trackLoginTransitions();
+    manageLoginRecheck();
     const joined = state.participants || [];
     const joinedIds = new Set(joined.map(p => p.service));
     const remaining = ALL_SERVICES.filter(s => !joinedIds.has(s.id));
@@ -154,6 +218,10 @@
         const status = statusOf(p);
         const isNew = newPids.includes(p.id);
         const captainMark = p.service === captainSvc ? '<div class="hero-slot-captain" title="队长：负责整合队友观点">👑</div>' : "";
+        // v5.0.22 B: 登录红绿灯角标 — 未登录给可点的"去登录"，比文字指路直接
+        const loginBadge = p.loginStatus === "login_required"
+          ? `<button class="hero-slot-login" data-pid="${escapeHtml(p.id)}" title="检测到 ${escapeHtml(meta.name)} 未登录 — 点击打开它的网页登录（没账号用手机号注册），登录后自动变绿">🔑 去登录</button>`
+          : "";
         // v4.8.7: 优先用卡牌版 heroLogo；旧 svg 作为兜底
         // v4.8.14: heroLogo 走 ArenaLogoStyle.heroPath() 动态切换风格（classic/anime）
         const heroSrc = (window.ArenaLogoStyle?.heroPath(p.service)) || meta.heroLogo || meta.logo;
@@ -170,6 +238,7 @@
               ${captainMark}
               <div class="hero-slot-name">${escapeHtml(meta.name)}</div>
               <div class="hero-slot-status"><span class="rp-status-dot ${status}"></span></div>
+              ${loginBadge}
               <span class="hero-slot-check">✓</span>
               <button class="hero-slot-remove" data-pid="${escapeHtml(p.id)}" title="移除">×</button>
               ${sparks}
@@ -200,14 +269,7 @@
       </div>
 
       <div class="rp-section-title" style="margin-top:14px">添加</div>
-      <div class="rp-add-grid">
-        ${remaining.map(s => `
-          <button class="rp-add-btn" data-service="${s.id}" title="添加 ${escapeHtml(s.name)}">
-            <img class="rp-add-logo" src="${s.logo}" alt="">
-            <span class="rp-add-name">${escapeHtml(s.name)}</span>
-          </button>
-        `).join("")}
-      </div>
+      ${renderAddGroups(remaining)}
 
       ${renderLeaderboard()}
       ${renderManifesto()}
@@ -215,6 +277,13 @@
 
     root.querySelectorAll(".rp-add-btn").forEach(b => {
       b.addEventListener("click", () => addParticipant(b.dataset.service));
+    });
+    // v5.0.22 B: 未登录角标 → 激活该 AI 的标签页去登录
+    root.querySelectorAll(".hero-slot-login").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        try { chrome.runtime.sendMessage({ type: "activateParticipantTab", id: el.dataset.pid }, () => { void chrome.runtime.lastError; }); } catch (_) {}
+      });
     });
     // v5.2.25: 右上角 × 直接移除（替代 v4.8.0 三点菜单——重发/重新提取已在下方 hqa-btn）
     root.querySelectorAll(".hero-slot-remove").forEach(el => {
@@ -279,6 +348,11 @@
       // v5.2.23: 千问与其他 AI 互斥 — background 守卫拒绝时弹提示
       if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) {
         try { alert(r.message); } catch (_) {}
+      }
+      // v5.0.22 B: 把"后台静默开 tab"翻译给用户 — 萌新点了 Logo 看不到任何变化会以为没反应
+      if (r?.ok) {
+        const meta = SERVICE_MAP[service];
+        try { window.ChatToast?.show(`已在后台打开 ${meta?.name || service} 的网页 — 若要求登录，请先登录`, { type: "info" }); } catch (_) {}
       }
       try { window.focus(); } catch (_) {}
       refresh();

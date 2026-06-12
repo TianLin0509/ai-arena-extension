@@ -4261,3 +4261,93 @@ body[data-logo-style="basic"] .msg-avatar img {
   padding: 7px 12px; border-radius: 14px; cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,.35); user-select: none;
 }
+
+/* ── v5.0.22: 萌新引导（toast / 新手之旅 / 登录红绿灯 / 添加分组 / 聚光灯）── */
+#arena-toast-wrap {
+  position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+  z-index: 9000; display: flex; flex-direction: column; gap: 8px; align-items: center;
+  pointer-events: none;
+}
+.arena-toast {
+  pointer-events: auto; cursor: pointer;
+  max-width: 420px; padding: 9px 16px; border-radius: 12px;
+  background: rgba(29, 29, 31, 0.92); color: #f5f5f7;
+  font-size: 12.5px; line-height: 1.5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.arena-toast.show { opacity: 1; transform: translateY(0); }
+.arena-toast-ok { background: rgba(36, 100, 51, 0.95); }
+.arena-toast-warn { background: rgba(146, 100, 11, 0.95); }
+
+#arena-onboarding {
+  position: fixed; left: 14px; bottom: 92px; width: 252px; z-index: 800;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  padding: 12px 14px; font-size: 12.5px; color: var(--ink);
+}
+#arena-onboarding.collapsed {
+  width: auto; padding: 0; background: none; border: none; box-shadow: none;
+}
+#arena-onboarding .ob-pill {
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--ink);
+  cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+}
+#arena-onboarding .ob-head { display: flex; align-items: center; margin-bottom: 6px; }
+#arena-onboarding .ob-title { font-weight: 700; font-size: 13px; }
+#arena-onboarding .ob-title b { color: var(--accent); }
+#arena-onboarding .ob-mini {
+  margin-left: auto; background: none; border: none; color: var(--ink-soft);
+  cursor: pointer; font-size: 13px; padding: 0 4px;
+}
+#arena-onboarding .ob-step { padding: 2px 0; color: var(--ink-soft); }
+#arena-onboarding .ob-step.ob-now { color: var(--ink); font-weight: 600; }
+#arena-onboarding .ob-step.ob-done span { text-decoration: line-through; opacity: 0.65; }
+#arena-onboarding .ob-hint {
+  margin: 8px 0 6px; padding: 7px 10px; border-radius: 8px;
+  background: rgba(10, 132, 255, 0.08); color: var(--ink); line-height: 1.55;
+}
+#arena-onboarding .ob-action {
+  display: block; width: 100%; text-align: center;
+  background: var(--accent); color: #fff; border: none; border-radius: 9px;
+  padding: 7px 10px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+#arena-onboarding .ob-action:hover { filter: brightness(1.08); }
+#arena-onboarding .ob-action.wide { text-align: left; white-space: normal; line-height: 1.4; }
+#arena-onboarding .ob-skip {
+  display: block; margin: 8px auto 0; background: none; border: none;
+  color: var(--ink-soft); font-size: 11px; cursor: pointer; text-decoration: underline;
+}
+#arena-onboarding.graduated .ob-hint { background: rgba(48, 209, 88, 0.12); }
+/* mini / 简洁模式下不挡操作 */
+body[data-mode="mini"] #arena-onboarding { display: none; }
+
+/* 聚光灯：当前引导步骤对应元素呼吸光圈 */
+.arena-spot { animation: arenaSpotPulse 1.1s ease-in-out 3; border-radius: 10px; }
+@keyframes arenaSpotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.45); }
+}
+
+/* 添加区分组标签 */
+.rp-add-group-lbl {
+  font-size: 11px; color: var(--ink-soft); font-weight: 600;
+  margin: 8px 0 4px; letter-spacing: 0.02em;
+}
+.rp-add-group-lbl.rp-add-group-intl { margin-top: 12px; }
+
+/* 成员卡登录红绿灯角标 */
+.hero-slot-login {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  background: #ff9f0a; color: #fff; border: none; border-radius: 10px;
+  font-size: 10.5px; font-weight: 700; padding: 3px 8px; cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28); white-space: nowrap; z-index: 3;
+  animation: arenaLoginNudge 2.2s ease-in-out 6;  /* 有限次：约 13s 后静止（持续浮动打扰 + E2E 判不稳定） */
+}
+.hero-slot-login:hover { filter: brightness(1.1); }
+@keyframes arenaLoginNudge {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-2px); }
+}

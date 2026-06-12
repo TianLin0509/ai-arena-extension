@@ -78,7 +78,8 @@
         <div class="rp-app-row rp-app-row-btns">
           <button class="rp-app-btn" id="rp-check-update" title="调 GitHub Releases API 比对版本">↻ 检查更新</button>
           <button class="rp-app-btn" id="rp-open-github" title="在新标签页打开 GitHub 仓库">⎘ GitHub</button>
-          <button class="rp-app-btn" id="rp-open-tutorial" title="重新打开新手教程">📘 新手教程</button>
+          <button class="rp-app-btn" id="rp-open-tutorial" title="打开完整玩法手册（5 页）">📘 新手教程</button>
+          <button class="rp-app-btn" id="rp-restart-onboarding" title="重新开始 4 步任务式新手之旅">🔰 新手之旅</button>
         </div>
       </div>
 
@@ -120,6 +121,10 @@
     });
     root.querySelector("#rp-open-tutorial")?.addEventListener("click", () => {
       window.ChatTutorial?.show?.();
+    });
+    // v5.0.22 A: 重开任务式新手之旅
+    root.querySelector("#rp-restart-onboarding")?.addEventListener("click", () => {
+      window.ChatOnboarding?.restart?.();
     });
     root.querySelector("#rp-captain-toggle")?.addEventListener("click", () => {
       captainMode = !captainMode;

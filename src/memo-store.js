@@ -6,6 +6,13 @@ self.ArenaMemoStore = (() => {
   const KEY = "arenaMemos";
   const MAX_ITEMS = 200;   // FIFO 上限，防 storage 膨胀
   const MAX_TEXT = 5000;   // 单条上限
+  let mutationQueue = Promise.resolve();
+
+  function enqueueMutation(fn) {
+    const run = mutationQueue.catch(() => {}).then(fn);
+    mutationQueue = run.catch(() => {});
+    return run;
+  }
 
   async function list() {
     const d = await chrome.storage.local.get([KEY]);
@@ -13,34 +20,40 @@ self.ArenaMemoStore = (() => {
   }
 
   async function add(text, source) {
-    const t = String(text || "").trim().slice(0, MAX_TEXT);
-    if (!t) return { ok: false, error: "空内容" };
-    const items = await list();
-    const memo = {
-      id: `memo_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      text: t,
-      source: source && typeof source === "object" ? source : {},
-      ts: Date.now(),
-    };
-    items.push(memo);
-    while (items.length > MAX_ITEMS) items.shift();
-    await chrome.storage.local.set({ [KEY]: items });
-    _notify(items.length);
-    return { ok: true, memo, count: items.length };
+    return enqueueMutation(async () => {
+      const t = String(text || "").trim().slice(0, MAX_TEXT);
+      if (!t) return { ok: false, error: "空内容" };
+      const items = await list();
+      const memo = {
+        id: `memo_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        text: t,
+        source: source && typeof source === "object" ? source : {},
+        ts: Date.now(),
+      };
+      items.push(memo);
+      while (items.length > MAX_ITEMS) items.shift();
+      await chrome.storage.local.set({ [KEY]: items });
+      _notify(items.length);
+      return { ok: true, memo, count: items.length };
+    });
   }
 
   async function remove(id) {
-    const items = await list();
-    const next = items.filter(m => m.id !== id);
-    await chrome.storage.local.set({ [KEY]: next });
-    _notify(next.length);
-    return { ok: true, count: next.length };
+    return enqueueMutation(async () => {
+      const items = await list();
+      const next = items.filter(m => m.id !== id);
+      await chrome.storage.local.set({ [KEY]: next });
+      _notify(next.length);
+      return { ok: true, count: next.length };
+    });
   }
 
   async function clear() {
-    await chrome.storage.local.set({ [KEY]: [] });
-    _notify(0);
-    return { ok: true, count: 0 };
+    return enqueueMutation(async () => {
+      await chrome.storage.local.set({ [KEY]: [] });
+      _notify(0);
+      return { ok: true, count: 0 };
+    });
   }
 
   // 通知 popup 刷新备忘录 Tab（popup 关闭时静默失败，符合 F17 设计）

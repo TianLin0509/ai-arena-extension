@@ -292,6 +292,8 @@ const StateMachine = {
         response: p.response,
         responsePreview: p.responsePreview,
         userEdited: !!p.userEdited,
+        // v5.0.22 B: 登录红绿灯（checking/ok/login_required）— popup 成员卡角标 + 新手之旅步骤 2 依赖
+        loginStatus: p.loginStatus || null,
       })),
       debateSession: this.debateSession
     }).catch(() => {});
@@ -306,6 +308,7 @@ const StateMachine = {
         response: p.response,
         responsePreview: p.responsePreview,
         userEdited: !!p.userEdited,
+        loginStatus: p.loginStatus || null,   // v5.0.22 B: 同 _doBroadcast
       })),
       debateSession: this.debateSession
     };

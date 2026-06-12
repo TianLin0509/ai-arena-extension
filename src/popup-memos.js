@@ -8,6 +8,10 @@
     doubao: "豆包", qwen: "千问", kimi: "Kimi", yuanbao: "元宝", grok: "Grok",
   };
   let items = [];
+  let dirty = true;
+  let refreshTimer = null;
+  let refreshInFlight = false;
+  let refreshAgain = false;
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
@@ -30,12 +34,42 @@
   }
 
   async function refresh() {
+    if (refreshInFlight) {
+      refreshAgain = true;
+      return;
+    }
+    refreshInFlight = true;
     const r = await new Promise(res => {
       try { chrome.runtime.sendMessage({ type: "memoList" }, resp => res(resp || {})); }
       catch (_) { res({}); }
     });
-    items = Array.isArray(r.items) ? r.items : [];
-    render();
+    try {
+      items = Array.isArray(r.items) ? r.items : [];
+      dirty = false;
+      render();
+    } finally {
+      refreshInFlight = false;
+      if (refreshAgain) {
+        refreshAgain = false;
+        scheduleRefresh({ force: true, delay: 0 });
+      }
+    }
+  }
+
+  function isMemoTabActive() {
+    return window.ChatRightPanel?.current === "memos";
+  }
+
+  function scheduleRefresh({ force = false, delay = 80 } = {}) {
+    if (!force && !isMemoTabActive()) {
+      dirty = true;
+      return;
+    }
+    if (refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => {
+      refreshTimer = null;
+      refresh();
+    }, delay);
   }
 
   function render() {
@@ -110,10 +144,10 @@
 
   // background 增删后广播（含其他窗口/网页来源的新增）→ 实时刷新
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "memoUpdated") refresh();
+    if (msg?.type === "memoUpdated") scheduleRefresh();
   });
   document.addEventListener("rp:activated", (e) => {
-    if (e.detail?.tab === "memos") refresh();
+    if (e.detail?.tab === "memos" && dirty) scheduleRefresh({ force: true, delay: 0 });
   });
 
   // ── 主界面消息区划线收藏（与 content-shared 站点侧同款交互）──
@@ -169,7 +203,12 @@
   })();
 
   window.ChatMemos = { refresh };
-  // 初始拉一次（角标/数据预热）
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", refresh);
-  else refresh();
+  // 初始不抢启动资源；打开备忘录 Tab 或收到可见状态更新时再拉取。
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      if (isMemoTabActive()) scheduleRefresh({ force: true, delay: 0 });
+    });
+  } else if (isMemoTabActive()) {
+    scheduleRefresh({ force: true, delay: 0 });
+  }
 })();

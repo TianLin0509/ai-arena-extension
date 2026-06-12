@@ -5,12 +5,14 @@ import { createRequire } from "node:module";
 // memo-store.js 是 SW 经典脚本，node 下用 chrome stub 真实执行（v5.0.21 划线收藏）
 globalThis.self = globalThis;
 let store = {};
+let getDelayMs = 0;
 globalThis.chrome = {
   storage: {
     local: {
       get: async (keys) => {
         const out = {};
         (Array.isArray(keys) ? keys : [keys]).forEach(k => { if (k in store) out[k] = store[k]; });
+        if (getDelayMs > 0) await new Promise(r => setTimeout(r, getDelayMs));
         return out;
       },
       set: async (obj) => { Object.assign(store, JSON.parse(JSON.stringify(obj))); },
@@ -60,4 +62,20 @@ test("超过 MAX_ITEMS 上限 FIFO 淘汰最旧", async () => {
   assert.equal(items.length, Memo.MAX_ITEMS);
   assert.equal(items[0].text, "memo-5", "最旧的 5 条被淘汰");
   assert.equal(items[items.length - 1].text, `memo-${Memo.MAX_ITEMS + 4}`);
+});
+
+test("并发 add 不应互相覆盖", async () => {
+  store = {};
+  getDelayMs = 15;
+  try {
+    const results = await Promise.all([
+      Memo.add("并发收藏 A"),
+      Memo.add("并发收藏 B"),
+    ]);
+    assert.equal(results.every(r => r.ok), true);
+    const items = await Memo.list();
+    assert.deepEqual(items.map(m => m.text).sort(), ["并发收藏 A", "并发收藏 B"]);
+  } finally {
+    getDelayMs = 0;
+  }
 });
