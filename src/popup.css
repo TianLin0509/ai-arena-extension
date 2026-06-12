@@ -4338,6 +4338,34 @@ body[data-mode="mini"] #arena-onboarding { display: none; }
 }
 .rp-add-group-lbl.rp-add-group-intl { margin-top: 12px; }
 
+/* ── v5.0.24: 体检 / 卡住哨兵 / 模式白话 / FAQ ── */
+.rp-doctor-btn {
+  margin-left: auto; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--ink); font-size: 11px; padding: 3px 10px; cursor: pointer;
+}
+.rp-doctor-btn:hover { border-color: var(--accent); color: var(--accent); }
+.doc-list { margin-top: 12px; max-height: 320px; overflow-y: auto; text-align: left; }
+.doc-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+.doc-item.all-ok { opacity: 0.75; }
+.doc-item-name { font-weight: 700; font-size: 13px; margin-bottom: 5px; }
+.doc-ok-mark { color: #34c759; font-size: 12px; font-weight: 600; }
+.doc-check { display: flex; align-items: center; gap: 7px; font-size: 12.5px; padding: 3px 0; }
+.doc-light.ok { color: #34c759; }
+.doc-light.bad { color: #ff3b30; animation: docBadBlink 1.2s ease-in-out 4; }
+@keyframes docBadBlink { 50% { opacity: 0.35; } }
+.doc-fix {
+  margin-left: auto; background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; cursor: pointer;
+}
+.doc-fix:hover { filter: brightness(1.1); }
+.menu-desc { display: block; font-size: 10.5px; color: var(--ink-soft); font-weight: 400; line-height: 1.4; margin-top: 1px; }
+.rp-faq { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.rp-faq details {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px;
+}
+.rp-faq summary { font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink); }
+.rp-faq p { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; }
+
 /* ── v5.0.23: 示例问题 chips + 登录气泡行动按钮 ── */
 .es-starters { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; align-items: center; }
 .es-starters-lbl { font-size: 12px; color: var(--ink-soft); }

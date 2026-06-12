@@ -263,7 +263,9 @@
       : "";
 
     root.innerHTML = `
-      <div class="rp-section-title">已加入 <span class="rp-count">${joined.length}/${MAX_SLOTS}</span>${progressHtml}</div>
+      <div class="rp-section-title">已加入 <span class="rp-count">${joined.length}/${MAX_SLOTS}</span>${progressHtml}
+        <button class="rp-doctor-btn" id="rp-doctor-btn" title="一键体检：检查每个 AI 的标签页/插件通道/登录状态，红灯项直接给修复按钮">🩺 体检</button>
+      </div>
       <div class="hero-slots">
         ${slotsHtml}
       </div>

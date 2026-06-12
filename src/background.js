@@ -439,6 +439,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           try { await ChatBus.openChatPopup(); sendResponse({ ok: true }); }
           catch (e) { sendResponse({ ok: false, error: e?.message }); }
           break;
+        // v5.0.24 G: 一键体检 + 修复动作
+        case "runDiagnosis": sendResponse(await runDiagnosis()); break;
+        case "reopenParticipantTab": sendResponse(await reopenParticipantTab(msg.id)); break;
+        case "reloadParticipantTab": sendResponse(await reloadParticipantTab(msg.id)); break;
         case "broadcast":
           sendResponse(await guardedSend({
             text: msg.text || "",
@@ -800,6 +804,86 @@ async function activateParticipantTab(participantId) {
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e?.message || "activate failed" };
+  }
+}
+
+// ── v5.0.24 G: 一键体检 ──
+// 每个成员三项：标签页活着 / content script 响应 ping / 登录状态（顺带刷新红绿灯）
+// 审查修复：成员间并行 + 单项 5s 超时 race — 串行无超时时 3 个失联成员可拖 15-30s 无反馈
+function _withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+}
+async function runDiagnosis() {
+  const PER_CHECK_MS = 5000;
+  const items = await Promise.all(StateMachine.participants.map(async (p) => {
+    const item = { id: p.id, service: p.service, name: p.name, tabAlive: false, csAlive: false, loginStatus: p.loginStatus || null };
+    try { item.tabAlive = !!(await chrome.tabs.get(p.tabId)); } catch (_) {}
+    if (item.tabAlive) {
+      try {
+        const r = await _withTimeout(chrome.tabs.sendMessage(p.tabId, { action: "ping" }), PER_CHECK_MS);
+        item.csAlive = !!r?.ready;
+      } catch (_) {}
+      try {
+        const probe = await _withTimeout(probeLoginOnce(p.tabId), PER_CHECK_MS);
+        if (probe) item.loginStatus = applyLoginProbe(p.id, probe);
+      } catch (_) {}
+    }
+    return item;
+  }));
+  return { ok: true, items, windowMode };
+}
+
+// 体检修复①：标签页被关 → 原成员身份重开（保 id/名字/会话，换 tabId）
+// 审查修复：按 windowMode 分叉 — tiled 走独立窗口 + 重排，与 addParticipant 对称
+async function reopenParticipantTab(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p) return { ok: false, error: "participant not found" };
+  try { await chrome.tabs.get(p.tabId); return activateParticipantTab(participantId); } catch (_) {}
+  const info = SERVICES[p.service];
+  if (!info) return { ok: false, error: "unknown service" };
+  try {
+    let newTabId;
+    if (windowMode === "tiled") {
+      const targetLayout = await getAiTargetLayout(lastKnownScreen);
+      const win = await chrome.windows.create({
+        url: info.url, state: "normal", focused: true,
+        ...windowBoundsForCreate(targetLayout.screen)
+      });
+      newTabId = win.tabs[0].id;
+      setTimeout(async () => {
+        try { await arrangeWindows(); } catch (_) {}
+        try { await ChatBus.focusPopup(); } catch (_) {}
+      }, 500);
+    } else {
+      const currentWindow = await chrome.windows.getCurrent().catch(() => null);
+      const tab = await chrome.tabs.create({ url: info.url, windowId: currentWindow?.id, active: false });
+      newTabId = tab.id;
+    }
+    p.tabId = newTabId;
+    p.loginStatus = "checking";
+    StateMachine.save();
+    StateMachine._broadcastStateUpdate();
+    notifyStatus(`已为 ${p.name} 重新打开网页`);
+    checkLoginStatus(p.id, p.name, p.service).catch(() => {});
+    if (windowMode === "tab" && self.CDPExtractor) {
+      maybeNotifyDebuggerNotice();
+      setTimeout(() => { self.CDPExtractor.attachAndWake(newTabId).catch(() => {}); }, 1500);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e?.message || "reopen failed" };
+  }
+}
+
+// 体检修复②：content script 失联 → 刷新页面（navigation 会重新注入 manifest content_scripts）
+async function reloadParticipantTab(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p?.tabId) return { ok: false, error: "tab not found" };
+  try {
+    await chrome.tabs.reload(p.tabId);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e?.message || "reload failed" };
   }
 }
 

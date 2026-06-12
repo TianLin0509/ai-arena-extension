@@ -27,7 +27,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.23</span>
+        <span class="chat-name">AI圆桌派-5.0.24</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -218,17 +218,18 @@
           <span class="caret">▾</span>
         </button>
         <div class="task-menu" id="task-menu" hidden>
-          <div class="menu-item" data-task="ask"><span class="em">💬</span><span>同时提问</span></div>
-          <div class="menu-item has-sub"><span class="em">⚔️</span><span>辩论</span><span class="caret">▸</span>
+          <!-- v5.0.24 H: 每个模式一行白话注释（萌新看得懂"它是干嘛的"），新手推荐放最显眼 -->
+          <div class="menu-item" data-task="ask"><span class="em">💬</span><span>同时提问<small class="menu-desc">把问题同时发给所有 AI，各答各的 · 🔰 新手先用这个</small></span></div>
+          <div class="menu-item has-sub"><span class="em">⚔️</span><span>辩论<small class="menu-desc">AI 互相看对方的回答再反驳几轮，适合有争议的问题</small></span><span class="caret">▸</span>
             <div class="sub-menu">
               <div class="menu-item" data-task="debate" data-style="free">⚔️ 自由辩论</div>
               <div class="menu-item" data-task="debate" data-style="collab">🤝 群策群力</div>
             </div>
           </div>
-          <div class="menu-item has-sub"><span class="em">📋</span><span>裁判总结</span><span class="caret">▸</span>
+          <div class="menu-item has-sub"><span class="em">📋</span><span>裁判总结<small class="menu-desc">选一个 AI 当裁判，汇总全场观点出结论报告</small></span><span class="caret">▸</span>
             <div class="sub-menu" id="summary-judge-list"></div>
           </div>
-          <div class="menu-item has-sub"><span class="em">📊</span><span>PPT 制作</span><span class="caret">▸</span>
+          <div class="menu-item has-sub"><span class="em">📊</span><span>PPT 制作<small class="menu-desc">文案 → 图片 → PPTX 三步成片</small></span><span class="caret">▸</span>
             <div class="sub-menu">
               <div class="menu-item" data-task="ppt" data-kind="copy">📝 文案生成</div>
               <!-- v5.2.4: 图片生成加三级子菜单 — 5 种风格直接选 + 我全都要 -->
@@ -246,7 +247,7 @@
             </div>
           </div>
           <!-- v4.9.1: AI接力棒 — 把当前对话浓缩成 prompt，直接写到输入框给新 AI -->
-          <div class="menu-item" data-task="baton"><span class="em">🪄</span><span>AI接力棒</span></div>
+          <div class="menu-item" data-task="baton"><span class="em">🪄</span><span>AI接力棒<small class="menu-desc">把当前讨论浓缩成简报，转交给一个新 AI 接着聊</small></span></div>
         </div>
       </div>
       <!-- v4.8.30: mini 模式下显示参与者 AI logos 横排（status 色 + 点击 skip toggle）；
@@ -393,5 +394,8 @@
   <!-- v5.0.22 A: 任务式新手之旅（onboarding-core 纯逻辑 + UI 模块，须在 rightpanel/members/modal 之后） -->
   <script src="onboarding-core.js"></script>
   <script src="popup-onboarding.js"></script>
+  <!-- v5.0.24 G/J: 一键体检 + 卡住哨兵 -->
+  <script src="popup-doctor.js"></script>
+  <script src="popup-stuck-sentinel.js"></script>
 </body>
 </html>

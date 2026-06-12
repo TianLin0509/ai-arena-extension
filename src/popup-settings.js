@@ -103,6 +103,18 @@
         <div><span class="rp-kbd">@</span> 单发指定 AI</div>
         <div><span class="rp-kbd">@all</span> 显式全发</div>
       </div>
+
+      <div class="rp-section-title">常见问题</div>
+      <div class="rp-faq">
+        <details><summary>为什么要登录各家 AI 的网站？</summary><p>圆桌的原理是插件替你同时操作各家 AI 的<b>官方网页</b>，所以用哪个 AI 就要登录哪个 AI 的网站（手机号注册即可）。插件不收集、不经手你的账号。</p></details>
+        <details><summary>浏览器顶上的黄色「调试」提示是什么？</summary><p>Tab 模式下读取 AI 回答的正常通道，是 Chrome 对所有同类插件的标准提示，不是病毒。<b>请不要点「取消」</b>，否则 AI 回答会变慢。</p></details>
+        <details><summary>为什么 Claude / ChatGPT / Gemini 打不开？</summary><p>这几家需要国际网络环境。没有的话，用「🟢 国内直连」分组里的 AI（DeepSeek / 豆包 / Kimi / 元宝），点了就能用。</p></details>
+        <details><summary>AI 一直转圈不回答怎么办？</summary><p>点成员 Tab 的「🩺 体检」按钮，红灯项旁边就是修复按钮；也可以用气泡上的 🔄 重新提取 / ⏭ 跳过。</p></details>
+        <details><summary>我的对话数据存在哪里？</summary><p>全部存在<b>你自己电脑</b>的浏览器里（chrome.storage），不上传任何服务器。卸载插件即全部清除。</p></details>
+        <details><summary>怎么只问其中一个 AI？</summary><p>输入框里打 <b>@</b> 选 AI 名字，就只发给它（不广播给其他人）。</p></details>
+        <details><summary>怎么移除一个 AI？</summary><p>成员卡右上角的 <b>×</b>。它的网页标签也会一起关掉。</p></details>
+        <details><summary>想重看新手引导？</summary><p>上面「应用」区的 <b>🔰 新手之旅</b>（4 步任务）或 <b>📘 新手教程</b>（完整手册）。</p></details>
+      </div>
     `;
 
     // v5.0.6: 应用区块事件绑定

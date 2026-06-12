@@ -14,8 +14,9 @@
     return wrap;
   }
 
+  // opts.onClick: v5.0.24 — 点 toast 触发动作（如打开一键体检），触发后即关闭
   function show(text, opts) {
-    const { type = "info", duration = 4200 } = opts || {};
+    const { type = "info", duration = 4200, onClick = null } = opts || {};
     if (!text) return;
     const w = ensureWrap();
     // 超出上限先移除最老的（避免连续添加成员时叠一摞）
@@ -28,7 +29,11 @@
     w.appendChild(el);
     requestAnimationFrame(() => el.classList.add("show"));
     const t = setTimeout(() => dismiss(el), duration);
-    el.addEventListener("click", () => { clearTimeout(t); dismiss(el); });
+    el.addEventListener("click", () => {
+      clearTimeout(t);
+      dismiss(el);
+      if (onClick) { try { onClick(); } catch (_) {} }
+    });
   }
 
   function dismiss(el) {
