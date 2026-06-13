@@ -31,6 +31,7 @@ try {
   await popup.goto(`chrome-extension://${extId}/popup.html`, { waitUntil: "domcontentloaded" });
   await popup.waitForTimeout(900);
   for (const p of ctx.pages()) { if (p.url().includes("welcome.html")) await p.close().catch(() => {}); }
+  try { await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: `chrome-extension://${extId}` }); } catch (_) {}
 
   // ① 空状态：无回答时点对比 → 提示
   await popup.click("#btn-compare");
@@ -104,7 +105,17 @@ try {
   log(`④ 列渲染验证(mock) ✓ ${colInfo.names.join(" | ")}`);
   await popup.screenshot({ path: path.join(ARTIFACTS, "compare-view.png") });
 
-  // ⑤ ESC 关闭
+  // ⑤ 导出：复制 Markdown + 导出 HTML（_state 仍是 mock，含真实回答）
+  await popup.click('.cmp-overlay [data-cmp="copy-md"]');
+  await popup.waitForFunction(() => document.querySelector('[data-cmp="copy-md"]')?.textContent.includes("已复制"), { timeout: 3000 });
+  log("⑤a 复制 Markdown ✓");
+  const dlPromise = popup.waitForEvent("download", { timeout: 6000 });
+  await popup.click('.cmp-overlay [data-cmp="export-html"]');
+  const dl = await dlPromise;
+  assert.ok(dl.suggestedFilename().includes(".html"), `导出文件名应为 .html: ${dl.suggestedFilename()}`);
+  log(`⑤b 导出 HTML ✓ (${dl.suggestedFilename()})`);
+
+  // ⑥ ESC 关闭
   await popup.keyboard.press("Escape");
   await popup.waitForTimeout(400);
   const stillOpen = await popup.locator(".cmp-overlay.show").count();

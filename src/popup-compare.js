@@ -7,6 +7,7 @@
     doubao: "豆包", qwen: "千问", kimi: "Kimi", yuanbao: "元宝", grok: "Grok",
   };
   let overlay = null;
+  let _state = null;   // v5.0.34: 缓存当前对比的 state 供导出用
 
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
@@ -32,6 +33,7 @@
 
   async function open() {
     const state = await getState();
+    _state = state;
     const parts = (state.participants || []).filter(p => (p.response || p.responsePreview));
     const q = state.debateSession?.originalQuestion || "";
 
@@ -66,6 +68,8 @@
           <div class="cmp-head">
             <span class="cmp-title">⊞ 回答对比 · ${parts.length} 家并排</span>
             ${q ? `<span class="cmp-q" title="${escapeHtml(q)}">📌 ${escapeHtml(q.length > 60 ? q.slice(0, 60) + "…" : q)}</span>` : ""}
+            <button class="cmp-act" data-cmp="copy-md" title="复制为 Markdown（汇报/转发同事）">📋 复制</button>
+            <button class="cmp-act" data-cmp="export-html" title="导出自包含 HTML 卡（离线可开/分享）">💾 HTML</button>
             <button class="cmp-close" data-cmp="close" aria-label="关闭">✕</button>
           </div>
           <div class="cmp-cols">${cols}</div>
@@ -73,7 +77,32 @@
     }
     document.body.appendChild(overlay);
     overlay.addEventListener("click", (e) => {
-      if (e.target?.dataset?.cmp === "close" || e.target === overlay) close();
+      const act = e.target?.dataset?.cmp;
+      if (act === "close" || e.target === overlay) { close(); return; }
+      if (act === "copy-md") {
+        try {
+          const md = window.ArenaExport?.buildMarkdown?.(_state) || "";
+          navigator.clipboard?.writeText(md).then(() => {
+            e.target.textContent = "✓ 已复制";
+            setTimeout(() => { e.target.textContent = "📋 复制"; }, 1200);
+          }).catch(() => {});
+        } catch (_) {}
+        return;
+      }
+      if (act === "export-html") {
+        try {
+          const html = window.ArenaExport?.buildShareHtml?.(_state) || "";
+          const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url; a.download = `AI圆桌对比-${parts.length}家.html`;
+          document.body.appendChild(a); a.click();
+          setTimeout(() => { try { a.remove(); URL.revokeObjectURL(url); } catch (_) {} }, 1000);
+          e.target.textContent = "✓ 已导出";
+          setTimeout(() => { e.target.textContent = "💾 HTML"; }, 1200);
+        } catch (_) {}
+        return;
+      }
     });
     document.addEventListener("keydown", onEsc, true);
     requestAnimationFrame(() => overlay.classList.add("show"));
