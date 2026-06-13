@@ -171,6 +171,7 @@
           <span class="time">${escapeHtml(ts)}</span>
           <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
           <span class="acts">
+            <button data-act="view-prompt" title="查看本轮发给它的 Prompt 全文">${window.ChatActionIcons?.svg("viewPrompt") || "📄"}</button>
             <button data-act="reextract" title="重新提取">${window.ChatActionIcons?.svg("reextract") || "🔄"}</button>
             <button data-act="resend" title="用最新提问重发">${window.ChatActionIcons?.svg("resend") || "📤"}</button>
             <button data-act="skip" title="跳过本轮（避免卡住流程）">${window.ChatActionIcons?.svg("skip") || "⏭"}</button>

@@ -557,6 +557,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           ChatBus.clearLog(); sendResponse({ ok: true }); break;
         case "chatJumpToOrigin":
           sendResponse(await ChatBus.jumpToOrigin(msg.participantId)); break;
+        // v5.0.30: 查看本轮发给某 AI 的 prompt 全文（气泡 participantId 是 service，lastSentByPid 用 pid）
+        case "getSentPrompt": {
+          const svc = msg.participantId;
+          const p = (StateMachine.participants || []).find(x => x.service === svc || x.id === svc);
+          sendResponse({ ok: !!p, prompt: p ? (StateMachine.lastSentByPid?.[p.id] || "") : "", name: p?.name || svc });
+          break;
+        }
         case "chatReextractOne":
           sendResponse(await ChatBus.reextractOne(msg.participantId)); break;
         case "chatSkipParticipant":

@@ -213,5 +213,45 @@
     });
   }
 
-  window.ChatModal = { show, close, showInsufficientResponses, showSensitiveBlocked, showPartialDebateInject };
+  // v5.0.30: 长文本查看器（查看本轮发出的 prompt 全文）— 可滚动 pre + 复制全文
+  function showLongText(opts) {
+    const { title = "全文", text = "" } = opts || {};
+    close();
+    const overlay = document.createElement("div");
+    overlay.className = "arena-modal-overlay tone-info prompt-viewer-modal";
+    overlay.innerHTML = `
+      <div class="arena-modal" role="dialog" aria-modal="true" aria-labelledby="arena-modal-title">
+        <div class="arena-modal-title" id="arena-modal-title">${escapeHtml(title)}</div>
+        <div class="arena-modal-message pv-meta">${(text || "").length} 字 · 本轮实际发出的完整内容</div>
+        <pre class="pv-body">${escapeHtml(text)}</pre>
+        <div class="arena-modal-actions">
+          <button type="button" class="arena-modal-btn secondary" data-role="copy">📋 复制全文</button>
+          <button type="button" class="arena-modal-btn primary" data-role="cancel">关闭</button>
+        </div>
+        <button type="button" class="arena-modal-close" data-role="cancel" aria-label="关闭">✕</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    activeOverlay = overlay;
+
+    overlay.addEventListener("click", (e) => {
+      const role = e.target?.closest?.("[data-role]")?.dataset?.role;
+      if (role === "cancel" || e.target === overlay) { close(); return; }
+      if (role === "copy") {
+        const btn = overlay.querySelector('[data-role="copy"]');
+        navigator.clipboard?.writeText(text).then(() => {
+          if (btn) { btn.textContent = "✓ 已复制"; setTimeout(() => { btn.textContent = "📋 复制全文"; }, 1200); }
+        }).catch(() => {
+          if (btn) { btn.textContent = "复制失败"; setTimeout(() => { btn.textContent = "📋 复制全文"; }, 1200); }
+        });
+      }
+    });
+
+    activeEscListener = function escListener(ev) {
+      if (ev.key === "Escape") close();
+    };
+    document.addEventListener("keydown", activeEscListener);
+    requestAnimationFrame(() => overlay.classList.add("show"));
+  }
+
+  window.ChatModal = { show, close, showInsufficientResponses, showSensitiveBlocked, showPartialDebateInject, showLongText };
 })();

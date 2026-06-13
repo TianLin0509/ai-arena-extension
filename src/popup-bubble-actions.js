@@ -71,6 +71,23 @@
     } else if (act === "jump") {
       if (!participantId) return;
       chrome.runtime.sendMessage({ type: "chatJumpToOrigin", participantId });
+    } else if (act === "view-prompt") {
+      // v5.0.30: 查看本轮发给该 AI 的 prompt 全文（弹窗 + 复制）
+      if (!participantId) return;
+      chrome.runtime.sendMessage({ type: "getSentPrompt", participantId }, (resp) => {
+        void chrome.runtime.lastError;
+        const promptText = resp?.prompt || "";
+        const who = resp?.name || participantId;
+        if (!promptText) {
+          window.ChatModal?.show?.({
+            tone: "info", icon: "📄", title: "暂无 Prompt",
+            message: `本轮还没有向 ${who} 发送内容，或记录已被「彻底重置」清除。`,
+            primary: { label: "知道了" },
+          });
+          return;
+        }
+        window.ChatModal?.showLongText?.({ title: `发给 ${who} 的 Prompt`, text: promptText });
+      });
     } else if (act === "reextract") {
       if (!participantId) return;
       btn.disabled = true;

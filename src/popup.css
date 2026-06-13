@@ -4373,6 +4373,17 @@ body[data-mode="mini"] #arena-onboarding { display: none; }
 .rp-faq summary { font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink); }
 .rp-faq p { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; }
 
+/* ── v5.0.30: Prompt 查看器 modal（pre 用恒深色 code-bg，禁 var(--ink) 防 dark 撞色）── */
+.prompt-viewer-modal .arena-modal { max-width: 600px; width: calc(100vw - 48px); }
+.pv-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
+.pv-body {
+  background: var(--code-bg); color: var(--code-ink, #f5f5f7);
+  font-family: "SF Mono", "Consolas", monospace; font-size: 12.5px; line-height: 1.6;
+  padding: 14px 16px; border-radius: 10px;
+  white-space: pre-wrap; word-break: break-word;
+  max-height: 50vh; overflow-y: auto; text-align: left; margin: 0 0 4px;
+}
+
 /* ── v5.0.26: 渐进式披露 + 下一步引导 + 帮助浮标 ── */
 /* ① 进阶玩法折叠：adv-locked 时藏进阶项、露解锁行 */
 .task-adv-unlock {

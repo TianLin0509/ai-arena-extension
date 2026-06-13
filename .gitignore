@@ -21,3 +21,4 @@ tests/e2e/.repro-profile/
 tests/e2e/.prog-profile/
 tests/e2e/.settut-profile/
 tests/e2e/.wintile-profile/
+tests/e2e/.viewprompt-profile/
