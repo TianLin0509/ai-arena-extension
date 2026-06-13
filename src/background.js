@@ -1946,6 +1946,9 @@ async function focusAllAiTabs() {
       errors.push({ service: p.service, error: e?.message || String(e) });
     }
   }
+  // v5.0.29 需求1：所有 AI 窗口唤到前台后，把圆桌主界面拉回最前，方便用户继续操作
+  //   （AI 窗口已都提到前台，popup 叠在最顶层可立即操作）
+  try { await ChatBus.focusPopup(); } catch (_) {}
   return { ok: focused > 0, focused, total: parts.length, errors };
 }
 
@@ -1994,8 +1997,10 @@ async function arrangeWindows(screen = lastKnownScreen) {
   // 反转顺序：第一个添加的参与者放最右边（带侧边栏）
   const ordered = [...parts].reverse();
   const n = ordered.length;
-  // Win10/11 窗口有 ~7px 隐形边框（阴影），补偿后窗口视觉上无缝拼接
-  const border = 7;
+  // v5.0.29: 精确平均分，互不重叠。旧版 +7px 隐形边框补偿（left-7 / width+14）会让相邻窗口
+  //   重叠 14px、最右窗口右边缘超出屏幕 7px → 靠右 AI 的最大化/关闭按钮被上层窗口盖住或推出
+  //   屏幕。改为每个窗口严格占 [屏宽/N]，宁留极细的隐形边框缝（透明、几乎不可见），也要保证
+  //   每个窗口标题栏按钮完整可见可操作。
   const perW = Math.floor(screenW / n);
 
   for (let i = 0; i < n; i++) {
@@ -2004,11 +2009,11 @@ async function arrangeWindows(screen = lastKnownScreen) {
     const winId = tab.windowId;
     const isLast = i === n - 1;
     const baseLeft = screenLeft + i * perW;
-    const baseW = isLast ? screenW - i * perW : perW;
+    const baseW = isLast ? screenW - i * perW : perW;   // 最后一个吃掉取整余数，右边缘正好贴屏幕右沿
     await chrome.windows.update(winId, {
-      left: baseLeft - border,
+      left: baseLeft,
       top: screenTop,
-      width: baseW + border * 2,
+      width: baseW,
       height: screenH,
       state: "normal",
       focused: true
