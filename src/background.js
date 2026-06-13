@@ -1927,8 +1927,10 @@ async function handleFocusTab(id) {
   } catch { p.tabId = null; StateMachine.save(); return { ok: false }; }
 }
 
+// v5.0.28: "唤起 AI" = 对每个参与者执行与"点 AI logo 跳原页"(jumpToOrigin) 完全相同的动作，
+//   遍历一遍即把所有 AI 窗口/标签页弹到前台。去掉旧的 windowMode 守卫 —— 并列模式（每个 AI
+//   独立窗口）才是最需要"一键把它们都唤到前面"的场景；Tab 模式也照常可用。
 async function focusAllAiTabs() {
-  if (windowMode !== "tab") return { ok: false, error: "仅 Tab 模式可用" };
   const parts = (StateMachine.participants || []).filter(p => p.tabId);
   if (!parts.length) return { ok: false, error: "没有可唤起的 AI Tab" };
   let focused = 0;
@@ -1939,7 +1941,7 @@ async function focusAllAiTabs() {
       await chrome.windows.update(tab.windowId, { focused: true });
       await chrome.tabs.update(p.tabId, { active: true });
       focused++;
-      await new Promise(r => setTimeout(r, 120));
+      await new Promise(r => setTimeout(r, 150));
     } catch (e) {
       errors.push({ service: p.service, error: e?.message || String(e) });
     }

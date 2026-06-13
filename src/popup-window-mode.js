@@ -12,8 +12,9 @@
 
   function applyActiveClass() {
     $$btns().forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+    // v5.0.28: "唤起 AI" 两种模式都可用（并列模式尤其需要把多个独立窗口一键唤到前台），不再仅 Tab 模式
     const focusBtn = document.getElementById("btn-focus-ai-tabs");
-    if (focusBtn) focusBtn.hidden = mode !== "tab";
+    if (focusBtn) focusBtn.hidden = false;
   }
 
   // v4.8.52: 检查并提醒 Tab 模式下 chrome 调试横条
@@ -82,25 +83,15 @@
     $$btns().forEach(b => {
       b.addEventListener("click", () => setMode(b.dataset.mode));
     });
+    // v5.0.28: 唤起 = 对每个 AI 执行"点 logo 跳原页"同款动作（遍历 focusAllAiTabs），
+    //   两种模式都可用。焦点会切到 AI 窗口（离开圆桌窗口），故用 toast 反馈确认已生效。
     document.getElementById("btn-focus-ai-tabs")?.addEventListener("click", async () => {
-      if (mode !== "tab") {
-        applyActiveClass();
-        return;
-      }
-      // v5.0.25 修复"点了没反应"：唤起会把 AI 窗口切到前台（焦点离开圆桌窗口），
-      //   在圆桌窗口里看不到变化 → 成功/失败都给 toast 反馈，让用户确认动作已生效
       try {
         const r = await chrome.runtime.sendMessage({ type: "focusAllAiTabs" });
         if (r?.ok) {
           window.ChatToast?.show(`已把 ${r.focused} 个 AI 窗口唤到前台`, { type: "ok" });
         } else {
           const err = r?.error || r;
-          if (err === "仅 Tab 模式可用") {
-            mode = "tiled";
-            applyActiveClass();
-            window.ChatToast?.show("当前是并列模式，AI 已是独立窗口，无需唤起", { type: "info" });
-            return;
-          }
           if (err === "没有可唤起的 AI Tab") {
             window.ChatToast?.show("还没有 AI — 请先在右侧「成员」里添加", { type: "warn" });
             return;
