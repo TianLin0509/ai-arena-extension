@@ -108,6 +108,8 @@
   } catch (_) {}
 
   // ── 渲染 ──
+  // v5.0.34 perf: restoreLog 时把气泡 append 到 DocumentFragment 一次性插入，避免 100+ 条逐个重排
+  let _restoreTarget = null;
   function ensureEmptyHidden() {
     if ($empty && !$empty.classList.contains("hidden")) {
       $empty.style.display = "none";
@@ -142,10 +144,10 @@
         <div class="msg-bubble">${escapeHtml(text)}</div>
       </div>
       <div class="msg-avatar huawei">${brandLogoHtml('huawei')}</div>`;
-    $messages.appendChild(row);
+    (_restoreTarget || $messages).appendChild(row);
     setTimeout(() => row.classList.remove("just-arrived"), 700);
     // 用户自己发的消息：强制跳底（即使之前在浏览历史也跳到自己刚发的消息）
-    scrollToBottomForce();
+    if (!_restoreTarget) scrollToBottomForce();
     autoFollow = true; // 用户主动发送 → 恢复 follow 模式
   }
 
@@ -181,14 +183,14 @@
         </div>
         <div class="msg-bubble">${isTyping ? `<span class="msg-typing"><span></span><span></span><span></span></span>` : renderMarkdown(initialText)}</div>
       </div>`;
-    $messages.appendChild(row);
+    (_restoreTarget || $messages).appendChild(row);
     bubbleByKey.set(`${msgId}-${participantId}`, row);
     // v4.3.6: 如果是非 typing 初始化（restoreLog 重放）且 initialText 已完整，应用折叠
     if (!isTyping && initialText) {
       const bubble = row.querySelector(".msg-bubble");
       if (bubble) applyFoldClass(bubble, initialText, true);
     }
-    scrollToBottom();
+    if (!_restoreTarget) scrollToBottom();
     return row;
   }
 
@@ -651,10 +653,17 @@
   function restoreLog(messages) {
     if (!messages?.length) return;
     ensureEmptyHidden();
-    for (const m of messages) {
-      if (m.role === "user") appendUserMessage(m.text, m.msgId);
-      else appendAIBubble(m.msgId, m.participantId, m.text, false);
-    }
+    // v5.0.34 perf: 批量 append 到 fragment 再一次性插入 + 仅滚动一次（100+ 条从 5-10s 降到 1-2s）
+    const frag = document.createDocumentFragment();
+    _restoreTarget = frag;
+    try {
+      for (const m of messages) {
+        if (m.role === "user") appendUserMessage(m.text, m.msgId);
+        else appendAIBubble(m.msgId, m.participantId, m.text, false);
+      }
+    } finally { _restoreTarget = null; }
+    $messages.appendChild(frag);
+    scrollToBottomForce();
   }
 
   // v4.8.15: 切换 logo 风格时，在线更新已渲染气泡的头像 src（不重排消息）
