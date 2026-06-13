@@ -26,3 +26,4 @@ tests/e2e/.theme-profile/
 tests/e2e/.reco-profile/
 tests/e2e/.compare-profile/
 tests/e2e/.restore-profile/
+tests/e2e/.ach-profile/
