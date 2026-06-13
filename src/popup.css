@@ -683,7 +683,8 @@ body[data-mode="mini"] .mention-menu {
   margin: 6px 0;
   padding: 4px 10px;
   color: var(--ink-soft);
-  background: rgba(10,132,255,0.05);
+  /* v5.0.31: 中性灰半透明替代固定蓝底 — 8 套主题(含深色 A/D/G)都可见，且不与非蓝 accent(粉/橙)撞色 */
+  background: rgba(128,128,128,0.08);
   border-radius: 0 6px 6px 0;
 }
 .msg-bubble ul.md-list, .msg-bubble ol.md-list {
@@ -695,6 +696,7 @@ body[data-mode="mini"] .mention-menu {
 .msg-bubble ol.md-list ul.md-list,
 .msg-bubble ol.md-list ol.md-list {
   margin-top: 2px; margin-bottom: 2px;
+  margin-left: 18px;   /* v5.0.31: 嵌套列表额外缩进，层级更清晰（原先嵌套与父级左对齐看不出层次） */
 }
 .msg-bubble li { margin: 2px 0; line-height: 1.5; }
 .msg-bubble li.md-task { list-style: none; margin-left: -16px; }
@@ -724,7 +726,9 @@ body[data-mode="mini"] .mention-menu {
   text-align: left;
 }
 .msg-bubble table.md-table tbody tr:nth-child(even) td {
-  background: rgba(0,0,0,0.02);
+  /* v5.0.31: 中性灰斑马纹 — 旧 rgba(0,0,0,0.02) 黑半透明在深色主题(A/D/G 深底)上几乎不可见，
+     交替行失效；改中性灰在浅色/深色主题下都能看出斑马纹 */
+  background: rgba(128,128,128,0.10);
 }
 .msg-bubble img.md-img {
   max-width: 100%;
