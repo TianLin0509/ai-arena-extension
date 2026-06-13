@@ -112,7 +112,7 @@
   function stepBody(step) {
     if (step === 1) {
       return {
-        hint: "在右侧「成员」里点一个 🟢 标记的 AI（如 DeepSeek）加入圆桌",
+        hint: "在右侧「成员」点「🎯 推荐搭配」一键添加两个 AI，或自己点 🟢 标记的 AI 加入",
         btn: { label: "带我去 →", act: "goto-members" },
       };
     }

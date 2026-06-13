@@ -137,6 +137,23 @@
     return html;
   }
 
+  // v5.0.32: 新手推荐搭配 — 硬编码跨风格组合（避开千问互斥，默认国内可用），一键开多 AI 对比。
+  //   组合都用国内直连 AI，新手无国际网络也能立即用；2 个即可开辩论。
+  const RECO_COMBOS = [
+    { label: "⚡ 双开对比", services: ["deepseek", "doubao"], desc: "最快开辩论" },
+    { label: "🎯 三家会诊", services: ["deepseek", "doubao", "kimi"], desc: "多视角对比" },
+  ];
+  function renderRecommend() {
+    return `
+      <div class="rp-add-group-lbl">🎯 新手推荐搭配 · 一键添加（自由组合也行）</div>
+      <div class="rp-reco-row">
+        ${RECO_COMBOS.map(c => {
+          const names = c.services.map(s => SERVICE_MAP[s]?.name || s).join(" + ");
+          return `<button class="rp-reco-btn" data-reco="${c.services.join(",")}" title="一键添加 ${escapeHtml(names)} · ${escapeHtml(c.desc)}">${escapeHtml(c.label)}<small>${escapeHtml(names)}</small></button>`;
+        }).join("")}
+      </div>`;
+  }
+
   function statusOf(p) {
     // v4.3.11: 优先使用 streamStatus（跟主区气泡同步）
     const s = streamStatus.get(p.service);
@@ -271,6 +288,7 @@
       </div>
 
       <div class="rp-section-title" style="margin-top:14px">添加</div>
+      ${joined.length < MAX_SLOTS ? renderRecommend() : ""}
       ${renderAddGroups(remaining)}
 
       ${renderLeaderboard()}
@@ -279,6 +297,10 @@
 
     root.querySelectorAll(".rp-add-btn").forEach(b => {
       b.addEventListener("click", () => addParticipant(b.dataset.service));
+    });
+    // v5.0.32: 新手推荐搭配一键添加
+    root.querySelectorAll(".rp-reco-btn").forEach(b => {
+      b.addEventListener("click", () => applyRecommend((b.dataset.reco || "").split(",").filter(Boolean), b));
     });
     // v5.0.22 B: 未登录角标 → 激活该 AI 的标签页去登录
     root.querySelectorAll(".hero-slot-login").forEach(el => {
@@ -359,6 +381,40 @@
       try { window.focus(); } catch (_) {}
       refresh();
     });
+  }
+
+  // v5.0.32: addParticipant 的 Promise 版（推荐搭配串行添加用）
+  function addParticipantAsync(service) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: "addParticipant", service }, (r) => {
+        void chrome.runtime.lastError;
+        if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) { try { alert(r.message); } catch (_) {} }
+        else if (r?.ok) { const meta = SERVICE_MAP[service]; try { window.ChatToast?.show(`已添加 ${meta?.name || service}`, { type: "info" }); } catch (_) {} }
+        try { window.focus(); } catch (_) {}
+        refresh();
+        resolve(r || {});
+      });
+    });
+  }
+
+  async function applyRecommend(services, btn) {
+    const joinedSvc = new Set((state.participants || []).map(p => p.service));
+    const todo = services.filter(s => !joinedSvc.has(s));
+    if (!todo.length) {
+      try { window.ChatToast?.show("这些 AI 已在圆桌里了", { type: "info" }); } catch (_) {}
+      return;
+    }
+    if (btn) { btn.disabled = true; btn.classList.add("loading"); }
+    try {
+      for (const s of todo) {
+        const r = await addParticipantAsync(s);
+        if (r?.error) break;   // 上限/互斥被拒 → 停止后续，提示已给
+        await new Promise(res => setTimeout(res, 450));  // 错开开 tab，避免并发竞态
+      }
+      try { window.ChatToast?.show("推荐搭配已就位 — 在底部输入问题，Ctrl+Enter 同时问", { type: "ok" }); } catch (_) {}
+    } finally {
+      if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
+    }
   }
 
   function removeParticipant(pid) {
