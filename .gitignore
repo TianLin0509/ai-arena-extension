@@ -24,3 +24,4 @@ tests/e2e/.wintile-profile/
 tests/e2e/.viewprompt-profile/
 tests/e2e/.theme-profile/
 tests/e2e/.reco-profile/
+tests/e2e/.compare-profile/

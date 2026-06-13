@@ -4390,6 +4390,49 @@ body[data-mode="mini"] #arena-onboarding { display: none; }
 .rp-faq summary { font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink); }
 .rp-faq p { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; }
 
+/* ── v5.0.33: 回答 Side-by-Side 对比视图（全屏 overlay 并排列）── */
+.cmp-overlay {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(8,10,16,.45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease;
+}
+.cmp-overlay.show { opacity: 1; pointer-events: auto; }
+.cmp-panel {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.4);
+  width: min(1100px, calc(100vw - 48px)); max-height: calc(100vh - 48px);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.cmp-head {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.cmp-title { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.cmp-q { font-size: 12.5px; color: var(--ink-soft); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-close { margin-left: auto; background: none; border: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; padding: 2px 8px; border-radius: 6px; }
+.cmp-close:hover { background: rgba(127,127,127,.15); color: var(--ink); }
+.cmp-cols { display: flex; gap: 12px; overflow-x: auto; padding: 16px 18px; align-items: stretch; }
+.cmp-col {
+  flex: 0 0 300px; max-width: 300px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.cmp-col-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 13px; border-bottom: 1px solid var(--border); background: var(--card);
+}
+.cmp-col-name { font-weight: 700; font-size: 13.5px; color: var(--ink); }
+.cmp-col-len { font-size: 11px; color: var(--ink-soft); }
+.cmp-col-bar { height: 3px; background: rgba(127,127,127,.12); }
+.cmp-col-bar span { display: block; height: 100%; background: var(--accent); border-radius: 0 2px 2px 0; }
+.cmp-col-body {
+  padding: 12px 14px; overflow-y: auto; font-size: 12.5px; line-height: 1.6; color: var(--ink);
+  flex: 1; max-height: calc(100vh - 200px); word-break: break-word;
+}
+.cmp-empty { padding: 48px 32px; text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.8; }
+body[data-mode="mini"] #btn-compare { display: none; }
+
 /* ── v5.0.30: Prompt 查看器 modal（pre 用恒深色 code-bg，禁 var(--ink) 防 dark 撞色）── */
 .prompt-viewer-modal .arena-modal { max-width: 600px; width: calc(100vw - 48px); }
 .pv-meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }

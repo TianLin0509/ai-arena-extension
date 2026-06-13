@@ -27,7 +27,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.32</span>
+        <span class="chat-name">AI圆桌派-5.0.33</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -35,6 +35,13 @@
         <button class="btn-mini-mode" id="btn-mini-mode" type="button" title="折叠到顶部一行 / 展开恢复">⇲ 折叠到顶</button>
         <!-- v4.8.41: 简洁模式 — 长回答超 100 字自动折叠为一行（提取中即生效）-->
         <button class="btn-compact-mode" id="btn-compact-mode" type="button" aria-pressed="false" title="简洁模式 — 长回答超 100 字自动折叠为一行">⊟ 简洁</button>
+        <!-- v5.0.33: 回答 Side-by-Side 对比视图入口 -->
+        <button class="btn-icon with-label" id="btn-compare" type="button" title="把本轮各 AI 回答并排对比">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/>
+          </svg>
+          <span class="btn-icon-label">对比</span>
+        </button>
         <button class="btn-icon with-label" id="btn-focus-ai-tabs" type="button" hidden title="依次唤起所有 AI Tab">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 5h16v14H4z"/>
@@ -401,6 +408,8 @@
   <!-- v5.0.24 G/J: 一键体检 + 卡住哨兵 -->
   <script src="popup-doctor.js"></script>
   <script src="popup-stuck-sentinel.js"></script>
+  <!-- v5.0.33: 回答并排对比视图 -->
+  <script src="popup-compare.js"></script>
   <!-- v5.0.26: 渐进式披露 + 下一步引导 + 帮助浮标 -->
   <script src="popup-progressive.js"></script>
   <script src="popup-help-fab.js"></script>
