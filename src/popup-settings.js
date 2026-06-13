@@ -19,12 +19,15 @@
   const COMPRESS_KEY = "debateContextCompressEnabled";
   // v5.0.21: 划线收藏 — AI 原网页选中文本浮出"存入备忘录"按钮，默认开
   const MEMOCLIP_KEY = "memoClipEnabled";
+  // v5.0.27: 界面模式 — 新手(折叠进阶) / 老手(展开全部)，与 popup-progressive 共享此 key
+  const ADV_KEY = "advancedUnlocked";
 
   // v5.2.25: 新用户默认主题改为 A 深海指挥（用户已设置过 → storage 覆盖此默认，保留选择）
   let currentTheme = "A";
   let captainMode = true;
   let contextCompress = false;
   let memoClip = true;
+  let advUnlocked = false;
 
   function render() {
     const root = document.getElementById("rp-panel-settings");
@@ -75,11 +78,18 @@
             ${memoClip ? '已开启' : '已关闭'}
           </button>
         </div>
+        <div class="rp-app-row">
+          <span class="rp-app-row-lbl">界面模式</span>
+          <button class="rp-app-btn ${advUnlocked ? 'active' : ''}" id="rp-mode-toggle" title="新手模式：底部任务菜单只露「同时提问」，辩论/裁判/PPT 等进阶玩法折叠；老手模式：一次展开全部">
+            ${advUnlocked ? '老手模式' : '新手模式'}
+          </button>
+        </div>
         <div class="rp-app-row rp-app-row-btns">
           <button class="rp-app-btn" id="rp-check-update" title="调 GitHub Releases API 比对版本">↻ 检查更新</button>
           <button class="rp-app-btn" id="rp-open-github" title="在新标签页打开 GitHub 仓库">⎘ GitHub</button>
           <button class="rp-app-btn" id="rp-open-tutorial" title="打开完整玩法手册（5 页）">📘 新手教程</button>
           <button class="rp-app-btn" id="rp-restart-onboarding" title="重新开始 4 步任务式新手之旅">🔰 新手之旅</button>
+          <button class="rp-app-btn" id="rp-open-welcome" title="打开欢迎页 + 15 秒演示动画">📺 演示</button>
         </div>
       </div>
 
@@ -113,7 +123,12 @@
         <details><summary>我的对话数据存在哪里？</summary><p>全部存在<b>你自己电脑</b>的浏览器里（chrome.storage），不上传任何服务器。卸载插件即全部清除。</p></details>
         <details><summary>怎么只问其中一个 AI？</summary><p>输入框里打 <b>@</b> 选 AI 名字，就只发给它（不广播给其他人）。</p></details>
         <details><summary>怎么移除一个 AI？</summary><p>成员卡右上角的 <b>×</b>。它的网页标签也会一起关掉。</p></details>
-        <details><summary>想重看新手引导？</summary><p>上面「应用」区的 <b>🔰 新手之旅</b>（4 步任务）或 <b>📘 新手教程</b>（完整手册）。</p></details>
+        <details><summary>想重看新手引导？</summary><p>上面「应用」区的 <b>🔰 新手之旅</b>（4 步任务）或 <b>📘 新手教程</b>（完整手册）；点 <b>📺 演示</b> 看 15 秒动画演示。</p></details>
+        <details><summary>圆桌支持哪些 AI？</summary><p>国内直连 5 家：DeepSeek / 豆包 / Kimi / 元宝 / 千问（手机号注册即可）；需国际网络 4 家：Claude / ChatGPT / Gemini / Grok。共 9 家。</p></details>
+        <details><summary>怎么换主题 / 深浅配色？</summary><p>就在本「设置」Tab 下面的 <b>主题</b> 区，8 套配色随便点。</p></details>
+        <details><summary>底部菜单怎么只有「同时提问」？辩论去哪了？</summary><p>新手模式默认折叠了进阶玩法。问完第一次会自动解锁，或在上面「界面模式」切到 <b>老手模式</b>，也可点菜单里的「🔰 解锁进阶」。</p></details>
+        <details><summary>看到好的回答怎么保存？</summary><p>在回答上<b>划选一段文字</b>，点浮出的「📌 存入备忘录」；右栏「<b>备忘</b>」Tab 随时查看、复制、引用。</p></details>
+        <details><summary>Tab 模式和并列模式有什么区别？</summary><p><b>Tab</b>：所有 AI 挤在一个浏览器窗口的不同标签页，省屏幕；<b>并列</b>：每个 AI 独立窗口铺开，多屏更舒服。在上面「AI 窗口布局」切换。</p></details>
       </div>
     `;
 
@@ -137,6 +152,17 @@
     // v5.0.22 A: 重开任务式新手之旅
     root.querySelector("#rp-restart-onboarding")?.addEventListener("click", () => {
       window.ChatOnboarding?.restart?.();
+    });
+    // v5.0.27: 欢迎页 + 演示动画（升级用户/老用户也能随时看，不只全新安装）
+    root.querySelector("#rp-open-welcome")?.addEventListener("click", () => {
+      try { chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") }); } catch (_) {}
+    });
+    // v5.0.27: 新手/老手界面模式切换
+    root.querySelector("#rp-mode-toggle")?.addEventListener("click", () => {
+      advUnlocked = !advUnlocked;
+      if (advUnlocked) window.ChatProgressive?.unlock?.("manual");
+      else window.ChatProgressive?.lock?.();
+      render();
     });
     root.querySelector("#rp-captain-toggle")?.addEventListener("click", () => {
       captainMode = !captainMode;
@@ -176,7 +202,7 @@
   async function refresh() {
     try {
       const r = await new Promise(res => {
-        chrome.storage.local.get([THEME_KEY, CAPTAIN_KEY, COMPRESS_KEY, MEMOCLIP_KEY], resp => res(resp || {}));
+        chrome.storage.local.get([THEME_KEY, CAPTAIN_KEY, COMPRESS_KEY, MEMOCLIP_KEY, ADV_KEY], resp => res(resp || {}));
       });
       if (r[THEME_KEY]) {
         currentTheme = r[THEME_KEY];
@@ -187,6 +213,7 @@
       captainMode = r[CAPTAIN_KEY] !== false;
       contextCompress = r[COMPRESS_KEY] === true;  // v5.0.19: 默认关，显式打开才压缩
       memoClip = r[MEMOCLIP_KEY] !== false;        // v5.0.21: 默认开
+      advUnlocked = r[ADV_KEY] === true;           // v5.0.27: 界面模式（默认新手=折叠）
     } catch (_) {}
     render();
   }

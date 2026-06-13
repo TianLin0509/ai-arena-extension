@@ -27,6 +27,13 @@
     }
   }
 
+  // v5.0.27: 老手→新手切换用 — 重新折叠进阶玩法
+  function lock() {
+    unlocked = false;
+    try { chrome.storage.local.set({ [ADV_KEY]: false }); } catch (_) {}
+    applyLockClass();
+  }
+
   // ── ④ 下一步引导卡片 ──
   function removeNextStep() {
     if (nsTimer) { clearTimeout(nsTimer); nsTimer = null; }
@@ -146,8 +153,8 @@
     applyLockClass();
   }
 
-  // 暴露给 onboarding（毕业时解锁）
-  window.ChatProgressive = { unlock, isUnlocked: () => unlocked };
+  // 暴露给 onboarding（毕业时解锁）+ 设置（新手/老手切换）
+  window.ChatProgressive = { unlock, lock, isUnlocked: () => unlocked };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

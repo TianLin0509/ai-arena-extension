@@ -80,6 +80,10 @@
     const $el = document.getElementById("es-tutorial");
     if (!$el) return;
     ensureBindings(); // v5.0.7: 保证 prev/next/dots/close 都已绑定
+    // v5.0.27 修复"点了没反应"：教程 DOM 原在 empty-state 内，有对话时 empty-state 被
+    //   设为 display:none，其子树（含本 modal）即使 position:fixed 也不渲染。移到 body
+    //   脱离 empty-state，modal 才能在任何状态下显示。
+    if ($el.parentElement !== document.body) document.body.appendChild($el);
     $el.classList.add("es-tutorial-modal");
     $el.hidden = false;
     showPage(1);
