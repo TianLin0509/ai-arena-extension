@@ -7,12 +7,12 @@
 <style>
   :root {
     --bg: #fafafa; --card: #fff; --ink: #1d1d1f; --ink-soft: #6e6e73;
-    --border: #d2d2d7; --accent: #0071e3; --success: #34c759;
+    --border: #d2d2d7; --accent: #0071e3; --success: #34c759; --warning: #ff9f0a;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #1d1d1f; --card: #2c2c2e; --ink: #f5f5f7; --ink-soft: #aeaeb2;
-      --border: #38383a; --accent: #0a84ff;
+      --border: #38383a; --accent: #0a84ff; --warning: #ffb340;
     }
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -51,6 +51,31 @@
   .cta:hover { transform: translateY(-1px); filter: brightness(1.06); }
   .cta-done { margin-top: 14px; color: var(--success); font-weight: 600; display: none; }
   .foot { margin-top: 26px; color: var(--ink-soft); font-size: 13px; line-height: 1.7; }
+  /* v5.0.26 ⑧ 15 秒 SVG 动态演示：一个问题 → 三个 AI 同时答 → 辩论 */
+  .demo {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px 14px; margin-bottom: 22px;
+  }
+  .demo-cap { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+  .demo svg { width: 100%; height: auto; display: block; }
+  .d-q { animation: dQ 9s ease-in-out infinite; }
+  .d-a1 { animation: dA 9s ease-in-out infinite; }
+  .d-a2 { animation: dA 9s ease-in-out infinite; animation-delay: .35s; }
+  .d-a3 { animation: dA 9s ease-in-out infinite; animation-delay: .7s; }
+  .d-debate { animation: dDebate 9s ease-in-out infinite; }
+  @keyframes dQ {
+    0%, 6% { opacity: 0; transform: translateY(-6px); }
+    12%, 100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dA {
+    0%, 26% { opacity: 0; transform: translateY(8px); }
+    36%, 100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dDebate {
+    0%, 60% { opacity: 0; }
+    68%, 90% { opacity: 1; }
+    100% { opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -58,6 +83,56 @@
     <img class="logo" src="icons/icon128.png" alt="AI圆桌派">
     <h1>欢迎使用 AI圆桌派</h1>
     <div class="sub">让多个 AI 同台回答、互相辩论 — 比只问一个 AI 更接近真相。<br>接下来 1 分钟，带你完成第一次圆桌。</div>
+
+    <div class="demo">
+      <div class="demo-cap">它是怎么工作的 ↓</div>
+      <svg viewBox="0 0 520 200" role="img" aria-label="演示：一个问题发给三个 AI，它们同时回答并互相辩论">
+        <!-- 你的问题 -->
+        <g class="d-q">
+          <rect x="170" y="12" width="180" height="34" rx="10" fill="var(--accent)"/>
+          <text x="260" y="34" text-anchor="middle" fill="#fff" font-size="14" font-family="-apple-system,PingFang SC,sans-serif">你的一个问题</text>
+        </g>
+        <!-- 分发连线 -->
+        <g stroke="var(--border)" stroke-width="2" fill="none">
+          <path d="M260 46 L100 96"/>
+          <path d="M260 46 L260 96"/>
+          <path d="M260 46 L420 96"/>
+        </g>
+        <!-- 三个 AI 回答 -->
+        <g class="d-a1">
+          <circle cx="100" cy="116" r="20" fill="#34c759"/>
+          <text x="100" y="121" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">AI</text>
+          <rect x="48" y="146" width="104" height="40" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+          <line x1="60" y1="160" x2="140" y2="160" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="60" y1="172" x2="120" y2="172" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g class="d-a2">
+          <circle cx="260" cy="116" r="20" fill="var(--accent)"/>
+          <text x="260" y="121" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">AI</text>
+          <rect x="208" y="146" width="104" height="40" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+          <line x1="220" y1="160" x2="300" y2="160" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="220" y1="172" x2="284" y2="172" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g class="d-a3">
+          <circle cx="420" cy="116" r="20" fill="#a855f7"/>
+          <text x="420" y="121" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">AI</text>
+          <rect x="368" y="146" width="104" height="40" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+          <line x1="380" y1="160" x2="460" y2="160" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="380" y1="172" x2="440" y2="172" stroke="var(--ink-soft)" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <!-- 辩论：AI 之间互指箭头 -->
+        <g class="d-debate" stroke="var(--warning)" stroke-width="2.5" fill="none">
+          <path d="M122 116 L238 116" marker-end="url(#dArrow)"/>
+          <path d="M398 116 L282 116" marker-end="url(#dArrow)"/>
+          <text x="260" y="100" text-anchor="middle" fill="var(--warning)" font-size="12" font-weight="700" stroke="none">⚔️ 互相辩论</text>
+        </g>
+        <defs>
+          <marker id="dArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0 0 L6 3 L0 6 Z" fill="var(--warning)" stroke="none"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
 
     <div class="pin-card">
       <div class="pin-title">📌 第一步（重要）：把图标钉在工具栏，以后一点就开</div>

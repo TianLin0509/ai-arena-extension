@@ -1681,7 +1681,7 @@ async function retryDebateInjectForParticipant(pid, opts = {}) {
       type: "chatStreamUpdate", role: "ai",
       msgId: pendingMsgId, participantId: p.service,
       text: `⚠ 补发失败：${lastError}\n\n请检查 ${p.name} 页面是否可用`,
-      isDone: true,
+      isDone: true, injectError: true,   // v5.0.26: 与 _endDebateLoadingBubble 对齐，防 progressive 误判为"首答"
     }).catch(() => {});
   } catch (_) {}
   notifyStatus(`⚠ 补发给 ${p.name} 失败: ${lastError}`);

@@ -187,6 +187,8 @@
   }
 
   function renderGraduation() {
+    // v5.0.26 ①: 毕业即解锁全部进阶玩法
+    try { window.ChatProgressive?.unlock?.(); } catch (_) {}
     const el = ensureCard();
     collapsed = false;
     el.className = "graduated";

@@ -4373,6 +4373,60 @@ body[data-mode="mini"] #arena-onboarding { display: none; }
 .rp-faq summary { font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink); }
 .rp-faq p { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-top: 6px; }
 
+/* ── v5.0.26: 渐进式披露 + 下一步引导 + 帮助浮标 ── */
+/* ① 进阶玩法折叠：adv-locked 时藏进阶项、露解锁行 */
+.task-adv-unlock {
+  display: block; padding: 9px 12px; margin: 2px 0; font-size: 12px; cursor: pointer;
+  color: var(--accent); border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border);
+}
+.task-adv-unlock:hover { background: rgba(10,132,255,.08); }
+body.adv-locked #task-adv { display: none; }
+body:not(.adv-locked) .task-adv-unlock { display: none; }
+
+/* ④ 下一步引导卡片（首答后浮出，左下） */
+#arena-nextstep {
+  position: fixed; left: 14px; bottom: 92px; width: 264px; z-index: 850;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 14px 16px;
+  opacity: 0; transform: translateY(8px); transition: opacity .22s ease, transform .22s ease;
+}
+#arena-nextstep.show { opacity: 1; transform: translateY(0); }
+#arena-nextstep .ns-head { font-size: 13.5px; font-weight: 700; margin-bottom: 10px; }
+#arena-nextstep .ns-actions { display: flex; flex-direction: column; gap: 6px; }
+#arena-nextstep .ns-actions button {
+  text-align: left; background: rgba(10,132,255,.08); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px;
+  font-size: 12.5px; cursor: pointer;
+}
+#arena-nextstep .ns-actions button:hover { border-color: var(--accent); background: rgba(10,132,255,.14); }
+#arena-nextstep .ns-close {
+  display: block; margin: 9px auto 0; background: none; border: none;
+  color: var(--ink-soft); font-size: 11px; cursor: pointer; text-decoration: underline;
+}
+body[data-mode="mini"] #arena-nextstep { display: none; }
+
+/* ⑩ 帮助浮标 + 菜单（右下角常驻"?"） */
+#arena-help-fab {
+  position: fixed; right: 16px; bottom: 84px; z-index: 880;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none; cursor: pointer;
+  font-size: 18px; font-weight: 700; line-height: 1;
+  box-shadow: 0 4px 14px rgba(0,0,0,.22);
+}
+#arena-help-fab:hover { filter: brightness(1.08); transform: translateY(-1px); }
+body[data-mode="mini"] #arena-help-fab { display: none; }
+#arena-help-menu {
+  position: fixed; right: 16px; bottom: 126px; z-index: 881; width: 256px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 8px;
+}
+#arena-help-menu .hf-title { font-size: 12px; color: var(--ink-soft); font-weight: 600; padding: 4px 8px 8px; }
+#arena-help-menu .hf-item {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  color: var(--ink); font-size: 12.5px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+#arena-help-menu .hf-item:hover { background: rgba(10,132,255,.1); color: var(--accent); }
+
 /* ── v5.0.23: 示例问题 chips + 登录气泡行动按钮 ── */
 .es-starters { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; align-items: center; }
 .es-starters-lbl { font-size: 12px; color: var(--ink-soft); }

@@ -53,6 +53,8 @@
         </div>`;
     }).join("");
     const allGreen = items.length && items.every(it => it.tabAlive && it.csAlive && it.loginStatus !== "login_required");
+    // 可自动修的红灯：标签页死(重开) / 通道死(刷新)；登录红灯需用户手动，不进一键全修
+    const hasFixable = items.some(it => !it.tabAlive || (it.tabAlive && !it.csAlive));
 
     overlay = document.createElement("div");
     overlay.className = "arena-modal-overlay tone-info doctor-modal";
@@ -66,7 +68,7 @@
         <div class="doc-list">${rows}</div>
         <div class="arena-modal-actions">
           <button type="button" class="arena-modal-btn secondary" data-role="rerun">↻ 再查一次</button>
-          <button type="button" class="arena-modal-btn primary" data-role="cancel">关闭</button>
+          ${hasFixable ? `<button type="button" class="arena-modal-btn primary" data-role="fixall">🔧 一键修复全部</button>` : `<button type="button" class="arena-modal-btn primary" data-role="cancel">关闭</button>`}
         </div>
         <button type="button" class="arena-modal-close" data-role="cancel" aria-label="关闭">✕</button>
       </div>`;
@@ -76,6 +78,17 @@
       const role = e.target?.dataset?.role;
       if (role === "cancel" || e.target === overlay) { close(); return; }
       if (role === "rerun") { run(); return; }
+      if (role === "fixall") {
+        e.target.disabled = true;
+        e.target.textContent = "⏳ 修复中…";
+        const fixes = items.filter(it => !it.tabAlive || !it.csAlive);
+        for (const it of fixes) {
+          if (!it.tabAlive) await send({ type: "reopenParticipantTab", id: it.id });
+          else if (!it.csAlive) await send({ type: "reloadParticipantTab", id: it.id });
+        }
+        setTimeout(run, 3500);   // 等页面加载/脚本注入后自动复查
+        return;
+      }
       const fix = e.target?.dataset?.fix;
       const pid = e.target?.dataset?.pid;
       if (!fix || !pid) return;
