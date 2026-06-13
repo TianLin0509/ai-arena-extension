@@ -15,3 +15,6 @@ tests/e2e/.memo-profile/
 tests/e2e/.onboarding-profile/
 tests/e2e/.welcome-profile/
 tests/e2e/.doctor-profile/
+tests/e2e/.memo-ui-profile/
+tests/e2e/.focusai-profile/
+tests/e2e/.repro-profile/

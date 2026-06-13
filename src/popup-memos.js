@@ -92,7 +92,7 @@
       : `<div class="memo-empty">还没有收藏。<br>在 AI 回答（圆桌气泡或 AI 原网页）上<b>划选一段文字</b>，点浮出的「📌 存入圆桌备忘录」即可保留金句。</div>`;
 
     root.innerHTML = `
-      <div class="rp-section-title">备忘录 <span class="rp-count">${items.length}</span>
+      <div class="rp-section-title memo-head">备忘录 <span class="rp-count">${items.length}</span>
         ${items.length ? `<span class="memo-header-acts"><button class="rp-app-btn" id="memo-copy-all" title="按时间顺序合并复制全部">复制全部</button><button class="rp-app-btn" id="memo-clear-all" title="清空备忘录">清空</button></span>` : ""}
       </div>
       <div class="memo-list">${listHtml}</div>`;

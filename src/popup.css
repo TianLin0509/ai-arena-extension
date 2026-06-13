@@ -4229,31 +4229,38 @@ body[data-logo-style="basic"] .msg-avatar img {
 }
 .rp-round-progress.all-done { color: #34c759; }
 
-/* ── v5.0.21: 备忘录 Tab + 划线收藏 ── */
-.memo-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+/* ── v5.0.21 备忘录 Tab + 划线收藏（v5.0.25: 一条一行 + 操作 hover 浮现）── */
+/* memo-head: 标题行用 flex 让"复制全部/清空"右对齐 —— 替代旧 float:right。
+   旧 float 未 clear，下方 memo-list 条目会环绕浮动元素被挤成左侧窄柱（正文两字一行）。 */
+.memo-head { display: flex; align-items: center; gap: 6px; }
+.memo-head .memo-header-acts { margin-left: auto; float: none; display: inline-flex; gap: 6px; }
+.memo-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; clear: both; }
 .memo-item {
+  position: relative;
   background: var(--rp-card-bg, rgba(255,255,255,.05));
   border: 1px solid var(--rp-border, rgba(255,255,255,.12));
-  border-radius: 10px; padding: 9px 11px;
+  border-radius: 10px; padding: 9px 12px;
 }
-.memo-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; opacity: .85; }
+.memo-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; min-height: 18px; }
 .memo-src {
-  font-weight: 700; padding: 1px 7px; border-radius: 7px;
+  font-weight: 700; padding: 1px 7px; border-radius: 7px; white-space: nowrap;
   background: rgba(110,231,255,.16); color: var(--rp-accent, #6ee7ff);
 }
-.memo-time { opacity: .7; }
-.memo-acts { margin-left: auto; display: flex; gap: 2px; }
+/* 时间 + 操作默认隐藏，hover/focus 整条时浮现；opacity 切换不改变布局，避免抖动 */
+.memo-time { margin-left: auto; opacity: 0; transition: opacity .15s ease; white-space: nowrap; }
+.memo-acts { display: flex; gap: 2px; opacity: 0; transition: opacity .15s ease; }
+.memo-item:hover .memo-time, .memo-item:focus-within .memo-time,
+.memo-item:hover .memo-acts, .memo-item:focus-within .memo-acts { opacity: 1; }
 .memo-acts button {
   background: none; border: none; cursor: pointer; color: inherit;
-  font-size: 12px; padding: 2px 5px; border-radius: 6px; opacity: .7;
+  font-size: 12px; padding: 2px 5px; border-radius: 6px; opacity: .8;
 }
 .memo-acts button:hover { opacity: 1; background: rgba(255,255,255,.1); }
+/* 正文整行铺开自然换行，不再内部滚动挤压（一条就是一行的完整内容） */
 .memo-text {
-  font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-  max-height: 120px; overflow-y: auto;
+  font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
 }
 .memo-empty { font-size: 12.5px; line-height: 1.7; opacity: .75; padding: 14px 4px; }
-.memo-header-acts { margin-left: auto; display: inline-flex; gap: 6px; float: right; }
 .memo-clip-btn {
   position: fixed; z-index: 9999;
   background: #1d1d1f; color: #f5f5f7;
