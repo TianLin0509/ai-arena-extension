@@ -17406,6 +17406,4352 @@
           }
         }
       ]
+    },
+    {
+      "id": "tpl-101-insight-lineage-map",
+      "name_cn": "技术脉络与研究分支图",
+      "when_to_use": "用于讲清楚已有先进技术的研究脉络、分支演进、代表工作、关键判断和未解机会；适合前沿技术综述、论文脉络梳理、技术路线复盘。",
+      "canvas": [
+        1920,
+        1080
+      ],
+      "thumb": "ppt-super/assets/tpl-101-insight-lineage-map/thumb.png",
+      "blank": "ppt-super/assets/tpl-101-insight-lineage-map/blank.png",
+      "pptx": "ppt-super/assets/tpl-101-insight-lineage-map/template.pptx",
+      "layout_family": "technology_lineage_branch_map",
+      "archetype": "technology_lineage_branch_map",
+      "template_fit_score": 86,
+      "good_for": [
+        "技术洞察",
+        "研究脉络",
+        "先进技术综述",
+        "论文路线梳理",
+        "方法谱系"
+      ],
+      "avoid": [
+        "单一方案落地页",
+        "纯实验结果页",
+        "封面页"
+      ],
+      "slots": [
+        {
+          "key": "section_label",
+          "type": "text",
+          "role": "label",
+          "zh": "页面左上分类",
+          "bbox": [
+            44,
+            20,
+            380,
+            34
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 技术洞察 / 研究脉络",
+          "semantic_role": "page_category"
+        },
+        {
+          "key": "report_label",
+          "type": "text",
+          "role": "caption",
+          "zh": "右上报告标识",
+          "bbox": [
+            1410,
+            20,
+            460,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            8,
+            24
+          ],
+          "single_line": false,
+          "hint": "如 内部技术报告 | 模板编号",
+          "semantic_role": "report_context"
+        },
+        {
+          "key": "title_main",
+          "type": "text",
+          "role": "title",
+          "zh": "主标题",
+          "bbox": [
+            54,
+            88,
+            1780,
+            72
+          ],
+          "font_pt": 25,
+          "chars": [
+            18,
+            30
+          ],
+          "single_line": false,
+          "hint": "结论先行，说明技术脉络和下一步判断",
+          "semantic_role": "thesis"
+        },
+        {
+          "key": "subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "标题下摘要",
+          "bbox": [
+            58,
+            168,
+            1380,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            36,
+            64
+          ],
+          "single_line": false,
+          "hint": "一句话说明本页如何读：研究脉络、方法分支、工程拐点",
+          "semantic_role": "reading_guide"
+        },
+        {
+          "key": "template_code",
+          "type": "text",
+          "role": "caption",
+          "zh": "模板编号",
+          "bbox": [
+            1710,
+            82,
+            160,
+            22
+          ],
+          "font_pt": 9,
+          "chars": [
+            0,
+            14
+          ],
+          "single_line": false,
+          "hint": "短编号或留空",
+          "semantic_role": "template_meta"
+        },
+        {
+          "key": "left_panel_title",
+          "type": "text",
+          "role": "header",
+          "zh": "左侧概述标题",
+          "bbox": [
+            58,
+            247,
+            350,
+            30
+          ],
+          "font_pt": 17,
+          "chars": [
+            8,
+            16
+          ],
+          "single_line": false,
+          "hint": "如 研究脉络与关键分歧",
+          "semantic_role": "panel_heading"
+        },
+        {
+          "key": "overview_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "overview 图标",
+          "bbox": [
+            70,
+            314,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon，无文字",
+          "semantic_role": "supporting_icon",
+          "visual_task": "centered monochrome line icon, no text, no logo"
+        },
+        {
+          "key": "overview_title",
+          "type": "text",
+          "role": "header",
+          "zh": "overview 小标题",
+          "bbox": [
+            138,
+            318,
+            250,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "概括该信息块的判断",
+          "semantic_role": "overview_heading"
+        },
+        {
+          "key": "overview_body",
+          "type": "text",
+          "role": "para",
+          "zh": "overview 正文",
+          "bbox": [
+            138,
+            358,
+            248,
+            86
+          ],
+          "font_pt": 8.6,
+          "chars": [
+            34,
+            56
+          ],
+          "single_line": false,
+          "hint": "2-4 行机制或边界说明，避免空话",
+          "semantic_role": "overview_explanation"
+        },
+        {
+          "key": "branch_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "branch 图标",
+          "bbox": [
+            70,
+            498,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon，无文字",
+          "semantic_role": "supporting_icon",
+          "visual_task": "centered monochrome line icon, no text, no logo"
+        },
+        {
+          "key": "branch_title",
+          "type": "text",
+          "role": "header",
+          "zh": "branch 小标题",
+          "bbox": [
+            138,
+            502,
+            250,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "概括该信息块的判断",
+          "semantic_role": "branch_heading"
+        },
+        {
+          "key": "branch_body",
+          "type": "text",
+          "role": "para",
+          "zh": "branch 正文",
+          "bbox": [
+            138,
+            542,
+            248,
+            86
+          ],
+          "font_pt": 8.6,
+          "chars": [
+            34,
+            56
+          ],
+          "single_line": false,
+          "hint": "2-4 行机制或边界说明，避免空话",
+          "semantic_role": "branch_explanation"
+        },
+        {
+          "key": "boundary_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "boundary 图标",
+          "bbox": [
+            70,
+            682,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon，无文字",
+          "semantic_role": "supporting_icon",
+          "visual_task": "centered monochrome line icon, no text, no logo"
+        },
+        {
+          "key": "boundary_title",
+          "type": "text",
+          "role": "header",
+          "zh": "boundary 小标题",
+          "bbox": [
+            138,
+            686,
+            250,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "概括该信息块的判断",
+          "semantic_role": "boundary_heading"
+        },
+        {
+          "key": "boundary_body",
+          "type": "text",
+          "role": "para",
+          "zh": "boundary 正文",
+          "bbox": [
+            138,
+            726,
+            248,
+            86
+          ],
+          "font_pt": 8.6,
+          "chars": [
+            34,
+            56
+          ],
+          "single_line": false,
+          "hint": "2-4 行机制或边界说明，避免空话",
+          "semantic_role": "boundary_explanation"
+        },
+        {
+          "key": "timeline_title",
+          "type": "text",
+          "role": "header",
+          "zh": "中央时间线标题",
+          "bbox": [
+            485,
+            250,
+            944,
+            32
+          ],
+          "font_pt": 18,
+          "chars": [
+            14,
+            26
+          ],
+          "single_line": false,
+          "hint": "如 技术演进时间线与方法谱系",
+          "semantic_role": "main_artifact_heading"
+        },
+        {
+          "key": "stage1_year",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段1年份",
+          "bbox": [
+            506,
+            292,
+            108,
+            24
+          ],
+          "font_pt": 12,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": true,
+          "hint": "年份、版本或阶段名",
+          "semantic_role": "timeline_marker"
+        },
+        {
+          "key": "stage1_label",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段1标签",
+          "bbox": [
+            488,
+            318,
+            144,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": true,
+          "hint": "短阶段名",
+          "semantic_role": "timeline_stage"
+        },
+        {
+          "key": "stage2_year",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段2年份",
+          "bbox": [
+            716,
+            292,
+            108,
+            24
+          ],
+          "font_pt": 12,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": true,
+          "hint": "年份、版本或阶段名",
+          "semantic_role": "timeline_marker"
+        },
+        {
+          "key": "stage2_label",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段2标签",
+          "bbox": [
+            698,
+            318,
+            144,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": true,
+          "hint": "短阶段名",
+          "semantic_role": "timeline_stage"
+        },
+        {
+          "key": "stage3_year",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段3年份",
+          "bbox": [
+            926,
+            292,
+            108,
+            24
+          ],
+          "font_pt": 12,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": true,
+          "hint": "年份、版本或阶段名",
+          "semantic_role": "timeline_marker"
+        },
+        {
+          "key": "stage3_label",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段3标签",
+          "bbox": [
+            908,
+            318,
+            144,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": true,
+          "hint": "短阶段名",
+          "semantic_role": "timeline_stage"
+        },
+        {
+          "key": "stage4_year",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段4年份",
+          "bbox": [
+            1136,
+            292,
+            108,
+            24
+          ],
+          "font_pt": 12,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": true,
+          "hint": "年份、版本或阶段名",
+          "semantic_role": "timeline_marker"
+        },
+        {
+          "key": "stage4_label",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段4标签",
+          "bbox": [
+            1118,
+            318,
+            144,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": true,
+          "hint": "短阶段名",
+          "semantic_role": "timeline_stage"
+        },
+        {
+          "key": "stage5_year",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段5年份",
+          "bbox": [
+            1346,
+            292,
+            108,
+            24
+          ],
+          "font_pt": 12,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": true,
+          "hint": "年份、版本或阶段名",
+          "semantic_role": "timeline_marker"
+        },
+        {
+          "key": "stage5_label",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段5标签",
+          "bbox": [
+            1328,
+            318,
+            144,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": true,
+          "hint": "短阶段名",
+          "semantic_role": "timeline_stage"
+        },
+        {
+          "key": "branch_a_name",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1名称",
+          "bbox": [
+            500,
+            402,
+            94,
+            58
+          ],
+          "font_pt": 13,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 分支A 稀疏注意力",
+          "semantic_role": "method_branch_label"
+        },
+        {
+          "key": "branch_a_work1",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1代表工作1",
+          "bbox": [
+            605,
+            402,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_a_note1",
+          "type": "text",
+          "role": "body",
+          "zh": "分支1工作1说明",
+          "bbox": [
+            602,
+            436,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_a_work2",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1代表工作2",
+          "bbox": [
+            770,
+            402,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_a_note2",
+          "type": "text",
+          "role": "body",
+          "zh": "分支1工作2说明",
+          "bbox": [
+            767,
+            436,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_a_work3",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1代表工作3",
+          "bbox": [
+            935,
+            402,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_a_note3",
+          "type": "text",
+          "role": "body",
+          "zh": "分支1工作3说明",
+          "bbox": [
+            932,
+            436,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_a_work4",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1代表工作4",
+          "bbox": [
+            1100,
+            402,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_a_note4",
+          "type": "text",
+          "role": "body",
+          "zh": "分支1工作4说明",
+          "bbox": [
+            1097,
+            436,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_a_work5",
+          "type": "text",
+          "role": "label",
+          "zh": "分支1代表工作5",
+          "bbox": [
+            1265,
+            402,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_a_note5",
+          "type": "text",
+          "role": "body",
+          "zh": "分支1工作5说明",
+          "bbox": [
+            1262,
+            436,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_b_name",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2名称",
+          "bbox": [
+            500,
+            540,
+            94,
+            58
+          ],
+          "font_pt": 13,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 分支A 稀疏注意力",
+          "semantic_role": "method_branch_label"
+        },
+        {
+          "key": "branch_b_work1",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2代表工作1",
+          "bbox": [
+            605,
+            540,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_b_note1",
+          "type": "text",
+          "role": "body",
+          "zh": "分支2工作1说明",
+          "bbox": [
+            602,
+            574,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_b_work2",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2代表工作2",
+          "bbox": [
+            770,
+            540,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_b_note2",
+          "type": "text",
+          "role": "body",
+          "zh": "分支2工作2说明",
+          "bbox": [
+            767,
+            574,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_b_work3",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2代表工作3",
+          "bbox": [
+            935,
+            540,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_b_note3",
+          "type": "text",
+          "role": "body",
+          "zh": "分支2工作3说明",
+          "bbox": [
+            932,
+            574,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_b_work4",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2代表工作4",
+          "bbox": [
+            1100,
+            540,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_b_note4",
+          "type": "text",
+          "role": "body",
+          "zh": "分支2工作4说明",
+          "bbox": [
+            1097,
+            574,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_b_work5",
+          "type": "text",
+          "role": "label",
+          "zh": "分支2代表工作5",
+          "bbox": [
+            1265,
+            540,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_b_note5",
+          "type": "text",
+          "role": "body",
+          "zh": "分支2工作5说明",
+          "bbox": [
+            1262,
+            574,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_c_name",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3名称",
+          "bbox": [
+            500,
+            678,
+            94,
+            58
+          ],
+          "font_pt": 13,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 分支A 稀疏注意力",
+          "semantic_role": "method_branch_label"
+        },
+        {
+          "key": "branch_c_work1",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3代表工作1",
+          "bbox": [
+            605,
+            678,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_c_note1",
+          "type": "text",
+          "role": "body",
+          "zh": "分支3工作1说明",
+          "bbox": [
+            602,
+            712,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_c_work2",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3代表工作2",
+          "bbox": [
+            770,
+            678,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_c_note2",
+          "type": "text",
+          "role": "body",
+          "zh": "分支3工作2说明",
+          "bbox": [
+            767,
+            712,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_c_work3",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3代表工作3",
+          "bbox": [
+            935,
+            678,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_c_note3",
+          "type": "text",
+          "role": "body",
+          "zh": "分支3工作3说明",
+          "bbox": [
+            932,
+            712,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_c_work4",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3代表工作4",
+          "bbox": [
+            1100,
+            678,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_c_note4",
+          "type": "text",
+          "role": "body",
+          "zh": "分支3工作4说明",
+          "bbox": [
+            1097,
+            712,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "branch_c_work5",
+          "type": "text",
+          "role": "label",
+          "zh": "分支3代表工作5",
+          "bbox": [
+            1265,
+            678,
+            110,
+            30
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": true,
+          "hint": "代表工作/方法短名",
+          "semantic_role": "representative_work"
+        },
+        {
+          "key": "branch_c_note5",
+          "type": "text",
+          "role": "body",
+          "zh": "分支3工作5说明",
+          "bbox": [
+            1262,
+            712,
+            116,
+            34
+          ],
+          "font_pt": 8.3,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "一句机制或贡献，不超过两行",
+          "semantic_role": "work_contribution"
+        },
+        {
+          "key": "trend_summary",
+          "type": "text",
+          "role": "conclusion",
+          "zh": "趋势总结",
+          "bbox": [
+            514,
+            792,
+            900,
+            28
+          ],
+          "font_pt": 11.5,
+          "chars": [
+            34,
+            60
+          ],
+          "single_line": false,
+          "hint": "从分散探索到工程验证的收束判断",
+          "semantic_role": "trend_synthesis"
+        },
+        {
+          "key": "judgment_panel_title",
+          "type": "text",
+          "role": "header",
+          "zh": "右侧判断标题",
+          "bbox": [
+            1526,
+            247,
+            334,
+            30
+          ],
+          "font_pt": 17,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "如 本页技术判断",
+          "semantic_role": "decision_panel_heading"
+        },
+        {
+          "key": "judgment_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "judgment 图标",
+          "bbox": [
+            1536,
+            330,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon，无文字",
+          "semantic_role": "panel_icon",
+          "visual_task": "centered monochrome insight or warning icon, no text, no logo"
+        },
+        {
+          "key": "judgment_title",
+          "type": "text",
+          "role": "header",
+          "zh": "judgment 标题",
+          "bbox": [
+            1612,
+            330,
+            220,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "短判断标题",
+          "semantic_role": "judgment_heading"
+        },
+        {
+          "key": "judgment_body",
+          "type": "text",
+          "role": "para",
+          "zh": "judgment 正文",
+          "bbox": [
+            1612,
+            372,
+            220,
+            118
+          ],
+          "font_pt": 9,
+          "chars": [
+            42,
+            68
+          ],
+          "single_line": false,
+          "hint": "3-4 行解释判断和边界",
+          "semantic_role": "judgment_argument"
+        },
+        {
+          "key": "judgment_tags",
+          "type": "text",
+          "role": "label",
+          "zh": "judgment 关键词",
+          "bbox": [
+            1536,
+            504,
+            296,
+            34
+          ],
+          "font_pt": 10,
+          "chars": [
+            16,
+            28
+          ],
+          "single_line": false,
+          "hint": "用 / 分隔 3-5 个关键词",
+          "semantic_role": "judgment_keywords"
+        },
+        {
+          "key": "opportunity_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "opportunity 图标",
+          "bbox": [
+            1536,
+            580,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon，无文字",
+          "semantic_role": "panel_icon",
+          "visual_task": "centered monochrome insight or warning icon, no text, no logo"
+        },
+        {
+          "key": "opportunity_title",
+          "type": "text",
+          "role": "header",
+          "zh": "opportunity 标题",
+          "bbox": [
+            1612,
+            580,
+            220,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            14
+          ],
+          "single_line": false,
+          "hint": "短判断标题",
+          "semantic_role": "opportunity_heading"
+        },
+        {
+          "key": "opportunity_body",
+          "type": "text",
+          "role": "para",
+          "zh": "opportunity 正文",
+          "bbox": [
+            1612,
+            622,
+            220,
+            118
+          ],
+          "font_pt": 9,
+          "chars": [
+            42,
+            68
+          ],
+          "single_line": false,
+          "hint": "3-4 行解释判断和边界",
+          "semantic_role": "opportunity_argument"
+        },
+        {
+          "key": "opportunity_tags",
+          "type": "text",
+          "role": "label",
+          "zh": "opportunity 关键词",
+          "bbox": [
+            1536,
+            754,
+            296,
+            34
+          ],
+          "font_pt": 10,
+          "chars": [
+            16,
+            28
+          ],
+          "single_line": false,
+          "hint": "用 / 分隔 3-5 个关键词",
+          "semantic_role": "opportunity_keywords"
+        },
+        {
+          "key": "metric_strip_title",
+          "type": "text",
+          "role": "header",
+          "zh": "底部指标组标题",
+          "bbox": [
+            62,
+            896,
+            260,
+            64
+          ],
+          "font_pt": 16,
+          "chars": [
+            10,
+            20
+          ],
+          "single_line": false,
+          "hint": "如 关键指标与证据",
+          "semantic_role": "evidence_strip_title"
+        },
+        {
+          "key": "metric1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "指标1图标",
+          "bbox": [
+            390,
+            900,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "metric_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "metric1_label",
+          "type": "text",
+          "role": "label",
+          "zh": "指标1标签",
+          "bbox": [
+            462,
+            894,
+            204,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": false,
+          "hint": "指标名",
+          "semantic_role": "metric_label"
+        },
+        {
+          "key": "metric1_value",
+          "type": "text",
+          "role": "metric",
+          "zh": "指标1数值",
+          "bbox": [
+            462,
+            926,
+            204,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            3,
+            9
+          ],
+          "single_line": false,
+          "hint": "数字+单位",
+          "semantic_role": "metric_value"
+        },
+        {
+          "key": "metric1_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "指标1说明",
+          "bbox": [
+            462,
+            966,
+            206,
+            28
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "证据来源或解释",
+          "semantic_role": "metric_note"
+        },
+        {
+          "key": "metric2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "指标2图标",
+          "bbox": [
+            720,
+            900,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "metric_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "metric2_label",
+          "type": "text",
+          "role": "label",
+          "zh": "指标2标签",
+          "bbox": [
+            792,
+            894,
+            204,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": false,
+          "hint": "指标名",
+          "semantic_role": "metric_label"
+        },
+        {
+          "key": "metric2_value",
+          "type": "text",
+          "role": "metric",
+          "zh": "指标2数值",
+          "bbox": [
+            792,
+            926,
+            204,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            3,
+            9
+          ],
+          "single_line": false,
+          "hint": "数字+单位",
+          "semantic_role": "metric_value"
+        },
+        {
+          "key": "metric2_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "指标2说明",
+          "bbox": [
+            792,
+            966,
+            206,
+            28
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "证据来源或解释",
+          "semantic_role": "metric_note"
+        },
+        {
+          "key": "metric3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "指标3图标",
+          "bbox": [
+            1050,
+            900,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "metric_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "metric3_label",
+          "type": "text",
+          "role": "label",
+          "zh": "指标3标签",
+          "bbox": [
+            1122,
+            894,
+            204,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": false,
+          "hint": "指标名",
+          "semantic_role": "metric_label"
+        },
+        {
+          "key": "metric3_value",
+          "type": "text",
+          "role": "metric",
+          "zh": "指标3数值",
+          "bbox": [
+            1122,
+            926,
+            204,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            3,
+            9
+          ],
+          "single_line": false,
+          "hint": "数字+单位",
+          "semantic_role": "metric_value"
+        },
+        {
+          "key": "metric3_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "指标3说明",
+          "bbox": [
+            1122,
+            966,
+            206,
+            28
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "证据来源或解释",
+          "semantic_role": "metric_note"
+        },
+        {
+          "key": "metric4_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "指标4图标",
+          "bbox": [
+            1380,
+            900,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "metric_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "metric4_label",
+          "type": "text",
+          "role": "label",
+          "zh": "指标4标签",
+          "bbox": [
+            1452,
+            894,
+            204,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            5,
+            12
+          ],
+          "single_line": false,
+          "hint": "指标名",
+          "semantic_role": "metric_label"
+        },
+        {
+          "key": "metric4_value",
+          "type": "text",
+          "role": "metric",
+          "zh": "指标4数值",
+          "bbox": [
+            1452,
+            926,
+            204,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            3,
+            9
+          ],
+          "single_line": false,
+          "hint": "数字+单位",
+          "semantic_role": "metric_value"
+        },
+        {
+          "key": "metric4_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "指标4说明",
+          "bbox": [
+            1452,
+            966,
+            206,
+            28
+          ],
+          "font_pt": 9.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "证据来源或解释",
+          "semantic_role": "metric_note"
+        },
+        {
+          "key": "footnote",
+          "type": "text",
+          "role": "caption",
+          "zh": "页脚备注",
+          "bbox": [
+            44,
+            1032,
+            1300,
+            24
+          ],
+          "font_pt": 9,
+          "chars": [
+            20,
+            60
+          ],
+          "single_line": false,
+          "hint": "来源、范围或口径说明",
+          "semantic_role": "source_note"
+        }
+      ]
+    },
+    {
+      "id": "tpl-102-insight-evolution-path",
+      "name_cn": "先进方法演进路径图",
+      "when_to_use": "用于解释技术从早期方法到先进闭环机制的演进逻辑，强调阶段特征、边界条件、迁移成本和关键洞察。",
+      "canvas": [
+        1920,
+        1080
+      ],
+      "thumb": "ppt-super/assets/tpl-102-insight-evolution-path/thumb.png",
+      "blank": "ppt-super/assets/tpl-102-insight-evolution-path/blank.png",
+      "pptx": "ppt-super/assets/tpl-102-insight-evolution-path/template.pptx",
+      "layout_family": "four_stage_method_evolution_path",
+      "archetype": "four_stage_method_evolution_path",
+      "template_fit_score": 84,
+      "good_for": [
+        "方法演进",
+        "技术成熟度",
+        "先进机制拆解",
+        "技术迁移收益"
+      ],
+      "avoid": [
+        "复杂 3x3 分类矩阵",
+        "单页封面",
+        "纯路线规划"
+      ],
+      "slots": [
+        {
+          "key": "section_label",
+          "type": "text",
+          "role": "label",
+          "zh": "页面左上分类",
+          "bbox": [
+            44,
+            20,
+            380,
+            34
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 技术洞察 / 先进技术解读",
+          "semantic_role": "page_category"
+        },
+        {
+          "key": "report_label",
+          "type": "text",
+          "role": "caption",
+          "zh": "右上报告标识",
+          "bbox": [
+            1410,
+            20,
+            460,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            8,
+            24
+          ],
+          "single_line": false,
+          "hint": "如 内部技术报告 | 页编号",
+          "semantic_role": "report_context"
+        },
+        {
+          "key": "title_main",
+          "type": "text",
+          "role": "title",
+          "zh": "主标题",
+          "bbox": [
+            54,
+            88,
+            1780,
+            72
+          ],
+          "font_pt": 25,
+          "chars": [
+            18,
+            30
+          ],
+          "single_line": false,
+          "hint": "结论先行，说明先进方法收益来源",
+          "semantic_role": "thesis"
+        },
+        {
+          "key": "subtitle",
+          "type": "text",
+          "role": "header",
+          "zh": "技术演进主线标题",
+          "bbox": [
+            58,
+            168,
+            1380,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            18,
+            34
+          ],
+          "single_line": false,
+          "hint": "如 技术演进主线：从规则到反馈校准",
+          "semantic_role": "main_artifact_heading"
+        },
+        {
+          "key": "template_code",
+          "type": "text",
+          "role": "caption",
+          "zh": "模板编号",
+          "bbox": [
+            1710,
+            82,
+            160,
+            22
+          ],
+          "font_pt": 9,
+          "chars": [
+            0,
+            14
+          ],
+          "single_line": false,
+          "hint": "短编号或留空",
+          "semantic_role": "template_meta"
+        },
+        {
+          "key": "stage1_num",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段1编号",
+          "bbox": [
+            118,
+            272,
+            80,
+            50
+          ],
+          "font_pt": 24,
+          "chars": [
+            2,
+            2
+          ],
+          "single_line": false,
+          "hint": "两位编号",
+          "semantic_role": "stage_number"
+        },
+        {
+          "key": "stage1_title",
+          "type": "text",
+          "role": "header",
+          "zh": "阶段1标题",
+          "bbox": [
+            200,
+            278,
+            222,
+            34
+          ],
+          "font_pt": 16,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "阶段名",
+          "semantic_role": "stage_heading"
+        },
+        {
+          "key": "stage1_subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "阶段1副标题",
+          "bbox": [
+            200,
+            320,
+            222,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            8,
+            18
+          ],
+          "single_line": false,
+          "hint": "一句定位",
+          "semantic_role": "stage_micro_summary"
+        },
+        {
+          "key": "stage1_visual",
+          "type": "image",
+          "role": "image",
+          "zh": "阶段1视觉占位",
+          "bbox": [
+            170,
+            430,
+            220,
+            118
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "阶段机制示意图，无文字",
+          "semantic_role": "stage_visual",
+          "visual_task": "topic-specific stage mechanism visual, 2-4 elements, no text, no logo",
+          "no_text": true,
+          "crop_mode": "contain"
+        },
+        {
+          "key": "stage1_pros",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段1机制特征",
+          "bbox": [
+            145,
+            582,
+            255,
+            56
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明优势或机制",
+          "semantic_role": "stage_mechanism_points"
+        },
+        {
+          "key": "stage1_limits",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段1边界条件",
+          "bbox": [
+            145,
+            650,
+            255,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明约束或代价",
+          "semantic_role": "stage_boundary_points"
+        },
+        {
+          "key": "stage2_num",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段2编号",
+          "bbox": [
+            443,
+            272,
+            80,
+            50
+          ],
+          "font_pt": 24,
+          "chars": [
+            2,
+            2
+          ],
+          "single_line": false,
+          "hint": "两位编号",
+          "semantic_role": "stage_number"
+        },
+        {
+          "key": "stage2_title",
+          "type": "text",
+          "role": "header",
+          "zh": "阶段2标题",
+          "bbox": [
+            525,
+            278,
+            222,
+            34
+          ],
+          "font_pt": 16,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "阶段名",
+          "semantic_role": "stage_heading"
+        },
+        {
+          "key": "stage2_subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "阶段2副标题",
+          "bbox": [
+            525,
+            320,
+            222,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            8,
+            18
+          ],
+          "single_line": false,
+          "hint": "一句定位",
+          "semantic_role": "stage_micro_summary"
+        },
+        {
+          "key": "stage2_visual",
+          "type": "image",
+          "role": "image",
+          "zh": "阶段2视觉占位",
+          "bbox": [
+            495,
+            430,
+            220,
+            118
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "阶段机制示意图，无文字",
+          "semantic_role": "stage_visual",
+          "visual_task": "topic-specific stage mechanism visual, 2-4 elements, no text, no logo",
+          "no_text": true,
+          "crop_mode": "contain"
+        },
+        {
+          "key": "stage2_pros",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段2机制特征",
+          "bbox": [
+            470,
+            582,
+            255,
+            56
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明优势或机制",
+          "semantic_role": "stage_mechanism_points"
+        },
+        {
+          "key": "stage2_limits",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段2边界条件",
+          "bbox": [
+            470,
+            650,
+            255,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明约束或代价",
+          "semantic_role": "stage_boundary_points"
+        },
+        {
+          "key": "stage3_num",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段3编号",
+          "bbox": [
+            768,
+            272,
+            80,
+            50
+          ],
+          "font_pt": 24,
+          "chars": [
+            2,
+            2
+          ],
+          "single_line": false,
+          "hint": "两位编号",
+          "semantic_role": "stage_number"
+        },
+        {
+          "key": "stage3_title",
+          "type": "text",
+          "role": "header",
+          "zh": "阶段3标题",
+          "bbox": [
+            850,
+            278,
+            222,
+            34
+          ],
+          "font_pt": 16,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "阶段名",
+          "semantic_role": "stage_heading"
+        },
+        {
+          "key": "stage3_subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "阶段3副标题",
+          "bbox": [
+            850,
+            320,
+            222,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            8,
+            18
+          ],
+          "single_line": false,
+          "hint": "一句定位",
+          "semantic_role": "stage_micro_summary"
+        },
+        {
+          "key": "stage3_visual",
+          "type": "image",
+          "role": "image",
+          "zh": "阶段3视觉占位",
+          "bbox": [
+            820,
+            430,
+            220,
+            118
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "阶段机制示意图，无文字",
+          "semantic_role": "stage_visual",
+          "visual_task": "topic-specific stage mechanism visual, 2-4 elements, no text, no logo",
+          "no_text": true,
+          "crop_mode": "contain"
+        },
+        {
+          "key": "stage3_pros",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段3机制特征",
+          "bbox": [
+            795,
+            582,
+            255,
+            56
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明优势或机制",
+          "semantic_role": "stage_mechanism_points"
+        },
+        {
+          "key": "stage3_limits",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段3边界条件",
+          "bbox": [
+            795,
+            650,
+            255,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明约束或代价",
+          "semantic_role": "stage_boundary_points"
+        },
+        {
+          "key": "stage4_num",
+          "type": "text",
+          "role": "label",
+          "zh": "阶段4编号",
+          "bbox": [
+            1093,
+            272,
+            80,
+            50
+          ],
+          "font_pt": 24,
+          "chars": [
+            2,
+            2
+          ],
+          "single_line": false,
+          "hint": "两位编号",
+          "semantic_role": "stage_number"
+        },
+        {
+          "key": "stage4_title",
+          "type": "text",
+          "role": "header",
+          "zh": "阶段4标题",
+          "bbox": [
+            1175,
+            278,
+            222,
+            34
+          ],
+          "font_pt": 16,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "阶段名",
+          "semantic_role": "stage_heading"
+        },
+        {
+          "key": "stage4_subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "阶段4副标题",
+          "bbox": [
+            1175,
+            320,
+            222,
+            30
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            8,
+            18
+          ],
+          "single_line": false,
+          "hint": "一句定位",
+          "semantic_role": "stage_micro_summary"
+        },
+        {
+          "key": "stage4_visual",
+          "type": "image",
+          "role": "image",
+          "zh": "阶段4视觉占位",
+          "bbox": [
+            1145,
+            430,
+            220,
+            118
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "阶段机制示意图，无文字",
+          "semantic_role": "stage_visual",
+          "visual_task": "topic-specific stage mechanism visual, 2-4 elements, no text, no logo",
+          "no_text": true,
+          "crop_mode": "contain"
+        },
+        {
+          "key": "stage4_pros",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段4机制特征",
+          "bbox": [
+            1120,
+            582,
+            255,
+            56
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明优势或机制",
+          "semantic_role": "stage_mechanism_points"
+        },
+        {
+          "key": "stage4_limits",
+          "type": "text",
+          "role": "bullets",
+          "zh": "阶段4边界条件",
+          "bbox": [
+            1120,
+            650,
+            255,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            18,
+            32
+          ],
+          "single_line": false,
+          "hint": "2 条短要点，说明约束或代价",
+          "semantic_role": "stage_boundary_points"
+        },
+        {
+          "key": "legend_path",
+          "type": "text",
+          "role": "caption",
+          "zh": "legend_path",
+          "bbox": [
+            110,
+            742,
+            330,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "图例说明",
+          "semantic_role": "legend_path"
+        },
+        {
+          "key": "legend_node",
+          "type": "text",
+          "role": "caption",
+          "zh": "legend_node",
+          "bbox": [
+            460,
+            742,
+            330,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            10,
+            24
+          ],
+          "single_line": false,
+          "hint": "图例说明",
+          "semantic_role": "legend_node"
+        },
+        {
+          "key": "legend_boundary",
+          "type": "text",
+          "role": "caption",
+          "zh": "legend_boundary",
+          "bbox": [
+            810,
+            742,
+            390,
+            24
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            10,
+            28
+          ],
+          "single_line": false,
+          "hint": "图例说明",
+          "semantic_role": "legend_boundary"
+        },
+        {
+          "key": "insight_panel_title",
+          "type": "text",
+          "role": "header",
+          "zh": "右侧洞察标题",
+          "bbox": [
+            1492,
+            262,
+            300,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 关键洞察",
+          "semantic_role": "insight_panel_heading"
+        },
+        {
+          "key": "insight1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "洞察1图标",
+          "bbox": [
+            1484,
+            332,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "insight_icon",
+          "visual_task": "small monochrome insight icon, no text"
+        },
+        {
+          "key": "insight1_body",
+          "type": "text",
+          "role": "para",
+          "zh": "洞察1正文",
+          "bbox": [
+            1560,
+            330,
+            250,
+            62
+          ],
+          "font_pt": 11,
+          "chars": [
+            32,
+            54
+          ],
+          "single_line": false,
+          "hint": "2-3 行机制、边界或判断",
+          "semantic_role": "insight_argument"
+        },
+        {
+          "key": "insight2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "洞察2图标",
+          "bbox": [
+            1484,
+            456,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "insight_icon",
+          "visual_task": "small monochrome insight icon, no text"
+        },
+        {
+          "key": "insight2_body",
+          "type": "text",
+          "role": "para",
+          "zh": "洞察2正文",
+          "bbox": [
+            1560,
+            454,
+            250,
+            62
+          ],
+          "font_pt": 11,
+          "chars": [
+            32,
+            54
+          ],
+          "single_line": false,
+          "hint": "2-3 行机制、边界或判断",
+          "semantic_role": "insight_argument"
+        },
+        {
+          "key": "insight3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "洞察3图标",
+          "bbox": [
+            1484,
+            580,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "insight_icon",
+          "visual_task": "small monochrome insight icon, no text"
+        },
+        {
+          "key": "insight3_body",
+          "type": "text",
+          "role": "para",
+          "zh": "洞察3正文",
+          "bbox": [
+            1560,
+            578,
+            250,
+            62
+          ],
+          "font_pt": 11,
+          "chars": [
+            32,
+            54
+          ],
+          "single_line": false,
+          "hint": "2-3 行机制、边界或判断",
+          "semantic_role": "insight_argument"
+        },
+        {
+          "key": "insight4_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "洞察4图标",
+          "bbox": [
+            1484,
+            704,
+            50,
+            50
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "insight_icon",
+          "visual_task": "small monochrome insight icon, no text"
+        },
+        {
+          "key": "insight4_body",
+          "type": "text",
+          "role": "para",
+          "zh": "洞察4正文",
+          "bbox": [
+            1560,
+            702,
+            250,
+            62
+          ],
+          "font_pt": 11,
+          "chars": [
+            32,
+            54
+          ],
+          "single_line": false,
+          "hint": "2-3 行机制、边界或判断",
+          "semantic_role": "insight_argument"
+        },
+        {
+          "key": "condition1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "底部条件1图标",
+          "bbox": [
+            68,
+            866,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "condition_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "condition1_title",
+          "type": "text",
+          "role": "header",
+          "zh": "底部条件1标题",
+          "bbox": [
+            146,
+            858,
+            292,
+            30
+          ],
+          "font_pt": 13.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "条件或指标名",
+          "semantic_role": "condition_heading"
+        },
+        {
+          "key": "condition1_body",
+          "type": "text",
+          "role": "bullets",
+          "zh": "底部条件1说明",
+          "bbox": [
+            146,
+            900,
+            300,
+            62
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            24,
+            44
+          ],
+          "single_line": false,
+          "hint": "2 条短要点或一段说明",
+          "semantic_role": "condition_evidence"
+        },
+        {
+          "key": "condition2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "底部条件2图标",
+          "bbox": [
+            475,
+            866,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "condition_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "condition2_title",
+          "type": "text",
+          "role": "header",
+          "zh": "底部条件2标题",
+          "bbox": [
+            553,
+            858,
+            292,
+            30
+          ],
+          "font_pt": 13.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "条件或指标名",
+          "semantic_role": "condition_heading"
+        },
+        {
+          "key": "condition2_body",
+          "type": "text",
+          "role": "bullets",
+          "zh": "底部条件2说明",
+          "bbox": [
+            553,
+            900,
+            300,
+            62
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            24,
+            44
+          ],
+          "single_line": false,
+          "hint": "2 条短要点或一段说明",
+          "semantic_role": "condition_evidence"
+        },
+        {
+          "key": "condition3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "底部条件3图标",
+          "bbox": [
+            882,
+            866,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "condition_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "condition3_title",
+          "type": "text",
+          "role": "header",
+          "zh": "底部条件3标题",
+          "bbox": [
+            960,
+            858,
+            292,
+            30
+          ],
+          "font_pt": 13.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "条件或指标名",
+          "semantic_role": "condition_heading"
+        },
+        {
+          "key": "condition3_body",
+          "type": "text",
+          "role": "bullets",
+          "zh": "底部条件3说明",
+          "bbox": [
+            960,
+            900,
+            300,
+            62
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            24,
+            44
+          ],
+          "single_line": false,
+          "hint": "2 条短要点或一段说明",
+          "semantic_role": "condition_evidence"
+        },
+        {
+          "key": "condition4_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "底部条件4图标",
+          "bbox": [
+            1289,
+            866,
+            58,
+            58
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "condition_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "condition4_title",
+          "type": "text",
+          "role": "header",
+          "zh": "底部条件4标题",
+          "bbox": [
+            1367,
+            858,
+            292,
+            30
+          ],
+          "font_pt": 13.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "条件或指标名",
+          "semantic_role": "condition_heading"
+        },
+        {
+          "key": "condition4_body",
+          "type": "text",
+          "role": "bullets",
+          "zh": "底部条件4说明",
+          "bbox": [
+            1367,
+            900,
+            300,
+            62
+          ],
+          "font_pt": 10.5,
+          "chars": [
+            24,
+            44
+          ],
+          "single_line": false,
+          "hint": "2 条短要点或一段说明",
+          "semantic_role": "condition_evidence"
+        },
+        {
+          "key": "footnote",
+          "type": "text",
+          "role": "caption",
+          "zh": "页脚备注",
+          "bbox": [
+            44,
+            1028,
+            1300,
+            24
+          ],
+          "font_pt": 9,
+          "chars": [
+            20,
+            60
+          ],
+          "single_line": false,
+          "hint": "来源、范围或口径说明",
+          "semantic_role": "source_note"
+        }
+      ]
+    },
+    {
+      "id": "tpl-103-insight-taxonomy-decision",
+      "name_cn": "方法分类与选型判断矩阵",
+      "when_to_use": "用于把先进技术按关键维度分层比较，并给出选型判断；适合方法 taxonomy、技术调研、方案评审和技术选型。",
+      "canvas": [
+        1920,
+        1080
+      ],
+      "thumb": "ppt-super/assets/tpl-103-insight-taxonomy-decision/thumb.png",
+      "blank": "ppt-super/assets/tpl-103-insight-taxonomy-decision/blank.png",
+      "pptx": "ppt-super/assets/tpl-103-insight-taxonomy-decision/template.pptx",
+      "layout_family": "taxonomy_decision_matrix",
+      "archetype": "taxonomy_decision_matrix",
+      "template_fit_score": 87,
+      "good_for": [
+        "技术 taxonomy",
+        "方法选型",
+        "鲁棒性方法分层",
+        "能力边界比较",
+        "技术判断"
+      ],
+      "avoid": [
+        "时间线叙事",
+        "单一架构拆解",
+        "纯 KPI 复盘"
+      ],
+      "slots": [
+        {
+          "key": "section_label",
+          "type": "text",
+          "role": "label",
+          "zh": "页面左上分类",
+          "bbox": [
+            44,
+            20,
+            380,
+            34
+          ],
+          "font_pt": 15,
+          "chars": [
+            6,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 技术洞察 / 方法 taxonomy",
+          "semantic_role": "page_category"
+        },
+        {
+          "key": "report_label",
+          "type": "text",
+          "role": "caption",
+          "zh": "右上报告标识",
+          "bbox": [
+            1410,
+            20,
+            460,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            8,
+            24
+          ],
+          "single_line": false,
+          "hint": "如 内部技术报告 | 页编号",
+          "semantic_role": "report_context"
+        },
+        {
+          "key": "title_main",
+          "type": "text",
+          "role": "title",
+          "zh": "主标题",
+          "bbox": [
+            54,
+            88,
+            1780,
+            72
+          ],
+          "font_pt": 25,
+          "chars": [
+            18,
+            30
+          ],
+          "single_line": false,
+          "hint": "结论先行，说明分类维度和选型判断",
+          "semantic_role": "thesis"
+        },
+        {
+          "key": "subtitle",
+          "type": "text",
+          "role": "body",
+          "zh": "副标题/摘要",
+          "bbox": [
+            58,
+            168,
+            1380,
+            34
+          ],
+          "font_pt": 14,
+          "chars": [
+            24,
+            56
+          ],
+          "single_line": false,
+          "hint": "一句话说明本页按哪些维度分层",
+          "semantic_role": "reading_guide"
+        },
+        {
+          "key": "template_code",
+          "type": "text",
+          "role": "caption",
+          "zh": "模板编号",
+          "bbox": [
+            1710,
+            82,
+            160,
+            22
+          ],
+          "font_pt": 9,
+          "chars": [
+            0,
+            14
+          ],
+          "single_line": false,
+          "hint": "短编号或留空",
+          "semantic_role": "template_meta"
+        },
+        {
+          "key": "dim1_title",
+          "type": "text",
+          "role": "header",
+          "zh": "矩阵列1标题",
+          "bbox": [
+            376,
+            238,
+            319,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "分类维度标题",
+          "semantic_role": "taxonomy_dimension"
+        },
+        {
+          "key": "dim2_title",
+          "type": "text",
+          "role": "header",
+          "zh": "矩阵列2标题",
+          "bbox": [
+            731,
+            238,
+            319,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "分类维度标题",
+          "semantic_role": "taxonomy_dimension"
+        },
+        {
+          "key": "dim3_title",
+          "type": "text",
+          "role": "header",
+          "zh": "矩阵列3标题",
+          "bbox": [
+            1086,
+            238,
+            319,
+            34
+          ],
+          "font_pt": 18,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "分类维度标题",
+          "semantic_role": "taxonomy_dimension"
+        },
+        {
+          "key": "row1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "行1图标",
+          "bbox": [
+            84,
+            340,
+            62,
+            62
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "method_family_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "row1_title",
+          "type": "text",
+          "role": "header",
+          "zh": "行1方法族",
+          "bbox": [
+            178,
+            326,
+            160,
+            46
+          ],
+          "font_pt": 14.5,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "方法族名称，最长两行",
+          "semantic_role": "method_family_name"
+        },
+        {
+          "key": "row1_desc",
+          "type": "text",
+          "role": "body",
+          "zh": "行1方法族说明",
+          "bbox": [
+            178,
+            386,
+            150,
+            46
+          ],
+          "font_pt": 9.8,
+          "chars": [
+            16,
+            30
+          ],
+          "single_line": false,
+          "hint": "一句方法定位或目标",
+          "semantic_role": "method_family_summary"
+        },
+        {
+          "key": "cell1_1_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格1-1结论",
+          "bbox": [
+            390,
+            320,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell1_1_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格1-1说明",
+          "bbox": [
+            416,
+            356,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell1_1_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格1-1标签",
+          "bbox": [
+            390,
+            418,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell1_2_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格1-2结论",
+          "bbox": [
+            745,
+            320,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell1_2_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格1-2说明",
+          "bbox": [
+            771,
+            356,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell1_2_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格1-2标签",
+          "bbox": [
+            745,
+            418,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell1_3_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格1-3结论",
+          "bbox": [
+            1100,
+            320,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell1_3_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格1-3说明",
+          "bbox": [
+            1126,
+            356,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell1_3_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格1-3标签",
+          "bbox": [
+            1100,
+            418,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "row2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "行2图标",
+          "bbox": [
+            84,
+            506,
+            62,
+            62
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "method_family_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "row2_title",
+          "type": "text",
+          "role": "header",
+          "zh": "行2方法族",
+          "bbox": [
+            178,
+            492,
+            160,
+            46
+          ],
+          "font_pt": 14.5,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "方法族名称，最长两行",
+          "semantic_role": "method_family_name"
+        },
+        {
+          "key": "row2_desc",
+          "type": "text",
+          "role": "body",
+          "zh": "行2方法族说明",
+          "bbox": [
+            178,
+            552,
+            150,
+            46
+          ],
+          "font_pt": 9.8,
+          "chars": [
+            16,
+            30
+          ],
+          "single_line": false,
+          "hint": "一句方法定位或目标",
+          "semantic_role": "method_family_summary"
+        },
+        {
+          "key": "cell2_1_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格2-1结论",
+          "bbox": [
+            390,
+            486,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell2_1_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格2-1说明",
+          "bbox": [
+            416,
+            522,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell2_1_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格2-1标签",
+          "bbox": [
+            390,
+            584,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell2_2_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格2-2结论",
+          "bbox": [
+            745,
+            486,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell2_2_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格2-2说明",
+          "bbox": [
+            771,
+            522,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell2_2_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格2-2标签",
+          "bbox": [
+            745,
+            584,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell2_3_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格2-3结论",
+          "bbox": [
+            1100,
+            486,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell2_3_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格2-3说明",
+          "bbox": [
+            1126,
+            522,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell2_3_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格2-3标签",
+          "bbox": [
+            1100,
+            584,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "row3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "行3图标",
+          "bbox": [
+            84,
+            672,
+            62,
+            62
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "method_family_icon",
+          "visual_task": "small monochrome line icon, no text"
+        },
+        {
+          "key": "row3_title",
+          "type": "text",
+          "role": "header",
+          "zh": "行3方法族",
+          "bbox": [
+            178,
+            658,
+            160,
+            46
+          ],
+          "font_pt": 14.5,
+          "chars": [
+            4,
+            10
+          ],
+          "single_line": false,
+          "hint": "方法族名称，最长两行",
+          "semantic_role": "method_family_name"
+        },
+        {
+          "key": "row3_desc",
+          "type": "text",
+          "role": "body",
+          "zh": "行3方法族说明",
+          "bbox": [
+            178,
+            718,
+            150,
+            46
+          ],
+          "font_pt": 9.8,
+          "chars": [
+            16,
+            30
+          ],
+          "single_line": false,
+          "hint": "一句方法定位或目标",
+          "semantic_role": "method_family_summary"
+        },
+        {
+          "key": "cell3_1_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格3-1结论",
+          "bbox": [
+            390,
+            652,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell3_1_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格3-1说明",
+          "bbox": [
+            416,
+            688,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell3_1_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格3-1标签",
+          "bbox": [
+            390,
+            750,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell3_2_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格3-2结论",
+          "bbox": [
+            745,
+            652,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell3_2_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格3-2说明",
+          "bbox": [
+            771,
+            688,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell3_2_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格3-2标签",
+          "bbox": [
+            745,
+            750,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "cell3_3_headline",
+          "type": "text",
+          "role": "header",
+          "zh": "单元格3-3结论",
+          "bbox": [
+            1100,
+            652,
+            295,
+            26
+          ],
+          "font_pt": 12.5,
+          "chars": [
+            4,
+            14
+          ],
+          "single_line": false,
+          "hint": "短结论",
+          "semantic_role": "matrix_cell_claim"
+        },
+        {
+          "key": "cell3_3_body",
+          "type": "text",
+          "role": "body",
+          "zh": "单元格3-3说明",
+          "bbox": [
+            1126,
+            688,
+            267,
+            58
+          ],
+          "font_pt": 10,
+          "chars": [
+            22,
+            42
+          ],
+          "single_line": false,
+          "hint": "2 行机制/成本/边界说明",
+          "semantic_role": "matrix_cell_explanation"
+        },
+        {
+          "key": "cell3_3_tag",
+          "type": "text",
+          "role": "label",
+          "zh": "单元格3-3标签",
+          "bbox": [
+            1100,
+            750,
+            120,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            3,
+            8
+          ],
+          "single_line": true,
+          "hint": "低/中/高或风险标签",
+          "semantic_role": "matrix_cell_tag"
+        },
+        {
+          "key": "decision_title",
+          "type": "text",
+          "role": "header",
+          "zh": "右侧选型判断标题",
+          "bbox": [
+            1582,
+            322,
+            230,
+            34
+          ],
+          "font_pt": 19,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "如 选型判断",
+          "semantic_role": "decision_panel_heading"
+        },
+        {
+          "key": "decision1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "判断1图标",
+          "bbox": [
+            1548,
+            382,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "decision_icon",
+          "visual_task": "small monochrome decision icon, no text"
+        },
+        {
+          "key": "decision1_body",
+          "type": "text",
+          "role": "para",
+          "zh": "判断1正文",
+          "bbox": [
+            1620,
+            380,
+            205,
+            58
+          ],
+          "font_pt": 11,
+          "chars": [
+            26,
+            46
+          ],
+          "single_line": false,
+          "hint": "2-3 行选型建议或边界",
+          "semantic_role": "decision_argument"
+        },
+        {
+          "key": "decision2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "判断2图标",
+          "bbox": [
+            1548,
+            492,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "decision_icon",
+          "visual_task": "small monochrome decision icon, no text"
+        },
+        {
+          "key": "decision2_body",
+          "type": "text",
+          "role": "para",
+          "zh": "判断2正文",
+          "bbox": [
+            1620,
+            490,
+            205,
+            58
+          ],
+          "font_pt": 11,
+          "chars": [
+            26,
+            46
+          ],
+          "single_line": false,
+          "hint": "2-3 行选型建议或边界",
+          "semantic_role": "decision_argument"
+        },
+        {
+          "key": "decision3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "判断3图标",
+          "bbox": [
+            1548,
+            602,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "decision_icon",
+          "visual_task": "small monochrome decision icon, no text"
+        },
+        {
+          "key": "decision3_body",
+          "type": "text",
+          "role": "para",
+          "zh": "判断3正文",
+          "bbox": [
+            1620,
+            600,
+            205,
+            58
+          ],
+          "font_pt": 11,
+          "chars": [
+            26,
+            46
+          ],
+          "single_line": false,
+          "hint": "2-3 行选型建议或边界",
+          "semantic_role": "decision_argument"
+        },
+        {
+          "key": "decision4_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "判断4图标",
+          "bbox": [
+            1548,
+            712,
+            48,
+            48
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "decision_icon",
+          "visual_task": "small monochrome decision icon, no text"
+        },
+        {
+          "key": "decision4_body",
+          "type": "text",
+          "role": "para",
+          "zh": "判断4正文",
+          "bbox": [
+            1620,
+            710,
+            205,
+            58
+          ],
+          "font_pt": 11,
+          "chars": [
+            26,
+            46
+          ],
+          "single_line": false,
+          "hint": "2-3 行选型建议或边界",
+          "semantic_role": "decision_argument"
+        },
+        {
+          "key": "score1_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "评分1图标",
+          "bbox": [
+            78,
+            866,
+            70,
+            70
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "score_icon",
+          "visual_task": "small monochrome metric icon, no text"
+        },
+        {
+          "key": "score1_title",
+          "type": "text",
+          "role": "header",
+          "zh": "评分1标题",
+          "bbox": [
+            170,
+            850,
+            230,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "评分维度",
+          "semantic_role": "score_dimension"
+        },
+        {
+          "key": "score1_stars",
+          "type": "text",
+          "role": "metric",
+          "zh": "评分1星级",
+          "bbox": [
+            170,
+            890,
+            150,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            3,
+            10
+          ],
+          "single_line": false,
+          "hint": "如 ★★★☆ 或 高/中/低",
+          "semantic_role": "score_value"
+        },
+        {
+          "key": "score1_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "评分1说明",
+          "bbox": [
+            170,
+            924,
+            250,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            12,
+            26
+          ],
+          "single_line": false,
+          "hint": "一句解释",
+          "semantic_role": "score_note"
+        },
+        {
+          "key": "score2_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "评分2图标",
+          "bbox": [
+            520,
+            866,
+            70,
+            70
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "score_icon",
+          "visual_task": "small monochrome metric icon, no text"
+        },
+        {
+          "key": "score2_title",
+          "type": "text",
+          "role": "header",
+          "zh": "评分2标题",
+          "bbox": [
+            612,
+            850,
+            230,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "评分维度",
+          "semantic_role": "score_dimension"
+        },
+        {
+          "key": "score2_stars",
+          "type": "text",
+          "role": "metric",
+          "zh": "评分2星级",
+          "bbox": [
+            612,
+            890,
+            150,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            3,
+            10
+          ],
+          "single_line": false,
+          "hint": "如 ★★★☆ 或 高/中/低",
+          "semantic_role": "score_value"
+        },
+        {
+          "key": "score2_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "评分2说明",
+          "bbox": [
+            612,
+            924,
+            250,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            12,
+            26
+          ],
+          "single_line": false,
+          "hint": "一句解释",
+          "semantic_role": "score_note"
+        },
+        {
+          "key": "score3_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "评分3图标",
+          "bbox": [
+            962,
+            866,
+            70,
+            70
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "score_icon",
+          "visual_task": "small monochrome metric icon, no text"
+        },
+        {
+          "key": "score3_title",
+          "type": "text",
+          "role": "header",
+          "zh": "评分3标题",
+          "bbox": [
+            1054,
+            850,
+            230,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "评分维度",
+          "semantic_role": "score_dimension"
+        },
+        {
+          "key": "score3_stars",
+          "type": "text",
+          "role": "metric",
+          "zh": "评分3星级",
+          "bbox": [
+            1054,
+            890,
+            150,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            3,
+            10
+          ],
+          "single_line": false,
+          "hint": "如 ★★★☆ 或 高/中/低",
+          "semantic_role": "score_value"
+        },
+        {
+          "key": "score3_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "评分3说明",
+          "bbox": [
+            1054,
+            924,
+            250,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            12,
+            26
+          ],
+          "single_line": false,
+          "hint": "一句解释",
+          "semantic_role": "score_note"
+        },
+        {
+          "key": "score4_icon",
+          "type": "icon",
+          "role": "icon",
+          "zh": "评分4图标",
+          "bbox": [
+            1404,
+            866,
+            70,
+            70
+          ],
+          "font_pt": 0,
+          "chars": [
+            0,
+            0
+          ],
+          "single_line": false,
+          "hint": "单色线性 icon",
+          "semantic_role": "score_icon",
+          "visual_task": "small monochrome metric icon, no text"
+        },
+        {
+          "key": "score4_title",
+          "type": "text",
+          "role": "header",
+          "zh": "评分4标题",
+          "bbox": [
+            1496,
+            850,
+            230,
+            30
+          ],
+          "font_pt": 15,
+          "chars": [
+            4,
+            12
+          ],
+          "single_line": false,
+          "hint": "评分维度",
+          "semantic_role": "score_dimension"
+        },
+        {
+          "key": "score4_stars",
+          "type": "text",
+          "role": "metric",
+          "zh": "评分4星级",
+          "bbox": [
+            1496,
+            890,
+            150,
+            28
+          ],
+          "font_pt": 15,
+          "chars": [
+            3,
+            10
+          ],
+          "single_line": false,
+          "hint": "如 ★★★☆ 或 高/中/低",
+          "semantic_role": "score_value"
+        },
+        {
+          "key": "score4_note",
+          "type": "text",
+          "role": "caption",
+          "zh": "评分4说明",
+          "bbox": [
+            1496,
+            924,
+            250,
+            28
+          ],
+          "font_pt": 10,
+          "chars": [
+            12,
+            26
+          ],
+          "single_line": false,
+          "hint": "一句解释",
+          "semantic_role": "score_note"
+        },
+        {
+          "key": "footnote",
+          "type": "text",
+          "role": "caption",
+          "zh": "页脚备注",
+          "bbox": [
+            44,
+            1028,
+            1300,
+            24
+          ],
+          "font_pt": 9,
+          "chars": [
+            20,
+            60
+          ],
+          "single_line": false,
+          "hint": "来源、范围或口径说明",
+          "semantic_role": "source_note"
+        }
+      ]
     }
   ]
 }

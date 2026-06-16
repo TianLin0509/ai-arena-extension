@@ -329,10 +329,11 @@
       '</div>' +
       '<label class="ppts-lab">逐套指令预览（共 ' + S.selected.length + ' 套 · 自动抓取会按版式逐条发送）</label>' +
       '<textarea id="ppts-prompt" class="ppts-inp ppts-mono" rows="7">' + esc(prompt) + '</textarea>' +
-      '<details class="ppts-fold"><summary>抓取失败？手动把 AI 回答粘到这里 →</summary>' +
+      '<div class="ppts-manualwrap" id="ppts-manualwrap">' +
+        '<label class="ppts-lab">✋ 抓取失败兜底（常驻）：把含 ```json 的 AI 回答<b>整段</b>粘到这里 → 点「解析粘贴内容」</label>' +
         '<textarea id="ppts-paste" class="ppts-inp ppts-mono" rows="4" placeholder="把含 ```json 代码块的 AI 回答整段粘贴进来，点下方「解析粘贴内容」"></textarea>' +
         '<button class="ppts-mini" id="ppts-parsepaste">解析粘贴内容 →</button>' +
-      '</details>';
+      '</div>';
     q("#ppts-refresh").onclick = loadParticipants;
     q("#ppts-copy").onclick = function () {
       navigator.clipboard.writeText(q("#ppts-prompt").value); status("指令已复制", "ok");
@@ -387,6 +388,7 @@
         setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, base + 2, "⚠ 发送失败，跳过该套（" + (sr && sr.error || "标签页未就绪") + "）");
         continue;
       }
+      if (k === 0) send({ type: "focusServiceTabThenPopup", participantId: pid });   // 首套发送后：把该 AI tab 弹前、圆桌随即拉回最前
       // 本套需 AI 填的文字槽 key（与 buildPromptFor 的 textSlots 同口径：剔除 image/icon/装饰箭头）
       var textKeys = t.slots.filter(function (s) {
         return s.type !== "image" && s.type !== "icon" && !/箭头/.test((s.zh || "") + (s.hint || ""));
@@ -438,11 +440,18 @@
     if (S.aborted) return;
     endBusy();
     var okN = results.filter(function (r) { return r.data; }).length;
-    if (!okN) { status("未抓到任何有效 JSON，请展开下方「手动粘贴」兜底，或重试", "warn"); return; }
+    if (!okN) { status("未抓到任何有效 JSON，请把 AI 回答粘到下方手动框解析，或重试 ✋", "warn"); flashTextPaste(); return; }
     S.cands = results.map(function (r) { return { tid: r.tid, data: r.data || {} }; });
     S.active = 0;
     status("逐套抓取完成：成功 " + okN + "/" + total + " 套" + (okN < total ? "（失败的套可在编辑页手动补字或回上一步重试）" : "") + "，进入编辑", okN === total ? "ok" : "warn");
     go(3);
+  }
+  // 文案手动粘贴框流光高亮（抓取失败时引导用户粘贴兜底）
+  function flashTextPaste() {
+    var m = q("#ppts-manualwrap");
+    if (!m) return;
+    m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash");
+    var ta = q("#ppts-paste"); if (ta) { try { ta.focus(); ta.scrollIntoView({ block: "nearest" }); } catch (_) {} }
   }
   function endBusy() { S.busy = false; if (S.timer) { clearInterval(S.timer); S.timer = null; } hideProgress(); setBusyUI(false); }
   function cancelGrab() { S.aborted = true; endBusy(); status("已取消，可重新发送或展开下方手动粘贴", ""); }
@@ -569,6 +578,7 @@
     } else {
       L.push("画面内容：" + (s.hint || "与主题相关、能作为视觉证据支撑论点的高端商务科技场景"));
     }
+    if (s.visual_task) L.push("模板视觉规格：" + s.visual_task + (s.no_text ? "（图内严禁任何文字）" : ""));   // 模板静态约束（visual_task/no_text）
     if (s.bbox && s.bbox[3]) L.push("构图：横版，宽高比约 " + (Math.round(s.bbox[2] / s.bbox[3] * 100) / 100) + " : 1。");
     L.push("画面作为「视觉证据」服务于主题与上述论点；禁止无关科技背景、随机城市、人像摆拍、泛光效、文字水印、伪代码。只输出图片本身，不要文字解说。");
     return L.join("\n");
@@ -596,6 +606,7 @@
       var gpt = ((st && st.participants) || []).find(function (p) { return p.service === "chatgpt"; });
       if (!gpt) { status("请先在圆桌打开 ChatGPT 标签页", "warn"); return; }
       var r = await send({ type: "sendPromptToService", participantId: gpt.id, service: "chatgpt", text: getP() });
+      if (r && r.ok !== false) send({ type: "focusServiceTabThenPopup", participantId: gpt.id });   // 把 ChatGPT tab 弹前、圆桌随即拉回最前
       status(r && r.ok !== false ? "已发送到 ChatGPT，出图后点「抓取生成图」" : "发送失败，请确认 ChatGPT 已打开", r && r.ok !== false ? "ok" : "warn");
     };
     q('[data-a="grab"]', row).onclick = function () { grabImage(s, c); };
@@ -745,33 +756,43 @@
     }
     return parts[0];
   }
-  async function generateIconSheet(iconList, c, prompt, onManual) {
+  async function generateIconSheet(iconList, c, prompt, onManual, aiId) {
     var st = await send({ type: "getState" });
     var parts = (st && st.participants) || [];
-    var ai = pickIconAi(parts, null);
+    var ai = (aiId && parts.find(function (p) { return p.id === aiId; })) || pickIconAi(parts, null);   // 指定 AI 优先（修复4），否则按出 SVG 稳定性排
     if (!ai) { status("圆桌里没有可用 AI。请点「⧉ 复制 SVG 指令」发给任意 AI，再把回复 JSON 粘到下方「② 粘贴」框", "warn"); if (onManual) onManual(); return; }
     status("正在请 " + (ai.name || ai.service) + " 生成 " + iconList.length + " 个 SVG 矢量图标…");
     var r = await send({ type: "sendPromptToService", participantId: ai.id, service: ai.service, text: prompt });
     if (!r || r.ok === false) { status("发送给 " + (ai.name || ai.service) + " 失败。请改手动：复制指令→发给 AI→把 JSON 粘到「② 粘贴」框", "warn"); if (onManual) onManual(); return; }
-    var last = "";
-    for (var i = 0; i < 60; i++) {
+    send({ type: "focusServiceTabThenPopup", participantId: ai.id });   // 把该 AI tab 弹前、圆桌随即拉回最前
+    var last = "", best = null, bestN = 0, stuck = 0;
+    var finish = function (arr) {
+      var nFill = Math.min(arr.length, iconList.length);
+      applyIconSvgs(c, iconList, arr, function (ok) {
+        if (ok) {
+          renderEditor(); renderPreview();
+          var full = nFill >= iconList.length;
+          status("已自动生成并渲染 " + nFill + " / " + iconList.length + " 个图标 " + (full ? "✓" : "（AI 只给了这些，剩余请用下方「② 粘贴」框手动补）"), full ? "ok" : "warn");
+          if (!full && onManual) onManual();
+        } else { status("SVG 渲染失败。请改用下方「② 粘贴」框手动兜底", "warn"); if (onManual) onManual(); }
+      });
+    };
+    for (var i = 0; i < 90; i++) {                              // 上限 ~180s（图标多时流式较慢）
       await sleep(2000);
       var rr = await send({ type: "readOneResponse", participantId: ai.id });
-      if (rr && rr.ok && rr.text) {
-        var changed = rr.text !== last; if (changed) last = rr.text;
-        var arr = parseSvgArray(rr.text), streaming = !!rr.isStreaming;
-        status("AI 生成中…（已收到 " + rr.text.length + " 字" + (arr ? "，捕获 " + arr.length + " 个图标" : "") + "）");
-        if (arr && arr.length >= Math.min(iconList.length, 2) && (!streaming || !changed)) {
-          var nFill = Math.min(arr.length, iconList.length);
-          applyIconSvgs(c, iconList, arr, function (ok) {
-            if (ok) { renderEditor(); renderPreview(); status("已自动生成并渲染 " + nFill + " / " + iconList.length + " 个图标 ✓", "ok"); }
-            else { status("SVG 渲染失败。请改用下方「② 粘贴」框手动兜底", "warn"); if (onManual) onManual(); }
-          });
-          return;
-        }
-      }
+      if (!(rr && rr.ok && rr.text)) continue;
+      var changed = rr.text !== last; if (changed) last = rr.text;
+      var arr = parseSvgArray(rr.text), streaming = !!rr.isStreaming;
+      var n = arr ? arr.length : 0;
+      if (n > bestN) { best = arr; bestN = n; stuck = 0; } else stuck++;   // 数量还在涨→继续等更多；没涨→累计"停滞"轮数
+      status("AI 生成中…（已收到 " + rr.text.length + " 字" + (n ? "，捕获 " + n + " / " + iconList.length + " 个图标" : "") + (streaming ? "，生成中…" : "") + "）");
+      // 核心修复（防不足全部就提前停）：数量只要还在增长就一直等，不用固定百分比阈值；
+      //   ①全部到齐立即完成；②仅当数量连续 4 轮(~8s)不再增长 + 已停笔(非 streaming 且文本不变) 才确认 AI 给完了→兜底
+      if (bestN >= iconList.length) { finish(best); return; }
+      if (stuck >= 4 && !streaming && !changed && bestN >= 2) { finish(best); return; }
     }
-    status("自动没抓到 " + (ai.name || ai.service) + " 的 SVG（可能它把 SVG 当成生图、或输出过慢）。请改手动：复制指令→发给 AI→把回复 JSON 粘到下方「② 粘贴」框 ✋", "warn");
+    if (best && bestN >= 2) { finish(best); return; }          // 超时兜底：用见过最多的填，剩余引导手动补
+    status("自动没抓到足够 SVG（可能 AI 把 SVG 当生图、或输出过慢）。请改手动：复制指令→发给 AI→把回复 JSON 粘到下方「② 粘贴」框 ✋", "warn");
     if (onManual) onManual();
   }
   function iconBatchRow(iconList, c, box) {
@@ -782,6 +803,7 @@
       '<div class="ppts-imgrow">' +
         '<div class="ppts-iconpv"></div>' +
         '<div class="ppts-imgbtns">' +
+          '<select class="ppts-iconai ppts-sel" title="选择用队伍里哪个 AI 生成 SVG（默认队长）"></select>' +
           '<button class="ppts-mini" data-a="gen">🅰 AI 一键生成全部</button>' +
           '<button class="ppts-mini" data-a="copy">⧉ 复制 SVG 指令</button>' +
         '</div></div>' +
@@ -810,7 +832,10 @@
       var ta = q(".ppts-iconpaste", row); if (ta) { try { ta.focus(); ta.scrollIntoView({ block: "nearest" }); } catch (_) {} }
     };
     q('[data-a="copy"]', row).onclick = function () { navigator.clipboard.writeText(getCmd()); status("SVG 指令已复制 → 去任意 AI（claude/deepseek 最稳）粘贴发送 → 把回复 JSON 粘回「② 粘贴」框", "ok"); };
-    q('[data-a="gen"]', row).onclick = function () { generateIconSheet(iconList, c, getCmd(), flashManual); };
+    q('[data-a="gen"]', row).onclick = function () {
+      var sel = q(".ppts-iconai", row);
+      generateIconSheet(iconList, c, getCmd(), flashManual, sel ? sel.value : "");
+    };
     q('[data-a="parse"]', row).onclick = function () {
       var arr = parseSvgArray(q(".ppts-iconpaste", row).value);
       if (!arr) { status("没解析出 SVG 数组。请确认粘贴的是 AI 返回的 [{name,svg}] 完整 JSON（含 <svg>…</svg>）", "warn"); flashManual(); return; }
@@ -819,11 +844,20 @@
         else status("SVG 渲染失败，请检查粘贴内容是否完整", "warn");
       });
     };
-    // 异步标注"将用哪个 AI 自动生成"，让用户提前发现选错 → 可直接走手动兜底
+    // 异步填充 AI 下拉：默认选队长(participants[0])，并标注 pickIconAi 推荐项（出 SVG 最稳）
     send({ type: "getState" }).then(function (st) {
-      var b = q('[data-a="gen"]', row); if (!b) return;
-      var ai = pickIconAi((st && st.participants) || [], null);
-      b.textContent = ai ? ("🅰 用 " + (ai.name || ai.service) + " 生成") : "🅰 AI 生成（先开个 AI）";
+      var parts = (st && st.participants) || [];
+      var sel = q(".ppts-iconai", row), b = q('[data-a="gen"]', row);
+      var captain = parts[0], rec = pickIconAi(parts, null);
+      if (sel) {
+        sel.innerHTML = parts.length
+          ? parts.map(function (p, idx) {
+              var tag = (idx === 0 ? "（队长）" : "") + (rec && p.id === rec.id && (!captain || rec.id !== captain.id) ? "（出SVG稳）" : "");
+              return '<option value="' + p.id + '"' + (idx === 0 ? " selected" : "") + '>' + esc(p.name || p.service) + tag + "</option>";
+            }).join("")
+          : '<option value="">（先在圆桌开个 AI）</option>';
+      }
+      if (b) b.textContent = parts.length ? "🅰 一键生成全部" : "🅰 AI 生成（先开个 AI）";
     }).catch(function () {});
     box.appendChild(row);
   }

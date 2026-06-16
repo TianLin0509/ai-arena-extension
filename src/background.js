@@ -468,6 +468,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "checkAllCompletion": sendResponse(await checkAllCompletion()); break;
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "focusAllAiTabs":    sendResponse(await focusAllAiTabs()); break;
+        case "focusServiceTabThenPopup": sendResponse(await focusServiceTabThenPopup(msg.participantId)); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
         case "readLastImage":     sendResponse(await readLastImage(msg.participantId)); break;
         case "sendPromptToService": {
@@ -1991,6 +1992,14 @@ async function focusAllAiTabs() {
   //   （AI 窗口已都提到前台，popup 叠在最顶层可立即操作）
   try { await ChatBus.focusPopup(); } catch (_) {}
   return { ok: focused > 0, focused, total: parts.length, errors };
+}
+
+// PPT-SUPER 专用：发送/生成时把目标 AI tab 弹到前台（用户看到 AI 在工作），短暂后把圆桌主界面拉回最前可操作。
+//   复用现成的 handleFocusTab（按 id 激活 tab+窗口）+ ChatBus.focusPopup（圆桌回前）；popup 模式拉回、sidePanel 模式本就常驻。
+async function focusServiceTabThenPopup(participantId) {
+  try { await handleFocusTab(participantId); } catch (_) {}
+  setTimeout(() => { try { ChatBus.focusPopup(); } catch (_) {} }, 350);
+  return { ok: true };
 }
 
 // ── 导出 ──
