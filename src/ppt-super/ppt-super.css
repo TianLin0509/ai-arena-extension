@@ -93,6 +93,13 @@
 .ppts-iconpv{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;max-width:208px}
 .ppts-iconchip{width:30px;height:30px;border:1px solid #e3e3e6;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;color:#c0c0c0;font-size:13px;overflow:hidden;flex-shrink:0}
 .ppts-iconchip img{width:100%;height:100%;object-fit:contain}
+.ppts-iconmanual{margin-top:10px;border-top:1px dashed #ffd9b0;padding-top:9px;border-radius:8px}
+.ppts-mhint{font-size:11.5px;color:#9a6a2a;line-height:1.55;margin-bottom:7px}
+.ppts-mhint b{color:#c77700}
+.ppts-iconmrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.ppts-iconmanual .ppts-fold{margin-top:8px}
+@keyframes ppts-iflash{0%,100%{background:transparent}25%,60%{background:rgba(255,159,10,.20)}}
+.ppts-iconmanual.flash{animation:ppts-iflash 1.4s ease 2}
 @media (prefers-color-scheme:dark){
   .ppts-modal{background:#1d1d1f;color:#f5f5f7}
   .ppts-head,.ppts-foot{background:#2c2c2e;border-color:#38383a}
@@ -120,4 +127,6 @@
   .ppts-imgthumb{background:#161618;border-color:#38383a;color:#666}
   .ppts-iconbatch{background:#2a2114;border-color:#5c4622}
   .ppts-iconchip{background:#161618;border-color:#38383a;color:#666}
+  .ppts-iconmanual{border-color:#5c4622}
+  .ppts-mhint{color:#d9a860}.ppts-mhint b{color:#f0b860}
 }

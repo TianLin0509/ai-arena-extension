@@ -553,11 +553,17 @@
     return L.join("\n");
   }
   function sanitizeSvg(svg) {
-    return String(svg || "")
+    var s = String(svg || "")
       .replace(/<script[\s\S]*?<\/script>/gi, "")
       .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "")
       .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
       .replace(/(xlink:href|href)\s*=\s*"(?!#)[^"]*"/gi, "");
+    // 防御：AI 偶尔漏写 xmlns → <svg> 作为 <img> 加载会被浏览器拒渲染，svgToPng 静默返回 null
+    //   → 图标空白且只报"渲染失败"。缺则补（xmlns 检测不依赖引号，兼容单/双引号属性写法）。
+    if (/^\s*<svg\b/i.test(s) && !/\sxmlns\s*=/i.test(s)) {
+      s = s.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    return s;
   }
   // SVG 字符串 → canvas 渲染 → 高清 PNG dataURL（blob 同源不污染 canvas；image 上下文不执行 script）
   function svgToPng(svg, size, cb) {
@@ -621,15 +627,26 @@
     });
     if (pending === 0) done(false);
   }
-  async function generateIconSheet(iconList, c, prompt) {
+  // SVG=写代码任务：优先派给对"出代码"稳的 AI；gemini 免登录易把"生成 SVG"误当成生图任务
+  //   （2026-06-16 playwright 实测：claude/deepseek 稳定吐 SVG 代码，gemini 时好时坏），故降到最后。
+  function pickIconAi(parts, preferId) {
+    if (!parts || !parts.length) return null;
+    if (preferId) { var hit = parts.find(function (p) { return p.id === preferId; }); if (hit) return hit; }
+    var PREF = ["claude", "deepseek", "chatgpt", "doubao", "qwen", "kimi", "yuanbao", "grok", "gemini"];
+    for (var i = 0; i < PREF.length; i++) {
+      var p = parts.find(function (x) { return x.service === PREF[i]; });
+      if (p) return p;
+    }
+    return parts[0];
+  }
+  async function generateIconSheet(iconList, c, prompt, onManual) {
     var st = await send({ type: "getState" });
     var parts = (st && st.participants) || [];
-    // SVG 是文本生成，任意已打开的文本 AI 都能出（优先 gemini，其次第一个）
-    var ai = parts.find(function (p) { return p.service === "gemini"; }) || parts[0];
-    if (!ai) { status("请先在圆桌打开一个 AI 标签页（gemini/claude/deepseek 均可）用于生成图标", "warn"); return; }
-    status("正在请 " + (ai.name || ai.service) + " 生成 " + iconList.length + " 个 SVG 矢量图标（文本生成，约 10-30s）…");
+    var ai = pickIconAi(parts, null);
+    if (!ai) { status("圆桌里没有可用 AI。请点「⧉ 复制 SVG 指令」发给任意 AI，再把回复 JSON 粘到下方「② 粘贴」框", "warn"); if (onManual) onManual(); return; }
+    status("正在请 " + (ai.name || ai.service) + " 生成 " + iconList.length + " 个 SVG 矢量图标…");
     var r = await send({ type: "sendPromptToService", participantId: ai.id, service: ai.service, text: prompt });
-    if (!r || r.ok === false) { status("发送失败，请确认 AI 标签页已打开", "warn"); return; }
+    if (!r || r.ok === false) { status("发送给 " + (ai.name || ai.service) + " 失败。请改手动：复制指令→发给 AI→把 JSON 粘到「② 粘贴」框", "warn"); if (onManual) onManual(); return; }
     var last = "";
     for (var i = 0; i < 60; i++) {
       await sleep(2000);
@@ -637,32 +654,41 @@
       if (rr && rr.ok && rr.text) {
         var changed = rr.text !== last; if (changed) last = rr.text;
         var arr = parseSvgArray(rr.text), streaming = !!rr.isStreaming;
-        status("AI 生成中…（已收到 " + rr.text.length + " 字" + (arr ? "，捕获 " + arr.length + " 个图标 SVG" : "") + "）");
+        status("AI 生成中…（已收到 " + rr.text.length + " 字" + (arr ? "，捕获 " + arr.length + " 个图标" : "") + "）");
         if (arr && arr.length >= Math.min(iconList.length, 2) && (!streaming || !changed)) {
+          var nFill = Math.min(arr.length, iconList.length);
           applyIconSvgs(c, iconList, arr, function (ok) {
-            if (ok) { renderEditor(); renderPreview(); status("已生成 " + iconList.length + " 个 SVG 矢量图标并渲染 ✓", "ok"); }
-            else status("SVG 渲染失败，可展开下方「粘贴 SVG JSON」兜底", "warn");
+            if (ok) { renderEditor(); renderPreview(); status("已自动生成并渲染 " + nFill + " / " + iconList.length + " 个图标 ✓", "ok"); }
+            else { status("SVG 渲染失败。请改用下方「② 粘贴」框手动兜底", "warn"); if (onManual) onManual(); }
           });
           return;
         }
       }
     }
-    status("未抓到 SVG，可展开下方「粘贴 SVG JSON」兜底", "warn");
+    status("自动没抓到 " + (ai.name || ai.service) + " 的 SVG（可能它把 SVG 当成生图、或输出过慢）。请改手动：复制指令→发给 AI→把回复 JSON 粘到下方「② 粘贴」框 ✋", "warn");
+    if (onManual) onManual();
   }
   function iconBatchRow(iconList, c, box) {
     c.images = c.images || {};
     var doneN = iconList.filter(function (s) { return c.images[s.key]; }).length;
     var row = el('<div class="ppts-er ppts-iconbatch">' +
-      '<label>🎨 图标集（' + iconList.length + ' 个 · AI 出 SVG 矢量，一次生成）<span class="ppts-cnt ' + (doneN === iconList.length ? "okc" : "warn") + '">' + doneN + ' / ' + iconList.length + '</span></label>' +
+      '<label>🎨 图标集（' + iconList.length + ' 个 · AI 出 SVG 矢量，统一风格）<span class="ppts-cnt ' + (doneN === iconList.length ? "okc" : "warn") + '">' + doneN + ' / ' + iconList.length + '</span></label>' +
       '<div class="ppts-imgrow">' +
         '<div class="ppts-iconpv"></div>' +
         '<div class="ppts-imgbtns">' +
-          '<button class="ppts-mini" data-a="gen">🎨 AI 生成全部图标</button>' +
+          '<button class="ppts-mini" data-a="gen">🅰 AI 一键生成全部</button>' +
           '<button class="ppts-mini" data-a="copy">⧉ 复制 SVG 指令</button>' +
         '</div></div>' +
-      '<details class="ppts-fold"><summary>SVG 生成指令（可编辑）· 自动抓取失败时把 AI 返回的 JSON 粘到这里兜底</summary>' +
-        '<textarea class="ppts-iconprompt ppts-inp ppts-mono" rows="5">' + esc(buildIconSvgPrompt(iconList)) + '</textarea>' +
-        '<button class="ppts-mini" data-a="parse">解析粘贴的 SVG JSON →</button></details>' +
+      '<div class="ppts-iconmanual">' +
+        '<div class="ppts-mhint">✋ <b>手动兜底（最稳）</b>：① 点上方「⧉ 复制 SVG 指令」发给任意 AI（claude / deepseek 出 SVG 最稳）→ ② 把 AI 回复的 JSON <b>整段</b>粘到下框 → 点「解析填入」</div>' +
+        '<textarea class="ppts-iconpaste ppts-inp ppts-mono" rows="4" placeholder="② 把 AI 回复的 JSON 整段粘到这里，例如 [{&quot;name&quot;:&quot;…&quot;,&quot;svg&quot;:&quot;&lt;svg…&gt;&lt;/svg&gt;&quot;}, …]"></textarea>' +
+        '<div class="ppts-iconmrow">' +
+          '<button class="ppts-mini" data-a="parse">✓ 解析并填入 ' + iconList.length + ' 个图标</button>' +
+        '</div>' +
+        '<details class="ppts-fold"><summary>查看 / 编辑发给 AI 的指令</summary>' +
+          '<textarea class="ppts-iconcmd ppts-inp ppts-mono" rows="6">' + esc(buildIconSvgPrompt(iconList)) + '</textarea>' +
+        '</details>' +
+      '</div>' +
       '</div>');
     var pv = q(".ppts-iconpv", row);
     iconList.forEach(function (s) {
@@ -670,17 +696,29 @@
       if (c.images[s.key]) { var im = document.createElement("img"); im.src = c.images[s.key]; sp.appendChild(im); } else sp.textContent = "·";
       pv.appendChild(sp);
     });
-    var getP = function () { return q(".ppts-iconprompt", row).value; };
-    q('[data-a="copy"]', row).onclick = function () { navigator.clipboard.writeText(getP()); status("SVG 生成指令已复制", "ok"); };
-    q('[data-a="gen"]', row).onclick = function () { generateIconSheet(iconList, c, getP()); };
+    var getCmd = function () { return q(".ppts-iconcmd", row).value; };
+    var flashManual = function () {
+      var m = q(".ppts-iconmanual", row);
+      if (!m) return;
+      m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash");
+      var ta = q(".ppts-iconpaste", row); if (ta) { try { ta.focus(); ta.scrollIntoView({ block: "nearest" }); } catch (_) {} }
+    };
+    q('[data-a="copy"]', row).onclick = function () { navigator.clipboard.writeText(getCmd()); status("SVG 指令已复制 → 去任意 AI（claude/deepseek 最稳）粘贴发送 → 把回复 JSON 粘回「② 粘贴」框", "ok"); };
+    q('[data-a="gen"]', row).onclick = function () { generateIconSheet(iconList, c, getCmd(), flashManual); };
     q('[data-a="parse"]', row).onclick = function () {
-      var arr = parseSvgArray(getP());
-      if (!arr) { status("没解析出 SVG 数组，请粘贴 AI 返回的 [{name,svg}] 内容", "warn"); return; }
+      var arr = parseSvgArray(q(".ppts-iconpaste", row).value);
+      if (!arr) { status("没解析出 SVG 数组。请确认粘贴的是 AI 返回的 [{name,svg}] 完整 JSON（含 <svg>…</svg>）", "warn"); flashManual(); return; }
       applyIconSvgs(c, iconList, arr, function (ok) {
-        if (ok) { renderEditor(); renderPreview(); status("已从粘贴内容渲染 " + arr.length + " 个图标 ✓", "ok"); }
-        else status("SVG 渲染失败", "warn");
+        if (ok) { renderEditor(); renderPreview(); status("已从粘贴内容渲染 " + Math.min(arr.length, iconList.length) + " / " + iconList.length + " 个图标 ✓", "ok"); }
+        else status("SVG 渲染失败，请检查粘贴内容是否完整", "warn");
       });
     };
+    // 异步标注"将用哪个 AI 自动生成"，让用户提前发现选错 → 可直接走手动兜底
+    send({ type: "getState" }).then(function (st) {
+      var b = q('[data-a="gen"]', row); if (!b) return;
+      var ai = pickIconAi((st && st.participants) || [], null);
+      b.textContent = ai ? ("🅰 用 " + (ai.name || ai.service) + " 生成") : "🅰 AI 生成（先开个 AI）";
+    }).catch(function () {});
     box.appendChild(row);
   }
   function alignToCss(a) { return a === "ctr" ? "center" : a === "r" ? "right" : a === "just" ? "justify" : "left"; }

@@ -6,3 +6,4 @@ _test*
 gemini_test.txt
 .e2e-profile*
 __pycache__/
+_render_test.html
