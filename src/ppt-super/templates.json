@@ -14749,7 +14749,7 @@
           "key": "sol1_title",
           "type": "text",
           "role": "label",
-          "zh": "上下行联合调度标题",
+          "zh": "方案步骤1标题",
           "bbox": [
             1020,
             180,
@@ -14776,7 +14776,7 @@
           "key": "sol1_image",
           "type": "image",
           "role": "image",
-          "zh": "上下行联合调度配图区",
+          "zh": "方案步骤1配图区",
           "bbox": [
             976,
             234,
@@ -14796,7 +14796,7 @@
           "key": "sol1_body",
           "type": "text",
           "role": "body",
-          "zh": "上下行联合调度说明",
+          "zh": "方案步骤1说明",
           "bbox": [
             976,
             416,
@@ -14877,7 +14877,7 @@
           "key": "sol2_title",
           "type": "text",
           "role": "label",
-          "zh": "控制/数据信道协同标题",
+          "zh": "方案步骤2标题",
           "bbox": [
             1328,
             180,
@@ -14904,7 +14904,7 @@
           "key": "sol2_image",
           "type": "image",
           "role": "image",
-          "zh": "控制/数据信道协同配图区",
+          "zh": "方案步骤2配图区",
           "bbox": [
             1284,
             234,
@@ -14924,7 +14924,7 @@
           "key": "sol2_body",
           "type": "text",
           "role": "body",
-          "zh": "控制/数据信道协同说明",
+          "zh": "方案步骤2说明",
           "bbox": [
             1284,
             416,
@@ -15005,7 +15005,7 @@
           "key": "sol3_title",
           "type": "text",
           "role": "label",
-          "zh": "上行优先动态优化标题",
+          "zh": "方案步骤3标题",
           "bbox": [
             1636,
             180,
@@ -15032,7 +15032,7 @@
           "key": "sol3_image",
           "type": "image",
           "role": "image",
-          "zh": "上行优先动态优化配图区",
+          "zh": "方案步骤3配图区",
           "bbox": [
             1592,
             234,
@@ -15052,7 +15052,7 @@
           "key": "sol3_body",
           "type": "text",
           "role": "body",
-          "zh": "上行优先动态优化说明",
+          "zh": "方案步骤3说明",
           "bbox": [
             1592,
             416,
@@ -15119,7 +15119,7 @@
             0
           ],
           "single_line": false,
-          "hint": "整体方案架构图, 16:9, 表达感知层、决策层、执行层和数据反馈",
+          "hint": "整体方案架构图, 16:9, 表达各层级结构与数据流",
           "sample": ""
         },
         {
@@ -15247,7 +15247,7 @@
           "key": "b1_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "上行容量提升图标",
+          "zh": "收益指标1图标",
           "bbox": [
             386,
             968,
@@ -15267,7 +15267,7 @@
           "key": "b1_metric",
           "type": "text",
           "role": "metric",
-          "zh": "上行容量提升数值",
+          "zh": "收益指标1数值",
           "bbox": [
             446,
             962,
@@ -15294,7 +15294,7 @@
           "key": "b1_label",
           "type": "text",
           "role": "label",
-          "zh": "上行容量提升标签",
+          "zh": "收益指标1标签",
           "bbox": [
             436,
             998,
@@ -15321,7 +15321,7 @@
           "key": "b2_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "下行性能微损图标",
+          "zh": "收益指标2图标",
           "bbox": [
             674,
             968,
@@ -15341,7 +15341,7 @@
           "key": "b2_metric",
           "type": "text",
           "role": "metric",
-          "zh": "下行性能微损数值",
+          "zh": "收益指标2数值",
           "bbox": [
             734,
             962,
@@ -15368,7 +15368,7 @@
           "key": "b2_label",
           "type": "text",
           "role": "label",
-          "zh": "下行性能微损标签",
+          "zh": "收益指标2标签",
           "bbox": [
             724,
             998,
@@ -15395,7 +15395,7 @@
           "key": "b3_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "上行时延抖动降低图标",
+          "zh": "收益指标3图标",
           "bbox": [
             962,
             968,
@@ -15415,7 +15415,7 @@
           "key": "b3_metric",
           "type": "text",
           "role": "metric",
-          "zh": "上行时延抖动降低数值",
+          "zh": "收益指标3数值",
           "bbox": [
             1022,
             962,
@@ -15442,7 +15442,7 @@
           "key": "b3_label",
           "type": "text",
           "role": "label",
-          "zh": "上行时延抖动降低标签",
+          "zh": "收益指标3标签",
           "bbox": [
             1012,
             998,
@@ -15469,7 +15469,7 @@
           "key": "b4_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "高负载小区吞吐提升图标",
+          "zh": "收益指标4图标",
           "bbox": [
             1250,
             968,
@@ -15489,7 +15489,7 @@
           "key": "b4_metric",
           "type": "text",
           "role": "metric",
-          "zh": "高负载小区吞吐提升数值",
+          "zh": "收益指标4数值",
           "bbox": [
             1310,
             962,
@@ -15516,7 +15516,7 @@
           "key": "b4_label",
           "type": "text",
           "role": "label",
-          "zh": "高负载小区吞吐提升标签",
+          "zh": "收益指标4标签",
           "bbox": [
             1300,
             998,
@@ -15543,7 +15543,7 @@
           "key": "b5_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "方案稳定性图标",
+          "zh": "收益指标5图标",
           "bbox": [
             1538,
             968,
@@ -15563,7 +15563,7 @@
           "key": "b5_metric",
           "type": "text",
           "role": "metric",
-          "zh": "方案稳定性数值",
+          "zh": "收益指标5数值",
           "bbox": [
             1598,
             962,
@@ -15590,7 +15590,7 @@
           "key": "b5_label",
           "type": "text",
           "role": "label",
-          "zh": "方案稳定性标签",
+          "zh": "收益指标5标签",
           "bbox": [
             1588,
             998,
@@ -15618,7 +15618,7 @@
     {
       "id": "tpl-98-radial-command-hub",
       "name_cn": "中心调度枢纽径向图",
-      "when_to_use": "用于展示中心枢纽如何连接资源池、洞察模块、恢复闭环和收益指标。",
+      "when_to_use": "用于展示中心枢纽如何连接周边资源、洞察模块与收益指标。",
       "canvas": [
         1920,
         1080
@@ -15793,7 +15793,7 @@
           "key": "side_m1_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "上行吞吐图标",
+          "zh": "侧边指标1图标",
           "bbox": [
             82,
             688,
@@ -15813,7 +15813,7 @@
           "key": "side_m1_value",
           "type": "text",
           "role": "metric",
-          "zh": "上行吞吐数值",
+          "zh": "侧边指标1数值",
           "bbox": [
             126,
             688,
@@ -15840,7 +15840,7 @@
           "key": "side_m1_title",
           "type": "text",
           "role": "label",
-          "zh": "上行吞吐标题",
+          "zh": "侧边指标1标题",
           "bbox": [
             78,
             732,
@@ -15867,7 +15867,7 @@
           "key": "side_m1_desc",
           "type": "text",
           "role": "body",
-          "zh": "上行吞吐说明",
+          "zh": "侧边指标1说明",
           "bbox": [
             76,
             764,
@@ -15894,7 +15894,7 @@
           "key": "side_m2_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "时延抖动图标",
+          "zh": "侧边指标2图标",
           "bbox": [
             300,
             688,
@@ -15914,7 +15914,7 @@
           "key": "side_m2_value",
           "type": "text",
           "role": "metric",
-          "zh": "时延抖动数值",
+          "zh": "侧边指标2数值",
           "bbox": [
             344,
             688,
@@ -15941,7 +15941,7 @@
           "key": "side_m2_title",
           "type": "text",
           "role": "label",
-          "zh": "时延抖动标题",
+          "zh": "侧边指标2标题",
           "bbox": [
             296,
             732,
@@ -15968,7 +15968,7 @@
           "key": "side_m2_desc",
           "type": "text",
           "role": "body",
-          "zh": "时延抖动说明",
+          "zh": "侧边指标2说明",
           "bbox": [
             294,
             764,
@@ -16062,7 +16062,7 @@
           "key": "res1_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "计算资源图标",
+          "zh": "资源模块1图标",
           "bbox": [
             544,
             330,
@@ -16082,7 +16082,7 @@
           "key": "res1_title",
           "type": "text",
           "role": "label",
-          "zh": "计算资源标题",
+          "zh": "资源模块1标题",
           "bbox": [
             608,
             326,
@@ -16109,7 +16109,7 @@
           "key": "res1_sub",
           "type": "text",
           "role": "body",
-          "zh": "计算资源说明",
+          "zh": "资源模块1说明",
           "bbox": [
             608,
             358,
@@ -16136,7 +16136,7 @@
           "key": "res1_metric_label",
           "type": "text",
           "role": "label",
-          "zh": "计算资源指标名",
+          "zh": "资源模块1指标名",
           "bbox": [
             769,
             330,
@@ -16163,7 +16163,7 @@
           "key": "res1_metric_value",
           "type": "text",
           "role": "metric",
-          "zh": "计算资源指标值",
+          "zh": "资源模块1指标值",
           "bbox": [
             769,
             354,
@@ -16190,7 +16190,7 @@
           "key": "res2_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "网络资源图标",
+          "zh": "资源模块2图标",
           "bbox": [
             544,
             450,
@@ -16210,7 +16210,7 @@
           "key": "res2_title",
           "type": "text",
           "role": "label",
-          "zh": "网络资源标题",
+          "zh": "资源模块2标题",
           "bbox": [
             608,
             446,
@@ -16237,7 +16237,7 @@
           "key": "res2_sub",
           "type": "text",
           "role": "body",
-          "zh": "网络资源说明",
+          "zh": "资源模块2说明",
           "bbox": [
             608,
             478,
@@ -16264,7 +16264,7 @@
           "key": "res2_metric_label",
           "type": "text",
           "role": "label",
-          "zh": "网络资源指标名",
+          "zh": "资源模块2指标名",
           "bbox": [
             769,
             450,
@@ -16291,7 +16291,7 @@
           "key": "res2_metric_value",
           "type": "text",
           "role": "metric",
-          "zh": "网络资源指标值",
+          "zh": "资源模块2指标值",
           "bbox": [
             769,
             474,
@@ -16318,7 +16318,7 @@
           "key": "res3_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "存储资源图标",
+          "zh": "资源模块3图标",
           "bbox": [
             544,
             570,
@@ -16338,7 +16338,7 @@
           "key": "res3_title",
           "type": "text",
           "role": "label",
-          "zh": "存储资源标题",
+          "zh": "资源模块3标题",
           "bbox": [
             608,
             566,
@@ -16365,7 +16365,7 @@
           "key": "res3_sub",
           "type": "text",
           "role": "body",
-          "zh": "存储资源说明",
+          "zh": "资源模块3说明",
           "bbox": [
             608,
             598,
@@ -16392,7 +16392,7 @@
           "key": "res3_metric_label",
           "type": "text",
           "role": "label",
-          "zh": "存储资源指标名",
+          "zh": "资源模块3指标名",
           "bbox": [
             769,
             570,
@@ -16419,7 +16419,7 @@
           "key": "res3_metric_value",
           "type": "text",
           "role": "metric",
-          "zh": "存储资源指标值",
+          "zh": "资源模块3指标值",
           "bbox": [
             769,
             594,
@@ -16446,7 +16446,7 @@
           "key": "res4_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "审计存证图标",
+          "zh": "资源模块4图标",
           "bbox": [
             544,
             690,
@@ -16466,7 +16466,7 @@
           "key": "res4_title",
           "type": "text",
           "role": "label",
-          "zh": "审计存证标题",
+          "zh": "资源模块4标题",
           "bbox": [
             608,
             686,
@@ -16493,7 +16493,7 @@
           "key": "res4_sub",
           "type": "text",
           "role": "body",
-          "zh": "审计存证说明",
+          "zh": "资源模块4说明",
           "bbox": [
             608,
             718,
@@ -16520,7 +16520,7 @@
           "key": "res4_metric_label",
           "type": "text",
           "role": "label",
-          "zh": "审计存证指标名",
+          "zh": "资源模块4指标名",
           "bbox": [
             769,
             690,
@@ -16547,7 +16547,7 @@
           "key": "res4_metric_value",
           "type": "text",
           "role": "metric",
-          "zh": "审计存证指标值",
+          "zh": "资源模块4指标值",
           "bbox": [
             769,
             714,
@@ -16574,7 +16574,7 @@
           "key": "hub_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "调度核心图标",
+          "zh": "中心枢纽图标",
           "bbox": [
             1077,
             430,
@@ -16594,7 +16594,7 @@
           "key": "hub_title",
           "type": "text",
           "role": "label",
-          "zh": "中心核心标题",
+          "zh": "中心枢纽标题",
           "bbox": [
             1018,
             488,
@@ -16621,7 +16621,7 @@
           "key": "hub_sub",
           "type": "text",
           "role": "body",
-          "zh": "中心核心说明",
+          "zh": "中心枢纽说明",
           "bbox": [
             1000,
             530,
@@ -16783,7 +16783,7 @@
           "key": "ins1_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "资源画像与洞察图标",
+          "zh": "洞察模块1图标",
           "bbox": [
             1424,
             144,
@@ -16803,7 +16803,7 @@
           "key": "ins1_title",
           "type": "text",
           "role": "label",
-          "zh": "资源画像与洞察标题",
+          "zh": "洞察模块1标题",
           "bbox": [
             1494,
             140,
@@ -16830,7 +16830,7 @@
           "key": "ins1_body",
           "type": "text",
           "role": "para",
-          "zh": "资源画像与洞察正文",
+          "zh": "洞察模块1正文",
           "bbox": [
             1494,
             188,
@@ -16857,7 +16857,7 @@
           "key": "ins2_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "恢复窗口与自愈图标",
+          "zh": "洞察模块2图标",
           "bbox": [
             1424,
             410,
@@ -16877,7 +16877,7 @@
           "key": "ins2_title",
           "type": "text",
           "role": "label",
-          "zh": "恢复窗口与自愈标题",
+          "zh": "洞察模块2标题",
           "bbox": [
             1494,
             406,
@@ -16904,7 +16904,7 @@
           "key": "ins2_body",
           "type": "text",
           "role": "para",
-          "zh": "恢复窗口与自愈正文",
+          "zh": "洞察模块2正文",
           "bbox": [
             1494,
             454,
@@ -16931,7 +16931,7 @@
           "key": "ins3_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "验收口径与保障图标",
+          "zh": "洞察模块3图标",
           "bbox": [
             1424,
             676,
@@ -16951,7 +16951,7 @@
           "key": "ins3_title",
           "type": "text",
           "role": "label",
-          "zh": "验收口径与保障标题",
+          "zh": "洞察模块3标题",
           "bbox": [
             1494,
             672,
@@ -16978,7 +16978,7 @@
           "key": "ins3_body",
           "type": "text",
           "role": "para",
-          "zh": "验收口径与保障正文",
+          "zh": "洞察模块3正文",
           "bbox": [
             1494,
             720,
@@ -17005,7 +17005,7 @@
           "key": "okpi1_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "上行容量提升图标",
+          "zh": "收益指标1图标",
           "bbox": [
             68,
             935,
@@ -17025,7 +17025,7 @@
           "key": "okpi1_metric",
           "type": "text",
           "role": "metric",
-          "zh": "上行容量提升数值",
+          "zh": "收益指标1数值",
           "bbox": [
             156,
             942,
@@ -17052,7 +17052,7 @@
           "key": "okpi1_title",
           "type": "text",
           "role": "label",
-          "zh": "上行容量提升标题",
+          "zh": "收益指标1标题",
           "bbox": [
             288,
             942,
@@ -17079,7 +17079,7 @@
           "key": "okpi1_sub",
           "type": "text",
           "role": "body",
-          "zh": "上行容量提升说明",
+          "zh": "收益指标1说明",
           "bbox": [
             288,
             976,
@@ -17106,7 +17106,7 @@
           "key": "okpi2_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "恢复时长缩短图标",
+          "zh": "收益指标2图标",
           "bbox": [
             523,
             935,
@@ -17126,7 +17126,7 @@
           "key": "okpi2_metric",
           "type": "text",
           "role": "metric",
-          "zh": "恢复时长缩短数值",
+          "zh": "收益指标2数值",
           "bbox": [
             611,
             942,
@@ -17153,7 +17153,7 @@
           "key": "okpi2_title",
           "type": "text",
           "role": "label",
-          "zh": "恢复时长缩短标题",
+          "zh": "收益指标2标题",
           "bbox": [
             743,
             942,
@@ -17180,7 +17180,7 @@
           "key": "okpi2_sub",
           "type": "text",
           "role": "body",
-          "zh": "恢复时长缩短说明",
+          "zh": "收益指标2说明",
           "bbox": [
             743,
             976,
@@ -17207,7 +17207,7 @@
           "key": "okpi3_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "算力空转降低图标",
+          "zh": "收益指标3图标",
           "bbox": [
             978,
             935,
@@ -17227,7 +17227,7 @@
           "key": "okpi3_metric",
           "type": "text",
           "role": "metric",
-          "zh": "算力空转降低数值",
+          "zh": "收益指标3数值",
           "bbox": [
             1066,
             942,
@@ -17254,7 +17254,7 @@
           "key": "okpi3_title",
           "type": "text",
           "role": "label",
-          "zh": "算力空转降低标题",
+          "zh": "收益指标3标题",
           "bbox": [
             1198,
             942,
@@ -17281,7 +17281,7 @@
           "key": "okpi3_sub",
           "type": "text",
           "role": "body",
-          "zh": "算力空转降低说明",
+          "zh": "收益指标3说明",
           "bbox": [
             1198,
             976,
@@ -17308,7 +17308,7 @@
           "key": "okpi4_icon",
           "type": "icon",
           "role": "icon",
-          "zh": "审计覆盖率图标",
+          "zh": "收益指标4图标",
           "bbox": [
             1433,
             935,
@@ -17328,7 +17328,7 @@
           "key": "okpi4_metric",
           "type": "text",
           "role": "metric",
-          "zh": "审计覆盖率数值",
+          "zh": "收益指标4数值",
           "bbox": [
             1521,
             942,
@@ -17355,7 +17355,7 @@
           "key": "okpi4_title",
           "type": "text",
           "role": "label",
-          "zh": "审计覆盖率标题",
+          "zh": "收益指标4标题",
           "bbox": [
             1653,
             942,
@@ -17382,7 +17382,7 @@
           "key": "okpi4_sub",
           "type": "text",
           "role": "body",
-          "zh": "审计覆盖率说明",
+          "zh": "收益指标4说明",
           "bbox": [
             1653,
             976,

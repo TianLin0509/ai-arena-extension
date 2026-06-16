@@ -56,46 +56,111 @@
   }
 
   // ---------- prompt（按版式逐条生成，串行发送更稳健：避免一坨长回答漏块/串位/截断）----------
+  // role → 槽位写作契约（PPT高手写稿法：每个槽在整页论证里"负责哪一刀"）。
+  //   从模板已有的 role 字段动态派生语义契约，无需在 templates.json 里逐槽手写；
+  //   若某 slot 显式带了 semantic_role/copy_recipe/... 字段则优先用它（前向兼容）。
+  var ROLE_CONTRACT = {
+    label:      { sr: "页面主题锚点", recipe: "提炼 topic 的核心术语/产品名做标签，名词短语", gate: "一眼定位本页主题，不写成句子", keep: "术语本身" },
+    title:      { sr: "全页核心判断", recipe: "写「对象+动作+结果/数字」的观点句，给出判断而非堆名词", gate: "只读这一句也能 get 本页结论", keep: "判断动词与关键数字" },
+    header:     { sr: "本模块定位·递进链一环", recipe: "一句能力定位，与相邻模块形成递进或对照，忌三个空词并列", gate: "能看出它与相邻模块的关系", keep: "定位词" },
+    para:       { sr: "讲清机制链与证据", recipe: "给「动作+对象+约束+产出+量化」，连贯段落，忌空泛形容与宣传语", gate: "有机制、有数据、有边界", keep: "机制动作与数字" },
+    body:       { sr: "讲清机制链与证据", recipe: "给「动作+对象+约束+产出+量化」，忌空泛形容与宣传语", gate: "有机制、有数据、有边界", keep: "机制动作与数字" },
+    bullets:    { sr: "并列证据点", recipe: "每条一个独立要点，动词开头、尽量含数据，条目互不重复", gate: "条目之间无重复、可独立成立", keep: "动作与数字" },
+    kpi:        { sr: "量化证据", recipe: "数字+单位（如 3.2倍 / 81% / 90秒），与正文呼应", gate: "数字可信、不编造，未提供则保守表述", keep: "数字与单位" },
+    metric:     { sr: "量化证据", recipe: "数字+单位，与正文呼应", gate: "数字可信、不编造，未提供则保守表述", keep: "数字与单位" },
+    caption:    { sr: "口径/说明小字", recipe: "补一句判断口径、来源或条件，不重复正文", gate: "不与正文重复", keep: "口径关键词" },
+    conclusion: { sr: "收束贡献/局限/下一步", recipe: "给「所以…」或「下一步…」的指向性收束，忌泛泛总结", gate: "有明确指向", keep: "结论指向" },
+    _glyph:     { sr: "编号/符号位", recipe: "按提示填写编号或符号（如 1 / 2），不写文案", gate: "符合位数或符号要求", keep: "原编号/符号" }
+  };
+  // 精炼 role：模板里不少槽把"小节标题/编号/来源"粗标成 label，按 zh/hint/容量纠偏，让派生契约对得上"负责哪一刀"
+  function refineSlotRole(s) {
+    var role = s.role || "body";
+    var hi = (s.chars && s.chars[1]) || 99;
+    var tx = String(s.zh || "") + " " + String(s.hint || "");
+    if (hi <= 2) return "_glyph";                                          // 1-2 字：编号/符号位，不套写作契约
+    if (/来源|出处|备注/.test(tx)) return "caption";                        // 数据来源等小字（须优先于 header，否则长来源串被 hi>=12 误判标题）
+    if (role === "label" && (/标题/.test(tx) || hi >= 12)) return "header"; // 误标成 label 的小节/卡标题
+    return role;
+  }
   function buildPromptFor(tid, idx, total) {
     var t = tplById(tid);
     var L = [];
-    L.push("你是华为汇报 PPT 文案专家。请为下面这一套版式生成一份填充 JSON。");
-    if (total > 1) L.push("（本主题共 " + total + " 套版式，这是第 " + (idx + 1) + " 套，本条只输出这 1 套对应的 1 个 JSON 块。）");
+    L.push("你是顶级商务汇报 PPT 总编 + 文案专家，用「PPT高手写稿法」给这一页定稿：先把整页想透，再逐槽落字。");
+    L.push("（风格：华为商务汇报风——数据密、口吻正式克制、杜绝空话套话；版式与配色已固定，你只写文字。）");
+    if (total > 1) L.push("（本主题共 " + total + " 页，这是第 " + (idx + 1) + " 页；本条只输出这 1 页对应的 1 个 JSON 块；与其余页保持术语口径一致、互为支撑、不重复。）");
     L.push("");
     L.push("【主题】" + S.topic);
     if (S.extra.trim()) L.push("【素材/要点】" + S.extra);
     L.push("");
     L.push("【版式：" + t.name_cn + "】" + (t.when_to_use || ""));
-    L.push("字段清单（key 必须严格一致，value 为中文文案字符串）：");
-    t.slots.forEach(function (s) {
-      if (s.type === "image" || s.type === "icon") return;   // 图/图标走配图路径，不进文字 prompt
-      var info = "";
+    var isArrow = function (s) { return /箭头/.test(String(s.zh || "") + String(s.hint || "")); };  // 装饰箭头是固定符号，剔除不让 AI 填
+    var textSlots = t.slots.filter(function (s) { return s.type !== "image" && s.type !== "icon" && !isArrow(s); });
+    var imgSlots = t.slots.filter(function (s) { return s.type === "image" || s.type === "icon"; });
+
+    // —— 第一步：先构思整页（story_spine）——
+    L.push("");
+    L.push("━━ 第一步：先构思整页，把规划写进 JSON 顶层的 \"_plan\" 字段 ━━");
+    L.push("不要一上来逐字段填空。先以总编视角把这一页想透：");
+    L.push("  · page_task：这一页要完成的汇报任务（一句话）");
+    L.push("  · audience_takeaway：听众看完后应当相信/记住的一件事");
+    L.push("  · thesis：本页核心判断（一句有对象有结论的观点句，全页都为它服务）");
+    L.push("  · topic_anchor_terms：3-6 个来自【主题】的核心术语/机制名，必须贯穿全页正文（不许跑题成别的行业/公司）");
+    L.push("  · story_spine：把全页串成一条论证主线（如「判断 → 机制/方法 → 三段证据 → 收束」），并说明每个模块承担哪一步");
+    L.push("  · stage_mapping / kpi_plan / evidence_strategy：若本页含阶段/指标/证据，规划它们如何递进、用什么口径、数据从哪来（未提供的指标走保守表述，不编造）");
+    L.push("  · slot_story_map：逐个列出下方每个槽位 key 在 story_spine 里「负责哪一刀」（一句话），确保槽与槽互相支撑、不是孤立填空");
+    L.push("");
+
+    // —— 第二步：按「角色契约 + 三档容量」逐槽落字 ——
+    L.push("━━ 第二步：按每个槽位的「角色契约 + 容量预算」落字（每个槽遵守自己的写作任务，不是统一填空）━━");
+    L.push("字段清单（key 必须与下方严格一致，value 为中文文案字符串）：");
+    L.push("⚠ 槽位中文名与提示只标示该位在版面中的作用/位置；其中若出现具体行业专名/方案名/指标名（多为版式示例题材），一律视为占位示例，必须改写成当前【主题】的对应内容，严禁照抄进正文。");
+    textSlots.forEach(function (s) {
+      var rc = ROLE_CONTRACT[refineSlotRole(s)] || ROLE_CONTRACT.body;
+      var sr = s.semantic_role || rc.sr;
+      var recipe = s.copy_recipe || rc.recipe;
+      var gate = s.quality_gate || rc.gate;
+      var budget = "";
       if (s.chars) {
         var lo = s.chars[0], hi = s.chars[1];
-        // 给 AI 宣称的上限留安全垫：AI 数中文+英文/数字混排字数会系统性低估，告诉它一个略小于真实上限的
-        //   cap，它超一点仍落在真实上限内；短字段固定垫 2-3，长段落（正文）按 10% 垫（长文 AI 更易超）
+        // 给 AI 宣称的上限留安全垫：AI 数中英混排字数会系统性低估，给它一个略小于真实上限的 cap；
+        //   short 字段固定垫 2-3，长段落按 10% 垫。三档容量：最低密度(min)/目标(target,偏上促写满)/硬上限(cap)
         var margin = hi <= 6 ? 0 : (hi <= 18 ? 2 : (hi <= 40 ? 3 : Math.round(hi * 0.10)));
         var cap = Math.max(lo, hi - margin);
-        var target = Math.max(lo, Math.round(lo + (cap - lo) * 0.5));   // 瞄中点，留上探余量到 cap
-        info = "，目标约 " + target + " 字，硬上限 " + cap + " 字";
+        var minc = lo;
+        var target = Math.max(lo, Math.round(lo + (cap - lo) * 0.72));   // 瞄偏上、留余量到 cap：促"写满到合适密度"而非写太少留白
+        budget = " 容量[最低 " + minc + " / 目标约 " + target + " / 硬上限 " + cap + " 字]";
       }
-      // 清 hint 里的诱导/冲突措辞：① 自带字数（如"6-12字"，常和真实上限打架）② "按框容量写满"（诱导写超）
+      // 清 hint 里和字数打架/诱导写满的旧措辞（自带字数、"按框容量写满"）
       var hint = (s.hint || "")
         .replace(/[,，、]?\s*\d+\s*[-~–到至]\s*\d+\s*字数?/g, "")
         .replace(/[,，、]?\s*\d+\s*字数?/g, "")
+        .replace(/[,，、]?\s*\d+\s*[-~–到至]?\s*\d*\s*行/g, "")   // 清"5-7行/7-9行/2行"等行数暗示：与硬上限字数打架、诱导写超
         .replace(/[,，、]?\s*按[框容量]*写满/g, "")
         .replace(/\s{2,}/g, " ").replace(/\s*([,，；;])/g, "$1").replace(/^[\s,，;；]+|[\s,，;；]+$/g, "");
-      L.push("  " + s.key + "（" + (s.zh || "") + info + "）：" + hint);
+      L.push("  ▸ " + s.key + "（" + (s.zh || "") + "）" + budget);
+      L.push("     角色:" + sr + "｜写法:" + recipe + "｜合格线:" + gate + (hint ? "｜提示:" + hint : ""));
     });
     L.push("");
-    L.push("要求：");
-    L.push("1. 只输出一个 ```json 代码块，不要任何解释文字；");
-    L.push("2. 字数是硬约束，必须逐字段遵守（这是最重要的一条）：");
-    L.push("   · 每个字段都标了「目标约 N 字，硬上限 M 字」——以「约 N 字」为写作目标，把话写实、有干货（华为风忌留白，别明显短于 N）；");
-    L.push("   · 「硬上限 M 字」是绝对不可逾越的红线，任何字段都不得超过，宁可少写 2-3 个字、删掉修饰词，也绝不能超；");
-    L.push("   · 中文按字符数计：每个汉字、标点、英文字母、数字各算 1 个字（例：「DeepSeek四阶段跃迁」=11 字、「推理效率提升2.5倍」=10 字）；");
-    L.push("   · 写完后逐字段默数一遍字符数，凡超过硬上限的，立刻删词精简重写，确认每个字段都不超上限后再输出；");
-    L.push("3. 数据具体量化、华为汇报口吻、杜绝空话套话；未提供的指标用合理保守表述，不编造。");
+
+    // —— 图片与文案一体化契约：同时规划配图 ——
+    if (imgSlots.length) {
+      L.push("━━ 图片与文案一体化契约：同时输出 JSON 顶层的 \"_image_briefs\" ━━");
+      L.push("把图/图标当「视觉证据」而非装饰，与文案共用同一套故事线。为下列每个配图位输出一条 brief（以 key 为对象）：");
+      L.push("  每条含 role_in_argument（这张图在论证链里的任务）、supports_slot（它支撑上面哪个文字槽 key）、visual_motif（贴合 thesis 的视觉意象，矢量/示意优先）、differs_from_siblings（与相邻图如何区分、避免雷同）。");
+      imgSlots.forEach(function (s) {
+        L.push("  ▸ " + s.key + "（" + (s.zh || s.key) + (s.type === "icon" ? " · 图标" : " · 配图") + "）");
+      });
+      L.push("  约束：所有视觉都服务于【主题】与 thesis，禁止无关科技背景、随机城市、人像摆拍、泛光效、文字水印、伪代码。");
+      L.push("");
+    }
+
+    // —— 输出与字数硬约束 ——
+    L.push("━━ 输出要求 ━━");
+    L.push("1. 只输出一个 ```json 代码块，不要任何解释文字；JSON 顶层含 \"_plan\"" + (imgSlots.length ? "、\"_image_briefs\"" : "") + " 和上面全部文字槽 key；");
+    L.push("2. 槽位 key 必须来自上面的清单：不得编造 key、不得把配图 brief 写进文字槽、不得遗漏任何文字槽（漏填会让该位残留模板样张占位文字）；");
+    L.push("3. 字数是硬约束，逐字段遵守：以「目标约 N 字」为准把话写实写满（华为风忌留白，别明显短于「最低」值），空间够就补机制/对比/证据口径/边界，绝不靠形容词凑数；任何字段都不得超过「硬上限」，逼近上限时优先删修饰与重复、保住主题锚点与机制动作；");
+    L.push("4. 中文按字符计：汉字/标点/英文字母/数字各算 1 个字（例：「推理效率提升2.5倍」=10 字）；写完逐字段默数，超限即删词重写；");
+    L.push("5. 全页正文必须紧扣【主题】的 topic_anchor_terms，数据具体量化、口吻正式；未提供的指标用合理保守表述，绝不编造、绝不跑到与【主题】无关的行业或公司。");
     return L.join("\n");
   }
   function buildAllPrompts() {
@@ -199,7 +264,7 @@
     body.innerHTML =
       '<div class="ppts-guide">📋 三步生成华为风 PPT：① 填主题挑版式 → ② 一键发 AI 取文案 → ③ 编辑预览下载。每套版式会单独出一版文案，最后挑满意的下。</div>' +
       '<label class="ppts-lab">汇报主题（一句话说清这页要讲什么）</label>' +
-      '<input id="ppts-topic" class="ppts-inp" type="text" placeholder="例：昇腾超节点集群在大模型训练中的性能优化进展" value="' + esc(S.topic) + '">' +
+      '<input id="ppts-topic" class="ppts-inp" type="text" placeholder="例：新一代向量数据库在大模型检索场景下的性能优化进展（写清对象+场景+主题，越具体生成越准）" value="' + esc(S.topic) + '">' +
       '<label class="ppts-lab">素材 / 要点（可选，AI 优先采用）<button id="ppts-pull" class="ppts-mini">＋ 带入本场圆桌讨论结论</button></label>' +
       '<textarea id="ppts-extra" class="ppts-inp" rows="2" placeholder="例：训练效率提升3倍；已在3个数据中心部署；MFU 58%">' + esc(S.extra) + '</textarea>' +
       '<label class="ppts-lab">选版式（可多选，看图挑）<span class="ppts-count">已选 <b id="ppts-cn">' + S.selected.length + '</b> / ' + S.templates.length + '</span></label>' +
@@ -470,13 +535,27 @@
     });
   }
   // ---------- 配图（生图指令 + 发 ChatGPT + 抓取/上传）----------
-  function buildImagePrompt(s) {
+  function buildImagePrompt(s, c) {
+    var brief = c && c.data && c.data._image_briefs && c.data._image_briefs[s.key];
+    var plan = c && c.data && c.data._plan;
     var L = [];
-    L.push("请用 DALL-E 生成一张华为汇报 PPT 配图：商务科技风、专业大气、画面干净、无任何文字与水印。");
+    L.push("【图片与文案一体化契约】请用 DALL-E 生成一张商务汇报 PPT 配图（华为商务科技风、专业大气、画面干净、无任何文字与水印）。");
     L.push("汇报主题：" + S.topic);
-    L.push("画面内容：" + (s.hint || "与主题相关的高端商务科技场景"));
+    if (plan && plan.thesis) L.push("本页核心判断：" + plan.thesis);
+    if (plan && plan.story_spine) L.push("本页故事线：" + plan.story_spine);
+    if (brief) {
+      if (brief.role_in_argument) L.push("这张图在论证链里的任务：" + brief.role_in_argument);
+      if (brief.supports_slot) {
+        var sv = c.data[brief.supports_slot];
+        L.push("它要支撑的文字：" + (sv ? ("「" + sv + "」") : brief.supports_slot));
+      }
+      if (brief.visual_motif) L.push("视觉意象：" + brief.visual_motif);
+      if (brief.differs_from_siblings) L.push("与相邻配图的区分：" + brief.differs_from_siblings);
+    } else {
+      L.push("画面内容：" + (s.hint || "与主题相关、能作为视觉证据支撑论点的高端商务科技场景"));
+    }
     if (s.bbox && s.bbox[3]) L.push("构图：横版，宽高比约 " + (Math.round(s.bbox[2] / s.bbox[3] * 100) / 100) + " : 1。");
-    L.push("只输出图片本身，不要附带文字解说。");
+    L.push("画面作为「视觉证据」服务于主题与上述论点；禁止无关科技背景、随机城市、人像摆拍、泛光效、文字水印、伪代码。只输出图片本身，不要文字解说。");
     return L.join("\n");
   }
   function imageSlotRow(s, c, box) {
@@ -493,7 +572,7 @@
           '<button class="ppts-mini" data-a="copy">⧉ 复制指令</button>' +
         '</div></div>' +
       '<details class="ppts-fold"><summary>生图指令（发给 ChatGPT，可编辑）</summary>' +
-        '<textarea class="ppts-imgprompt ppts-inp ppts-mono" rows="3">' + esc(buildImagePrompt(s)) + '</textarea></details>' +
+        '<textarea class="ppts-imgprompt ppts-inp ppts-mono" rows="3">' + esc(buildImagePrompt(s, c)) + '</textarea></details>' +
       '</div>');
     var getP = function () { return q(".ppts-imgprompt", row).value; };
     q('[data-a="copy"]', row).onclick = function () { navigator.clipboard.writeText(getP()); status("生图指令已复制，粘到 ChatGPT 生图", "ok"); };
@@ -531,10 +610,18 @@
     return z || s.hint || s.key;
   }
   // 按业界图标库规范（Lucide/Heroicons：24x24 / 1.6 stroke / round / duotone 华为蓝红 / ≤5 元素）让 AI 出一组 SVG
-  function buildIconSvgPrompt(iconList) {
+  function buildIconSvgPrompt(iconList, c) {
     var n = iconList.length, L = [];
-    L.push("你是资深前端/SVG 工程师。请【编写代码】：输出 " + n + " 个 SVG 矢量图标的源代码，用于华为商务汇报 PPT。");
+    var plan = c && c.data && c.data._plan;
+    var briefs = (c && c.data && c.data._image_briefs) || null;
+    L.push("你是资深前端/SVG 工程师。请【编写代码】：输出 " + n + " 个 SVG 矢量图标的源代码，用于商务汇报 PPT（华为风）。");
     L.push("⚠ 这是写代码任务（SVG 是 XML 文本代码），不是生成图片——你只需像写代码一样把 SVG 文本打出来，无需也不要尝试创建/生成任何图片或调用绘图功能。");
+    if (plan && (plan.thesis || plan.topic_anchor_terms)) {
+      L.push("");
+      L.push("【本页主题语境（图标与文案同一套故事线、整体风格统一）】");
+      if (plan.thesis) L.push("核心判断：" + plan.thesis);
+      if (plan.topic_anchor_terms) L.push("核心术语：" + (Array.isArray(plan.topic_anchor_terms) ? plan.topic_anchor_terms.join("、") : plan.topic_anchor_terms));
+    }
     L.push("");
     L.push("【输出格式】只输出一个 JSON 数组（不要 markdown 代码块包裹、不要任何解释），每项两个键：{\"name\":\"图标名\",\"svg\":\"<svg ...>...</svg>\"}，顺序与下方语义列表严格一一对应。");
     L.push("");
@@ -546,8 +633,12 @@
     L.push("5. 坐标尽量取整数或 0.5 的倍数，留约 1px 外边距，保证 48px 下仍清晰可辨；");
     L.push("6. 禁止：<text>/文字/数字/字母、<script>/<filter>/<defs>/gradient/外部 href；不要硬编码 black。");
     L.push("");
-    L.push("【" + n + " 个图标语义（按此顺序；为每个语义设计贴切直观的符号意象，如『容量/吞吐提升』→向上箭头或数据流、『稳定/可靠』→盾牌加对勾、『降低/收敛』→由波动转平稳的曲线、『挑战/风险』→灯塔或三角警示、『收益/增长』→上扬曲线或仪表）】：");
-    iconList.forEach(function (s, i) { L.push("  " + (i + 1) + ". " + iconSemantics(s)); });
+    L.push("【" + n + " 个图标语义（按此顺序；为每个语义设计贴切直观的符号意象，如『容量/吞吐提升』→向上箭头或数据流、『稳定/可靠』→盾牌加对勾、『降低/收敛』→由波动转平稳的曲线、『挑战/风险』→灯塔或三角警示、『收益/增长』→上扬曲线或仪表；附「意象参考」则优先采纳）】：");
+    iconList.forEach(function (s, i) {
+      var b = briefs && briefs[s.key];
+      var motif = b && b.visual_motif;
+      L.push("  " + (i + 1) + ". " + iconSemantics(s) + (motif ? "（意象参考:" + motif + "）" : ""));
+    });
     L.push("");
     L.push("现在直接输出这 " + n + " 个 SVG 图标的代码（JSON 数组，每个 svg 值是完整的 <svg>…</svg> 文本）。");
     return L.join("\n");
@@ -686,7 +777,7 @@
           '<button class="ppts-mini" data-a="parse">✓ 解析并填入 ' + iconList.length + ' 个图标</button>' +
         '</div>' +
         '<details class="ppts-fold"><summary>查看 / 编辑发给 AI 的指令</summary>' +
-          '<textarea class="ppts-iconcmd ppts-inp ppts-mono" rows="6">' + esc(buildIconSvgPrompt(iconList)) + '</textarea>' +
+          '<textarea class="ppts-iconcmd ppts-inp ppts-mono" rows="6">' + esc(buildIconSvgPrompt(iconList, c)) + '</textarea>' +
         '</details>' +
       '</div>' +
       '</div>');
