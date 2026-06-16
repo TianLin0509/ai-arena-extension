@@ -387,7 +387,17 @@
         setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, base + 2, "⚠ 发送失败，跳过该套（" + (sr && sr.error || "标签页未就绪") + "）");
         continue;
       }
-      var block = null, last = "", stable = 0, jsonStable = 0, noData = 0;
+      // 本套需 AI 填的文字槽 key（与 buildPromptFor 的 textSlots 同口径：剔除 image/icon/装饰箭头）
+      var textKeys = t.slots.filter(function (s) {
+        return s.type !== "image" && s.type !== "icon" && !/箭头/.test((s.zh || "") + (s.hint || ""));
+      }).map(function (s) { return s.key; });
+      // 字段覆盖率：提取到的 JSON 命中了多少文字槽。半截 JSON（如只出了 _plan、slot 没写）覆盖率低 → 不算完成
+      var coverage = function (b) {
+        if (!b || typeof b !== "object" || !textKeys.length) return 0;
+        var hit = textKeys.filter(function (key) { var v = b[key]; return v != null && String(v).trim() !== ""; }).length;
+        return hit / textKeys.length;
+      };
+      var block = null, last = "", stable = 0, jsonStable = 0, noData = 0, bestBlock = null, bestCov = 0;
       for (var i = 0; i < 90 && !S.aborted; i++) {                      // 上限 ~180s，覆盖 ChatGPT「先答一句→长思考→真答案」
         await sleep(2000);
         if (S.aborted) return;
@@ -397,19 +407,23 @@
           var blocks = extractBlocks(rr.text);
           var streaming = !!rr.isStreaming;
           var changed = rr.text !== last; if (changed) last = rr.text;
+          var cand = blocks.length ? blocks[blocks.length - 1] : null;
+          var cov = cand ? coverage(cand) : 0;
+          if (cand && cov >= bestCov) { bestBlock = cand; bestCov = cov; }       // 记录见过最完整的 JSON
           var within = base + Math.min(i / 28, 0.85) * (100 / total);
           setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, within,
-            "已收到 " + rr.text.length + " 字" + (streaming ? "（AI 生成/思考中…）" : (blocks.length ? "，已捕获 JSON ✓" : "（已停笔，等待 JSON…）")));
-          // 核心修复：AI 还在生成/思考（isStreaming=true）时绝不退出 —— ChatGPT 常先回一两句再长思考，
-          //   只有「生成结束(isStreaming=false) + 已有完整 JSON」才算本套完成；
-          //   防 isStreaming 误卡 true，补一条「JSON 已出且文本连续稳定」的兜底完成。
-          if (blocks.length >= 1) {
-            if (!streaming) { block = blocks[blocks.length - 1]; break; }
-            if (!changed) { jsonStable++; if (jsonStable >= 3) { block = blocks[blocks.length - 1]; break; } } else { jsonStable = 0; }
-          } else if (!streaming) {
-            if (!changed) { stable++; if (stable >= 4) break; } else { stable = 0; }   // 生成已停却没 JSON → 确认后放弃该套
+            "已收到 " + rr.text.length + " 字" + (cand ? "，JSON 字段 " + Math.round(cov * 100) + "%" : "") +
+            (streaming ? "（AI 生成中…）" : (cand ? (cov < 0.8 ? "（JSON 未完，继续等…）" : "，已完整 ✓") : "（已停笔，等 JSON…）")));
+          // 核心修复（防字段全 0 跳第三步）：必须「JSON 字段覆盖 ≥80%」才算本套完成。
+          //   ① AI 生成中(streaming=true)绝不退出；② 半截 JSON / isStreaming 误判 false 时覆盖率不足 → 继续等 slot 写完。
+          if (cand && cov >= 0.8) {
+            if (!streaming) { block = cand; break; }                              // 完整 + 已停笔 → 完成
+            if (!changed) { jsonStable++; if (jsonStable >= 3) { block = cand; break; } } else { jsonStable = 0; }
+          } else if (!streaming && !changed) {
+            // 已停笔且文本不再变，但覆盖不足 80%（或没 JSON）：多等几轮确认 AI 确实写完 → 用最完整的兜底，太残缺则放弃该套
+            stable++; if (stable >= 6) { block = bestCov >= 0.5 ? bestBlock : null; break; }
           } else {
-            stable = 0;                                                  // 仍在生成/思考 → 继续等真答案，不退出
+            stable = 0;                                                           // 仍在生成 / 文本还在变 → 继续等，不退出
           }
         } else {
           noData++;
@@ -418,6 +432,7 @@
           if (noData >= 25) break;                                       // ~50s 完全读不到回答 → 放弃这套
         }
       }
+      if (!block && bestCov >= 0.5) block = bestBlock;                            // 超时兜底：用见过最完整的(≥50%)进编辑页手动补，强于丢空
       results.push({ tid: tid, data: block });
     }
     if (S.aborted) return;
