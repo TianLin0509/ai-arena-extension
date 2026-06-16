@@ -29,7 +29,8 @@ let windowMode = "tiled"; // "tab" | "tiled"
 // 让 injectBootstrapToExistingTabs 等 windowMode 真加载完再分流 tab/tiled 路径
 const _windowModeLoaded = new Promise(resolve => {
   chrome.storage.local.get("windowMode", (d) => {
-    if (d.windowMode === "tab" || d.windowMode === "tiled") windowMode = d.windowMode;
+    void chrome.runtime.lastError;   // v5.0.48: SW 上下文异常 / 存储不可用时 d 可能为 undefined，先吞掉 lastError
+    if (d && (d.windowMode === "tab" || d.windowMode === "tiled")) windowMode = d.windowMode;
     resolve();
   });
 });
@@ -468,6 +469,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         case "focusTab":          sendResponse(await handleFocusTab(msg.id)); break;
         case "focusAllAiTabs":    sendResponse(await focusAllAiTabs()); break;
         case "readOneResponse":   sendResponse(await readOneResponse(msg.participantId)); break;
+        case "readLastImage":     sendResponse(await readLastImage(msg.participantId)); break;
         case "sendPromptToService": {
           // v4.9.0.2 fix I1: bubble resend 按钮发送时 msg.text 为空（实际 prompt 在 lastSentByPid），
           // 用 fallback 取出真实 prompt 让守门员扫描，避免被空文本短路绕过
@@ -1911,9 +1913,41 @@ async function readOneResponse(participantId) {
       }
       StateMachine.setParticipantResponse(p.id, text);
     }
-    return { ok: true, text };
+    return { ok: true, text, isStreaming: !!r.isStreaming };   // v5.0.43: 透传 streaming，PPT-SUPER grab 据此判「生成是否真的结束」
   } catch (e) {
     return { ok: false, text: "", error: e.message };
+  }
+}
+
+// v5.0.38 PPT-SUPER: 抓取 AI 标签页里最新生成的图（DALL-E 等），转 dataURL 回 popup
+async function readLastImage(participantId) {
+  const p = StateMachine.getParticipant(participantId);
+  if (!p?.tabId) return { ok: false, error: "无标签页" };
+  try {
+    const [res] = await chrome.scripting.executeScript({
+      target: { tabId: p.tabId },
+      func: async () => {
+        const imgs = Array.from(document.querySelectorAll("img"))
+          .filter(im => im.naturalWidth >= 256 && im.naturalHeight >= 256
+            && !/avatar|favicon|icon|logo|sprite/i.test((im.src || "") + " " + (im.className || "")));
+        const last = imgs[imgs.length - 1];
+        if (!last) return null;
+        try {
+          const r = await fetch(last.src);
+          const b = await r.blob();
+          if (b.size < 2000) return null;
+          return await new Promise(resolve => {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result);
+            fr.onerror = () => resolve(null);
+            fr.readAsDataURL(b);
+          });
+        } catch (e) { return null; }
+      }
+    });
+    return res && res.result ? { ok: true, dataUrl: res.result } : { ok: false, error: "未找到生成图" };
+  } catch (e) {
+    return { ok: false, error: e.message };
   }
 }
 
@@ -2009,6 +2043,7 @@ async function arrangeWindows(screen = lastKnownScreen) {
   //   屏幕。改为每个窗口严格占 [屏宽/N]，宁留极细的隐形边框缝（透明、几乎不可见），也要保证
   //   每个窗口标题栏按钮完整可见可操作。
   const perW = Math.floor(screenW / n);
+  console.log(`[Arena/arrange] screen=${screenW}x${screenH} @(${screenLeft},${screenTop}) n=${n} perW=${perW}`);
 
   for (let i = 0; i < n; i++) {
     const tab = await chrome.tabs.get(ordered[i].tabId).catch(() => null);
@@ -2017,6 +2052,7 @@ async function arrangeWindows(screen = lastKnownScreen) {
     const isLast = i === n - 1;
     const baseLeft = screenLeft + i * perW;
     const baseW = isLast ? screenW - i * perW : perW;   // 最后一个吃掉取整余数，右边缘正好贴屏幕右沿
+    console.log(`[Arena/arrange] win#${i}${isLast ? "(last)" : ""} left=${baseLeft} width=${baseW} right=${baseLeft + baseW}`);
     await chrome.windows.update(winId, {
       left: baseLeft,
       top: screenTop,
@@ -2055,10 +2091,13 @@ async function getAiTargetLayout(sidepanelScreen = lastKnownScreen) {
 
     // 找到 sidepanel 所在屏（current display）
     const current = findDisplayForScreen(fallback, normalized) || normalized.find(d => d.isPrimary) || normalized[0];
-    // 关键：currentScreen 直接信任 sidepanelScreen（用户屏），不使用 normalized display 的 workArea
-    // 因为 chrome.system.display 偶尔返回虚拟坐标，而 sidepanel 的 window.screen 是浏览器内核报告的真实屏
-    const currentScreen = fallback;
-    console.log("[Arena/layout] current display picked:", current?.id?.slice(-6), "currentScreen:", currentScreen);
+    // v5.0.40: 定位用 fallback（sidepanel 窗口中心点匹配物理屏），但「铺窗口的尺寸 + 原点」改用
+    //   匹配到的那块屏的 workArea（current.screen）。旧版 currentScreen=fallback 把传入的
+    //   窗口宽 / desktop-union 宽 / 缩放后宽度当成屏宽来均分，导致最右 AI 窗口连同关闭按钮 ✕
+    //   溢出屏外。workArea 是 chrome.system.display 报告的单块屏真实可用区（已扣任务栏），逻辑
+    //   像素与 chrome.windows.update 一致，最稳；display 不可用时仍回退 fallback。
+    const currentScreen = current?.screen || fallback;
+    console.log("[Arena/layout] current display picked:", current?.id?.slice(-6), "currentScreen:", currentScreen, "(fallback:", fallback, ")");
 
     // 自动：副屏优先 + 不存在真副屏则回退同屏
     if (normalized.length < 2) {

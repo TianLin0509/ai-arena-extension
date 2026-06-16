@@ -9,17 +9,21 @@
   // listener 泄漏在 document 上，下次用户按 Ctrl+Enter 想发消息时会被旧 listener
   // 误捕获并重新触发 primary.onClick（典型坑：彻底重置后按 Enter 又重置一遍）
   let activeEscListener = null;
+  let activeOnClose = null;   // v5.0.47: confirm() 用 — 非主按钮关闭（取消/Esc/点遮罩）时回调 resolve(false)
 
-  function close() {
+  function close(skipOnClose) {
     if (activeEscListener) {
       document.removeEventListener("keydown", activeEscListener);
       activeEscListener = null;
     }
-    if (!activeOverlay) return;
+    const onClose = activeOnClose; activeOnClose = null;
+    const fire = () => { if (onClose && !skipOnClose) { try { onClose(); } catch (_) {} } };
+    if (!activeOverlay) { fire(); return; }
     activeOverlay.classList.remove("show");
     const node = activeOverlay;
     activeOverlay = null;
     setTimeout(() => { try { node.remove(); } catch (_) {} }, 180);
+    fire();
   }
 
   function escapeHtml(s) {
@@ -31,7 +35,7 @@
   function show(opts) {
     close();
     const { tone = "info", icon = "ⓘ", title = "", message = "", tip = "",
-            primary, secondary, cancel } = opts || {};
+            primary, secondary, cancel, onClose } = opts || {};
 
     const overlay = document.createElement("div");
     overlay.className = `arena-modal-overlay tone-${tone}`;
@@ -49,22 +53,23 @@
       </div>`;
     document.body.appendChild(overlay);
     activeOverlay = overlay;
+    activeOnClose = onClose || null;
 
     overlay.addEventListener("click", (e) => {
       const role = e.target?.dataset?.role;
-      if (role === "primary") { close(); try { primary?.onClick?.(); } catch (err) { console.warn(err); } }
-      else if (role === "secondary") { close(); try { secondary?.onClick?.(); } catch (err) { console.warn(err); } }
-      else if (role === "cancel") close();
-      else if (e.target === overlay) close();   // 点遮罩关闭
+      if (role === "primary") { close(true); try { primary?.onClick?.(); } catch (err) { console.warn(err); } }
+      else if (role === "secondary") { close(true); try { secondary?.onClick?.(); } catch (err) { console.warn(err); } }
+      else if (role === "cancel") close();        // 取消 → 触发 onClose（confirm resolve false）
+      else if (e.target === overlay) close();      // 点遮罩关闭 → 同上
     });
 
     // v5.0.0-beta fix: 注册 escListener 时存到模块级 activeEscListener，
     // close() 统一移除（不再依赖 listener 自己 self-remove，避免点按钮关 modal 时泄漏）
     activeEscListener = function escListener(ev) {
       if (ev.key === "Escape") {
-        close();   // close 内部会 removeEventListener
+        close();   // 取消语义 → onClose（confirm resolve false）；close 内部会 removeEventListener
       } else if (ev.key === "Enter" && primary) {
-        close();
+        close(true);
         try { primary.onClick?.(); } catch (err) { console.warn(err); }
       }
     };
@@ -253,5 +258,49 @@
     requestAnimationFrame(() => overlay.classList.add("show"));
   }
 
-  window.ChatModal = { show, close, showInsufficientResponses, showSensitiveBlocked, showPartialDebateInject, showLongText };
+  // v5.0.47: 通用 alert / confirm（替代原生）+ 引导高亮（弹窗关闭后高亮某元素，告诉用户"去哪操作"）
+  function spotGuide(selector) {
+    if (!selector) return;
+    setTimeout(() => {
+      try {
+        document.querySelectorAll(".arena-spot").forEach(e => e.classList.remove("arena-spot"));
+        const el = document.querySelector(selector);
+        if (!el) return;
+        el.classList.add("arena-spot");
+        try { el.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (_) {}
+        setTimeout(() => el.classList.remove("arena-spot"), 3500);
+      } catch (_) {}
+    }, 240);   // 等关闭动画结束再高亮，避免被正在淡出的遮罩盖住
+  }
+  function alert(message, opts) {
+    opts = opts || {};
+    show({
+      tone: opts.tone || "info",
+      icon: opts.icon || (opts.tone === "warning" ? "⚠" : "ⓘ"),
+      title: opts.title || (opts.tone === "warning" ? "出错了" : "提示"),
+      message: message || "",
+      tip: opts.tip || "",
+      primary: { label: opts.okLabel || "知道了", onClick: () => { if (opts.guide) spotGuide(opts.guide); if (typeof opts.onOk === "function") opts.onOk(); } },
+      cancel: { label: "关闭" },
+    });
+  }
+  function confirm(opts) {
+    opts = (typeof opts === "string") ? { message: opts } : (opts || {});
+    return new Promise((resolve) => {
+      let done = false;
+      const fin = (v) => { if (!done) { done = true; resolve(v); } };
+      show({
+        tone: opts.tone || "warning",
+        icon: opts.icon || "❓",
+        title: opts.title || "确认操作",
+        message: opts.message || "",
+        tip: opts.tip || "",
+        primary: { label: opts.okLabel || "确认", onClick: () => fin(true) },
+        cancel: { label: opts.cancelLabel || "取消" },
+        onClose: () => fin(false),
+      });
+    });
+  }
+
+  window.ChatModal = { show, close, alert, confirm, spotGuide, showInsufficientResponses, showSensitiveBlocked, showPartialDebateInject, showLongText };
 })();

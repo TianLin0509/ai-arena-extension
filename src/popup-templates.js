@@ -191,7 +191,18 @@
   async function onResetBuiltin(binding) {
     const tpl = Store.resolveTemplate(binding);
     if (!tpl || !tpl.anyModified) return;
-    if (!confirm(`确认把"${tpl.name}"重置为默认？`)) return;
+    const _msg = `确认把"${tpl.name}"重置为默认？`;
+    if (window.ChatModal) {
+      window.ChatModal.confirm({ tone: "warning", title: "重置模板", message: _msg, okLabel: "重置" })
+        .then(async ok => {
+          if (!ok) return;
+          await Store.resetOverride(binding);
+          toast("已重置");
+          // notify 监听会自动 render
+        });
+      return;
+    }
+    if (!confirm(_msg)) return;   // fallback
     await Store.resetOverride(binding);
     toast("已重置");
     // notify 监听会自动 render
@@ -200,13 +211,33 @@
   async function onDeleteUser(id) {
     const t = Store.getUserTemplate(id);
     if (!t) return;
-    if (!confirm(`删除"${t.name || "(未命名)"}"？`)) return;
+    const _msg = `删除"${t.name || "(未命名)"}"？`;
+    if (window.ChatModal) {
+      window.ChatModal.confirm({ tone: "warning", title: "删除模板", message: _msg, okLabel: "删除" })
+        .then(async ok => {
+          if (!ok) return;
+          await Store.deleteUserTemplate(id);
+          toast("已删除");
+        });
+      return;
+    }
+    if (!confirm(_msg)) return;   // fallback
     await Store.deleteUserTemplate(id);
     toast("已删除");
   }
 
   async function onResetAll() {
-    if (!confirm("将所有内置模板的编辑全部丢弃（自定义模板不动）？")) return;
+    const _msg = "将所有内置模板的编辑全部丢弃（自定义模板不动）？";
+    if (window.ChatModal) {
+      window.ChatModal.confirm({ tone: "warning", title: "全部重置", message: _msg, okLabel: "全部重置" })
+        .then(async ok => {
+          if (!ok) return;
+          await Store.resetAllOverrides();
+          toast("全部内置模板已重置");
+        });
+      return;
+    }
+    if (!confirm(_msg)) return;   // fallback
     await Store.resetAllOverrides();
     toast("全部内置模板已重置");
   }
@@ -273,7 +304,18 @@
         <button class="tpl-modal-btn tpl-modal-primary" id="tpl-editor-save">保存</button>
       `;
       document.getElementById("tpl-editor-reset")?.addEventListener("click", async () => {
-        if (!confirm(`确认重置"${tpl.name}"？`)) return;
+        const _msg = `确认重置"${tpl.name}"？`;
+        if (window.ChatModal) {
+          window.ChatModal.confirm({ tone: "warning", title: "重置模板", message: _msg, okLabel: "重置" })
+            .then(async ok => {
+              if (!ok) return;
+              await Store.resetOverride(ctx.binding);
+              closeEditor();
+              toast("已重置");
+            });
+          return;
+        }
+        if (!confirm(_msg)) return;   // fallback
         await Store.resetOverride(ctx.binding);
         closeEditor();
         toast("已重置");
@@ -301,7 +343,18 @@
         <button class="tpl-modal-btn tpl-modal-primary" id="tpl-editor-save">${tpl ? "保存" : "创建"}</button>
       `;
       document.getElementById("tpl-editor-delete")?.addEventListener("click", async () => {
-        if (!confirm(`删除"${tpl.name || "(未命名)"}"？`)) return;
+        const _msg = `删除"${tpl.name || "(未命名)"}"？`;
+        if (window.ChatModal) {
+          window.ChatModal.confirm({ tone: "warning", title: "删除模板", message: _msg, okLabel: "删除" })
+            .then(async ok => {
+              if (!ok) return;
+              await Store.deleteUserTemplate(ctx.id);
+              closeEditor();
+              toast("已删除");
+            });
+          return;
+        }
+        if (!confirm(_msg)) return;   // fallback
         await Store.deleteUserTemplate(ctx.id);
         closeEditor();
         toast("已删除");

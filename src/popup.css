@@ -570,23 +570,33 @@ body[data-mode="mini"] .mention-menu {
 }
 .empty-state .es-pitch-features {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;               /* v5.0.45: 7 个标签强制挤一行 */
   justify-content: center;
-  gap: 6px 8px;
+  gap: 5px;
+  max-width: 100%;
 }
 .empty-state .es-feat {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  line-height: 1.2;
   color: var(--ink-soft);
   background: rgba(127, 127, 127, 0.08);
   border: 1px solid rgba(127, 127, 127, 0.18);
-  padding: 4px 10px;
+  padding: 4px 7px;
   border-radius: 999px;
   white-space: nowrap;
-  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s, transform .12s;
 }
+.empty-state .es-feat:hover { background: rgba(10,132,255,.14); border-color: rgba(10,132,255,.35); color: var(--ink); transform: translateY(-1px); }
+.empty-state .es-feat:active { transform: translateY(0); }
+.empty-state .es-feat-super { background: rgba(255,159,10,.16); border-color: rgba(255,159,10,.32); color: #c77700; font-weight: 600; }
+.empty-state .es-feat-super:hover { background: rgba(255,159,10,.26); border-color: rgba(255,159,10,.55); color: #c77700; }
 .empty-state .es-feat-em {
   font-size: 13px;
   line-height: 1;
@@ -1273,6 +1283,11 @@ body[data-mode="mini"] .mention-menu {
   50% { transform: scale(1.4); opacity: 0.5; }
 }
 .msg-meta .acts { margin-left: auto; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+/* v5.0.46: 只看队长按钮（队长徽章旁，常驻可见） + 过滤视图 */
+.msg-meta .cap-only-btn { width: auto; padding: 1px 7px; font-size: 10px; border: 1px solid var(--border); border-radius: 6px; background: none; color: var(--ink-soft); cursor: pointer; white-space: nowrap; font-family: inherit; line-height: 1.6; }
+.msg-meta .cap-only-btn:hover { border-color: var(--accent); color: var(--accent); }
+.msg-meta .cap-only-btn.on { color: #c77700; border-color: rgba(255,159,10,.55); background: rgba(255,159,10,.16); }
+#chat-messages.only-captain .msg.ai:not(.msg-captain) { display: none; }
 .msg:hover .msg-meta .acts { opacity: 1; }
 /* v4.8.42 K样式: 气泡 5 按钮 — resend/reextract/skip 跳色，copy/jump 中性灰
    配色用 rgba(0,0,0,X) 黑色透明叠层，对浅/深主题都中性（不依赖 prefers-color-scheme） */

@@ -98,7 +98,13 @@
       <div class="memo-list">${listHtml}</div>`;
 
     root.querySelector("#memo-clear-all")?.addEventListener("click", () => {
-      if (!confirm(`清空全部 ${items.length} 条备忘录？不可恢复`)) return;
+      const _msg = `清空全部 ${items.length} 条备忘录？不可恢复`;
+      if (window.ChatModal) {
+        window.ChatModal.confirm({ tone: "warning", title: "清空备忘录", message: _msg, okLabel: "清空", tip: "此操作不可恢复" })
+          .then(ok => { if (!ok) return; chrome.runtime.sendMessage({ type: "memoClear" }, () => refresh()); });
+        return;
+      }
+      if (!confirm(_msg)) return;   // fallback
       chrome.runtime.sendMessage({ type: "memoClear" }, () => refresh());
     });
     root.querySelector("#memo-copy-all")?.addEventListener("click", () => {

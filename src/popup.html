@@ -5,6 +5,7 @@
   <title>AI圆桌派</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="popup-themes.css">
+  <link rel="stylesheet" href="ppt-super/ppt-super.css">
 </head>
 <body>
   <div class="chat-app">
@@ -27,7 +28,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.36</span>
+        <span class="chat-name">AI圆桌派-5.0.48</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -35,6 +36,13 @@
         <button class="btn-mini-mode" id="btn-mini-mode" type="button" title="折叠到顶部一行 / 展开恢复">⇲ 折叠到顶</button>
         <!-- v4.8.41: 简洁模式 — 长回答超 100 字自动折叠为一行（提取中即生效）-->
         <button class="btn-compact-mode" id="btn-compact-mode" type="button" aria-pressed="false" title="简洁模式 — 长回答超 100 字自动折叠为一行">⊟ 简洁</button>
+        <!-- v5.0.37: PPT-SUPER — 弹窗式一键生成华为风 PPT -->
+        <button class="btn-icon with-label" id="btn-ppt-super" type="button" title="PPT-SUPER — 选版式 → AI 出文案 → 编辑下载，一键生成华为风 PPT">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="14" rx="1"/><path d="M3 20h18"/><path d="m8 11 3 3 5-5"/>
+          </svg>
+          <span class="btn-icon-label">PPT</span>
+        </button>
         <!-- v5.0.33: 回答 Side-by-Side 对比视图入口 -->
         <button class="btn-icon with-label" id="btn-compare" type="button" title="把本轮各 AI 回答并排对比">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -97,21 +105,23 @@
         <img class="es-poster" src="icons/poster-ai-team.webp" alt="AI圆桌派 — 让 AI 同台辩论，逼近真相">
         <div class="es-pitch">
           <h2 class="es-pitch-title">让 <span class="es-pitch-em">AI 同台辩论</span>，逼近真相</h2>
-          <div class="es-pitch-features">
-            <span class="es-feat"><span class="es-feat-em">⚔️</span> 自由辩论</span>
-            <span class="es-feat"><span class="es-feat-em">🤝</span> 群策群力</span>
-            <span class="es-feat"><span class="es-feat-em">📋</span> 裁判总结</span>
-            <span class="es-feat"><span class="es-feat-em">🎭</span> 角色分工</span>
-            <span class="es-feat"><span class="es-feat-em">📐</span> 任务模板</span>
-            <span class="es-feat"><span class="es-feat-em">📊</span> PPT 工坊</span>
+          <!-- v5.0.45: 能力标签可点击 — 点一下高亮该功能在界面的位置（导览，不改当前状态）；新增 super PPT 直达弹窗 -->
+          <div class="es-pitch-features" id="es-features">
+            <button class="es-feat" data-feat="debate-free"><span class="es-feat-em">⚔️</span> 自由辩论</button>
+            <button class="es-feat" data-feat="debate-collab"><span class="es-feat-em">🤝</span> 群策群力</button>
+            <button class="es-feat" data-feat="summary"><span class="es-feat-em">📋</span> 裁判总结</button>
+            <button class="es-feat" data-feat="roles"><span class="es-feat-em">🎭</span> 角色分工</button>
+            <button class="es-feat" data-feat="templates"><span class="es-feat-em">📐</span> 任务模板</button>
+            <button class="es-feat" data-feat="ppt"><span class="es-feat-em">📊</span> PPT 工坊</button>
+            <button class="es-feat es-feat-super" data-feat="super"><span class="es-feat-em">🚀</span> super PPT</button>
           </div>
           <div class="es-pitch-cta">→ 在右侧添加至少 2 个 AI 选手开始</div>
-          <!-- v5.0.23 E: 萌新示例问题 — 一键填入输入框，消除"不知道问什么"的作文恐惧 -->
+          <!-- v5.0.23 E: 萌新示例问题 — 一键填入输入框；v5.0.45 改为华为技术风 AI Topic -->
           <div class="es-starters" id="es-starters">
             <div class="es-starters-lbl">不知道问什么？点一个试试：</div>
-            <button class="es-starter" data-q="5000 元预算买手机：iPhone 还是华为？请给出明确推荐和理由">📱 5000 元买 iPhone 还是华为？</button>
-            <button class="es-starter" data-q="孩子到底要不要上奥数班？请从正反两方辩论后给出结论">🎒 孩子要不要上奥数班？</button>
-            <button class="es-starter" data-q="帮我检查下面这段话有没有逻辑漏洞：（把你的内容粘贴到这里）">🔍 帮我找一段话的逻辑漏洞</button>
+            <button class="es-starter" data-q="什么是多 AI Agent 协作？请讲清核心机制、典型架构（如 Orchestrator-Worker / 角色分工）和落地价值">🤖 什么是多 AI Agent 协作？</button>
+            <button class="es-starter" data-q="大模型知识增强，RAG（检索增强）和长上下文（Long Context）该怎么选？请对比利弊并给出落地建议">📚 RAG 还是长上下文，怎么选？</button>
+            <button class="es-starter" data-q="如何系统评估一个大模型的 Agent（智能体）能力？请给出评估维度、典型基准和方法">🧭 怎么评估大模型 Agent 能力？</button>
           </div>
         </div>
         <!-- v4.8.67: 新手教程 5 页 tab 分页 (替代 v4.8.62 单页 3 步)；点 ✕ 后写 storage 永久不再弹 -->
@@ -405,6 +415,7 @@
   <!-- v5.0.22 A: 任务式新手之旅（onboarding-core 纯逻辑 + UI 模块，须在 rightpanel/members/modal 之后） -->
   <script src="onboarding-core.js"></script>
   <script src="popup-onboarding.js"></script>
+  <script src="popup-feature-tour.js"></script>
   <!-- v5.0.24 G/J: 一键体检 + 卡住哨兵 -->
   <script src="popup-doctor.js"></script>
   <script src="popup-stuck-sentinel.js"></script>
@@ -416,5 +427,9 @@
   <!-- v5.0.26: 渐进式披露 + 下一步引导 + 帮助浮标 -->
   <script src="popup-progressive.js"></script>
   <script src="popup-help-fab.js"></script>
+  <!-- v5.0.37: PPT-SUPER 一键生成（jszip → 填充引擎 → 弹窗工作流） -->
+  <script src="ppt-super/jszip.min.js"></script>
+  <script src="ppt-super/ppt-fill.js"></script>
+  <script src="ppt-super/ppt-super.js"></script>
 </body>
 </html>

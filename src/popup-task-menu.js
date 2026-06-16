@@ -201,7 +201,17 @@
             }
             // v5.2.10 fix: chatBroadcast ok=false（如"无可用参与者"）必须 alert
             //   跟 task=debate/summary 内部 alert 行为一致 — 之前 ask 分支静默 fail
-            if (resp && !resp.ok) alert(`发送失败：${resp.error || "未知原因"}`);
+            if (resp && !resp.ok) {
+              const err = resp.error || "未知原因";
+              if (window.ChatModal) {
+                const noAI = /参与者|无可用|没有.*AI|至少|添加/.test(err);
+                window.ChatModal.alert("发送失败：" + err, {
+                  tone: "warning", title: "发送失败",
+                  tip: noAI ? "右侧「成员」面板还没有可用的 AI —— 点 🟢 标记的 AI logo 加入（至少 1 个）。点「知道了」带你去。" : "请确认对应 AI 标签页已打开并登录后重试。",
+                  onOk: noAI ? function () { try { window.ChatRightPanel && window.ChatRightPanel.activate("members"); } catch (_) {} if (window.ChatModal.spotGuide) window.ChatModal.spotGuide(".rp-add-grid"); } : null,
+                });
+              } else { alert("发送失败：" + err); }
+            }
             res(resp || { ok: false, error: chrome.runtime.lastError?.message });
           });
         });
@@ -220,10 +230,12 @@
                 return;
               }
               if (resp?.needsConfirm) {
-                if (window.confirm(resp.message)) {
-                  sendOnce(true);
+                if (window.ChatModal) {
+                  window.ChatModal.confirm({ tone: "warning", title: "仍要继续辩论？", message: resp.message, okLabel: "继续" })
+                    .then(ok => { if (ok) sendOnce(true); else res({ ok: false, cancelled: true }); });
                 } else {
-                  res({ ok: false, cancelled: true });
+                  if (window.confirm(resp.message)) sendOnce(true);
+                  else res({ ok: false, cancelled: true });
                 }
                 return;
               }
@@ -245,7 +257,8 @@
                     onSwitchAsk: () => setTask("ask"),
                   });
                 } else {
-                  alert(`辩论失败：${resp.error || "未知错误"}`);
+                  const e = resp.error || "未知错误";
+                  window.ChatModal ? window.ChatModal.alert("辩论失败：" + e, { tone: "warning", title: "辩论失败" }) : alert("辩论失败：" + e);
                 }
               }
               res(resp || { ok: false, error: chrome.runtime.lastError?.message });
@@ -263,14 +276,17 @@
               res({ ok: false, intercepted: "sensitive_blocked" });
               return;
             }
-            if (resp && !resp.ok) alert(`总结失败：${resp.error || "未知错误"}`);
+            if (resp && !resp.ok) { const e = resp.error || "未知错误"; window.ChatModal ? window.ChatModal.alert("总结失败：" + e, { tone: "warning", title: "总结失败" }) : alert("总结失败：" + e); }
             res(resp || { ok: false, error: chrome.runtime.lastError?.message });
           });
         });
       }
       if (c.task === "ppt") {
         // PPT 工坊逻辑高度依赖 sidepanel 内部状态，popup 提示用户跳 sidepanel
-        alert(`PPT 工坊（${c.kind === 'copy' ? '文案' : c.kind === 'image' ? '图片' : 'PPT 生成'}）请在 sidepanel 工具栏完成。\n点击扩展图标打开 sidepanel → PPT 制作 tab。`);
+        const _pk = c.kind === 'copy' ? '文案' : c.kind === 'image' ? '图片' : 'PPT 生成';
+        window.ChatModal
+          ? window.ChatModal.alert("PPT 工坊（" + _pk + "）需在 sidepanel 工具栏完成", { tone: "info", title: "请到 sidepanel 操作", tip: "点浏览器工具栏的扩展图标打开 sidepanel → 进「PPT 制作」tab；或试主界面顶部「🚀 super PPT」弹窗式一键生成。" })
+          : alert("PPT 工坊请在 sidepanel 完成");
         return { ok: false, error: "PPT 工坊需在 sidepanel 完成" };
       }
     },

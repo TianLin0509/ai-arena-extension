@@ -65,7 +65,13 @@
     if (btn && !btn._bound) {
       btn._bound = true;
       btn.addEventListener("click", () => {
-        if (confirm("清空所有状态日志？")) clearLogs();
+        const _msg = "清空所有状态日志？";
+        if (window.ChatModal) {
+          window.ChatModal.confirm({ tone: "warning", title: "清空日志", message: _msg, okLabel: "清空" })
+            .then(ok => { if (!ok) return; clearLogs(); });
+          return;
+        }
+        if (confirm(_msg)) clearLogs();   // fallback
       });
     }
   }

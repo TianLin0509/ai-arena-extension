@@ -547,12 +547,10 @@ $$(".mode-opt").forEach(btn => {
     addLog(`切换到${mode === "tiled" ? "并列" : "Tab"}模式`, "info");
     // 并列模式下自动排列已有窗口
     if (mode === "tiled" && participants.length > 0) {
-      const screen = {
-        width: window.screen.width,
-        height: window.screen.availHeight,
-        left: 0,
-        top: window.screen.availTop || 0,
-      };
+      // v5.0.40: 用 getCurrentScreenInfo（chrome.windows.getCurrent 真实窗口位置）定位物理屏，
+      //   不再用裸 window.screen.width —— 后者在多屏 / 某些 chrome 版本会返回 desktop union 宽，
+      //   使每个 AI 窗口偏宽、最右窗口（含关闭按钮 ✕）被推出屏幕外。与「添加参与者」路径对齐。
+      const screen = await getCurrentScreenInfo();
       const r = await chrome.runtime.sendMessage({ type: "arrangeWindows", screen });
       if (r?.ok) addLog("窗口已排列", "success");
     }

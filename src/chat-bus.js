@@ -300,6 +300,10 @@ const ChatBus = (() => {
   // v5.2.21: 12s→9s（B 方案）— 后台 tab 节流时 streaming 误报兜底更快。
   //   配合 A 方案（移除千问/元宝反向标记依赖）：A 减少误报源头，B 缩短兜底上限。
   const STREAM_DONE_THRESHOLD_FORCE = 6;
+  // v5.0.46: isStreaming=true（Claude/ChatGPT 高级模型「先答一两句 → 长思考 → 真答案」）时，
+  //   不能 9s 文本不变就强制完成（会漏掉思考后的真答案）。给到 ~105s 再兜底；
+  //   streaming 已结束（isStreaming=false）则 doneFast 早已在 4.5s 完成，不受此影响。
+  const STREAM_DONE_THRESHOLD_FORCE_THINKING = 70;
   // v4.5.5 F5: 全局 polling tick 上限，~5 分钟兜底防 imagesPending 抖动让 stableKey 永不稳定
   // 实测场景：mock readResponse 返回 text 不变但 imagesPending 0/1 抖动 → polling 跑 12s
   // 仍未完成，理论可无限跑。到达上限按当前文本强制 isDone:true 完成。
@@ -785,7 +789,10 @@ const ChatBus = (() => {
         //   - 兜底 sameCount>=8(12s)：无视 isStreaming 强制完成，解决 streaming selector 误报
         //     导致第二轮起拖到 5min 超时的问题（详见 STREAM_DONE_THRESHOLD_FORCE 注释）
         const doneFast = state.sameCount >= STREAM_DONE_THRESHOLD && !r?.isStreaming;
-        const doneForce = state.sameCount >= STREAM_DONE_THRESHOLD_FORCE;
+        // v5.0.46: 仍在生成/思考（isStreaming=true）→ 用长思考兜底阈值（~105s），不被 9s 误判完成；
+        //   否则（信号显示已停）沿用原 9s 兜底
+        const forceTicks = r?.isStreaming ? STREAM_DONE_THRESHOLD_FORCE_THINKING : STREAM_DONE_THRESHOLD_FORCE;
+        const doneForce = state.sameCount >= forceTicks;
         if ((doneFast || doneForce) && text.length > 0) {
           // 完成
           clearInterval(state.intervalId);

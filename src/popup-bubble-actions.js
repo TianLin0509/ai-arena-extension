@@ -19,6 +19,16 @@
     const bubble = row.querySelector(".msg-bubble");
     const text = bubble?.innerText?.trim() || "";
 
+    // v5.0.46: 只看队长 — 聊天区仅保留用户提问 + 队长回答（纯视图 toggle，不影响数据/提取）
+    if (act === "only-captain") {
+      const box = document.getElementById("chat-messages");
+      if (box) {
+        const on = box.classList.toggle("only-captain");
+        document.querySelectorAll('button[data-act="only-captain"]').forEach(b => b.classList.toggle("on", on));
+        try { if (window.ChatToast && window.ChatToast.show) window.ChatToast.show(on ? "已切到「只看队长」：仅保留你的提问和队长回答" : "已恢复显示全部 AI 回答", { type: "info" }); } catch (_) {}
+      }
+      return;
+    }
     // v4.8.66: 总结卡 iframe 默认展开，删除展开/收起切换分支
     if (act === "summary-open") {
       // v4.4.0: 用 blob URL 在新标签打开（chrome-extension:// 下可以）
@@ -29,7 +39,7 @@
         const url = URL.createObjectURL(blob);
         window.open(url, "_blank");
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-      } catch (e) { alert("打开失败: " + e.message); }
+      } catch (e) { window.ChatModal ? window.ChatModal.alert("打开失败: " + e.message, { tone: "warning", title: "打开失败" }) : alert("打开失败: " + e.message); }
       return;
     }
     if (act === "summary-redownload") {

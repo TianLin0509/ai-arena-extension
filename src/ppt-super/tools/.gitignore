@@ -1,0 +1,8 @@
+node_modules/
+_e2e_*
+_test*
+*.pptx
+*.png
+gemini_test.txt
+.e2e-profile*
+__pycache__/

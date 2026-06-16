@@ -105,6 +105,11 @@
           // v4.9.0: 守门员拦截
           if (window.ChatGatekeeperBridge?.handleResp(msg, resp, { textField: "guidance" })) return;
           if (resp?.needsConfirm) {
+            if (window.ChatModal) {
+              window.ChatModal.confirm({ tone: "warning", title: "仍要继续？", message: resp.message, okLabel: "继续" })
+                .then(ok => { if (ok) sendOnce(true); });
+              return;
+            }
             if (window.confirm(resp.message)) sendOnce(true);
             return;
           }
@@ -126,7 +131,8 @@
                 onSwitchAsk: () => window.ChatTaskMenu?.setTask?.("ask"),
               });
             } else {
-              alert(`辩论失败：${resp.error || "未知错误"}`);
+              const m = `辩论失败：${resp.error || "未知错误"}`;
+              window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "辩论失败" }) : alert(m);
             }
           }
         });
@@ -199,14 +205,22 @@
   function bindSummary(root) {
     function dispatchSummary(format) {
       const judgeId = root.querySelector("#rp-judge")?.value;
-      if (!judgeId) { alert("请先选择裁判"); return; }
+      if (!judgeId) {
+        window.ChatModal
+          ? window.ChatModal.alert("请先选择裁判", { tone: "warning", title: "请先选择裁判", tip: "在右侧任务面板的「裁判总结」里选择一个 AI 作为裁判，再点开始。" })
+          : alert("请先选择裁判");
+        return;
+      }
       state.judgeId = judgeId;
       const msg = { type: "summary", judgeId, customInstruction: "", format };
       chrome.runtime.sendMessage(msg, (resp) => {
         // v4.9.0.2 fix I3: 防御性接 bridge，customInstruction 当前写死空，巧合安全；
         // 一旦 v4.9.1 改为可编辑 customInstruction 立即生效
         if (window.ChatGatekeeperBridge?.handleResp(msg, resp, { textField: "customInstruction" })) return;
-        if (resp && !resp.ok) alert(`总结失败：${resp.error || "未知错误"}`);
+        if (resp && !resp.ok) {
+          const m = `总结失败：${resp.error || "未知错误"}`;
+          window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "总结失败" }) : alert(m);
+        }
       });
     }
     root.querySelector("#rp-btn-summary")?.addEventListener("click", () => dispatchSummary("html"));
@@ -221,7 +235,8 @@
           chrome.runtime.sendMessage({ type: "exportSession" }, resp => res(resp || {}));
         });
         if (!r?.ok || !r.markdown) {
-          alert("无辩论记录可导出（先发送几条提问 / 跑一轮辩论）");
+          const m = "无辩论记录可导出（先发送几条提问 / 跑一轮辩论）";
+          window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "无可导出记录" }) : alert(m);
           pushLog("导出失败：无可导出记录", "warn");
           return;
         }
@@ -244,23 +259,25 @@
         URL.revokeObjectURL(url);
         pushLog("Markdown 文件已下载", "ok");
       } catch (e) {
-        alert(`导出失败：${e.message}`);
+        const m = `导出失败：${e.message}`;
+        window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "导出失败" }) : alert(m);
         pushLog("导出异常：" + e.message, "err");
       }
     });
     root.querySelector("#rp-btn-reset")?.addEventListener("click", () => {
       // v5.0.0-beta: 用 ChatModal 替代原生 confirm，跟顶栏「彻底重置」视觉一致
       const doReset = () => chrome.runtime.sendMessage({ type: "hardReset" }, () => {});
-      if (!window.ChatModal) { if (confirm("重置当前会话上下文？所有未导出的内容会丢失。")) doReset(); return; }
-      window.ChatModal.show({
-        tone: "warning",
-        icon: "⚡",
-        title: "重置会话上下文？",
-        message: "将清除当前会话的辩论轮次 / 总结上下文等未导出内容",
-        tip: "所有未导出的内容会丢失，不可恢复。",
-        primary: { label: "确认重置", onClick: doReset },
-        cancel: { label: "取消" },
-      });
+      if (window.ChatModal) {
+        window.ChatModal.confirm({
+          tone: "warning",
+          title: "重置会话上下文？",
+          message: "将清除当前会话的辩论轮次 / 总结上下文等未导出内容",
+          tip: "所有未导出的内容会丢失，不可恢复。",
+          okLabel: "重置",
+        }).then(ok => { if (ok) doReset(); });
+        return;
+      }
+      if (confirm("重置当前会话上下文？所有未导出的内容会丢失。")) doReset();
     });
   }
 
@@ -348,12 +365,20 @@
     // 发送
     root.querySelector("#rp-btn-ppt-send")?.addEventListener("click", () => {
       const text = ta?.value?.trim();
-      if (!text) { alert("prompt 为空，先点 1/2/3 按钮生成"); return; }
+      if (!text) {
+        window.ChatModal
+          ? window.ChatModal.alert("prompt 为空，先点 1/2/3 按钮生成", { tone: "warning", title: "prompt 为空", tip: "在上方 1/2/3 步骤按钮里点一个生成 prompt，或直接在文本框粘贴。" })
+          : alert("prompt 为空，先点 1/2/3 按钮生成");
+        return;
+      }
       const msg = { type: "sendPromptToService", service: "chatgpt", text };
       chrome.runtime.sendMessage(msg, (resp) => {
         // v4.9.0: 守门员拦截（PPT prompt 可能很长，更可能含敏感信息）
         if (window.ChatGatekeeperBridge?.handleResp(msg, resp, { textField: "text" })) return;
-        if (resp && !resp.ok) alert(`发送失败：${resp.error || "未知错误"}\n（请先添加 GPT 参与者并打开 chatgpt.com 标签页）`);
+        if (resp && !resp.ok) {
+          const m = `发送失败：${resp.error || "未知错误"}\n（请先添加 GPT 参与者并打开 chatgpt.com 标签页）`;
+          window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "发送失败" }) : alert(m);
+        }
       });
     });
     root.querySelector("#rp-btn-ppt-copy-text")?.addEventListener("click", () => {
@@ -378,7 +403,8 @@
       if (r.ok && r.prompt) {
         pptUi.prompt = r.prompt;
       } else if (r.error) {
-        alert("生成 prompt 失败：" + r.error);
+        const m = "生成 prompt 失败：" + r.error;
+        window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "生成失败" }) : alert(m);
       }
     } catch (e) { console.warn("loadPptPrompt fail", e); }
   }
@@ -431,7 +457,12 @@
 
     $btn.addEventListener("click", async () => {
       const officerId = $officer?.value;
-      if (!officerId) { alert("请先选择浓缩官"); return; }
+      if (!officerId) {
+        window.ChatModal
+          ? window.ChatModal.alert("请先选择浓缩官", { tone: "warning", title: "请先选择浓缩官", tip: "在上方「浓缩官」下拉里选一个已加入群聊的 AI，再点生成接棒简报。" })
+          : alert("请先选择浓缩官");
+        return;
+      }
       const length = parseInt($length?.value || "500", 10);
       const stance = $stance?.value || "neutral";
 
@@ -442,7 +473,11 @@
       // v5.2.11: 浓缩官是当前讨论的全程参与者，网页里已有完整上下文 →
       // 不再 popup 端拼 transcript 塞回去（冗余且浪费 token），直接简明 prompt
       const metaPrompt = window.BatonPrompts?.buildBatonMetaPrompt?.({ length, stance });
-      if (!metaPrompt) { alert("BatonPrompts 模板未加载，请刷新扩展"); return; }
+      if (!metaPrompt) {
+        const m = "BatonPrompts 模板未加载，请刷新扩展";
+        window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "模板未加载" }) : alert(m);
+        return;
+      }
 
       // 4. 找浓缩官 service（chatStreamUpdate 用 service 作 participantId 字段）
       let officerService = judgesList.find(j => j.id === officerId)?.service || null;
@@ -453,7 +488,11 @@
           officerService = p?.service || null;
         } catch (_) {}
       }
-      if (!officerService) { alert("找不到该浓缩官，请刷新群聊"); return; }
+      if (!officerService) {
+        const m = "找不到该浓缩官，请刷新群聊";
+        window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "找不到浓缩官" }) : alert(m);
+        return;
+      }
 
       // 5. 清空 chat-input、注册流式监听
       const $input = document.getElementById("chat-input");
@@ -515,7 +554,8 @@
           _batonListener = null;
           $btn.disabled = false;
           $btn.textContent = "🪄 生成接棒简报并复制到输入框";
-          alert(`生成失败：${resp.error || "未知错误"}`);
+          const m = `生成失败：${resp.error || "未知错误"}`;
+          window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "生成失败" }) : alert(m);
         }
       });
     });

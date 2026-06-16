@@ -70,10 +70,13 @@
   let captainService = null;
   let captainEnabled = true;
   function _refreshCaptainBadges() {
-    document.querySelectorAll(".msg.ai .captain-badge").forEach(b => {
-      const row = b.closest(".msg.ai");
-      const show = captainEnabled && captainService && row?.dataset?.participantId === captainService;
-      b.style.display = show ? "" : "none";
+    document.querySelectorAll(".msg.ai").forEach(row => {
+      const isCap = !!(captainEnabled && captainService && row?.dataset?.participantId === captainService);
+      const b = row.querySelector(".captain-badge");
+      if (b) b.style.display = isCap ? "" : "none";
+      row.classList.toggle("msg-captain", isCap);                            // v5.0.46: 供「只看队长」过滤
+      const ob = row.querySelector('button[data-act="only-captain"]');
+      if (ob) ob.style.display = isCap ? "" : "none";                        // 仅队长气泡显示「只看队长」按钮
     });
   }
   function _setCaptainInfo(participants) {
@@ -156,7 +159,7 @@
     const ts = new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const row = document.createElement("div");
     // v4.8.20 ④ 消息进场动画 — typing 初次入场跑动画，restoreLog 重放不跑（避免历史消息一次性跳动）
-    row.className = `msg ai${isTyping ? " just-arrived" : ""}`;
+    row.className = `msg ai${isTyping ? " just-arrived" : ""}${window.ArenaCaptainInfo?.isCaptain?.(participantId) ? " msg-captain" : ""}`;
     if (isTyping) setTimeout(() => row.classList.remove("just-arrived"), 700);
     row.dataset.msgId = msgId;
     row.dataset.participantId = participantId;
@@ -170,6 +173,7 @@
         <div class="msg-meta">
           <span class="name">${name}</span>
           <span class="captain-badge" title="队长：负责整合队友观点，主看它即可" style="display:${window.ArenaCaptainInfo?.isCaptain?.(participantId) ? "" : "none"}">👑 队长</span>
+          <button class="cap-only-btn" data-act="only-captain" title="只看队长：聊天区仅保留你的提问和队长回答" style="display:${window.ArenaCaptainInfo?.isCaptain?.(participantId) ? "" : "none"}">👁 只看队长</button>
           <span class="time">${escapeHtml(ts)}</span>
           <span class="stat ${statClass}"><span class="pip"></span>${statText}</span>
           <span class="acts">
@@ -503,7 +507,17 @@
       // v5.2.10 fix: chatBroadcast ok=false（如"无可用参与者"）UI 必须有提示
       //   之前静默 fail 用户感知"按了没反应"。alert 强提示 + ChatLog 红字日志
       if (_showSendError(resp)) {
-        alert(`发送失败：${resp.error || "未知原因"}`);
+        const err = resp.error || "未知原因";
+        if (window.ChatModal) {
+          const noAI = /参与者|无可用|没有.*AI|至少|添加/.test(err);
+          window.ChatModal.alert("发送失败：" + err, {
+            tone: "warning", title: "发送失败",
+            tip: noAI
+              ? "右侧「成员」面板还没有可用的 AI —— 点 🟢 标记的 AI logo 加入（至少 1 个）。点「知道了」带你去。"
+              : "请确认对应 AI 标签页已打开并登录后重试。",
+            onOk: noAI ? function () { try { window.ChatRightPanel && window.ChatRightPanel.activate("members"); } catch (_) {} if (window.ChatModal.spotGuide) window.ChatModal.spotGuide(".rp-add-grid"); } : null,
+          });
+        } else { alert("发送失败：" + err); }
       }
     });
   }

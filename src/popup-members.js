@@ -371,7 +371,7 @@
     chrome.runtime.sendMessage({ type: "addParticipant", service }, (r) => {
       // v5.2.23: 千问与其他 AI 互斥 — background 守卫拒绝时弹提示
       if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) {
-        try { alert(r.message); } catch (_) {}
+        try { window.ChatModal ? window.ChatModal.alert(r.message, { tone: "warning", title: "模型不兼容" }) : alert(r.message); } catch (_) {}
       }
       // v5.0.22 B: 把"后台静默开 tab"翻译给用户 — 萌新点了 Logo 看不到任何变化会以为没反应
       if (r?.ok) {
@@ -388,7 +388,7 @@
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ type: "addParticipant", service }, (r) => {
         void chrome.runtime.lastError;
-        if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) { try { alert(r.message); } catch (_) {} }
+        if (r?.error === "QWEN_INCOMPATIBLE" && r?.message) { try { window.ChatModal ? window.ChatModal.alert(r.message, { tone: "warning", title: "模型不兼容" }) : alert(r.message); } catch (_) {} }
         else if (r?.ok) { const meta = SERVICE_MAP[service]; try { window.ChatToast?.show(`已添加 ${meta?.name || service}`, { type: "info" }); } catch (_) {} }
         try { window.focus(); } catch (_) {}
         refresh();

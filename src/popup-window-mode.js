@@ -56,9 +56,27 @@
     try { row.scrollIntoView({ behavior: "smooth", block: "end" }); } catch (_) {}
   }
 
+  // v5.0.41: popup 端拿可靠的当前窗口位置（chrome.windows.getCurrent），避开 window.screen 的
+  //   desktop-union 宽问题，供 background.arrangeWindows 定位物理屏。与 sidepanel.getCurrentScreenInfo 同款。
+  async function getPopupScreenInfo() {
+    try {
+      const w = await chrome.windows.getCurrent();
+      if (w && typeof w.left === "number") {
+        return {
+          width: w.width, height: w.height, left: w.left, top: w.top,
+          screenAvailWidth: window.screen.availWidth,
+          screenAvailHeight: window.screen.availHeight,
+          screenAvailLeft: window.screen.availLeft || 0,
+          screenAvailTop: window.screen.availTop || 0,
+        };
+      }
+    } catch (_) {}
+    return { width: window.screen.availWidth, height: window.screen.availHeight, left: window.screen.availLeft || 0, top: window.screen.availTop || 0 };
+  }
+
   async function setMode(next) {
     if (next !== "tab" && next !== "tiled") return;
-    if (next === mode) return;
+    if (next === mode && next !== "tiled") return;   // 并列允许重复点 → 重新平铺（已在并列也能手动重排）
     mode = next;
     applyActiveClass();
     try {
@@ -66,6 +84,14 @@
         chrome.runtime.sendMessage({ type: "setWindowMode", mode: next }, () => res());
       });
     } catch (_) {}
+    // v5.0.41: 切到并列后主动重新平铺窗口 —— 此前 popup 切模式只发 setWindowMode、从不调
+    //   arrangeWindows，窗口停在 chrome 记忆的旧位置，最右窗口的关闭按钮 ✕ 一直被推出屏幕外。
+    if (next === "tiled") {
+      try {
+        const screen = await getPopupScreenInfo();
+        await new Promise(res => chrome.runtime.sendMessage({ type: "arrangeWindows", screen }, () => res()));
+      } catch (_) {}
+    }
     // v4.8.52: 切到 Tab 时检查提醒
     if (next === "tab") maybeShowDebuggerWarning();
   }
