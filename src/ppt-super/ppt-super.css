@@ -68,6 +68,7 @@
 .ppts-ov{position:absolute;overflow:hidden;display:flex;flex-direction:column;color:#262626;line-height:1.2}
 .ppts-ovt{width:100%;white-space:pre-wrap;word-break:break-word}
 .ppts-ov-over{outline:1.5px solid rgba(255,59,48,.75);outline-offset:1px;background:rgba(255,59,48,.07)}
+.ppts-ov-cut{outline:1.2px dashed rgba(255,159,10,.7);outline-offset:1px;background:rgba(255,159,10,.06)}
 .ppts-pvnote{font-size:11.5px;color:#6e6e73;margin-top:8px;line-height:1.5;background:#fff8e6;border:1px solid #ffe0a3;border-radius:8px;padding:8px 10px}
 .ppts-pvnote b{color:#c77700}
 .ppts-err{padding:48px;text-align:center;color:#c7000b}
@@ -103,6 +104,14 @@
 .ppts-manualwrap{margin-top:10px;border-top:1px dashed #ffd9b0;padding:9px 8px 4px;border-radius:8px}
 .ppts-manualwrap.flash{animation:ppts-iflash 1.4s ease 2}
 .ppts-iconai{max-width:170px;font-size:12px;padding:5px 8px}
+/* ① 研究素材区 + 素材池检查点（蓝调，区别于橙色兜底区，标识"上游研究"）*/
+.ppts-research{margin:10px 0;padding:10px 10px 6px;border:1px solid #cfe0f5;background:#f3f8ff;border-radius:10px}
+.ppts-rrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ppts-rstat{font-size:12px;color:#6e6e73;flex:1;min-width:120px}
+.ppts-matwrap{margin-top:9px;border-top:1px dashed #bcd4f0;padding-top:8px;border-radius:8px}
+.ppts-matwrap.flash{animation:ppts-iflash 1.4s ease 2}
+.ppts-matwrap>summary{cursor:pointer;font-size:12px;font-weight:600;color:#0071e3;user-select:none;padding:2px 0}
+.ppts-gaps{margin:8px 0;padding:8px 10px;background:rgba(255,159,10,.12);border:1px solid #ffd9a0;border-radius:8px;font-size:12px;color:#8a5a00;line-height:1.6}
 @media (prefers-color-scheme:dark){
   .ppts-modal{background:#1d1d1f;color:#f5f5f7}
   .ppts-head,.ppts-foot{background:#2c2c2e;border-color:#38383a}
@@ -132,4 +141,8 @@
   .ppts-iconchip{background:#161618;border-color:#38383a;color:#666}
   .ppts-iconmanual,.ppts-manualwrap{border-color:#5c4622}
   .ppts-mhint{color:#d9a860}.ppts-mhint b{color:#f0b860}
+  .ppts-research{border-color:#2a3f5c;background:#16202e}
+  .ppts-matwrap{border-color:#34465c}.ppts-matwrap>summary{color:#0a84ff}
+  .ppts-rstat{color:#aeaeb2}
+  .ppts-gaps{background:rgba(255,159,10,.14);border-color:#5c4622;color:#e0b366}
 }

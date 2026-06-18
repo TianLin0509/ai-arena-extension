@@ -11,7 +11,8 @@
   var S = {
     step: 1, topic: "", extra: "",
     templates: [], selected: [], service: "",
-    participants: [], cands: [], active: 0, busy: false, loaded: false
+    participants: [], cands: [], active: 0, busy: false, loaded: false,
+    material: null   // 研究轮抓回的结构化素材池（material_pool）；存在则落字轮注入，不存在退回旧行为（向后兼容）
   };
 
   // ---------- utils ----------
@@ -37,6 +38,7 @@
       .replace(/，(\s*[}\]])/g, "$1").replace(/,(\s*[}\]])/g, "$1");
   }
   function parseOne(raw) {
+    try { return JSON.parse(raw.trim()); } catch (e) {}                      // 先试原始：值内合法的中文引号/标点不该被 repair 误伤（血泪：repair 的 “”→" 会把字符串值里的中文引号换成英文双引号、破坏 JSON，导致间歇解析失败）
     var s = repair(raw);
     try { return JSON.parse(s); } catch (e) {}
     var a = s.indexOf("{"), b = s.lastIndexOf("}");
@@ -82,6 +84,159 @@
     if (role === "label" && (/标题/.test(tx) || hi >= 12)) return "header"; // 误标成 label 的小节/卡标题
     return role;
   }
+
+  // ---------- 论证原型（archetype）：29 套版式收敛到 5 类"论证任务"，研究轮按原型备料、落字轮按原型取料 ----------
+  //   tpl-101/102/103 已带 archetype/layout_family 字段（关键词直接命中）；其余模板按 name_cn+when_to_use 关键词兜底归类。
+  var ARCHETYPE_TABLE = [
+    { key: "compare_decide", cn: "对比/决断",
+      kw: ["对比", "对照", "镜像", "痛点", "现状", "分析-方案", "决策", "决断", "选型", "取舍", "差异", "as-is", "to-be", "before", "after", "decision", "taxonomy", "vs"],
+      required: "现状痛点量化(≥2 条带数字) + 目标态/方案收益量化(≥2 条带数字) + 二者关键差异的机制说明" },
+    { key: "evolution_stage", cn: "演进/阶段",
+      kw: ["阶段", "演进", "演化", "三代", "几代", "时间线", "路线图", "里程碑", "迭代", "发展", "evolution", "stage", "phase", "roadmap", "timeline", "path"],
+      required: "时间线里程碑(带时间锚点) + 每阶段的关键变化/标志 + 代际之间的量化差异" },
+    { key: "multi_dimension", cn: "多维分解",
+      kw: ["四象限", "象限", "支柱", "模块", "维度", "能力地图", "卡片", "并列", "四大", "三大", "网格", "板块", "grid", "quad", "pillar", "dimension", "matrix"],
+      required: "N 个相互正交(不重叠)的维度 + 每个维度的机制&数据 + 维度之间的关系/协同" },
+    { key: "causal_argument", cn: "因果论证",
+      kw: ["漏斗", "飞轮", "金字塔", "因果", "推导", "论证", "递进", "收束", "链路", "逻辑链", "机制链", "驱动", "funnel", "flywheel", "pyramid", "causal"],
+      required: "一句总判断 + 一条机制链(动作→对象→产出) + 多角度证据(≥2) + 收束结论" },
+    { key: "panorama_layer", cn: "全景/分层",
+      kw: ["架构", "分层", "枢纽", "全景", "生态", "技术地图", "脉络", "分支", "谱系", "体系", "蓝图", "全栈", "architecture", "layer", "panorama", "lineage", "branch", "ecosystem"],
+      required: "分层/分支结构 + 跨层/跨节点的链路关系 + 场景/能力覆盖标签" }
+  ];
+  function archetypeMeta(key) {
+    return ARCHETYPE_TABLE.filter(function (a) { return a.key === key; })[0] ||
+      { key: "general", cn: "通用", required: "主题的关键术语、量化数据、机制、真实案例、风险边界" };
+  }
+  // 模板 → 原型：优先读 templates.json 的 archetype/layout_family 字段，否则按 name_cn+when_to_use 关键词打分，全 0 分标 general
+  function archetypeOf(t) {
+    if (!t) return "general";
+    var hay = (String(t.archetype || "") + " " + String(t.layout_family || "") + " " +
+      String(t.name_cn || "") + " " + String(t.when_to_use || "")).toLowerCase();
+    var best = "general", bestScore = 0;
+    ARCHETYPE_TABLE.forEach(function (a) {
+      var score = a.kw.reduce(function (n, k) { return n + (hay.indexOf(k.toLowerCase()) >= 0 ? 1 : 0); }, 0);
+      if (score > bestScore) { bestScore = score; best = a.key; }
+    });
+    return best;
+  }
+  // 一套模板的摘要（喂给研究轮，让 AI 知道为哪些论证任务备料）
+  function tplDigest(t) {
+    var slots = t.slots || [];
+    var txt = slots.filter(function (s) { return s.type !== "image" && s.type !== "icon"; });
+    var nImg = slots.filter(function (s) { return s.type === "image"; }).length;
+    var nIcon = slots.filter(function (s) { return s.type === "icon"; }).length;
+    var roles = {};
+    txt.forEach(function (s) { var r = refineSlotRole(s); roles[r] = (roles[r] || 0) + 1; });
+    var roleStr = Object.keys(roles).map(function (r) { return r + "×" + roles[r]; }).join("、");
+    var ak = archetypeOf(t);
+    return t.name_cn + "（id=" + t.id + "）｜适用场景:" + (t.when_to_use || "—") +
+      "｜文字槽 " + txt.length + "·配图 " + nImg + "·图标 " + nIcon +
+      "｜主要角色:" + roleStr + "｜代码初判原型:" + ak + "(" + archetypeMeta(ak).cn + ")";
+  }
+  // ---------- 研究轮 prompt：联网产结构化「素材池」material_pool（不写文案/不排版），按本次选中模板的论证原型决定备什么料 ----------
+  function buildResearchPrompt(tids) {
+    var tpls = (tids || S.selected).map(tplById).filter(Boolean);
+    var arches = [];
+    tpls.forEach(function (t) { var a = archetypeOf(t); if (arches.indexOf(a) < 0) arches.push(a); });
+    var L = [];
+    L.push("你是顶级行业研究员 + 商务汇报素材总监。请围绕下面的【主题】做一次「联网深度研究」，本轮只研究、只产出一份结构化的「素材池」JSON；写文案与排版是后续步骤的事。");
+    L.push("（这一步把「找真料」与「写文案」拆开：先把可溯源的真实素材囤足、把缺口诚实标出，后续再据此落字，质量控制点上移到上游。）");
+    L.push("");
+    L.push("【主题】" + S.topic);
+    if (S.extra.trim()) L.push("【已有要点/素材】" + S.extra);
+    L.push("");
+    L.push("【本次选中的版式及其论证原型】（决定要为哪些「论证任务」备料）");
+    tpls.forEach(function (t) { L.push("  · " + tplDigest(t)); });
+    L.push("");
+    L.push("【论证原型对照表】（请据此复核上面每套版式的原型判断，并按原型决定备什么料）");
+    ARCHETYPE_TABLE.forEach(function (a) {
+      L.push("  - " + a.key + "（" + a.cn + "）：必备素材形态 = " + a.required);
+    });
+    L.push("  本次实际涉及的原型（去重）：" + arches.join("、") + "；by_archetype 只需覆盖这些，不必枚举全部 5 类。");
+    L.push("");
+    L.push("【输出 schema】只输出一个 ```json 代码块，结构如下（字段语义保留，值用中文）：");
+    L.push("{");
+    L.push('  "common": {                       // 第一层·通用料仓（模板无关，跨候选复用）');
+    L.push('    "topic_understanding": "一句话：主题内核与关键矛盾",');
+    L.push('    "anchor_terms": [ {"term":"核心术语","meaning":"准确含义","why_matters":"为何贯穿全页"} ],');
+    L.push('    "key_data":    [ {"fact":"带具体数字+单位的事实","metric":"口径/定义","source_hint":"来源线索","confidence":"high|medium|low"} ],');
+    L.push('    "mechanisms":  [ {"name":"机制名","how":"动作+对象+产出，讲清原理链"} ],');
+    L.push('    "cases":       [ {"case":"真实案例/落地/对比","takeaway":"它说明了什么"} ],');
+    L.push('    "tensions":    [ {"point":"反方/风险/边界/局限","implication":"意味着什么"} ],');
+    L.push('    "recent":      [ {"update":"近 6-12 月新进展（联网得到）","date_hint":"时间线索"} ]');
+    L.push('  },');
+    L.push('  "by_archetype": {                 // 第二层·按论证原型分配弹药（只列本次涉及的原型）');
+    L.push('    "<原型key>": {');
+    L.push('      "template_intent": "这类版式要完成的论证任务（一句话）",');
+    L.push('      "matched_templates": ["命中此原型的版式 id"],');
+    L.push('      "required_evidence": ["该原型必备素材形态（对照上表）"],');
+    L.push('      "material_map": {"需求项":"用 common 里哪一条料满足（引用 fact/case/term 原文）"},');
+    L.push('      "gaps": ["该原型需要、但 common 还缺的料 → 检查点提示补研究或由用户补"]');
+    L.push('    }');
+    L.push('  },');
+    L.push('  "visual_evidence": [ {"idea":"配图/图表创意","image_type":"data|structure|ambient","serves_archetype":"服务哪个原型","why":"为何这样画"} ]');
+    L.push("}");
+    L.push("");
+    L.push("【研究要求】");
+    L.push("1. 联网检索真实、最新、可溯源的信息；每条数据带具体数字与口径(metric)，并给 source_hint 来源线索；");
+    L.push("2. 把握不准的数据标 confidence: low 据实保留；确实查不到的数据就不放进 key_data，改写进对应原型的 gaps；");
+    L.push("3. gaps 按真实研究情况填写——研究不到就如实列为缺口，它是检查点让用户补料的依据；");
+    L.push("4. by_archetype 的 material_map 必须引用 common 里真实存在的条目，所有数据只在 common 里产生一次，不另造；");
+    L.push("5. topic_understanding / anchor_terms / mechanisms 始终围绕【主题】的对象与机制展开，保持术语口径一致；");
+    L.push("6. 只输出这一个 ```json 代码块，不要任何额外解释文字。");
+    return L.join("\n");
+  }
+  // 落字轮：把已核实素材池裁剪成"本模板可用弹药"文本（common 精要 + 本模板论证原型的专属证据要求/映射/缺口）
+  function materialBriefFor(t) {
+    var mp = S.material;
+    if (!mp || typeof mp !== "object") return "";
+    var c = mp.common || {};
+    var L = [];
+    L.push("━━ 【已核实素材池】（下面文案的数据/机制/案例只从这里选取与组织，不另行编造）━━");
+    if (c.topic_understanding) L.push("主题内核：" + c.topic_understanding);
+    var fmtArr = function (label, arr, fn, lim) {
+      if (!Array.isArray(arr) || !arr.length) return;
+      L.push(label + "：");
+      arr.slice(0, lim || 12).forEach(function (x, i) { L.push("  " + (i + 1) + ") " + fn(x)); });
+    };
+    fmtArr("核心术语 anchor_terms（topic_anchor_terms 优先采用这些）", c.anchor_terms, function (x) {
+      return (x.term || "") + (x.meaning ? "＝" + x.meaning : "") + (x.why_matters ? "（" + x.why_matters + "）" : "");
+    });
+    fmtArr("关键数据 key_data（优先用 confidence=high；标 low 的谨慎引用）", c.key_data, function (x) {
+      return (x.fact || "") + (x.metric ? " [口径:" + x.metric + "]" : "") + (x.confidence ? " <" + x.confidence + ">" : "");
+    });
+    fmtArr("机制 mechanisms", c.mechanisms, function (x) { return (x.name ? x.name + "：" : "") + (x.how || ""); });
+    fmtArr("案例 cases", c.cases, function (x) { return (x.case || x["case"] || "") + (x.takeaway ? " → " + x.takeaway : ""); });
+    fmtArr("风险/边界 tensions", c.tensions, function (x) { return (x.point || "") + (x.implication ? " → " + x.implication : ""); });
+    fmtArr("最新进展 recent", c.recent, function (x) { return (x.update || "") + (x.date_hint ? "（" + x.date_hint + "）" : ""); });
+    // 本模板的论证原型专属弹药（by_archetype 可能用原型 key、中文名、或 matched_templates 含本 id 来索引）
+    var ak = archetypeOf(t);
+    var ba = null;
+    if (mp.by_archetype && typeof mp.by_archetype === "object") {
+      ba = mp.by_archetype[ak] || mp.by_archetype[archetypeMeta(ak).cn];
+      if (!ba) {
+        Object.keys(mp.by_archetype).forEach(function (kk) {
+          var v = mp.by_archetype[kk];
+          if (!ba && v && Array.isArray(v.matched_templates) && v.matched_templates.indexOf(t.id) >= 0) ba = v;
+        });
+      }
+    }
+    L.push("");
+    L.push("本页论证原型：" + ak + "（" + archetypeMeta(ak).cn + "）—— 需呈现：" + archetypeMeta(ak).required);
+    if (ba) {
+      if (ba.template_intent) L.push("本版式论证任务：" + ba.template_intent);
+      if (Array.isArray(ba.required_evidence) && ba.required_evidence.length)
+        L.push("必须呈现的证据形态：" + ba.required_evidence.join("；"));
+      if (ba.material_map && typeof ba.material_map === "object") {
+        var mm = Object.keys(ba.material_map);
+        if (mm.length) { L.push("素材映射（需求→用哪条料）："); mm.forEach(function (k) { L.push("  · " + k + " → " + ba.material_map[k]); }); }
+      }
+      if (Array.isArray(ba.gaps) && ba.gaps.length)
+        L.push("⚠ 本原型已知缺口（这些点料不足，对应槽位做保守表述、不硬凑编造）：" + ba.gaps.join("；"));
+    }
+    return L.join("\n");
+  }
   function buildPromptFor(tid, idx, total) {
     var t = tplById(tid);
     var L = [];
@@ -97,14 +252,18 @@
     var textSlots = t.slots.filter(function (s) { return s.type !== "image" && s.type !== "icon" && !isArrow(s); });
     var imgSlots = t.slots.filter(function (s) { return s.type === "image" || s.type === "icon"; });
 
+    // —— 若已有「已核实素材池」（研究轮产出）：注入为落字弹药，AI 从中选取而非凭记忆创作（无则退回原行为）——
+    var mat = materialBriefFor(t);
+    if (mat) { L.push(""); L.push(mat); }
+
     // —— 第一步：先构思整页（story_spine）——
     L.push("");
     L.push("━━ 第一步：先构思整页，把规划写进 JSON 顶层的 \"_plan\" 字段 ━━");
     L.push("不要一上来逐字段填空。先以总编视角把这一页想透：");
     L.push("  · page_task：这一页要完成的汇报任务（一句话）");
     L.push("  · audience_takeaway：听众看完后应当相信/记住的一件事");
-    L.push("  · thesis：本页核心判断（一句有对象有结论的观点句，全页都为它服务）");
-    L.push("  · topic_anchor_terms：3-6 个来自【主题】的核心术语/机制名，必须贯穿全页正文（不许跑题成别的行业/公司）");
+    L.push("  · thesis：本页核心判断（一句有对象有结论的观点句，全页都为它服务" + (mat ? "；建立在上面素材池的数据/机制之上" : "") + "）");
+    L.push("  · topic_anchor_terms：3-6 个核心术语/机制名，必须贯穿全页正文" + (mat ? "（直接采用上面素材池 anchor_terms 里的术语）" : "（来自【主题】，不许跑题成别的行业/公司）"));
     L.push("  · story_spine：把全页串成一条论证主线（如「判断 → 机制/方法 → 三段证据 → 收束」），并说明每个模块承担哪一步");
     L.push("  · stage_mapping / kpi_plan / evidence_strategy：若本页含阶段/指标/证据，规划它们如何递进、用什么口径、数据从哪来（未提供的指标走保守表述，不编造）");
     L.push("  · slot_story_map：逐个列出下方每个槽位 key 在 story_spine 里「负责哪一刀」（一句话），确保槽与槽互相支撑、不是孤立填空");
@@ -142,13 +301,17 @@
     });
     L.push("");
 
-    // —— 图片与文案一体化契约：同时规划配图 ——
+    // —— 图片与文案一体化契约：同时规划配图（含 image_type 分型 + 图位数量/比例对齐）——
     if (imgSlots.length) {
+      var nImg2 = imgSlots.filter(function (s) { return s.type === "image"; }).length;
+      var nIcon2 = imgSlots.filter(function (s) { return s.type === "icon"; }).length;
       L.push("━━ 图片与文案一体化契约：同时输出 JSON 顶层的 \"_image_briefs\" ━━");
-      L.push("把图/图标当「视觉证据」而非装饰，与文案共用同一套故事线。为下列每个配图位输出一条 brief（以 key 为对象）：");
-      L.push("  每条含 role_in_argument（这张图在论证链里的任务）、supports_slot（它支撑上面哪个文字槽 key）、visual_motif（贴合 thesis 的视觉意象，矢量/示意优先）、differs_from_siblings（与相邻图如何区分、避免雷同）。");
+      L.push("把图/图标当「视觉证据」而非装饰，与文案共用同一套故事线。本页共 " + imgSlots.length + " 个视觉位（配图 " + nImg2 + " · 图标 " + nIcon2 + "）；为下列每一个位输出且仅输出一条 brief（以 key 为对象，数量与图位严格对齐、不多不少）：");
+      L.push("  每条含 image_type（data=数据图表 / structure=结构示意图 / ambient=氛围配图，三选一）、role_in_argument（这张图在论证链里的任务）、supports_slot（它支撑上面哪个文字槽 key）、serves_archetype（服务本页论证原型的哪一步）、visual_motif（贴合 thesis 的视觉意象，矢量/示意优先）、differs_from_siblings（与相邻图如何区分、避免雷同）。");
+      L.push("  分型判断：能用数字/趋势/占比说话的选 data；讲结构/流程/层级/关系的选 structure；仅作主题氛围烘托的选 ambient（优先 data / structure，少用 ambient）。");
       imgSlots.forEach(function (s) {
-        L.push("  ▸ " + s.key + "（" + (s.zh || s.key) + (s.type === "icon" ? " · 图标" : " · 配图") + "）");
+        var ratio = (s.bbox && s.bbox[3]) ? (Math.round(s.bbox[2] / s.bbox[3] * 100) / 100) : null;
+        L.push("  ▸ " + s.key + "（" + (s.zh || s.key) + (s.type === "icon" ? " · 图标" : " · 配图") + (ratio ? " · 宽高比约 " + ratio + ":1" : "") + "）");
       });
       L.push("  约束：所有视觉都服务于【主题】与 thesis，禁止无关科技背景、随机城市、人像摆拍、泛光效、文字水印、伪代码。");
       L.push("");
@@ -160,7 +323,9 @@
     L.push("2. 槽位 key 必须来自上面的清单：不得编造 key、不得把配图 brief 写进文字槽、不得遗漏任何文字槽（漏填会让该位残留模板样张占位文字）；");
     L.push("3. 字数是硬约束，逐字段遵守：以「目标约 N 字」为准把话写实写满（华为风忌留白，别明显短于「最低」值），空间够就补机制/对比/证据口径/边界，绝不靠形容词凑数；任何字段都不得超过「硬上限」，逼近上限时优先删修饰与重复、保住主题锚点与机制动作；");
     L.push("4. 中文按字符计：汉字/标点/英文字母/数字各算 1 个字（例：「推理效率提升2.5倍」=10 字）；写完逐字段默数，超限即删词重写；");
-    L.push("5. 全页正文必须紧扣【主题】的 topic_anchor_terms，数据具体量化、口吻正式；未提供的指标用合理保守表述，绝不编造、绝不跑到与【主题】无关的行业或公司。");
+    L.push(mat
+      ? "5. 全页正文的数据/机制/案例只从上面【已核实素材池】选取与组织：数据引 key_data（优先 confidence=high）、机制引 mechanisms、案例引 cases；素材池没有的不编造，对应原型 gaps 标注的缺口处做保守表述；口吻正式、紧扣 anchor_terms。"
+      : "5. 全页正文必须紧扣【主题】的 topic_anchor_terms，数据具体量化、口吻正式；未提供的指标用合理保守表述，绝不编造、绝不跑到与【主题】无关的行业或公司。");
     return L.join("\n");
   }
   function buildAllPrompts() {
@@ -212,7 +377,7 @@
     S.aborted = true; S.busy = false;
     if (S.timer) { clearInterval(S.timer); S.timer = null; }
     S.step = 1; S.topic = ""; S.extra = "";
-    S.selected = []; S.cands = []; S.active = 0;
+    S.selected = []; S.cands = []; S.active = 0; S.material = null;
     render();
   }
 
@@ -320,17 +485,25 @@
       return '<option value="' + p.id + '">' + esc(p.name || p.service) + "</option>";
     }).join("");
     body.innerHTML =
-      '<div class="ppts-guide">点「🚀 发送并自动抓取」后按版式<b>逐套</b>发送（选了 ' + S.selected.length + ' 套就逐次发 ' + S.selected.length + ' 次，每次只问一套、抓回一个 JSON 再问下一套），比一次性长回答更稳、不易漏块串位。也可「⧉ 复制指令」手动逐条发，把回答粘到下方兜底。</div>' +
+      '<div class="ppts-guide">两步出稿：先点 <b>🔍① 研究素材</b> 让 AI 联网把真实数据/案例备成「素材池」并核对，再点 <b>🚀② 生成文案</b> 按版式逐套落字（素材池会注入，数据更实、不空泛）。也可跳过①直接②（凭模型知识生成，旧流程）。</div>' +
       '<div class="ppts-row">' +
         '<label class="ppts-lab" style="margin:0">发往：</label>' +
         '<select id="ppts-svc" class="ppts-sel">' + (svcOpts || '<option value="">（未检测到已打开的 AI 标签页）</option>') + '</select>' +
         '<button class="ppts-mini" id="ppts-refresh">↻ 刷新</button>' +
-        '<button class="ppts-mini" id="ppts-copy">⧉ 复制指令</button>' +
+        '<button class="ppts-mini" id="ppts-copy">⧉ 复制②指令</button>' +
       '</div>' +
-      '<label class="ppts-lab">逐套指令预览（共 ' + S.selected.length + ' 套 · 自动抓取会按版式逐条发送）</label>' +
+      '<div class="ppts-research">' +
+        '<div class="ppts-rrow">' +
+          '<button class="ppts-btn sec" id="ppts-doresearch">🔍 ① 研究素材（联网备料）</button>' +
+          '<button class="ppts-mini" id="ppts-copyresearch">⧉ 复制研究指令</button>' +
+          '<span class="ppts-rstat">' + (S.material ? '✓ 已有素材池，可直接②生成；或重研究覆盖' : '可选 · 推荐：先备料再落字，数据更扎实') + '</span>' +
+        '</div>' +
+        matEditorHtml() +
+      '</div>' +
+      '<label class="ppts-lab">② 逐套文案指令预览（共 ' + S.selected.length + ' 套 · 自动抓取会按版式逐条发送' + (S.material ? ' · 已注入素材池' : '') + '）</label>' +
       '<textarea id="ppts-prompt" class="ppts-inp ppts-mono" rows="7">' + esc(prompt) + '</textarea>' +
       '<div class="ppts-manualwrap" id="ppts-manualwrap">' +
-        '<label class="ppts-lab">✋ 抓取失败兜底（常驻）：把含 ```json 的 AI 回答<b>整段</b>粘到这里 → 点「解析粘贴内容」</label>' +
+        '<label class="ppts-lab">✋ ②文案抓取失败兜底（常驻）：把含 ```json 的 AI 回答<b>整段</b>粘到这里 → 点「解析粘贴内容」</label>' +
         '<textarea id="ppts-paste" class="ppts-inp ppts-mono" rows="4" placeholder="把含 ```json 代码块的 AI 回答整段粘贴进来，点下方「解析粘贴内容」"></textarea>' +
         '<button class="ppts-mini" id="ppts-parsepaste">解析粘贴内容 →</button>' +
       '</div>';
@@ -339,9 +512,12 @@
       navigator.clipboard.writeText(q("#ppts-prompt").value); status("指令已复制", "ok");
     };
     q("#ppts-parsepaste").onclick = function () { if (S.busy) { S.aborted = true; endBusy(); } ingest(q("#ppts-paste").value, "粘贴内容"); };
+    q("#ppts-doresearch").onclick = research;
+    var cr = q("#ppts-copyresearch"); if (cr) cr.onclick = function () { navigator.clipboard.writeText(buildResearchPrompt(S.selected)); status("研究指令已复制，去 AI 粘贴发送后把 material_pool JSON 粘回📦框", "ok"); };
+    bindMatEditor();
     renderActions(
       '<button class="ppts-btn ghost" id="ppts-back2">← 上一步</button>' +
-      '<button class="ppts-btn" id="ppts-grab">🚀 发送并自动抓取</button>'
+      '<button class="ppts-btn" id="ppts-grab">🚀 ② 生成文案</button>'
     );
     q("#ppts-back2").onclick = function () { go(1); };
     q("#ppts-grab").onclick = grab;
@@ -364,6 +540,64 @@
         : '<option value="">（未检测到已打开的 AI 标签页，请先在圆桌添加）</option>';
     }
     status(S.participants.length ? ("检测到 " + S.participants.length + " 个 AI 标签页") : "未检测到 AI 标签页", S.participants.length ? "" : "warn");
+  }
+  // ---------- 通用 JSON 轮询：发送后反复 readOneResponse → extractBlocks → covFn 算完成度 → 达标/停笔/超时返回最完整块 ----------
+  //   文案抓取（grab，逐套）与素材池研究（research，单次）共用同一套 streaming/coverage/stable 判定，不重复造抓取逻辑。
+  async function pollJsonBlock(pid, covFn, opt) {
+    opt = opt || {};
+    var maxLoop = opt.maxLoop || 90, gate = opt.gate || 0.8, maxNoData = opt.maxNoData || 25, onProg = opt.onProg;
+    var block = null, last = "", stable = 0, jsonStable = 0, noData = 0, bestBlock = null, bestCov = 0;
+    for (var i = 0; i < maxLoop && !S.aborted; i++) {
+      await sleep(2000);
+      if (S.aborted) return null;
+      var rr = await send({ type: "readOneResponse", participantId: pid });
+      if (rr && rr.ok && rr.text) {
+        noData = 0;
+        var blocks = extractBlocks(rr.text);
+        var streaming = !!rr.isStreaming;
+        var changed = rr.text !== last; if (changed) last = rr.text;
+        var cand = blocks.length ? blocks[blocks.length - 1] : null;
+        var cov = cand ? covFn(cand) : 0;
+        if (cand && cov >= bestCov) { bestBlock = cand; bestCov = cov; }    // 记录见过最完整的 JSON
+        if (onProg) onProg(i, rr.text.length, cand, cov, streaming, false);
+        // 必须「完成度 ≥gate」才算完成：①生成中(streaming)绝不退；②半截 JSON / isStreaming 误判 false 时完成度不足 → 继续等
+        if (cand && cov >= gate) {
+          if (!streaming) { block = cand; break; }                          // 完整 + 已停笔 → 完成
+          if (!changed) { jsonStable++; if (jsonStable >= 3) { block = cand; break; } } else { jsonStable = 0; }
+        } else if (!streaming && !changed) {
+          stable++; if (stable >= 6) { block = bestCov >= 0.5 ? bestBlock : null; break; }   // 已停笔但不足 → 多等几轮用最完整兜底
+        } else { stable = 0; }                                              // 仍在生成 / 文本还在变 → 继续等
+      } else {
+        noData++;
+        if (onProg && noData === 8) onProg(i, 0, null, 0, false, true);
+        if (noData >= maxNoData) break;                                     // 长时间完全读不到 → 放弃
+      }
+    }
+    if (!block && bestCov >= 0.5) block = bestBlock;                         // 超时兜底：用见过最完整的(≥50%)
+    return { block: block, bestCov: bestCov };
+  }
+  // 素材池完整度（0-1）：4 项关键内容（术语/数据/机制/原型弹药）非空各占 1/4，作为研究轮抓取完成 gate
+  function materialReady(mp) {
+    if (!mp || typeof mp !== "object") return 0;
+    var c = mp.common || {};
+    var checks = [
+      Array.isArray(c.anchor_terms) && c.anchor_terms.length > 0,
+      Array.isArray(c.key_data) && c.key_data.length > 0,
+      Array.isArray(c.mechanisms) && c.mechanisms.length > 0,
+      mp.by_archetype && typeof mp.by_archetype === "object" && Object.keys(mp.by_archetype).length > 0
+    ];
+    return checks.filter(Boolean).length / checks.length;
+  }
+  // 汇总各原型 gaps（检查点高亮缺口，引导用户补料）
+  function collectGaps(mp) {
+    var out = [];
+    if (mp && mp.by_archetype && typeof mp.by_archetype === "object") {
+      Object.keys(mp.by_archetype).forEach(function (k) {
+        var v = mp.by_archetype[k];
+        if (v && Array.isArray(v.gaps)) v.gaps.forEach(function (g) { if (g) out.push("[" + k + "] " + g); });
+      });
+    }
+    return out;
   }
   async function grab() {
     var pid = q("#ppts-svc").value;
@@ -399,43 +633,19 @@
         var hit = textKeys.filter(function (key) { var v = b[key]; return v != null && String(v).trim() !== ""; }).length;
         return hit / textKeys.length;
       };
-      var block = null, last = "", stable = 0, jsonStable = 0, noData = 0, bestBlock = null, bestCov = 0;
-      for (var i = 0; i < 90 && !S.aborted; i++) {                      // 上限 ~180s，覆盖 ChatGPT「先答一句→长思考→真答案」
-        await sleep(2000);
-        if (S.aborted) return;
-        var rr = await send({ type: "readOneResponse", participantId: pid });
-        if (rr && rr.ok && rr.text) {
-          noData = 0;
-          var blocks = extractBlocks(rr.text);
-          var streaming = !!rr.isStreaming;
-          var changed = rr.text !== last; if (changed) last = rr.text;
-          var cand = blocks.length ? blocks[blocks.length - 1] : null;
-          var cov = cand ? coverage(cand) : 0;
-          if (cand && cov >= bestCov) { bestBlock = cand; bestCov = cov; }       // 记录见过最完整的 JSON
+      // 复用通用轮询 pollJsonBlock（与研究轮共用 streaming/coverage/stable 判定，不另造抓取逻辑）
+      var res = await pollJsonBlock(pid, coverage, {
+        maxLoop: 90, gate: 0.8, maxNoData: 25,
+        onProg: function (i, len, cand, cov, streaming, waiting) {
+          if (waiting) { setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, base + 3, "等待 AI 开始输出（约 " + (i * 2) + "s）· 可点「取消」改手动粘贴"); return; }
           var within = base + Math.min(i / 28, 0.85) * (100 / total);
           setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, within,
-            "已收到 " + rr.text.length + " 字" + (cand ? "，JSON 字段 " + Math.round(cov * 100) + "%" : "") +
+            "已收到 " + len + " 字" + (cand ? "，JSON 字段 " + Math.round(cov * 100) + "%" : "") +
             (streaming ? "（AI 生成中…）" : (cand ? (cov < 0.8 ? "（JSON 未完，继续等…）" : "，已完整 ✓") : "（已停笔，等 JSON…）")));
-          // 核心修复（防字段全 0 跳第三步）：必须「JSON 字段覆盖 ≥80%」才算本套完成。
-          //   ① AI 生成中(streaming=true)绝不退出；② 半截 JSON / isStreaming 误判 false 时覆盖率不足 → 继续等 slot 写完。
-          if (cand && cov >= 0.8) {
-            if (!streaming) { block = cand; break; }                              // 完整 + 已停笔 → 完成
-            if (!changed) { jsonStable++; if (jsonStable >= 3) { block = cand; break; } } else { jsonStable = 0; }
-          } else if (!streaming && !changed) {
-            // 已停笔且文本不再变，但覆盖不足 80%（或没 JSON）：多等几轮确认 AI 确实写完 → 用最完整的兜底，太残缺则放弃该套
-            stable++; if (stable >= 6) { block = bestCov >= 0.5 ? bestBlock : null; break; }
-          } else {
-            stable = 0;                                                           // 仍在生成 / 文本还在变 → 继续等，不退出
-          }
-        } else {
-          noData++;
-          if (noData === 8) setProgress("第 " + (k + 1) + "/" + total + " 套 · " + tname, base + 3,
-            "等待 AI 开始输出（约 " + (i * 2) + "s）· 可点「取消」改手动粘贴");
-          if (noData >= 25) break;                                       // ~50s 完全读不到回答 → 放弃这套
         }
-      }
-      if (!block && bestCov >= 0.5) block = bestBlock;                            // 超时兜底：用见过最完整的(≥50%)进编辑页手动补，强于丢空
-      results.push({ tid: tid, data: block });
+      });
+      if (S.aborted) return;
+      results.push({ tid: tid, data: res ? res.block : null });
     }
     if (S.aborted) return;
     endBusy();
@@ -453,12 +663,82 @@
     m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash");
     var ta = q("#ppts-paste"); if (ta) { try { ta.focus(); ta.scrollIntoView({ block: "nearest" }); } catch (_) {} }
   }
+  // ---------- ① 研究轮：联网产素材池 material_pool（整批一次研究，复用 pollJsonBlock + 进度/计时/取消/手动兜底）----------
+  async function research() {
+    var pid = q("#ppts-svc").value;
+    if (!pid) { status("请先在圆桌打开一个 AI 标签页，点 ↻ 刷新", "warn"); return; }
+    var svc = (S.participants.find(function (p) { return p.id === pid; }) || {}).service;
+    S.busy = true; S.aborted = false; setBusyUI(true);
+    S.t0 = Date.now();
+    showProgress("正在请 " + (svc || "AI") + " 联网研究素材…"); startTimer(S.t0);
+    setProgress("① 研究素材 · 发送指令", 3, "把研究指令发往 " + (svc || "AI") + "…");
+    var sr = await send({ type: "sendPromptToService", participantId: pid, service: svc, text: buildResearchPrompt(S.selected) });
+    if (S.aborted) return;
+    if (!sr || sr.ok === false) {
+      endBusy(); status("研究指令发送失败：" + ((sr && sr.error) || "标签页未就绪") + "，可展开下方📦素材池框手动粘贴兜底", "warn"); flashMat(); return;
+    }
+    send({ type: "focusServiceTabThenPopup", participantId: pid });   // 把该 AI tab 弹前、圆桌随即拉回最前
+    var res = await pollJsonBlock(pid, materialReady, {
+      maxLoop: 120, gate: 0.75, maxNoData: 30,                        // 研究轮联网较慢，上限 ~240s；4 项中 3 项齐(0.75)即完成
+      onProg: function (i, len, cand, cov, streaming, waiting) {
+        if (waiting) { setProgress("① 研究素材 · 等待 AI", 5, "等待 AI 开始输出（约 " + (i * 2) + "s）· 可点「取消」改手动粘贴"); return; }
+        var pct = Math.min(6 + i / 40 * 90, 96);
+        setProgress("① 研究素材 · 抓取中", pct,
+          "已收到 " + len + " 字" + (cand ? "，素材完整度 " + Math.round(cov * 100) + "%" : "") +
+          (streaming ? "（AI 研究中…）" : (cand ? (cov < 0.75 ? "（素材池未完，继续等…）" : "，已完整 ✓") : "（已停笔，等 JSON…）")));
+      }
+    });
+    if (S.aborted) return;
+    endBusy();
+    var block = res ? res.block : null;
+    if (!block) { status("未抓到完整素材池，请展开下方📦素材池框手动粘贴 AI 回复解析，或重试 ✋", "warn"); flashMat(); return; }
+    S.material = block;
+    status("素材池已抓取（完整度 " + Math.round(materialReady(block) * 100) + "%）· 请在下方核对/补料，再点②生成文案", "ok");
+    renderStep2();   // 重渲染，展开素材池编辑区
+  }
+  // 素材池编辑区流光高亮（研究失败/引导手动粘贴）
+  function flashMat() {
+    var d = q(".ppts-matwrap");
+    if (!d) return;
+    d.open = true;
+    d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
+    var ta = q("#ppts-mat"); if (ta) { try { ta.focus(); ta.scrollIntoView({ block: "nearest" }); } catch (_) {} }
+  }
+  // 素材池检查点区 HTML（研究后展示/编辑；也作研究轮手动粘贴兜底入口；gaps 高亮）
+  function matEditorHtml() {
+    var mp = S.material;
+    var gaps = mp ? collectGaps(mp) : [];
+    var open = mp ? " open" : "";
+    var head = mp
+      ? "（完整度 " + Math.round(materialReady(mp) * 100) + "%" + (gaps.length ? " · ⚠" + gaps.length + " 处缺口" : "") + "）— 可核对/补料"
+      : "：研究后显示；也可把 AI 的 material_pool（含 common/by_archetype）JSON 手动粘到这里";
+    return '<details class="ppts-matwrap"' + open + '>' +
+      '<summary>📦 素材池' + head + '</summary>' +
+      (gaps.length ? '<div class="ppts-gaps">缺口（建议补研究或手填，落字时对应处会保守表述）：' + gaps.map(function (g) { return '<br>· ' + esc(g); }).join('') + '</div>' : '') +
+      '<textarea id="ppts-mat" class="ppts-inp ppts-mono" rows="8" placeholder="研究素材后这里显示结构化素材池（可编辑）；也可把 AI 回复里含 common/by_archetype 的 material_pool JSON 整段粘到这里 → 点「应用」">' + (mp ? esc(JSON.stringify(mp, null, 2)) : '') + '</textarea>' +
+      '<button class="ppts-mini" id="ppts-matapply">✓ 应用素材池（解析并用于②生成）</button>' +
+    '</details>';
+  }
+  function bindMatEditor() {
+    var apply = q("#ppts-matapply");
+    if (apply) apply.onclick = function () {
+      var raw = (q("#ppts-mat").value || "").trim();
+      if (!raw) { S.material = null; status("已清空素材池，②生成将退回旧流程", ""); return; }
+      var mp = null;
+      try { mp = JSON.parse(raw); } catch (e) { var b = extractBlocks(raw); mp = b.length ? b[0] : null; }   // 容错：直接 JSON 或含 ```json 块
+      if (!mp || typeof mp !== "object") { status("素材池 JSON 解析失败，请检查格式（应含 common / by_archetype）", "warn"); flashMat(); return; }
+      S.material = mp;
+      status("素材池已应用（完整度 " + Math.round(materialReady(mp) * 100) + "%），点②生成文案即会注入", "ok");
+      renderStep2();
+    };
+  }
   function endBusy() { S.busy = false; if (S.timer) { clearInterval(S.timer); S.timer = null; } hideProgress(); setBusyUI(false); }
   function cancelGrab() { S.aborted = true; endBusy(); status("已取消，可重新发送或展开下方手动粘贴", ""); }
   function setBusyUI(b) {
     qa(".ppts-step").forEach(function (x) { x.disabled = false; });   // 步骤永远可点（切步=逃生通道）
     var g = q("#ppts-grab");
-    if (g) { g.disabled = false; g.textContent = b ? "■ 取消抓取" : "🚀 发送并自动抓取"; g.onclick = b ? cancelGrab : grab; }
+    if (g) { g.disabled = false; g.textContent = b ? "■ 取消抓取" : "🚀 ② 生成文案"; g.onclick = b ? cancelGrab : grab; }
+    var dr = q("#ppts-doresearch"); if (dr) dr.disabled = b;          // 研究中禁用①研究按钮（取消由主按钮承担）
   }
   // ---------- 抓取进度可视化（防误判卡死：计时器+进度条+阶段+动画）----------
   function showProgress(initMsg) {
@@ -512,7 +792,7 @@
       '<div class="ppts-ctabs">' + tabs + '</div>' +
       '<div class="ppts-split"><div class="ppts-editor" id="ppts-editor"></div>' +
       '<div class="ppts-pv"><div class="ppts-canvas" id="ppts-canvas"></div>' +
-      '<div class="ppts-pvnote">⚠ 预览为浏览器近似渲染，字体/对齐与真实效果有<b>一定偏差</b>；请<b>下载 PPTX 打开查看准确版本效果</b>。左侧改字即时更新。</div></div></div>';
+      '<div class="ppts-pvnote">⚠ 预览=<b>第1页（视觉版，超长文字已自动精简，琥珀虚线标注）</b>，浏览器近似渲染、与真实有<b>一定偏差</b>；下载的 PPTX 含<b>第2页全量文字</b>（左侧可编辑全文）。请下载打开查看准确效果。</div></div></div>';
     qa(".ppts-ctab").forEach(function (b) { b.onclick = function () { S.active = +b.dataset.i; renderStep3(); }; });
     renderEditor();
     renderPreview();
@@ -528,7 +808,7 @@
     if (q("#ppts-dlall")) q("#ppts-dlall").onclick = downloadAll;
     var oc = S.cands[S.active], ot = tplById(oc.tid);
     var over = ot.slots.filter(function (s) { return s.type !== "image" && s.chars && String(oc.data[s.key] == null ? "" : oc.data[s.key]).length > s.chars[1]; }).length;
-    status(over ? (over + " 个字段超长（活预览红框标注）· 下载时自动缩字号适配 · 也可手动精简") : "可直接编辑 · 红框=超长字段 · 满意后点下载", over ? "warn" : "");
+    status(over ? (over + " 个字段超长：第1页已自动精简（琥珀虚线标注），下载的 PPTX 含第2页全量文字 · 也可左侧手动精简") : "可直接编辑 · 无超长字段，输出单页 · 满意后点下载", over ? "warn" : "");
   }
   function renderEditor() {
     var c = S.cands[S.active], t = tplById(c.tid), box = q("#ppts-editor");
@@ -560,6 +840,7 @@
   }
   // ---------- 配图（生图指令 + 发 ChatGPT + 抓取/上传）----------
   function buildImagePrompt(s, c) {
+    // TODO(第二批·SVG 路由)：image_type=data/structure 改走 buildIconSvgPrompt 的「AI 写 SVG→canvas 渲 PNG」管线（矢量更清晰），仅 ambient 走 DALL-E。本批先在 brief/指令层把类型定下来。
     var brief = c && c.data && c.data._image_briefs && c.data._image_briefs[s.key];
     var plan = c && c.data && c.data._plan;
     var L = [];
@@ -568,6 +849,12 @@
     if (plan && plan.thesis) L.push("本页核心判断：" + plan.thesis);
     if (plan && plan.story_spine) L.push("本页故事线：" + plan.story_spine);
     if (brief) {
+      if (brief.image_type) {
+        var ty = brief.image_type;
+        L.push("图片类型：" + ty + (ty === "data" ? "（数据图表：用图表/信息图表达数字与趋势，扁平矢量风、非摄影感渲染）"
+          : ty === "structure" ? "（结构示意图：用框图/流程/层级表达关系，扁平矢量风、非摄影感渲染）"
+          : "（氛围配图：主题相关的高端商务科技意象）"));
+      }
       if (brief.role_in_argument) L.push("这张图在论证链里的任务：" + brief.role_in_argument);
       if (brief.supports_slot) {
         var sv = c.data[brief.supports_slot];
@@ -869,6 +1156,8 @@
     cv.style.height = H + "px";
     cv.style.backgroundImage = "url(" + gurl(t.blank) + ")";
     cv.innerHTML = "";
+    // 预览=第1页：超长文字按下载同一套逻辑截断，所见即第1页视觉效果
+    var dataTrunc = (window.PptFill && window.PptFill.truncateData) ? window.PptFill.truncateData(t.slots, c.data) : c.data;
     t.slots.forEach(function (s) {
       if (s.type === "image" || s.type === "icon") {
         if (c.images && c.images[s.key]) {
@@ -899,22 +1188,24 @@
       var inner = document.createElement("div");
       inner.className = "ppts-ovt";
       inner.style.textAlign = alignToCss(st.align);             // 水平对齐：左/居中/右
-      var pv = c.data[s.key] == null ? "" : String(c.data[s.key]);
+      var full = c.data[s.key] == null ? "" : String(c.data[s.key]);
+      var pv = dataTrunc[s.key] == null ? "" : String(dataTrunc[s.key]);
       inner.textContent = pv;
       o.appendChild(inner);
-      var phi = s.chars && s.chars[1];
-      if (phi && pv.length > phi) o.classList.add("ppts-ov-over");
+      if (pv !== full) { o.classList.add("ppts-ov-cut"); o.title = "已为第1页精简，完整文字见下载 PPTX 第2页"; }  // 被截断：中性提示，非报警红框
       cv.appendChild(o);
     });
   }
   function updateOverlay(key, val) {
     var o = q('.ppts-ov[data-k="' + (window.CSS && CSS.escape ? CSS.escape(key) : key) + '"]', q("#ppts-canvas"));
     if (!o) return;
-    var inner = q(".ppts-ovt", o); if (inner) inner.textContent = val;
     var t = tplById(S.cands[S.active].tid);
     var s = t.slots.filter(function (x) { return x.key === key; })[0];
-    var hi = s && s.chars && s.chars[1];
-    if (hi) o.classList.toggle("ppts-ov-over", String(val || "").length > hi);
+    var full = String(val == null ? "" : val);
+    var shown = (s && window.PptFill && window.PptFill.truncateSlot) ? window.PptFill.truncateSlot(s, full) : full;
+    var inner = q(".ppts-ovt", o); if (inner) inner.textContent = shown;   // 浮层=第1页（截断），与下载第1页一致
+    o.classList.toggle("ppts-ov-cut", shown !== full);
+    if (shown !== full) o.title = "已为第1页精简，完整文字见下载 PPTX 第2页"; else o.removeAttribute("title");
   }
 
   // ---------- 下载（浏览器内 JSZip 填充）----------

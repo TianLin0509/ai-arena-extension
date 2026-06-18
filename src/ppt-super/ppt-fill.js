@@ -3,6 +3,8 @@
 //   按 role 算行（para 合并空白成单段；其他按 \n 分行；bullets 加 •）
 //   只替换 <a:t> 文字、保留 <a:rPr> 格式 → 天然保留华为样式
 //   多行 = 克隆首段 <a:p>；超长 15% → 字号 *0.88（下限 7pt）
+// 双页（2026-06-17）：第1页=截断版（视觉优先，文字截到上限内不溢出/不缩字号）；
+//   第2页=全量版（用户自用）—— 仅当确有字段被截断时才追加第2页。
 // 纯字符串操作，不用 DOMParser（避免 XMLSerializer 破坏 pptx；node 亦可单测）
 (function () {
   "use strict";
@@ -25,6 +27,40 @@
       });
     }
     return lines;
+  }
+
+  // ---------- 截断（双页第1页：硬截到模板字数上限 chars[1]，视觉优先填满框）----------
+  // 第1页只为视觉效果：截在哪不关键，关键是「字数=模板上限」。chars[1] 经几何重标(B)后已等于框真实容量，
+  // 所以直接硬切到 chars[1] 就是把框填满、不溢出；不绕语义边界（切到逗号会丢半句、反而留白稀疏）。
+  // bullets：上限是每条 bullet 的字数 → 逐条截；para/其余：上限是整段总字数 → 整体截。
+  function hardCut(str, hi) { return str.length > hi ? str.slice(0, hi) : str; }
+  function truncSlotValue(slot, v) {
+    var s = String(v == null ? "" : v);
+    var hi = slot.chars && slot.chars[1];
+    if (!hi) return s;
+    if (slot.role === "bullets") return s.split("\n").map(function (l) { return hardCut(l, hi); }).join("\n");
+    if (slot.role === "para") {
+      // 仅在真超长时才合并空白+截断；未超长原样返回，避免空白归一化让 dataTrunc!==data 误判为"截断"而多生成全同的第2页
+      var collapsed = s.replace(/\s+/g, " ").trim();
+      return collapsed.length > hi ? hardCut(collapsed, hi) : s;
+    }
+    return hardCut(s, hi);
+  }
+  // 对外：单 slot 截断（预览浮层用）
+  function truncateSlot(slot, v) {
+    if (!slot || slot.type === "image" || slot.type === "icon") return String(v == null ? "" : v);
+    return truncSlotValue(slot, v);
+  }
+  // 对外：生成「截断版」data（不改原 data；图/图标 slot 不截）—— 第1页与预览共用，保证一致
+  function truncateData(slots, data) {
+    var out = {};
+    Object.keys(data || {}).forEach(function (k) { out[k] = data[k]; });
+    (slots || []).forEach(function (s) {
+      if (s.type === "image" || s.type === "icon") return;
+      if (out[s.key] == null || String(out[s.key]).trim() === "") return;
+      out[s.key] = truncSlotValue(s, out[s.key]);
+    });
+    return out;
   }
 
   // 段落内：首个 <a:t> 写入文字，其余 run 的 <a:t> 清空（复刻 runs[1:].text="")
@@ -93,13 +129,10 @@
   // 主入口：模板字节 + slots + data → pptx（浏览器 'blob'；node 单测传 'nodebuffer'）
   // 往 pptx 插图：image slot（占位框 bbox）位置叠一个 <p:pic>，加 media + slide rels + Content_Types
   var EMU = 6350; // 1px(1920宽画布) = 6350 EMU
-  async function insertImages(zip, slots, images) {
+  // slidePaths：要叠图的所有 slide（双页时两页都叠同一批图——图不参与截断）
+  async function insertImages(zip, slots, images, slidePaths) {
     var imgs = slots.filter(function (s) { return (s.type === "image" || s.type === "icon") && images && images[s.key]; });
     if (!imgs.length) return;
-    var slidePath = "ppt/slides/slide1.xml", relsPath = "ppt/slides/_rels/slide1.xml.rels", ctPath = "[Content_Types].xml";
-    var xml = await zip.file(slidePath).async("string");
-    var rels = await zip.file(relsPath).async("string");
-    var ct = await zip.file(ctPath).async("string");
     var picXml = "", relAdd = "", exts = {};
     imgs.forEach(function (s, k) {
       var m = /^data:image\/(\w+);base64,([\s\S]+)$/.exec(String(images[s.key]).trim());
@@ -119,24 +152,73 @@
       exts[ext] = m[1] === "jpeg" ? "image/jpeg" : "image/" + m[1];
     });
     if (!picXml) return;
-    xml = xml.replace("</p:spTree>", picXml + "</p:spTree>");     // pic 叠在最上层，盖住占位框
-    rels = rels.replace("</Relationships>", relAdd + "</Relationships>");
+    var paths = slidePaths && slidePaths.length ? slidePaths : ["ppt/slides/slide1.xml"];
+    for (var i = 0; i < paths.length; i++) {
+      var sPath = paths[i];
+      var rPath = sPath.replace("ppt/slides/", "ppt/slides/_rels/") + ".rels";
+      var xml = await zip.file(sPath).async("string");
+      zip.file(sPath, xml.replace("</p:spTree>", picXml + "</p:spTree>"));   // pic 叠最上层，盖住占位框
+      var rels = await zip.file(rPath).async("string");
+      zip.file(rPath, rels.replace("</Relationships>", relAdd + "</Relationships>"));
+    }
+    var ct = await zip.file("[Content_Types].xml").async("string");
     Object.keys(exts).forEach(function (ext) {
       if (ct.indexOf('Extension="' + ext + '"') < 0) ct = ct.replace("</Types>", '<Default Extension="' + ext + '" ContentType="' + exts[ext] + '"/></Types>');
     });
-    zip.file(slidePath, xml); zip.file(relsPath, rels); zip.file(ctPath, ct);
+    zip.file("[Content_Types].xml", ct);
+  }
+
+  // 追加第2页（全量版）：slide2.xml + 复制 slide1 的 rels + 注册到 presentation/Content_Types
+  // rId / sldId 取现有最大值 +1，避免与模板既有编号冲突（鲁棒，不写死 rId8/257）
+  async function addPage2(zip, slideXml2, tplRels) {
+    zip.file("ppt/slides/slide2.xml", slideXml2);
+    zip.file("ppt/slides/_rels/slide2.xml.rels", tplRels);   // 同 layout；图片 rels 之后由 insertImages 追加
+
+    var prels = await zip.file("ppt/_rels/presentation.xml.rels").async("string");
+    var maxRid = 0;
+    prels.replace(/Id="rId(\d+)"/g, function (m, n) { maxRid = Math.max(maxRid, parseInt(n, 10)); return m; });
+    var newRid = "rId" + (maxRid + 1);
+    prels = prels.replace("</Relationships>",
+      '<Relationship Id="' + newRid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide2.xml"/></Relationships>');
+    zip.file("ppt/_rels/presentation.xml.rels", prels);
+
+    var pres = await zip.file("ppt/presentation.xml").async("string");
+    var maxSid = 255;
+    pres.replace(/<p:sldId id="(\d+)"/g, function (m, n) { maxSid = Math.max(maxSid, parseInt(n, 10)); return m; });
+    pres = pres.replace("</p:sldIdLst>", '<p:sldId id="' + (maxSid + 1) + '" r:id="' + newRid + '"/></p:sldIdLst>');
+    zip.file("ppt/presentation.xml", pres);
+
+    var ct = await zip.file("[Content_Types].xml").async("string");
+    if (ct.indexOf('PartName="/ppt/slides/slide2.xml"') < 0)
+      ct = ct.replace("</Types>", '<Override PartName="/ppt/slides/slide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>');
+    zip.file("[Content_Types].xml", ct);
   }
 
   async function build(templateBytes, slots, data, images, outputType) {
     if (typeof JSZip === "undefined") throw new Error("JSZip 未加载");
     var zip = await JSZip.loadAsync(templateBytes);
-    var path = "ppt/slides/slide1.xml";
-    var f = zip.file(path);
-    if (!f) throw new Error("模板缺少 " + path);
-    var xml = await f.async("string");
-    xml = fillSlideXml(xml, slots, data);
-    zip.file(path, xml);
-    await insertImages(zip, slots, images);            // 文字写回后再叠图片
+    var slidePath = "ppt/slides/slide1.xml";
+    var f = zip.file(slidePath);
+    if (!f) throw new Error("模板缺少 " + slidePath);
+    var tplXml = await f.async("string");
+
+    // 第1页：截断版（视觉优先，文字截到上限内，避免超限缩字号/溢出难看）
+    var dataTrunc = truncateData(slots, data);
+    zip.file(slidePath, fillSlideXml(tplXml, slots, dataTrunc));
+
+    // 有字段被截断 → 追加第2页全量版（用户自用）；都没超限则保持单页（两页全同没意义）
+    var truncated = (slots || []).some(function (s) {
+      return s.type !== "image" && s.type !== "icon" && dataTrunc[s.key] !== data[s.key];
+    });
+    var slidePaths = [slidePath];
+    if (truncated) {
+      var tplRels = await zip.file("ppt/slides/_rels/slide1.xml.rels").async("string");
+      await addPage2(zip, fillSlideXml(tplXml, slots, data), tplRels);
+      slidePaths.push("ppt/slides/slide2.xml");
+    }
+
+    await insertImages(zip, slots, images, slidePaths);   // 文字写回后再叠图片（两页都叠）
+
     return zip.generateAsync({
       type: outputType || "blob",
       mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -144,7 +226,7 @@
     });
   }
 
-  var api = { build: build, fillSlideXml: fillSlideXml, computeLines: computeLines };
+  var api = { build: build, fillSlideXml: fillSlideXml, computeLines: computeLines, truncateData: truncateData, truncateSlot: truncateSlot };
   if (typeof window !== "undefined") window.PptFill = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();
