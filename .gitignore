@@ -27,3 +27,7 @@ tests/e2e/.reco-profile/
 tests/e2e/.compare-profile/
 tests/e2e/.restore-profile/
 tests/e2e/.ach-profile/
+
+# build workspace & backups (added 2026-06-19)
+artifacts/
+*.bak

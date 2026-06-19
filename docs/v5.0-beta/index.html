@@ -615,7 +615,7 @@
     position: relative;
     min-height: 280px;
   }
-  .story-visual img {
+  .story-visual img, .story-visual video {
     max-width: 100%;
     max-height: 460px;
     width: auto;
@@ -623,9 +623,9 @@
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.14);
   }
-  .story-visual img[src$=".gif"] {
+  .story-visual video {
     max-height: 480px;
-    cursor: zoom-in;
+    background: #000;
   }
   .visual-caption {
     position: absolute;
@@ -1036,7 +1036,7 @@
     border: 1px solid var(--border);
     background: var(--bg-soft);
   }
-  .hard-thumb img { width: 100%; display: block; }
+  .hard-thumb img, .hard-thumb video { width: 100%; display: block; }
 
   /* ===== Inline SVG figure ===== */
   .svg-fig {
@@ -2335,7 +2335,7 @@
       <!-- #02 主控 ↔ Mini Bar (CSS GIF) -->
       <div class="page flipped">
         <div class="story-visual">
-          <img src="v5.0-screenshots/02-minibar.gif" alt="主控桌面一键折叠到 Mini Bar" />
+          <video src="v5.0-screenshots/02-minibar.mp4" autoplay loop muted playsinline aria-label="主控桌面一键折叠到 Mini Bar"></video>
           <span class="visual-caption">⇲ 折叠到顶 ↔ ⇱ 展开 · 真实录屏</span>
         </div>
         <div class="story-text">
@@ -2380,7 +2380,7 @@
           </div>
         </div>
         <div class="story-visual">
-          <img src="v5.0-screenshots/03-templates-demo.gif" alt="模板 Tab 切场景演示" />
+          <video src="v5.0-screenshots/03-templates-demo.mp4" autoplay loop muted playsinline aria-label="模板 Tab 切场景演示"></video>
           <span class="visual-caption">📋 模板切换 · 真实录屏</span>
         </div>
       </div>
@@ -2388,7 +2388,7 @@
       <!-- #04 AI 卡槽 + @mention -->
       <div class="page flipped">
         <div class="story-visual">
-          <img src="v5.0-screenshots/04-roster-demo.gif" alt="AI 卡槽 + 下轮预览 + @mention 演示" />
+          <video src="v5.0-screenshots/04-roster-demo.mp4" autoplay loop muted playsinline aria-label="AI 卡槽 + 下轮预览 + @mention 演示"></video>
           <span class="visual-caption">卡槽 · 下轮预览 · @ 单点 · 真实录屏</span>
         </div>
         <div class="story-text">
@@ -2432,7 +2432,7 @@
           </div>
         </div>
         <div class="story-visual">
-          <img src="v5.0-screenshots/05-timemachine.gif" alt="时光机搜索 + 高亮 + 跳转演示" />
+          <video src="v5.0-screenshots/05-timemachine.mp4" autoplay loop muted playsinline aria-label="时光机搜索 + 高亮 + 跳转演示"></video>
           <span class="visual-caption">时光机搜索 · 真实录屏</span>
         </div>
       </div>
@@ -2440,7 +2440,7 @@
       <!-- #06 辩论裁判 HTML 报告 -->
       <div class="page flipped">
         <div class="story-visual">
-          <img src="v5.0-screenshots/06-judge-summary.gif" alt="辩论裁判生成 HTML 报告演示" />
+          <video src="v5.0-screenshots/06-judge-summary.mp4" autoplay loop muted playsinline aria-label="辩论裁判生成 HTML 报告演示"></video>
           <span class="visual-caption">裁判总结生成过程 · 真实录屏</span>
         </div>
         <div class="story-text">
@@ -2587,7 +2587,7 @@
           <li><b>可疑回答警告</b>：too_short / same_as_last 实时提示</li>
         </ul>
         <div class="hard-thumb">
-          <img src="v5.0-screenshots/A-robust-send.gif" alt="鲁棒发送 · fail-loud 演示" />
+          <video src="v5.0-screenshots/A-robust-send.mp4" autoplay loop muted playsinline aria-label="鲁棒发送 · fail-loud 演示"></video>
         </div>
       </div></div>
 

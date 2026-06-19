@@ -38,7 +38,11 @@
     var s = String(v == null ? "" : v);
     var hi = slot.chars && slot.chars[1];
     if (!hi) return s;
-    if (slot.role === "bullets") return s.split("\n").map(function (l) { return hardCut(l, hi); }).join("\n");
+    if (slot.role === "bullets") {
+      var lines = s.split("\n");
+      if (slot.max_lines) lines = lines.slice(0, Math.max(1, parseInt(slot.max_lines, 10) || 1));
+      return lines.map(function (l) { return hardCut(l, hi); }).join("\n");
+    }
     if (slot.role === "para") {
       // 仅在真超长时才合并空白+截断；未超长原样返回，避免空白归一化让 dataTrunc!==data 误判为"截断"而多生成全同的第2页
       var collapsed = s.replace(/\s+/g, " ").trim();
