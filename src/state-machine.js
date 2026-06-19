@@ -27,7 +27,7 @@ const StateMachine = {
   flowState: FlowState.IDLE,
   participants: [],     // { id, service, tabId, name, response, responsePreview }
   nextId: 1,
-  debateSession: { originalQuestion: "", rounds: [], summaryText: "" },
+  debateSession: { originalQuestion: "", rounds: [], summaryText: "", sequenceConfig: null },
   markerRound: 0,
   // 每个参与者最近一次"刚发出去"的 prompt，用于 readOneResponse sanity check（防把用户消息当成 AI 回复）
   lastSentByPid: {},
@@ -226,7 +226,7 @@ const StateMachine = {
 
   // ── 会话管理 ──
   resetSession() {
-    this.debateSession = { originalQuestion: "", rounds: [], summaryText: "" };
+    this.debateSession = { originalQuestion: "", rounds: [], summaryText: "", sequenceConfig: null };
     this.flowState = FlowState.IDLE;
     this.markerRound = 0;
     this.lastSentByPid = {};

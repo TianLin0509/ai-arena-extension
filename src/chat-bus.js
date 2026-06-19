@@ -316,6 +316,42 @@ const ChatBus = (() => {
   // 让 watcher 跑满 60s 确保覆盖审核延迟 / 工具调用结果回传等晚到追加场景
   const watchers = new Map();  // service → { intervalId, msgId, lastText, startTs }
   const WATCH_INTERVAL_MS = 3000;
+
+  // v5.0.60 顺序接力：单 AI 完成的 await 钩子。handleDebateRoundSequential 逐个 AI
+  //   inject + startPolling 后，await waitForOneParticipant(service) 等该 AI 答完再发下一个。
+  //   pollOnce 完成分支 resolve、失联/超时分支 reject；超时（默认 180s）自动 reject('timeout')
+  //   让上游"跳过"该 AI 继续接力（迟到完成时 _oneWaiters 已无该 service，pollOnce get→undefined 安全）。
+  const _oneWaiters = new Map();  // service → { resolve, reject, timeoutId }
+  function waitForOneParticipant(service, timeoutMs = 180000) {
+    // 同 service 重复等待（不应发生，单 AI 一棒）→ 先 reject 旧的防泄漏
+    const prev = _oneWaiters.get(service);
+    if (prev) {
+      _oneWaiters.delete(service);
+      try { clearTimeout(prev.timeoutId); } catch (_) {}
+      try { prev.reject(new Error("superseded")); } catch (_) {}
+    }
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        if (_oneWaiters.get(service)?.timeoutId === timeoutId) _oneWaiters.delete(service);
+        reject(new Error("timeout"));
+      }, timeoutMs);
+      _oneWaiters.set(service, { resolve, reject, timeoutId });
+    });
+  }
+  function _resolveOneWaiter(service, payload) {
+    const w = _oneWaiters.get(service);
+    if (!w) return;            // 坑2：超时跳过后迟到完成 → 已无 waiter，安全 no-op
+    _oneWaiters.delete(service);
+    try { clearTimeout(w.timeoutId); } catch (_) {}
+    try { w.resolve(payload); } catch (_) {}
+  }
+  function _rejectOneWaiter(service, err) {
+    const w = _oneWaiters.get(service);
+    if (!w) return;
+    _oneWaiters.delete(service);
+    try { clearTimeout(w.timeoutId); } catch (_) {}
+    try { w.reject(err || new Error("disconnect")); } catch (_) {}
+  }
   // v4.8.40: 拉到 600s — ChatGPT Pro 深度推理可能 3-5 分钟，watcher 必须覆盖到追加阶段
   //   副作用：watcher 期间 SW 保活（每 3s 一次 setInterval 触发，避免 30s idle 回收 → 反而是正面）
   //   单 slot 限制 + 下一轮启动时清旧 watcher 保证不累积
@@ -730,6 +766,8 @@ const ChatBus = (() => {
             participantId: service, text: fallbackText, isDone: true,
             emptyTimeout: true,
           });
+          // v5.0.60 顺序接力：空文本超时 → reject 让接力循环立即跳过它（不必等 180s waiter 超时）
+          _rejectOneWaiter(service, new Error("empty_timeout"));
           return;
         }
       } else {
@@ -806,6 +844,9 @@ const ChatBus = (() => {
             participantId: service, text, isDone: true,
             hasRichContent: hasRich, richTypes,
           });
+          // v5.0.60 顺序接力：该 AI 答完 → resolve 等待它的 waitForOneParticipant，
+          //   让 handleDebateRoundSequential 把回答纳入上下文后发下一个。无 waiter 时安全 no-op。
+          _resolveOneWaiter(service, { service, text });
           // v4.8.10 F27-bugfix: 必须等 readOneResponse 写入 p.response 再 detach CDP
           // 之前立即 releaseCDPFor → readOneResponse 在 background throttle 下读到旧/空 DOM
           // → sanity check 拒绝 → setParticipantResponse 不被调 → p.response 仍为空
@@ -878,6 +919,8 @@ const ChatBus = (() => {
       releaseCDPFor(state, tabId);
       // v5.0.18 P2-2: 同步清该 service 的兜底 watcher — 失联后让它再空 tick 一次没有意义
       try { stopWatch(service); } catch (_) {}
+      // v5.0.60 顺序接力：失联 → reject 等待它的 waiter，让接力循环跳过它继续下一个
+      _rejectOneWaiter(service, new Error("disconnect"));
       sendToPopup({
         type: "chatStreamUpdate", role: "ai", msgId: state.msgId,
         participantId: service, text: `⚠ ${participant.name} 已断开${_longPromptHintFor(participant)}`,
@@ -906,6 +949,12 @@ const ChatBus = (() => {
       try { clearInterval(state.intervalId); } catch (_) {}
     }
     watchers.clear();
+    // v5.0.60 顺序接力：reject 所有挂起的 waiter — hardReset 中途接力时让循环跳出，不永挂
+    for (const [, w] of _oneWaiters) {
+      try { clearTimeout(w.timeoutId); } catch (_) {}
+      try { w.reject(new Error("cleared")); } catch (_) {}
+    }
+    _oneWaiters.clear();
     // v4.8.19 F32: 已无 CDP attach 需要 detach
   }
 
@@ -1140,6 +1189,7 @@ const ChatBus = (() => {
     broadcast,
     notifyRoundStart,
     startPollingForService,    // v5.0.17 P0-3: 辩论路径逐 AI 启动 polling
+    waitForOneParticipant,     // v5.0.60: 顺序接力 — 等单 AI 答完的 await 钩子
     resumePollingForPending,   // v5.0.17 P0-4: SW 重启后恢复进行中的轮询
     getLog,
     clearLog,

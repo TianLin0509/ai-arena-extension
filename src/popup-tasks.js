@@ -12,6 +12,8 @@
     batonOfficerId: null,
     batonLength: 500,
     batonStance: "neutral",
+    // v5.0.60: 顺序接力 — 用户排定的发言顺序（participant id 列表）
+    sequenceOrder: [],
   };
   let judgesList = [];
   // v4.9.1: 当前在进行的接力棒生成 — 用于切换任务时清理监听
@@ -52,6 +54,11 @@
     if (state.task === "baton") {
       root.innerHTML = renderBaton();
       bindBaton(root);
+      return;
+    }
+    if (state.task === "sequential") {
+      root.innerHTML = renderSequential();
+      bindSequential(root);
       return;
     }
     root.innerHTML = `<div class="rp-empty">未识别任务</div>`;
@@ -561,12 +568,114 @@
     });
   }
 
+  // ── v5.0.60: 🔗 顺序接力 ─────────────────────────────────────────────
+  // 排定 AI 发言顺序，逐个串行（后端 handleDebateRoundSequential）；后者看到前者回答，超时自动跳过。
+  function _syncSequenceOrder() {
+    const ids = judgesList.map(p => p.id);
+    state.sequenceOrder = (state.sequenceOrder || []).filter(id => ids.includes(id));
+    judgesList.forEach(p => { if (!state.sequenceOrder.includes(p.id)) state.sequenceOrder.push(p.id); });
+  }
+  function moveSeq(i, dir) {
+    const arr = state.sequenceOrder;
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    render();
+  }
+  function renderSequential() {
+    _syncSequenceOrder();
+    if (judgesList.length < 2) {
+      return `<div class="rp-section-title">🔗 顺序接力</div>
+        <div class="rp-empty" style="text-align:left;line-height:1.6">先添加 <b>至少 2 个</b> 参与者，再来这里排顺序接力。</div>`;
+    }
+    const rows = state.sequenceOrder.map((id, i) => {
+      const p = judgesList.find(x => x.id === id);
+      if (!p) return "";
+      const last = i === state.sequenceOrder.length - 1;
+      return `<div class="rp-seq-item" data-id="${escapeHtml(id)}" style="display:flex;align-items:center;gap:8px;padding:6px 9px;margin:4px 0;background:rgba(127,127,127,.10);border-radius:7px">
+        <span style="flex:none;width:20px;height:20px;border-radius:6px;background:var(--accent,#6366f1);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${i + 1}</span>
+        <span style="flex:1;font-size:13px">${escapeHtml(p.name)}</span>
+        <button class="rp-seq-up" data-i="${i}" title="上移" ${i === 0 ? "disabled" : ""} style="background:none;border:0;cursor:pointer;color:var(--ink-soft);font-size:12px;padding:2px 4px">▲</button>
+        <button class="rp-seq-dn" data-i="${i}" title="下移" ${last ? "disabled" : ""} style="background:none;border:0;cursor:pointer;color:var(--ink-soft);font-size:12px;padding:2px 4px">▼</button>
+      </div>`;
+    }).join("");
+    return `
+      <div class="rp-section-title">🔗 顺序接力</div>
+      <div class="rp-empty" style="font-size:11px;text-align:left;padding:2px 0 8px;color:var(--ink-soft);line-height:1.5">
+        按下面顺序逐个发言，后者能看到前面所有 AI 的回答 · 某家超时自动跳过
+      </div>
+      <div class="rp-seq-list">${rows}</div>
+      <details style="margin:8px 0 6px">
+        <summary style="cursor:pointer;font-size:11px;color:var(--ink-soft);padding:4px 0">引导注入（可选）</summary>
+        <textarea class="rp-textarea" id="rp-seq-guidance" placeholder="如：聚焦性能问题">${escapeHtml(state.guidance)}</textarea>
+      </details>
+      <button class="rp-btn primary" id="rp-btn-sequential">▶ 开始顺序接力</button>
+      <div class="rp-empty" style="font-size:10.5px;padding:6px 0 0;color:var(--ink-soft);text-align:left;line-height:1.5">
+        ⓘ 在下方输入框输入问题后点「开始」：第 1 个 AI 收到你的提问，后面每个 AI 都能看到前面 AI 的回答
+      </div>
+    `;
+  }
+  // 改进1：发起顺序接力的统一入口 —— 右栏「▶ 开始」按钮 与 主输入框「发送」(dispatch) 都走它，效果一致。
+  //   question 来自主输入框；order 来自当前排定顺序；后端 handleDebateRoundSequential 第一棒发纯提问，后面累积。
+  async function startSequential(question) {
+    const order = (state.sequenceOrder || [])
+      .map(id => judgesList.find(p => p.id === id)?.service)
+      .filter(Boolean);
+    if (order.length < 2) {
+      const m = "顺序接力至少需要 2 个 AI";
+      window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "AI 不足", tip: "先在右栏「成员」加至少 2 个 AI，再排顺序接力。" }) : alert(m);
+      return { ok: false, error: m };
+    }
+    const q = String(question || "").trim();
+    if (!q) {
+      const m = "请先在下方输入框输入要讨论的问题";
+      window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "缺少问题", tip: "顺序接力从你的提问开始 —— 先在底部输入框打一个问题再发送。" }) : alert(m);
+      return { ok: false, error: m };
+    }
+    const msg = { type: "debateRoundSequential", userInput: q, guidance: state.guidance || "", concise: false, force: false, sequence: { order } };
+    return await new Promise((res) => {
+      chrome.runtime.sendMessage(msg, (resp) => {
+        if (window.ChatGatekeeperBridge?.handleResp(msg, resp, { textField: "userInput" })) { res({ ok: false, intercepted: "sensitive_blocked" }); return; }
+        if (resp && !resp.ok) {
+          const reasonMap = {
+            not_enough_participants: "至少需要 2 个参与者",
+            empty_question: "请先在输入框输入要讨论的问题",
+            duplicate_service: "发言顺序里有重复的 AI",
+            empty_order: "请先排定发言顺序",
+            no_valid_participants: "排定的 AI 不在当前会话里",
+          };
+          const m = reasonMap[resp.reason] || resp.error || "顺序接力启动失败";
+          window.ChatModal ? window.ChatModal.alert(m, { tone: "warning", title: "无法开始顺序接力" }) : alert(m);
+        } else if (resp?.ok) {
+          const $i = document.getElementById("chat-input");
+          if ($i) { if (typeof $i.value === "string") $i.value = ""; else $i.textContent = ""; }
+        }
+        res(resp || { ok: false, error: chrome.runtime.lastError?.message });
+      });
+    });
+  }
+  function bindSequential(root) {
+    root.querySelectorAll(".rp-seq-up").forEach(b => b.addEventListener("click", () => moveSeq(parseInt(b.dataset.i, 10), -1)));
+    root.querySelectorAll(".rp-seq-dn").forEach(b => b.addEventListener("click", () => moveSeq(parseInt(b.dataset.i, 10), 1)));
+    const $g = root.querySelector("#rp-seq-guidance");
+    $g?.addEventListener("input", () => { state.guidance = $g.value; });
+    const $btn = root.querySelector("#rp-btn-sequential");
+    $btn?.addEventListener("click", async () => {
+      state.guidance = $g?.value || "";
+      const $inp = document.getElementById("chat-input");
+      const question = (($inp && (typeof $inp.value === "string" ? $inp.value : $inp.innerText)) || "").trim();
+      $btn.disabled = true; $btn.textContent = "🔗 接力进行中…";
+      await startSequential(question);
+      $btn.disabled = false; $btn.textContent = "▶ 开始顺序接力";
+    });
+  }
+
   async function refreshJudges() {
     try {
       const r = await new Promise(res => {
         chrome.runtime.sendMessage({ type: "getState" }, resp => res(resp || {}));
       });
-      judgesList = (r.participants || []).map(p => ({ id: p.id, name: p.name || p.service }));
+      judgesList = (r.participants || []).map(p => ({ id: p.id, name: p.name || p.service, service: p.service }));
     } catch (_) {}
   }
 
@@ -585,7 +694,7 @@
         return;
       }
     }
-    if (state.task === "summary" || state.task === "baton") {
+    if (state.task === "summary" || state.task === "baton" || state.task === "sequential") {
       refreshJudges().then(render);
     } else {
       render();
@@ -603,7 +712,7 @@
     }
   });
 
-  window.ChatTasks = { render, state: () => ({ ...state }) };
+  window.ChatTasks = { render, state: () => ({ ...state }), startSequential };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", render);

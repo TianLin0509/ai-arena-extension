@@ -26,6 +26,7 @@
       return m[state.kind] || "PPT";
     }
     if (state.task === "baton") return "AI接力棒";
+    if (state.task === "sequential") return "顺序接力";
     return "?";
   }
   // v4.8.23: refreshPill 同时把当前任务 task 写到 data-mode，让 CSS 按模式换配色
@@ -82,6 +83,7 @@
     summary: "可选：给裁判的额外指令·留空用默认模板 · Ctrl+Enter",
     ppt:     "PPT 工坊请到右栏「任务」Tab 操作 prompt",
     baton:   "🪄 接棒简报会自动生成到这里 — 在右栏选浓缩官后点「生成」",
+    sequential: "🔗 顺序接力：在右栏排好 AI 顺序后点「开始」· 需先有一轮初始回答",
   };
   function updatePlaceholder(taskState) {
     const $inp = document.getElementById("chat-input");
@@ -111,6 +113,7 @@
       if (item.dataset.template) current.template = item.dataset.template;
     }
     else if (task === "baton") current = { task };
+    else if (task === "sequential") current = { task };
     refreshPill();
     updatePlaceholder(current);
     close();
@@ -288,6 +291,11 @@
           ? window.ChatModal.alert("PPT 工坊（" + _pk + "）需在 sidepanel 工具栏完成", { tone: "info", title: "请到 sidepanel 操作", tip: "点浏览器工具栏的扩展图标打开 sidepanel → 进「PPT 制作」tab；或试主界面顶部「🚀 super PPT」弹窗式一键生成。" })
           : alert("PPT 工坊请在 sidepanel 完成");
         return { ok: false, error: "PPT 工坊需在 sidepanel 完成" };
+      }
+      if (c.task === "sequential") {
+        // 改进1：顺序接力模式下，主输入框「发送」= 用当前排定顺序开始接力（与右栏「开始顺序接力」等效）
+        if (window.ChatTasks?.startSequential) return await window.ChatTasks.startSequential(text);
+        return { ok: false, error: "顺序接力面板未就绪，请在右栏「任务」里操作" };
       }
     },
   };

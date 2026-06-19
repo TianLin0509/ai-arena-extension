@@ -458,6 +458,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             handler: () => handleDebateRound(msg.style, msg.guidance, msg.concise, msg.force),
           }));
           break;
+        // v5.0.60 顺序接力：单 AI 串行接力，前面 AI 的回答纳入后面 AI 的上下文
+        case "debateRoundSequential":
+          sendResponse(await guardedSend({
+            text: msg.guidance || "",
+            msg,
+            handler: () => handleDebateRoundSequential(msg.userInput, msg.guidance, msg.concise, msg.force, msg.sequence),
+          }));
+          break;
         case "summary":
           sendResponse(await guardedSend({
             text: msg.customInstruction || "",
@@ -1582,6 +1590,178 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     totalCount: candidateIds.length,
     debateStarted: true,
     longPromptHint, maxPromptLen,  // v5.0.19
+  };
+}
+
+// v5.0.60 顺序接力 prompt：第一棒 = 纯用户提问；后面每棒 = 提问 + 前面 AI 已答（按发言先后累积）。
+function buildSequentialPrompt(question, priorList, guidance) {
+  let p = String(question || "");
+  if (guidance && guidance.trim()) p += `\n\n（讨论引导：${guidance.trim()}）`;
+  if (Array.isArray(priorList) && priorList.length) {
+    p += "\n\n―――― 前面 AI 已经回答（按发言先后） ――――\n";
+    priorList.forEach((r, i) => { p += `\n【${i + 1}. ${r.name}】\n${r.text}\n`; });
+    p += "\n――――――――――――――――――――\n请在认真阅读以上回答后发表你的观点：可补充新角度、纠正或反驳，但不要简单重复别人已说过的内容。";
+  }
+  return p;
+}
+
+// v5.0.60 顺序接力：单 AI 严格串行，每家只出一棒；从「用户提问」开始（不要求预先有回答）——
+//   第一棒收到纯提问，第 N 棒收到「提问 + 前 N-1 个 AI 的回答」（buildSequentialPrompt 累积）。
+//   - sequence.order：service id 列表（发言顺序），含重复 service 直接拒绝
+//   - 逐个 inject → await 该 AI 答完（waitForOneParticipant 180s）→ 回答塞进 accumulatedResponses
+//   - 某 AI 超时/失联 → catch 跳过（不进 accumulatedResponses），整体继续不中止
+async function handleDebateRoundSequential(userInput = "", guidance = "", concise = false, force = false, sequence = {}) {
+  if (StateMachine.participants.length < 2) {
+    notifyStatus("至少需要 2 个参与者");
+    return { ok: false, error: "参与者不足", reason: "not_enough_participants" };
+  }
+  // 顺序接力从用户提问开始，不依赖预先回答
+  const question = String(userInput || "").trim();
+  if (!question) {
+    notifyStatus("请先在输入框输入要讨论的问题");
+    return { ok: false, error: "缺少问题", reason: "empty_question" };
+  }
+
+  // order → participant 映射；重复 service 拒绝（坑4）
+  const order = Array.isArray(sequence?.order) ? sequence.order : [];
+  if (!order.length) {
+    return { ok: false, error: "未指定发言顺序", reason: "empty_order" };
+  }
+  if (new Set(order).size !== order.length) {
+    return { ok: false, error: "发言顺序含重复 AI", reason: "duplicate_service" };
+  }
+  const orderedParticipants = [];
+  for (const svc of order) {
+    const p = (StateMachine.participants || []).find(x => x.service === svc);
+    if (p) orderedParticipants.push(p);  // 不在会话的 service 静默忽略（fail-soft，下方按实际长度判断）
+  }
+  if (orderedParticipants.length < 1) {
+    return { ok: false, error: "发言顺序无有效参与者", reason: "no_valid_participants" };
+  }
+
+  const roundNum = StateMachine.debateSession.rounds.length + 1;
+  StateMachine.setFlowState(FlowState.BROADCASTING);
+  notifyStatus(`第${roundNum}轮·顺序接力：${orderedParticipants.length} 个 AI 依次发言...`);
+
+  // 进入新一轮前先清所有参与者 response（与 handleDebateRound 同款，防上一轮晚到污染）
+  StateMachine.participants.forEach(p => {
+    p.response = null;
+    p.responsePreview = null;
+    delete p.userEdited;
+  });
+
+  // 推 pending 占位气泡（🔗 接力）
+  const guidanceSuffix = guidance ? `：${guidance}` : "";
+  const displayText = `🔗 第${roundNum}轮·顺序接力${guidanceSuffix}`;
+  const pendingMsgId = `m${Date.now()}_s${roundNum}`;
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "user", msgId: pendingMsgId,
+      text: `${displayText} · 正在发起...`,
+    }).catch(() => {});
+    // 改进2：AI 占位气泡不再一次性全推 —— 改到主循环内、轮到该 AI 才推（串行逐个弹出）
+  } catch (_) {}
+
+  const captainEnabled = await self.ArenaCaptainMode.isEnabled();
+  const contextCompress = await _isContextCompressEnabled();
+  const allParticipants = StateMachine.participants || [];
+
+  // 串行接力主循环：accumulatedResponses 随每个 AI 答完逐步增长
+  const accumulatedResponses = {};
+  const sequenceResults = [];
+  for (let idx = 0; idx < orderedParticipants.length; idx++) {
+    const p = orderedParticipants[idx];
+    // 坑3：SW 长任务保活 — 每步前摸一下 storage 防 30s idle 回收
+    try { await chrome.storage.local.get(["__noop"]); } catch (_) {}
+
+    // 改进2：轮到该 AI 才推它的占位气泡 → 串行逐个弹出（符合"AI 逐一作答"真实节奏，
+    //   前一个答完气泡填好回答后，下一个才弹"提取中"，不再一次性三个全弹）
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "ai", msgId: pendingMsgId,
+      participantId: p.service, text: "", isDone: false,
+    }).catch(() => {});
+
+    if (!p.tabId) {
+      _endDebateLoadingBubble(pendingMsgId, p, "tab 失联（参与者未打开）");
+      sequenceResults.push({ service: p.service, skipped: true, text: "", reason: "no_tab" });
+      continue;
+    }
+
+    // 构建 prompt：顺序接力 —— 第一棒纯用户提问，后面每棒带上前面 AI 已答（按顺序累积）
+    const priorList = Object.values(accumulatedResponses);
+    let prompt = buildSequentialPrompt(question, priorList, guidance);
+    prompt = self.ArenaCaptainMode.decoratePrompt(prompt, p, allParticipants, captainEnabled);
+    StateMachine.setLastSent(p.id, prompt);  // sanity check 基准
+
+    // inject（复用 handleDebateRound 的注入写法：waitForContentScript + sendMessageWithTimeout 15s + 1 次重试）
+    let injectResult = null;
+    try {
+      const ready = await waitForContentScript(p.tabId);
+      if (!ready) throw new Error("content script 未就绪");
+      injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+    } catch (e) {
+      await new Promise(ok => setTimeout(ok, 2000));
+      try {
+        const ready2 = await waitForContentScript(p.tabId);
+        if (!ready2) throw new Error("content script 未就绪");
+        injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+      } catch (e2) {
+        injectResult = { site: p.service, status: "error", error: e2.message };
+        notifyStatus(`注入 ${p.name} 失败: ${e2.message}`);
+      }
+    }
+    const st = injectResult?.status;
+    if (st !== "sent" && st !== "inputted") {
+      _endDebateLoadingBubble(pendingMsgId, p, injectResult?.error || injectResult?.status || "未知原因");
+      sequenceResults.push({ service: p.service, skipped: true, text: "", reason: injectResult?.error || "inject_failed" });
+      continue;
+    }
+
+    // 启动该 AI 的 polling（pollOnce 完成时 resolve waitForOneParticipant）
+    try { ChatBus.startPollingForService(p, pendingMsgId); }
+    catch (e) { console.warn("[bg] sequential startPollingForService fail:", p.service, e?.message); }
+
+    // 等该 AI 答完，把回答纳入上下文；超时/失联 → 跳过，下游不引用它
+    try {
+      const r = await ChatBus.waitForOneParticipant(p.service, 180000);
+      accumulatedResponses[p.id] = { name: p.name, text: r.text };
+      sequenceResults.push({ service: p.service, skipped: false, text: r.text });
+    } catch (e) {
+      // 跳过：pollOnce 已推过 emptyTimeout/断开气泡（含错误原因），这里补一条接力跳过提示
+      chrome.runtime.sendMessage({
+        type: "chatStreamUpdate", role: "ai", msgId: pendingMsgId,
+        participantId: p.service,
+        text: `⏭ ${p.name} 本轮接力超时/失联，已跳过（后续 AI 不引用其回答）`,
+        isDone: true, skipped: true,
+      }).catch(() => {});
+      sequenceResults.push({ service: p.service, skipped: true, text: "", reason: e?.message || "timeout" });
+    }
+  }
+
+  // 落库本轮（style 标记 sequential）
+  StateMachine.debateSession.rounds.push({
+    roundNum, style: "sequential", guidance,
+    responses: Object.fromEntries(Object.entries(accumulatedResponses).map(([id, r]) => [id, { name: r.name, text: r.text }])),
+  });
+  StateMachine.save();
+
+  const answeredCount = Object.keys(accumulatedResponses).length;
+  StateMachine.setFlowState(answeredCount > 0 ? FlowState.AWAITING_RESPONSES : FlowState.IDLE);
+
+  // 更新用户气泡为正式文案 —— 只更 user 气泡，绝不重推 AI 占位。
+  //   （notifyRoundStart 的 for 循环会用空占位 text:"" 覆盖已填好的回答气泡，
+  //    这正是 v5.0.60 顺序接力"卡片空白/提取失败"的根因，改为直接更 user 气泡。）
+  try {
+    chrome.runtime.sendMessage({
+      type: "chatStreamUpdate", role: "user", msgId: pendingMsgId, text: displayText,
+    }).catch(() => {});
+  } catch (_) {}
+
+  notifyStatus(`第${roundNum}轮·顺序接力完成（${answeredCount}/${orderedParticipants.length} 个 AI 已答）`);
+  return {
+    ok: true, roundNum,
+    answeredCount, totalCount: orderedParticipants.length,
+    sequenceResults,
   };
 }
 
