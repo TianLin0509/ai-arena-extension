@@ -20,10 +20,29 @@ const STORE_ONLY_EXCLUDE_DIRS = [
   `${sep}poc${sep}`,           // 早期 POC 代码，运行时不引用
 ];
 
+// ppt-super 模板目录(assets/)下的构建/QA 产物：运行时只用 template.pptx/thumb.png/blank.png，
+// 以下自检产物不被任何 js 引用，且体积大（reference-normalized.png 单个 ~1.8MB），
+// 打进商店包会撑大体积并触发 CWS "未声明用途文件" 审核质疑 —— 两个版本都排除。
+const ASSET_BUILD_ARTIFACTS = [
+  "filled-check.pptx", "filled-demo.pptx", "filled-preview.png",
+  "font-qa.json", "text-overflow-qa.json", "fixed-alignment-qa.json",
+  "meta.json", "schema.json",
+  "reference-measurement.json", "reference-normalized.png",
+  "template-visual-qa.md",
+];
+
 function makeFilter(extraDirs = []) {
   const all = [...EXCLUDE_PATTERNS, ...extraDirs];
-  return (src) => !all.some(p => src.includes(p))
-              && !extraDirs.some(d => src.endsWith(d.replace(/\\$|\/$/, '')));
+  return (src) => {
+    if (all.some(p => src.includes(p))) return false;
+    if (extraDirs.some(d => src.endsWith(d.replace(/\\$|\/$/, '')))) return false;
+    if (src.endsWith(".bak")) return false;                       // 备份文件
+    if (src.includes(`${sep}assets${sep}`)) {                     // 仅限模板目录内
+      if (src.includes(`${sep}protected-crops`)) return false;    // 保护区裁剪中间产物
+      if (ASSET_BUILD_ARTIFACTS.some(n => src.endsWith(`${sep}${n}`))) return false;
+    }
+    return true;
+  };
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
