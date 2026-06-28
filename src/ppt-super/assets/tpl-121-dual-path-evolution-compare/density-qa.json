@@ -1,0 +1,6 @@
+{
+  "ok": true,
+  "checked_density_slots": 10,
+  "failures": [],
+  "rule": "large body boxes need enough sample density to avoid visible blank space"
+}

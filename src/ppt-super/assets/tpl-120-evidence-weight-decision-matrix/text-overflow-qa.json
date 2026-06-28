@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-template-20260619\\assets\\tpl-120-evidence-weight-decision-matrix\\template.pptx",
+      "checked": 11,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-template-20260619\\assets\\tpl-120-evidence-weight-decision-matrix\\filled-demo.pptx",
+      "checked": 74,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-template-20260619\\assets\\tpl-120-evidence-weight-decision-matrix\\filled-check.pptx",
+      "checked": 74,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

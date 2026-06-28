@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\template.pptx",
+      "checked": 53,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\filled-demo.pptx",
+      "checked": 53,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\filled-check.pptx",
+      "checked": 53,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

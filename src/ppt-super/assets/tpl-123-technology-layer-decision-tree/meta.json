@@ -1,0 +1,41 @@
+{
+  "template_id": "tpl-123-technology-layer-decision-tree",
+  "source_id": "direct_layout_spec",
+  "source_path": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-123-technology-layer-decision-tree\\reference-measurement.json",
+  "name_cn": "技术分层决策树",
+  "layout_family": "technology_layer_decision_tree",
+  "archetype": "decision_tree_evidence",
+  "template_fit_score": 90,
+  "template_status": "candidate",
+  "visual_fidelity_route": "direct_native_layout_spec",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "技术判断",
+    "架构评审",
+    "路线选择",
+    "能力分层",
+    "方案论证"
+  ],
+  "avoid": [
+    "纯KPI月报",
+    "图像主导案例页",
+    "长篇政策解读"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "直接从可审计 layout spec 生成 native PPTX；预览图仅作为 QA 结果。",
+    "density_judgment": "样例内容按真实汇报密度填充，避免大正文框出现明显留白。",
+    "metrics": {
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true,
+      "density_qa_ok": true,
+      "fixed_alignment_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 49,
+      "image_slots": 0,
+      "icon_slots": 0,
+      "total_slots": 49
+    }
+  }
+}

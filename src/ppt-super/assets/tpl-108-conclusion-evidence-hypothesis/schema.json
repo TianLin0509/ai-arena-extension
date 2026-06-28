@@ -1,0 +1,1174 @@
+{
+  "template_id": "tpl-108-conclusion-evidence-hypothesis",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "结论主句",
+      "bbox": [
+        195.0,
+        20.0,
+        1610.0,
+        66.0
+      ],
+      "font_pt": 25,
+      "chars": [
+        18,
+        42
+      ],
+      "single_line": true,
+      "hint": "结论先行：核心判断 + 下一步方向，不含固定前缀“结论：”",
+      "style": {
+        "sz_pt": 25,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "thesis",
+      "content_intent": "one decisive sentence: confirmed bottleneck or conclusion plus next-step breakthrough path",
+      "copy_recipe": "写“对象+已确认结论+下一步动作”的观点句，避免空泛口号"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "body",
+      "zh": "结论下说明句",
+      "bbox": [
+        26.0,
+        100.0,
+        1705.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        28,
+        70
+      ],
+      "single_line": true,
+      "hint": "一句话说明分析口径、证据链和后续验证目的",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "reading_guide"
+    },
+    {
+      "key": "left_panel_title",
+      "type": "text",
+      "role": "header",
+      "zh": "左侧证据链标题",
+      "bbox": [
+        28.0,
+        176.0,
+        1105.0,
+        44.0
+      ],
+      "font_pt": 16.5,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "如 技术总结（核心证据链与结论）",
+      "style": {
+        "sz_pt": 16.5,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "section_heading"
+    },
+    {
+      "key": "layer1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据层1标题",
+      "bbox": [
+        62.0,
+        358.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 11.0,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "极短标签，如 观察 / 机制 / 验证",
+      "style": {
+        "sz_pt": 11.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_title",
+      "content_intent": "name the evidence layer in 2-4 Chinese characters"
+    },
+    {
+      "key": "layer1_subtitle",
+      "type": "text",
+      "role": "label",
+      "zh": "证据层1括注",
+      "bbox": [
+        62.0,
+        386.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 10.5,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "如 现象层 / 机理层 / 检验层",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_level"
+    },
+    {
+      "key": "layer1_body",
+      "type": "text",
+      "role": "para",
+      "zh": "证据层1主结论",
+      "bbox": [
+        253.0,
+        276.0,
+        632.0,
+        76.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        30,
+        62
+      ],
+      "single_line": false,
+      "hint": "一段解释该层的机制或发现，必须和全页结论呼应",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_claim",
+      "content_intent": "explain the layer's main finding and mechanism in one compact paragraph"
+    },
+    {
+      "key": "layer1_points",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据层1要点",
+      "bbox": [
+        261.0,
+        362.0,
+        624.0,
+        60.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        16,
+        32
+      ],
+      "single_line": false,
+      "hint": "2 条要点，每条尽量带量化或可验证条件",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_points",
+      "content_intent": "two concise evidence bullets with numbers or observable conditions"
+    },
+    {
+      "key": "layer1_visual_label",
+      "type": "text",
+      "role": "caption",
+      "zh": "证据层1配图标签",
+      "bbox": [
+        945.0,
+        380.0,
+        146.0,
+        30.0
+      ],
+      "font_pt": 12.5,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "短标签，如 趋势/可视化、机制/热图、对比/柱状图",
+      "style": {
+        "sz_pt": 12.5,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "visual_caption"
+    },
+    {
+      "key": "layer1_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据层1配图",
+      "bbox": [
+        933.0,
+        278.0,
+        170.0,
+        146.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "支撑该层结论的图表/热图/趋势图；不填则保留占位框",
+      "semantic_role": "evidence_visual",
+      "content_intent": "show a compact chart or mechanism visual supporting this layer",
+      "visual_task": "compact evidence visual, chart or heatmap, no embedded title, no logo, minimal or no text",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ],
+      "fit_policy": "regenerate_image_if_off_topic"
+    },
+    {
+      "key": "layer2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据层2标题",
+      "bbox": [
+        62.0,
+        572.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 11.0,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "极短标签，如 观察 / 机制 / 验证",
+      "style": {
+        "sz_pt": 11.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_title",
+      "content_intent": "name the evidence layer in 2-4 Chinese characters"
+    },
+    {
+      "key": "layer2_subtitle",
+      "type": "text",
+      "role": "label",
+      "zh": "证据层2括注",
+      "bbox": [
+        62.0,
+        600.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 10.5,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "如 现象层 / 机理层 / 检验层",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_level"
+    },
+    {
+      "key": "layer2_body",
+      "type": "text",
+      "role": "para",
+      "zh": "证据层2主结论",
+      "bbox": [
+        253.0,
+        490.0,
+        632.0,
+        76.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        30,
+        62
+      ],
+      "single_line": false,
+      "hint": "一段解释该层的机制或发现，必须和全页结论呼应",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_claim",
+      "content_intent": "explain the layer's main finding and mechanism in one compact paragraph"
+    },
+    {
+      "key": "layer2_points",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据层2要点",
+      "bbox": [
+        261.0,
+        576.0,
+        624.0,
+        60.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        16,
+        32
+      ],
+      "single_line": false,
+      "hint": "2 条要点，每条尽量带量化或可验证条件",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_points",
+      "content_intent": "two concise evidence bullets with numbers or observable conditions"
+    },
+    {
+      "key": "layer2_visual_label",
+      "type": "text",
+      "role": "caption",
+      "zh": "证据层2配图标签",
+      "bbox": [
+        945.0,
+        594.0,
+        146.0,
+        30.0
+      ],
+      "font_pt": 12.5,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "短标签，如 趋势/可视化、机制/热图、对比/柱状图",
+      "style": {
+        "sz_pt": 12.5,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "visual_caption"
+    },
+    {
+      "key": "layer2_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据层2配图",
+      "bbox": [
+        933.0,
+        492.0,
+        170.0,
+        146.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "支撑该层结论的图表/热图/趋势图；不填则保留占位框",
+      "semantic_role": "evidence_visual",
+      "content_intent": "show a compact chart or mechanism visual supporting this layer",
+      "visual_task": "compact evidence visual, chart or heatmap, no embedded title, no logo, minimal or no text",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ],
+      "fit_policy": "regenerate_image_if_off_topic"
+    },
+    {
+      "key": "layer3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据层3标题",
+      "bbox": [
+        62.0,
+        786.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 11.0,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "极短标签，如 观察 / 机制 / 验证",
+      "style": {
+        "sz_pt": 11.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_title",
+      "content_intent": "name the evidence layer in 2-4 Chinese characters"
+    },
+    {
+      "key": "layer3_subtitle",
+      "type": "text",
+      "role": "label",
+      "zh": "证据层3括注",
+      "bbox": [
+        62.0,
+        814.0,
+        142.0,
+        26.0
+      ],
+      "font_pt": 10.5,
+      "chars": [
+        2,
+        4
+      ],
+      "single_line": true,
+      "hint": "如 现象层 / 机理层 / 检验层",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "evidence_layer_level"
+    },
+    {
+      "key": "layer3_body",
+      "type": "text",
+      "role": "para",
+      "zh": "证据层3主结论",
+      "bbox": [
+        253.0,
+        704.0,
+        632.0,
+        76.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        30,
+        62
+      ],
+      "single_line": false,
+      "hint": "一段解释该层的机制或发现，必须和全页结论呼应",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_claim",
+      "content_intent": "explain the layer's main finding and mechanism in one compact paragraph"
+    },
+    {
+      "key": "layer3_points",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据层3要点",
+      "bbox": [
+        261.0,
+        790.0,
+        624.0,
+        60.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        16,
+        32
+      ],
+      "single_line": false,
+      "hint": "2 条要点，每条尽量带量化或可验证条件",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "evidence_layer_points",
+      "content_intent": "two concise evidence bullets with numbers or observable conditions"
+    },
+    {
+      "key": "layer3_visual_label",
+      "type": "text",
+      "role": "caption",
+      "zh": "证据层3配图标签",
+      "bbox": [
+        945.0,
+        808.0,
+        146.0,
+        30.0
+      ],
+      "font_pt": 12.5,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "短标签，如 趋势/可视化、机制/热图、对比/柱状图",
+      "style": {
+        "sz_pt": 12.5,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "visual_caption"
+    },
+    {
+      "key": "layer3_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据层3配图",
+      "bbox": [
+        933.0,
+        706.0,
+        170.0,
+        146.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "支撑该层结论的图表/热图/趋势图；不填则保留占位框",
+      "semantic_role": "evidence_visual",
+      "content_intent": "show a compact chart or mechanism visual supporting this layer",
+      "visual_task": "compact evidence visual, chart or heatmap, no embedded title, no logo, minimal or no text",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ],
+      "fit_policy": "regenerate_image_if_off_topic"
+    },
+    {
+      "key": "summary_label",
+      "type": "text",
+      "role": "label",
+      "zh": "底部总结标签",
+      "bbox": [
+        178.0,
+        924.0,
+        128.0,
+        36.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "如 总体结论：/ 决策建议：",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "summary_label"
+    },
+    {
+      "key": "summary_text",
+      "type": "text",
+      "role": "conclusion",
+      "zh": "底部总体结论",
+      "bbox": [
+        308.0,
+        920.0,
+        760.0,
+        58.0
+      ],
+      "font_pt": 10.5,
+      "chars": [
+        40,
+        82
+      ],
+      "single_line": false,
+      "hint": "一句收束：原因/证据/下一步动作/边界",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "overall_conclusion",
+      "content_intent": "summarize the proof chain and next action without repeating the title",
+      "copy_recipe": "给因果归纳和可执行下一步，避免泛泛总结"
+    },
+    {
+      "key": "right_panel_title",
+      "type": "text",
+      "role": "header",
+      "zh": "右侧面板标题",
+      "bbox": [
+        1176.0,
+        176.0,
+        696.0,
+        44.0
+      ],
+      "font_pt": 16.5,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "如 下一步实验假设 / 验证路径",
+      "style": {
+        "sz_pt": 16.5,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "panel_heading"
+    },
+    {
+      "key": "hyp1_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设1标签",
+      "bbox": [
+        1228.0,
+        255.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp1_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设1正文",
+      "bbox": [
+        1358.0,
+        254.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "hyp2_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设2标签",
+      "bbox": [
+        1228.0,
+        353.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp2_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设2正文",
+      "bbox": [
+        1358.0,
+        352.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "hyp3_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设3标签",
+      "bbox": [
+        1228.0,
+        451.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp3_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设3正文",
+      "bbox": [
+        1358.0,
+        450.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "hyp4_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设4标签",
+      "bbox": [
+        1228.0,
+        549.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp4_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设4正文",
+      "bbox": [
+        1358.0,
+        548.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "hyp5_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设5标签",
+      "bbox": [
+        1228.0,
+        647.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp5_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设5正文",
+      "bbox": [
+        1358.0,
+        646.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "hyp6_label",
+      "type": "text",
+      "role": "label",
+      "zh": "假设6标签",
+      "bbox": [
+        1228.0,
+        745.0,
+        148.0,
+        34.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        3,
+        7
+      ],
+      "single_line": true,
+      "hint": "如 核心假设：/ 技术路径：/ 实验设计：",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "123F9B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "hypothesis_label"
+    },
+    {
+      "key": "hyp6_text",
+      "type": "text",
+      "role": "body",
+      "zh": "假设6正文",
+      "bbox": [
+        1358.0,
+        744.0,
+        500.0,
+        76.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明该假设/路径/风险，避免和其他条重复",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "3C4658",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t"
+      },
+      "semantic_role": "experiment_hypothesis",
+      "content_intent": "state one next-step experiment assumption, path, expected effect, validation, or risk"
+    },
+    {
+      "key": "metric1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric1指标标题",
+      "bbox": [
+        1272.0,
+        862.0,
+        228.0,
+        34.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标名称，带口径括注更好",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "11A1A0",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric1指标数值",
+      "bbox": [
+        1196.0,
+        914.0,
+        300.0,
+        58.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        2,
+        15
+      ],
+      "single_line": true,
+      "hint": "大号数值，如 +2.5~+4.0pp / 中低 / 3个月",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "11A1A0",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric1指标说明",
+      "bbox": [
+        1210.0,
+        978.0,
+        272.0,
+        38.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "指标口径、约束或风险说明",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_note"
+    },
+    {
+      "key": "metric2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric2指标标题",
+      "bbox": [
+        1632.0,
+        862.0,
+        224.0,
+        34.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标名称，带口径括注更好",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "E97800",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric2指标数值",
+      "bbox": [
+        1556.0,
+        914.0,
+        296.0,
+        58.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        2,
+        15
+      ],
+      "single_line": true,
+      "hint": "大号数值，如 +2.5~+4.0pp / 中低 / 3个月",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "E97800",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric2指标说明",
+      "bbox": [
+        1570.0,
+        978.0,
+        268.0,
+        38.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "指标口径、约束或风险说明",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "1C2433",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr"
+      },
+      "semantic_role": "metric_note"
+    }
+  ]
+}

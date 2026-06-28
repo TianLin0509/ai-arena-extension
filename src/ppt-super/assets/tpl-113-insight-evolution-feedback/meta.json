@@ -1,0 +1,42 @@
+{
+  "template_id": "tpl-113-insight-evolution-feedback",
+  "source_id": "insight-supp-01.png",
+  "source_path": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\02_技术洞察-先进技术解读\\insight-supp-01.png",
+  "name_cn": "先进技术演进与关键洞察",
+  "layout_family": "technology_evolution_insight_conditions",
+  "archetype": "method_evolution_with_insight",
+  "template_fit_score": 88,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "技术洞察",
+    "先进技术解读",
+    "方法演进",
+    "可迁移性分析"
+  ],
+  "avoid": [
+    "纯决策矩阵",
+    "失效案例复盘",
+    "单一产品页"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留参考图主要布局块、固定连接/矩阵/对比结构；主题相关图示作为语义 image slots；所有文字为微软雅黑并通过 PowerPoint 实测溢出 QA。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 16.036
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 20.16
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 31,
+      "image_slots": 4,
+      "total_slots": 35
+    }
+  }
+}

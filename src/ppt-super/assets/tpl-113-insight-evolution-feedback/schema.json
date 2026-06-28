@@ -1,0 +1,1005 @@
+{
+  "template_id": "tpl-113-insight-evolution-feedback",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        54.0,
+        72.0,
+        1480.0,
+        68.0
+      ],
+      "font_pt": 24,
+      "chars": [
+        18,
+        42
+      ],
+      "single_line": true,
+      "hint": "结论式标题",
+      "style": {
+        "sz_pt": 24,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "技术演进主线",
+      "bbox": [
+        80.0,
+        165.0,
+        770.0,
+        36.0
+      ],
+      "font_pt": 13.0,
+      "chars": [
+        10,
+        28
+      ],
+      "single_line": true,
+      "hint": "演进主线说明",
+      "style": {
+        "sz_pt": 13.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "timeline_context"
+    },
+    {
+      "key": "stage1_num",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段1编号",
+      "bbox": [
+        130.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "font_pt": 18.2,
+      "chars": [
+        2,
+        2
+      ],
+      "single_line": true,
+      "hint": "两位编号",
+      "style": {
+        "sz_pt": 18.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_number"
+    },
+    {
+      "key": "stage1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段1标题",
+      "bbox": [
+        202.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "阶段名",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_heading"
+    },
+    {
+      "key": "stage1_sub",
+      "type": "text",
+      "role": "caption",
+      "zh": "阶段1副标题",
+      "bbox": [
+        202.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "一句定位",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_caption"
+    },
+    {
+      "key": "stage1_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段1示意图",
+      "bbox": [
+        190.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "主题相关图片/图表占位，生成或插入时保持 bbox 不变",
+      "semantic_role": "stage_visual",
+      "visual_task": "simple no-text mechanism or capability icon for this evolution stage",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "stage1_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段1说明",
+      "bbox": [
+        128.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "font_pt": 8.15,
+      "chars": [
+        24,
+        60
+      ],
+      "single_line": false,
+      "hint": "3 条短句，每行不超过 13 个中文字",
+      "style": {
+        "sz_pt": 8.15,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_observation",
+      "max_lines": 4
+    },
+    {
+      "key": "stage2_num",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段2编号",
+      "bbox": [
+        450.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "font_pt": 18.2,
+      "chars": [
+        2,
+        2
+      ],
+      "single_line": true,
+      "hint": "两位编号",
+      "style": {
+        "sz_pt": 18.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_number"
+    },
+    {
+      "key": "stage2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段2标题",
+      "bbox": [
+        522.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "阶段名",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_heading"
+    },
+    {
+      "key": "stage2_sub",
+      "type": "text",
+      "role": "caption",
+      "zh": "阶段2副标题",
+      "bbox": [
+        522.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "一句定位",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_caption"
+    },
+    {
+      "key": "stage2_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段2示意图",
+      "bbox": [
+        510.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "主题相关图片/图表占位，生成或插入时保持 bbox 不变",
+      "semantic_role": "stage_visual",
+      "visual_task": "simple no-text mechanism or capability icon for this evolution stage",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "stage2_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段2说明",
+      "bbox": [
+        448.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "font_pt": 8.15,
+      "chars": [
+        24,
+        60
+      ],
+      "single_line": false,
+      "hint": "3 条短句，每行不超过 13 个中文字",
+      "style": {
+        "sz_pt": 8.15,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_observation",
+      "max_lines": 4
+    },
+    {
+      "key": "stage3_num",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段3编号",
+      "bbox": [
+        770.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "font_pt": 18.2,
+      "chars": [
+        2,
+        2
+      ],
+      "single_line": true,
+      "hint": "两位编号",
+      "style": {
+        "sz_pt": 18.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_number"
+    },
+    {
+      "key": "stage3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段3标题",
+      "bbox": [
+        842.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "阶段名",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_heading"
+    },
+    {
+      "key": "stage3_sub",
+      "type": "text",
+      "role": "caption",
+      "zh": "阶段3副标题",
+      "bbox": [
+        842.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "一句定位",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_caption"
+    },
+    {
+      "key": "stage3_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段3示意图",
+      "bbox": [
+        830.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "主题相关图片/图表占位，生成或插入时保持 bbox 不变",
+      "semantic_role": "stage_visual",
+      "visual_task": "simple no-text mechanism or capability icon for this evolution stage",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "stage3_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段3说明",
+      "bbox": [
+        768.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "font_pt": 8.15,
+      "chars": [
+        24,
+        60
+      ],
+      "single_line": false,
+      "hint": "3 条短句，每行不超过 13 个中文字",
+      "style": {
+        "sz_pt": 8.15,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_observation",
+      "max_lines": 4
+    },
+    {
+      "key": "stage4_num",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段4编号",
+      "bbox": [
+        1090.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "font_pt": 18.2,
+      "chars": [
+        2,
+        2
+      ],
+      "single_line": true,
+      "hint": "两位编号",
+      "style": {
+        "sz_pt": 18.2,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_number"
+    },
+    {
+      "key": "stage4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段4标题",
+      "bbox": [
+        1162.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "阶段名",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_heading"
+    },
+    {
+      "key": "stage4_sub",
+      "type": "text",
+      "role": "caption",
+      "zh": "阶段4副标题",
+      "bbox": [
+        1162.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "一句定位",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_caption"
+    },
+    {
+      "key": "stage4_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段4示意图",
+      "bbox": [
+        1150.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "主题相关图片/图表占位，生成或插入时保持 bbox 不变",
+      "semantic_role": "stage_visual",
+      "visual_task": "simple no-text mechanism or capability icon for this evolution stage",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "stage4_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段4说明",
+      "bbox": [
+        1088.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "font_pt": 8.15,
+      "chars": [
+        24,
+        60
+      ],
+      "single_line": false,
+      "hint": "3 条短句，每行不超过 13 个中文字",
+      "style": {
+        "sz_pt": 8.15,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_observation",
+      "max_lines": 4
+    },
+    {
+      "key": "insight_title",
+      "type": "text",
+      "role": "header",
+      "zh": "洞察标题",
+      "bbox": [
+        1488.0,
+        204.0,
+        260.0,
+        34.0
+      ],
+      "font_pt": 15,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "如 关键洞察",
+      "style": {
+        "sz_pt": 15,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "insight_heading"
+    },
+    {
+      "key": "insight1",
+      "type": "text",
+      "role": "body",
+      "zh": "洞察1",
+      "bbox": [
+        1518.0,
+        278.0,
+        284.0,
+        78.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        18,
+        45
+      ],
+      "single_line": false,
+      "hint": "一条洞察说明",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "key_insight",
+      "max_lines": 3
+    },
+    {
+      "key": "insight2",
+      "type": "text",
+      "role": "body",
+      "zh": "洞察2",
+      "bbox": [
+        1518.0,
+        420.0,
+        284.0,
+        78.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        18,
+        45
+      ],
+      "single_line": false,
+      "hint": "一条洞察说明",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "key_insight",
+      "max_lines": 3
+    },
+    {
+      "key": "insight3",
+      "type": "text",
+      "role": "body",
+      "zh": "洞察3",
+      "bbox": [
+        1518.0,
+        560.0,
+        284.0,
+        78.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        18,
+        45
+      ],
+      "single_line": false,
+      "hint": "一条洞察说明",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "key_insight",
+      "max_lines": 3
+    },
+    {
+      "key": "insight4",
+      "type": "text",
+      "role": "body",
+      "zh": "洞察4",
+      "bbox": [
+        1518.0,
+        700.0,
+        284.0,
+        78.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        18,
+        45
+      ],
+      "single_line": false,
+      "hint": "一条洞察说明",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "key_insight",
+      "max_lines": 3
+    },
+    {
+      "key": "cond_title",
+      "type": "text",
+      "role": "header",
+      "zh": "cond标题",
+      "bbox": [
+        138.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "font_pt": 12.6,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "底部栏标题",
+      "style": {
+        "sz_pt": 12.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "key": "cond_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "cond正文",
+      "bbox": [
+        142.0,
+        884.0,
+        250.0,
+        108.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        18,
+        70
+      ],
+      "single_line": false,
+      "hint": "3-4 条短句",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_body",
+      "max_lines": 5
+    },
+    {
+      "key": "cost_title",
+      "type": "text",
+      "role": "header",
+      "zh": "cost标题",
+      "bbox": [
+        538.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "font_pt": 12.6,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "底部栏标题",
+      "style": {
+        "sz_pt": 12.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "key": "cost_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "cost正文",
+      "bbox": [
+        542.0,
+        884.0,
+        290.0,
+        108.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        18,
+        70
+      ],
+      "single_line": false,
+      "hint": "3-4 条短句",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_body",
+      "max_lines": 5
+    },
+    {
+      "key": "budget_title",
+      "type": "text",
+      "role": "header",
+      "zh": "budget标题",
+      "bbox": [
+        988.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "font_pt": 12.6,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "底部栏标题",
+      "style": {
+        "sz_pt": 12.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "key": "budget_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "budget正文",
+      "bbox": [
+        992.0,
+        884.0,
+        330.0,
+        108.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        18,
+        70
+      ],
+      "single_line": false,
+      "hint": "3-4 条短句",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_body",
+      "max_lines": 5
+    },
+    {
+      "key": "quality_title",
+      "type": "text",
+      "role": "header",
+      "zh": "quality标题",
+      "bbox": [
+        1498.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "font_pt": 12.6,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "底部栏标题",
+      "style": {
+        "sz_pt": 12.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "key": "quality_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "quality正文",
+      "bbox": [
+        1502.0,
+        884.0,
+        300.0,
+        108.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        18,
+        70
+      ],
+      "single_line": false,
+      "hint": "3-4 条短句",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_block_body",
+      "max_lines": 5
+    }
+  ]
+}

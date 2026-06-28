@@ -1,0 +1,43 @@
+{
+  "template_id": "tpl-112-failure-attribution-correction",
+  "source_id": "tech-template-v2-12.png",
+  "source_path": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\06_归因解释-技术判断\\tech-template-v2-12.png",
+  "name_cn": "失效归因与修正假设",
+  "layout_family": "failure_case_attribution_hypothesis",
+  "archetype": "failure_attribution_to_mitigation",
+  "template_fit_score": 90,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "归因解释",
+    "失效复盘",
+    "技术判断",
+    "修正假设",
+    "风险复盘"
+  ],
+  "avoid": [
+    "封面页",
+    "纯指标页",
+    "宏观路线图"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留参考图主要布局块、固定连接/矩阵/对比结构；主题相关图示作为语义 image slots；所有文字为微软雅黑并通过 PowerPoint 实测溢出 QA。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 22.997
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 28.199
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 23,
+      "image_slots": 2,
+      "total_slots": 25
+    }
+  }
+}

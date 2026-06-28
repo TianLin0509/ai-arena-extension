@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "id": "measurement_exists",
+      "ok": true
+    },
+    {
+      "id": "template_exists",
+      "ok": true
+    },
+    {
+      "id": "thumb_exists",
+      "ok": true
+    },
+    {
+      "id": "blank_exists",
+      "ok": true
+    },
+    {
+      "id": "schema_exists",
+      "ok": true
+    },
+    {
+      "id": "density_qa_exists",
+      "ok": true
+    }
+  ],
+  "route": "direct_native_layout_spec",
+  "failures": []
+}

@@ -1,0 +1,45 @@
+{
+  "template_id": "tpl-116-evidence-loop-judgment",
+  "source_id": "ig_02b9163f1eedc9d0016a33cedf9c548199974200a46a6255a8.png",
+  "source_path": "C:\\Users\\lintian\\.codex\\generated_images\\019ed5fe-9515-7780-b1ce-9a50e3c4b48e\\ig_02b9163f1eedc9d0016a33cedf9c548199974200a46a6255a8.png",
+  "name_cn": "证据闭环与关键判断",
+  "layout_family": "evidence_loop_key_judgment_kpi",
+  "archetype": "evidence_to_decision_loop",
+  "template_fit_score": 92,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "结论验证",
+    "证据链汇总",
+    "方案有效性证明",
+    "项目复盘",
+    "用户价值评估"
+  ],
+  "avoid": [
+    "纯路线规划",
+    "纯风险矩阵",
+    "复杂多方案评分表"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留 image2 参考图的主要布局块、固定连接线、卡片密度与指标收束方式；主题相关图示做语义 image slots；所有文字使用微软雅黑并通过 PowerPoint 实测溢出 QA。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 25.272
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 28.119
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true,
+      "fixed_alignment_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 31,
+      "image_slots": 3,
+      "icon_slots": 6,
+      "total_slots": 40
+    }
+  }
+}

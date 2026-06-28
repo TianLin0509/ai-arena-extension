@@ -1,0 +1,553 @@
+{
+  "source": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\06_归因解释-技术判断\\attribution-supp-05.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "left_criteria",
+      "type": "criteria_panel",
+      "bbox_px": [
+        26,
+        170,
+        415,
+        672
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "tradeoff_matrix",
+      "type": "quadrant_matrix",
+      "bbox_px": [
+        458,
+        168,
+        965,
+        674
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "right_decision",
+      "type": "decision_panels",
+      "bbox_px": [
+        1445,
+        168,
+        430,
+        674
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_metrics",
+      "type": "metric_strip",
+      "bbox_px": [
+        26,
+        870,
+        1850,
+        154
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_typography",
+      "type": "fixed_style",
+      "route": "native_text",
+      "reason": "Huawei-style red conclusion title and restrained report typography"
+    },
+    {
+      "id": "panel_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes",
+      "reason": "stable reusable visual grammar from reference"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        32.0,
+        54.0,
+        1810.0,
+        64.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "left_title",
+      "type": "text",
+      "bbox_px": [
+        54.0,
+        190.0,
+        300.0,
+        34.0
+      ],
+      "semantic_role": "section_heading"
+    },
+    {
+      "id": "dim1_title",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        246.0,
+        240.0,
+        28.0
+      ],
+      "semantic_role": "criteria_name"
+    },
+    {
+      "id": "dim1_body",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        278.0,
+        294.0,
+        48.0
+      ],
+      "semantic_role": "criteria_definition"
+    },
+    {
+      "id": "dim2_title",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        358.0,
+        240.0,
+        28.0
+      ],
+      "semantic_role": "criteria_name"
+    },
+    {
+      "id": "dim2_body",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        390.0,
+        294.0,
+        48.0
+      ],
+      "semantic_role": "criteria_definition"
+    },
+    {
+      "id": "dim3_title",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        470.0,
+        240.0,
+        28.0
+      ],
+      "semantic_role": "criteria_name"
+    },
+    {
+      "id": "dim3_body",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        502.0,
+        294.0,
+        48.0
+      ],
+      "semantic_role": "criteria_definition"
+    },
+    {
+      "id": "dim4_title",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        582.0,
+        240.0,
+        28.0
+      ],
+      "semantic_role": "criteria_name"
+    },
+    {
+      "id": "dim4_body",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        614.0,
+        294.0,
+        48.0
+      ],
+      "semantic_role": "criteria_definition"
+    },
+    {
+      "id": "method_title",
+      "type": "text",
+      "bbox_px": [
+        54.0,
+        704.0,
+        260.0,
+        30.0
+      ],
+      "semantic_role": "method_heading"
+    },
+    {
+      "id": "method_body",
+      "type": "text",
+      "bbox_px": [
+        54.0,
+        742.0,
+        330.0,
+        76.0
+      ],
+      "semantic_role": "scoring_method"
+    },
+    {
+      "id": "matrix_title",
+      "type": "text",
+      "bbox_px": [
+        620.0,
+        184.0,
+        650.0,
+        34.0
+      ],
+      "semantic_role": "matrix_heading"
+    },
+    {
+      "id": "x_axis",
+      "type": "text",
+      "bbox_px": [
+        820.0,
+        712.0,
+        360.0,
+        32.0
+      ],
+      "semantic_role": "axis_title"
+    },
+    {
+      "id": "q1_title",
+      "type": "text",
+      "bbox_px": [
+        580.0,
+        254.0,
+        260.0,
+        28.0
+      ],
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "id": "q1_body",
+      "type": "text",
+      "bbox_px": [
+        580.0,
+        290.0,
+        290.0,
+        72.0
+      ],
+      "semantic_role": "quadrant_explanation"
+    },
+    {
+      "id": "q2_title",
+      "type": "text",
+      "bbox_px": [
+        1212.0,
+        254.0,
+        130.0,
+        28.0
+      ],
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "id": "q2_body",
+      "type": "text",
+      "bbox_px": [
+        1212.0,
+        290.0,
+        160.0,
+        72.0
+      ],
+      "semantic_role": "quadrant_explanation"
+    },
+    {
+      "id": "q3_title",
+      "type": "text",
+      "bbox_px": [
+        580.0,
+        496.0,
+        250.0,
+        28.0
+      ],
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "id": "q3_body",
+      "type": "text",
+      "bbox_px": [
+        580.0,
+        532.0,
+        280.0,
+        72.0
+      ],
+      "semantic_role": "quadrant_explanation"
+    },
+    {
+      "id": "q4_title",
+      "type": "text",
+      "bbox_px": [
+        1216.0,
+        494.0,
+        132.0,
+        28.0
+      ],
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "id": "q4_body",
+      "type": "text",
+      "bbox_px": [
+        1216.0,
+        530.0,
+        162.0,
+        72.0
+      ],
+      "semantic_role": "quadrant_explanation"
+    },
+    {
+      "id": "optA",
+      "type": "text",
+      "bbox_px": [
+        786.0,
+        308.0,
+        124.0,
+        70.0
+      ],
+      "semantic_role": "option_label"
+    },
+    {
+      "id": "optB",
+      "type": "text",
+      "bbox_px": [
+        1013.0,
+        309.0,
+        124.0,
+        70.0
+      ],
+      "semantic_role": "option_label"
+    },
+    {
+      "id": "optC",
+      "type": "text",
+      "bbox_px": [
+        786.0,
+        552.0,
+        124.0,
+        70.0
+      ],
+      "semantic_role": "option_label"
+    },
+    {
+      "id": "optD",
+      "type": "text",
+      "bbox_px": [
+        1013.0,
+        552.0,
+        124.0,
+        70.0
+      ],
+      "semantic_role": "option_label"
+    },
+    {
+      "id": "rec_title",
+      "type": "text",
+      "bbox_px": [
+        1536.0,
+        186.0,
+        294.0,
+        34.0
+      ],
+      "semantic_role": "decision_heading"
+    },
+    {
+      "id": "rec_body",
+      "type": "text",
+      "bbox_px": [
+        1468.0,
+        240.0,
+        390.0,
+        126.0
+      ],
+      "semantic_role": "decision_rationale"
+    },
+    {
+      "id": "decision_title",
+      "type": "text",
+      "bbox_px": [
+        1536.0,
+        468.0,
+        294.0,
+        34.0
+      ],
+      "semantic_role": "decision_heading"
+    },
+    {
+      "id": "decision_body",
+      "type": "text",
+      "bbox_px": [
+        1468.0,
+        522.0,
+        390.0,
+        126.0
+      ],
+      "semantic_role": "decision_rationale"
+    },
+    {
+      "id": "risk_title",
+      "type": "text",
+      "bbox_px": [
+        1536.0,
+        698.0,
+        294.0,
+        34.0
+      ],
+      "semantic_role": "decision_heading"
+    },
+    {
+      "id": "risk_body",
+      "type": "text",
+      "bbox_px": [
+        1468.0,
+        752.0,
+        390.0,
+        76.0
+      ],
+      "semantic_role": "decision_rationale"
+    },
+    {
+      "id": "metric1_title",
+      "type": "text",
+      "bbox_px": [
+        386.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric1_value",
+      "type": "text",
+      "bbox_px": [
+        378.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric1_note",
+      "type": "text",
+      "bbox_px": [
+        334.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "metric2_title",
+      "type": "text",
+      "bbox_px": [
+        711.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric2_value",
+      "type": "text",
+      "bbox_px": [
+        703.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric2_note",
+      "type": "text",
+      "bbox_px": [
+        659.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "metric3_title",
+      "type": "text",
+      "bbox_px": [
+        1036.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric3_value",
+      "type": "text",
+      "bbox_px": [
+        1028.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric3_note",
+      "type": "text",
+      "bbox_px": [
+        984.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "metric4_title",
+      "type": "text",
+      "bbox_px": [
+        1361.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric4_value",
+      "type": "text",
+      "bbox_px": [
+        1353.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric4_note",
+      "type": "text",
+      "bbox_px": [
+        1309.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ]
+}

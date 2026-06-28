@@ -1,0 +1,939 @@
+{
+  "template_id": "tpl-117-risk-attribution-governance",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        46.0,
+        1440.0,
+        68.0
+      ],
+      "font_pt": 24.5,
+      "chars": [
+        14,
+        34
+      ],
+      "single_line": true,
+      "hint": "单行结论式标题，必须压缩到 34 个中文字符以内。",
+      "style": {
+        "sz_pt": 24.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        120.0,
+        1500.0,
+        36.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        18,
+        62
+      ],
+      "single_line": true,
+      "hint": "一行说明本页判断逻辑或适用场景。",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context"
+    },
+    {
+      "key": "matrix_header_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "风险矩阵栏头图标",
+      "bbox": [
+        72.0,
+        184.0,
+        42.0,
+        42.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "section_header_icon",
+      "visual_task": "source matrix shield/check header icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-117-risk-attribution-governance/protected-crops/matrix_header_icon_default.png",
+      "default_source_crop": "matrix_header_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "q1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q1象限标题",
+      "bbox": [
+        396.0,
+        308.0,
+        242.0,
+        32.0
+      ],
+      "font_pt": 13.0,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "象限标题，单行。",
+      "style": {
+        "sz_pt": 13.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "key": "q1_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q1象限说明",
+      "bbox": [
+        394.0,
+        352.0,
+        242.0,
+        58.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": false,
+      "hint": "两行归因解释。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_driver_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "q2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q2象限标题",
+      "bbox": [
+        846.0,
+        308.0,
+        242.0,
+        32.0
+      ],
+      "font_pt": 13.0,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "象限标题，单行。",
+      "style": {
+        "sz_pt": 13.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "key": "q2_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q2象限说明",
+      "bbox": [
+        844.0,
+        352.0,
+        242.0,
+        58.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": false,
+      "hint": "两行归因解释。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_driver_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "q3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q3象限标题",
+      "bbox": [
+        396.0,
+        542.0,
+        242.0,
+        32.0
+      ],
+      "font_pt": 13.0,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "象限标题，单行。",
+      "style": {
+        "sz_pt": 13.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "key": "q3_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q3象限说明",
+      "bbox": [
+        394.0,
+        586.0,
+        242.0,
+        58.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": false,
+      "hint": "两行归因解释。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_driver_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "q4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q4象限标题",
+      "bbox": [
+        846.0,
+        542.0,
+        242.0,
+        32.0
+      ],
+      "font_pt": 13.0,
+      "chars": [
+        6,
+        18
+      ],
+      "single_line": true,
+      "hint": "象限标题，单行。",
+      "style": {
+        "sz_pt": 13.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "key": "q4_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q4象限说明",
+      "bbox": [
+        844.0,
+        586.0,
+        242.0,
+        58.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": false,
+      "hint": "两行归因解释。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_driver_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "act1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "治理动作1标题",
+      "bbox": [
+        1401.0,
+        273.0,
+        386.0,
+        36.0
+      ],
+      "font_pt": 12.8,
+      "chars": [
+        6,
+        20
+      ],
+      "single_line": true,
+      "hint": "动作卡标题，单行。",
+      "style": {
+        "sz_pt": 12.8,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "key": "act1_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "治理动作1要点",
+      "bbox": [
+        1401.0,
+        316.0,
+        380.0,
+        92.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        10,
+        30
+      ],
+      "single_line": false,
+      "hint": "三条短行动，建议每条以“• ”开头且不超过 30 字。",
+      "style": {
+        "sz_pt": 8.9,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_bullets",
+      "max_lines": 3
+    },
+    {
+      "key": "act2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "治理动作2标题",
+      "bbox": [
+        1402.0,
+        460.0,
+        385.0,
+        36.0
+      ],
+      "font_pt": 12.8,
+      "chars": [
+        6,
+        20
+      ],
+      "single_line": true,
+      "hint": "动作卡标题，单行。",
+      "style": {
+        "sz_pt": 12.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "key": "act2_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "治理动作2要点",
+      "bbox": [
+        1402.0,
+        503.0,
+        379.0,
+        92.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        10,
+        30
+      ],
+      "single_line": false,
+      "hint": "三条短行动，建议每条以“• ”开头且不超过 30 字。",
+      "style": {
+        "sz_pt": 8.9,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_bullets",
+      "max_lines": 3
+    },
+    {
+      "key": "act3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "治理动作3标题",
+      "bbox": [
+        1402.0,
+        639.0,
+        385.0,
+        36.0
+      ],
+      "font_pt": 12.8,
+      "chars": [
+        6,
+        20
+      ],
+      "single_line": true,
+      "hint": "动作卡标题，单行。",
+      "style": {
+        "sz_pt": 12.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "key": "act3_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "治理动作3要点",
+      "bbox": [
+        1402.0,
+        682.0,
+        379.0,
+        92.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        10,
+        30
+      ],
+      "single_line": false,
+      "hint": "三条短行动，建议每条以“• ”开头且不超过 30 字。",
+      "style": {
+        "sz_pt": 8.9,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "governance_action_bullets",
+      "max_lines": 3
+    },
+    {
+      "key": "kpi1_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "kpi1指标图标",
+      "bbox": [
+        174.0,
+        876.0,
+        98.0,
+        89.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "teal waveform KPI svg icon for drift or stability index, no text; include an opaque white or matching card-background base so it fully replaces the default crop",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-117-risk-attribution-governance/protected-crops/kpi1_icon_default.png",
+      "default_source_crop": "kpi1_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "kpi1指标名",
+      "bbox": [
+        296.0,
+        874.0,
+        248.0,
+        28.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "短指标名称。",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "kpi1数值",
+      "bbox": [
+        296.0,
+        906.0,
+        248.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        1,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标值或变化幅度。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "kpi1解释",
+      "bbox": [
+        296.0,
+        964.0,
+        248.0,
+        38.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "kpi2_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "kpi2指标图标",
+      "bbox": [
+        610.0,
+        876.0,
+        96.0,
+        87.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "orange stacked coin and yuan KPI svg icon for unit cost, no text; include an opaque white or matching card-background base so it fully replaces the default crop",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-117-risk-attribution-governance/protected-crops/kpi2_icon_default.png",
+      "default_source_crop": "kpi2_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "kpi2指标名",
+      "bbox": [
+        724.0,
+        874.0,
+        250.0,
+        28.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "短指标名称。",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "kpi2数值",
+      "bbox": [
+        724.0,
+        906.0,
+        250.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        1,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标值或变化幅度。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "kpi2解释",
+      "bbox": [
+        724.0,
+        964.0,
+        250.0,
+        38.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "kpi3_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "kpi3指标图标",
+      "bbox": [
+        1028.0,
+        876.0,
+        90.0,
+        90.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "blue shield check KPI svg icon for availability or reliability, no text; include an opaque white or matching card-background base so it fully replaces the default crop",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-117-risk-attribution-governance/protected-crops/kpi3_icon_default.png",
+      "default_source_crop": "kpi3_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "kpi3指标名",
+      "bbox": [
+        1144.0,
+        874.0,
+        255.0,
+        28.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "短指标名称。",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "kpi3数值",
+      "bbox": [
+        1144.0,
+        906.0,
+        255.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        1,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标值或变化幅度。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "kpi3解释",
+      "bbox": [
+        1144.0,
+        964.0,
+        255.0,
+        38.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "kpi4_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "kpi4指标图标",
+      "bbox": [
+        1454.0,
+        876.0,
+        82.0,
+        90.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "teal umbrella KPI svg icon for high-impact event protection, no text; include an opaque white or matching card-background base so it fully replaces the default crop",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-117-risk-attribution-governance/protected-crops/kpi4_icon_default.png",
+      "default_source_crop": "kpi4_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "kpi4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "kpi4指标名",
+      "bbox": [
+        1568.0,
+        874.0,
+        250.0,
+        28.0
+      ],
+      "font_pt": 10.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "短指标名称。",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "kpi4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "kpi4数值",
+      "bbox": [
+        1568.0,
+        906.0,
+        250.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        1,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标值或变化幅度。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "kpi4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "kpi4解释",
+      "bbox": [
+        1568.0,
+        964.0,
+        250.0,
+        38.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    }
+  ]
+}

@@ -1,0 +1,1645 @@
+{
+  "template_id": "tpl-121-dual-path-evolution-compare",
+  "version": 1,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "dual_path_evolution_compare",
+  "archetype": "before_after_migration",
+  "slot_contract": {
+    "overflow_policy": "rewrite_before_shrink",
+    "font_required": "微软雅黑",
+    "text_density": "dense_filled_no_large_blank",
+    "density_rule": "large body boxes require two-line or high-character samples",
+    "image_slots": 1,
+    "icon_slots": 0,
+    "decorative_svg_assets": [
+      "svg/decor.svg"
+    ]
+  },
+  "slots": [
+    {
+      "key": "chip",
+      "type": "text",
+      "role": "label",
+      "zh": "左上角分类标签",
+      "bbox": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "页面类别标签，6-16字。",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_category",
+      "sample": "双路径演进 / 路线取舍",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "font_pt": 22.0,
+      "chars": [
+        16,
+        34
+      ],
+      "single_line": true,
+      "hint": "一句话说明本页核心判断，16-34字。",
+      "style": {
+        "sz_pt": 22.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "sample": "双路径演进对比：在稳态交付与跃迁升级之间做取舍",
+      "llm_target_chars": 34,
+      "llm_hard_cap": 42,
+      "render_hard_cap": 38,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        26,
+        58
+      ],
+      "single_line": true,
+      "hint": "解释本页使用场景和判断口径，26-58字。",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context",
+      "sample": "把保守路径与跃迁路径放在同一坐标系中比较，明确阶段动作、资源约束、触发条件和回退边界。",
+      "llm_target_chars": 58,
+      "llm_hard_cap": 66,
+      "render_hard_cap": 62,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "l1阶段标题",
+      "bbox": [
+        148.0,
+        300.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "现网稳态加固",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l1_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "l1阶段指标",
+      "bbox": [
+        676.0,
+        299.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "2周闭环",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l1_body",
+      "type": "text",
+      "role": "body",
+      "zh": "l1阶段说明",
+      "bbox": [
+        148.0,
+        336.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "优先修复高频缺陷与监控盲区\n交付物是灰度基线、告警阈值和回滚脚本",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "r1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "r1阶段标题",
+      "bbox": [
+        1170.0,
+        300.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "目标架构重塑",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r1_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "r1阶段指标",
+      "bbox": [
+        1698.0,
+        299.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "1版打通",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r1_body",
+      "type": "text",
+      "role": "body",
+      "zh": "r1阶段说明",
+      "bbox": [
+        1170.0,
+        336.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "从目标态反推核心能力边界\n先打穿主链路，再补齐旁路治理能力",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "l2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "l2阶段标题",
+      "bbox": [
+        148.0,
+        428.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "能力小步迭代",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l2_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "l2阶段指标",
+      "bbox": [
+        676.0,
+        427.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "+8%收益",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l2_body",
+      "type": "text",
+      "role": "body",
+      "zh": "l2阶段说明",
+      "bbox": [
+        148.0,
+        464.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        32
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "围绕关键接口做轻量增强和灰度验证\n每轮仅引入一个变量，降低耦合风险",
+      "llm_target_chars": 32,
+      "llm_hard_cap": 40,
+      "render_hard_cap": 36,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "r2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "r2阶段标题",
+      "bbox": [
+        1170.0,
+        428.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "关键模块替换",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r2_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "r2阶段指标",
+      "bbox": [
+        1698.0,
+        427.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "30%提效",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r2_body",
+      "type": "text",
+      "role": "body",
+      "zh": "r2阶段说明",
+      "bbox": [
+        1170.0,
+        464.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "替换瓶颈模块并保留兼容层与观测点\n通过双写和旁路校验控制切换风险",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "l3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "l3阶段标题",
+      "bbox": [
+        148.0,
+        556.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "规模化复制",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l3_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "l3阶段指标",
+      "bbox": [
+        676.0,
+        555.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "3域复用",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l3_body",
+      "type": "text",
+      "role": "body",
+      "zh": "l3阶段说明",
+      "bbox": [
+        148.0,
+        592.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "沉淀公共配置、参数模板和验收口径\n把成功经验迁移到相邻业务域验证",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "r3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "r3阶段标题",
+      "bbox": [
+        1170.0,
+        556.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "平台能力沉淀",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r3_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "r3阶段指标",
+      "bbox": [
+        1698.0,
+        555.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "组件化",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r3_body",
+      "type": "text",
+      "role": "body",
+      "zh": "r3阶段说明",
+      "bbox": [
+        1170.0,
+        592.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "把可复用能力抽象为平台服务\n统一权限、监控、参数和版本管理",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "l4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "l4阶段标题",
+      "bbox": [
+        148.0,
+        684.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "运营持续优化",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l4_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "l4阶段指标",
+      "bbox": [
+        676.0,
+        683.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "月度校准",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "l4_body",
+      "type": "text",
+      "role": "body",
+      "zh": "l4阶段说明",
+      "bbox": [
+        148.0,
+        720.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        29
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "以指标漂移和用户反馈驱动调参\n保留兜底策略，避免收益回撤扩大",
+      "llm_target_chars": 29,
+      "llm_hard_cap": 37,
+      "render_hard_cap": 33,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "r4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "r4阶段标题",
+      "bbox": [
+        1170.0,
+        684.0,
+        508.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "阶段标题，6-16字。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_title",
+      "sample": "生态扩展验证",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r4_metric",
+      "type": "text",
+      "role": "metric",
+      "zh": "r4阶段指标",
+      "bbox": [
+        1698.0,
+        683.0,
+        124.0,
+        32.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段量化指标。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_metric",
+      "sample": "5场景",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "r4_body",
+      "type": "text",
+      "role": "body",
+      "zh": "r4阶段说明",
+      "bbox": [
+        1170.0,
+        720.0,
+        650.0,
+        42.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        28,
+        30
+      ],
+      "single_line": false,
+      "hint": "两行描述动作、约束和交付物，避免空白。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "stage_detail",
+      "sample": "选择异质场景验证泛化能力\n用成本、稳定性和体验综合判定扩面节奏",
+      "llm_target_chars": 30,
+      "llm_hard_cap": 38,
+      "render_hard_cap": 34,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 28,
+      "preferred_lines": 3
+    },
+    {
+      "key": "decision_title",
+      "type": "text",
+      "role": "header",
+      "zh": "中轴判断标题",
+      "bbox": [
+        896.0,
+        270.0,
+        128.0,
+        34.0
+      ],
+      "font_pt": 11.0,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "中轴判断标题。",
+      "style": {
+        "sz_pt": 11.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_title",
+      "sample": "中轴判断",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "decision_body",
+      "type": "text",
+      "role": "body",
+      "zh": "中轴判断说明",
+      "bbox": [
+        890.0,
+        330.0,
+        140.0,
+        112.0
+      ],
+      "font_pt": 7.4,
+      "chars": [
+        34,
+        38
+      ],
+      "single_line": false,
+      "hint": "两到四行说明如何在两条路径之间取舍。",
+      "style": {
+        "sz_pt": 7.4,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_summary",
+      "sample": "稳态路径适合短期交付和风险收敛\n跃迁路径适合能力断层明显、收益空间足够大的场景",
+      "llm_target_chars": 38,
+      "llm_hard_cap": 46,
+      "render_hard_cap": 42,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 4,
+      "density_required": true,
+      "min_density_chars": 34,
+      "preferred_lines": 4
+    },
+    {
+      "key": "trigger1",
+      "type": "text",
+      "role": "label",
+      "zh": "触发条件1",
+      "bbox": [
+        892.0,
+        468.0,
+        136.0,
+        30.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        6,
+        15
+      ],
+      "single_line": true,
+      "hint": "一条触发条件。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "trigger_condition",
+      "sample": "收益连续两轮 > 12%",
+      "llm_target_chars": 15,
+      "llm_hard_cap": 23,
+      "render_hard_cap": 19,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "trigger2",
+      "type": "text",
+      "role": "label",
+      "zh": "触发条件2",
+      "bbox": [
+        892.0,
+        524.0,
+        136.0,
+        30.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        6,
+        15
+      ],
+      "single_line": true,
+      "hint": "一条触发条件。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "trigger_condition",
+      "sample": "核心依赖完成解耦",
+      "llm_target_chars": 15,
+      "llm_hard_cap": 23,
+      "render_hard_cap": 19,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "trigger3",
+      "type": "text",
+      "role": "label",
+      "zh": "触发条件3",
+      "bbox": [
+        892.0,
+        580.0,
+        136.0,
+        30.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        6,
+        15
+      ],
+      "single_line": true,
+      "hint": "一条触发条件。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "trigger_condition",
+      "sample": "回滚窗口 < 30分钟",
+      "llm_target_chars": 15,
+      "llm_hard_cap": 23,
+      "render_hard_cap": 19,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "trigger4",
+      "type": "text",
+      "role": "label",
+      "zh": "触发条件4",
+      "bbox": [
+        892.0,
+        636.0,
+        136.0,
+        30.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        6,
+        15
+      ],
+      "single_line": true,
+      "hint": "一条触发条件。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "trigger_condition",
+      "sample": "跨域复用价值明确",
+      "llm_target_chars": 15,
+      "llm_hard_cap": 23,
+      "render_hard_cap": 19,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "route_map_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "路径图占位",
+      "bbox": [
+        892.0,
+        688.0,
+        136.0,
+        44.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "generate a compact route-choice or migration-bridge visual for the current topic; no text, no logo",
+      "semantic_role": "route_option_visual",
+      "content_intent": "generate a compact route-choice or migration-bridge visual for the current topic; no text, no logo",
+      "visual_task": "generate a compact route-choice or migration-bridge visual for the current topic; no text, no logo",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ],
+      "fit_policy": "regenerate_image_if_off_topic"
+    },
+    {
+      "key": "bottom_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部结论标题",
+      "bbox": [
+        78.0,
+        882.0,
+        180.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "路线轨左侧结论标题。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary_title",
+      "sample": "推荐选择",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "bottom_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "底部结论说明",
+      "bbox": [
+        78.0,
+        908.0,
+        286.0,
+        72.0
+      ],
+      "font_pt": 6.9,
+      "chars": [
+        34,
+        54
+      ],
+      "single_line": false,
+      "hint": "两到三行说明路线选择。",
+      "style": {
+        "sz_pt": 6.9,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary",
+      "sample": "先用稳态路径守住交付节奏，同时在低风险业务域启动跃迁试点\n当收益、依赖和回滚三项门槛同时满足，再转入规模化升级",
+      "llm_target_chars": 54,
+      "llm_hard_cap": 62,
+      "render_hard_cap": 58,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 34,
+      "preferred_lines": 3
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI1标题",
+      "bbox": [
+        466.0,
+        862.0,
+        188.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "交付确定性",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI1说明",
+      "bbox": [
+        478.0,
+        940.0,
+        164.0,
+        22.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "路线轨节点口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "短期优先稳态",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI1数值",
+      "bbox": [
+        484.0,
+        968.0,
+        152.0,
+        30.0
+      ],
+      "font_pt": 13.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标值。",
+      "style": {
+        "sz_pt": 13.2,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "高",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI2标题",
+      "bbox": [
+        796.0,
+        862.0,
+        188.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "潜在收益",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI2说明",
+      "bbox": [
+        808.0,
+        940.0,
+        164.0,
+        22.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "路线轨节点口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "跃迁路径上限",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI2数值",
+      "bbox": [
+        814.0,
+        968.0,
+        152.0,
+        30.0
+      ],
+      "font_pt": 13.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标值。",
+      "style": {
+        "sz_pt": 13.2,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "+18%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI3标题",
+      "bbox": [
+        1126.0,
+        862.0,
+        188.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "切换风险",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI3说明",
+      "bbox": [
+        1138.0,
+        940.0,
+        164.0,
+        22.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "路线轨节点口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "需旁路校验",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI3数值",
+      "bbox": [
+        1144.0,
+        968.0,
+        152.0,
+        30.0
+      ],
+      "font_pt": 13.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标值。",
+      "style": {
+        "sz_pt": 13.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "中",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI4标题",
+      "bbox": [
+        1456.0,
+        862.0,
+        188.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "扩展周期",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI4说明",
+      "bbox": [
+        1468.0,
+        940.0,
+        164.0,
+        22.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "路线轨节点口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "试点到复制",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI4数值",
+      "bbox": [
+        1474.0,
+        968.0,
+        152.0,
+        30.0
+      ],
+      "font_pt": 13.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "路线轨节点指标值。",
+      "style": {
+        "sz_pt": 13.2,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "6周",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    }
+  ]
+}

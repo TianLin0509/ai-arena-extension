@@ -1,0 +1,46 @@
+{
+  "template_id": "tpl-120-evidence-weight-decision-matrix",
+  "source_id": "direct_layout_spec",
+  "source_path": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-template-20260619\\assets\\tpl-120-evidence-weight-decision-matrix\\reference-measurement.json",
+  "name_cn": "证据权重决策矩阵",
+  "layout_family": "evidence_weight_decision_matrix",
+  "archetype": "decision_matrix_evidence",
+  "template_fit_score": 91,
+  "template_status": "candidate",
+  "visual_fidelity_route": "direct_native_layout_spec",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "技术判断",
+    "方案选择",
+    "证据汇总",
+    "风险收益权衡",
+    "投研结论"
+  ],
+  "avoid": [
+    "时间路线图",
+    "纯封面",
+    "复杂架构全景图",
+    "照片主导页面"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "直接从可审计 layout spec 生成 native PPTX；不依赖 image2 源图，预览图仅作为 QA 结果。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 7.927
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 0.0
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true,
+      "fixed_alignment_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 63,
+      "image_slots": 0,
+      "icon_slots": 0,
+      "total_slots": 63
+    }
+  }
+}

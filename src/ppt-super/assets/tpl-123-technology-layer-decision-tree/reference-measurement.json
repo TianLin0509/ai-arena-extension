@@ -1,0 +1,691 @@
+{
+  "source": "direct_layout_spec",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "technology_layer_decision_tree",
+  "major_blocks": [
+    {
+      "id": "header",
+      "type": "title_area",
+      "bbox_px": [
+        38,
+        34,
+        1844,
+        134
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "layer_stack",
+      "type": "four_architecture_layers",
+      "bbox_px": [
+        42,
+        206,
+        520,
+        610
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "decision_tree",
+      "type": "root_branch_leaf_tree",
+      "bbox_px": [
+        598,
+        206,
+        746,
+        610
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "recommendations",
+      "type": "three_action_cards",
+      "bbox_px": [
+        1380,
+        206,
+        498,
+        610
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_band",
+      "type": "diagonal_decision_signature_footer",
+      "bbox_px": [
+        42,
+        846,
+        1836,
+        174
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shape"
+    },
+    {
+      "id": "section_headers",
+      "type": "fixed_panel_headers",
+      "route": "native_shapes"
+    },
+    {
+      "id": "panel_shells",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes"
+    },
+    {
+      "id": "connectors_and_dividers",
+      "type": "fixed_flow_grammar",
+      "route": "native_lines"
+    },
+    {
+      "id": "bottom_kpi_band",
+      "type": "fixed_kpi_strip",
+      "route": "native_shapes_text"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "header",
+      "bbox_px": [
+        38,
+        34,
+        1844,
+        134
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "layer_stack",
+      "bbox_px": [
+        42,
+        206,
+        520,
+        610
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "decision_tree",
+      "bbox_px": [
+        598,
+        206,
+        746,
+        610
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "recommendations",
+      "bbox_px": [
+        1380,
+        206,
+        498,
+        610
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "bottom_band",
+      "bbox_px": [
+        42,
+        846,
+        1836,
+        174
+      ],
+      "reason": "direct template block must remain stable"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "chip",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "semantic_role": "page_category"
+    },
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "layer1_title",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        298.0,
+        294.0,
+        28.0
+      ],
+      "semantic_role": "layer_title"
+    },
+    {
+      "id": "layer1_owner",
+      "type": "text",
+      "bbox_px": [
+        398.0,
+        296.0,
+        110.0,
+        30.0
+      ],
+      "semantic_role": "layer_tag"
+    },
+    {
+      "id": "layer1_detail",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        332.0,
+        428.0,
+        38.0
+      ],
+      "semantic_role": "layer_detail"
+    },
+    {
+      "id": "layer2_title",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        424.0,
+        294.0,
+        28.0
+      ],
+      "semantic_role": "layer_title"
+    },
+    {
+      "id": "layer2_owner",
+      "type": "text",
+      "bbox_px": [
+        398.0,
+        422.0,
+        110.0,
+        30.0
+      ],
+      "semantic_role": "layer_tag"
+    },
+    {
+      "id": "layer2_detail",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        458.0,
+        428.0,
+        38.0
+      ],
+      "semantic_role": "layer_detail"
+    },
+    {
+      "id": "layer3_title",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        550.0,
+        294.0,
+        28.0
+      ],
+      "semantic_role": "layer_title"
+    },
+    {
+      "id": "layer3_owner",
+      "type": "text",
+      "bbox_px": [
+        398.0,
+        548.0,
+        110.0,
+        30.0
+      ],
+      "semantic_role": "layer_tag"
+    },
+    {
+      "id": "layer3_detail",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        584.0,
+        428.0,
+        38.0
+      ],
+      "semantic_role": "layer_detail"
+    },
+    {
+      "id": "layer4_title",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        676.0,
+        294.0,
+        28.0
+      ],
+      "semantic_role": "layer_title"
+    },
+    {
+      "id": "layer4_owner",
+      "type": "text",
+      "bbox_px": [
+        398.0,
+        674.0,
+        110.0,
+        30.0
+      ],
+      "semantic_role": "layer_tag"
+    },
+    {
+      "id": "layer4_detail",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        710.0,
+        428.0,
+        38.0
+      ],
+      "semantic_role": "layer_detail"
+    },
+    {
+      "id": "root_title",
+      "type": "text",
+      "bbox_px": [
+        850.0,
+        270.0,
+        246.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "root_detail",
+      "type": "text",
+      "bbox_px": [
+        854.0,
+        298.0,
+        238.0,
+        48.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "n1_title",
+      "type": "text",
+      "bbox_px": [
+        650.0,
+        448.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "n1_detail",
+      "type": "text",
+      "bbox_px": [
+        654.0,
+        476.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "n2_title",
+      "type": "text",
+      "bbox_px": [
+        880.0,
+        448.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "n2_detail",
+      "type": "text",
+      "bbox_px": [
+        884.0,
+        476.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "n3_title",
+      "type": "text",
+      "bbox_px": [
+        1110.0,
+        448.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "n3_detail",
+      "type": "text",
+      "bbox_px": [
+        1114.0,
+        476.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "leaf1_title",
+      "type": "text",
+      "bbox_px": [
+        650.0,
+        642.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "leaf1_detail",
+      "type": "text",
+      "bbox_px": [
+        654.0,
+        670.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "leaf2_title",
+      "type": "text",
+      "bbox_px": [
+        880.0,
+        642.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "leaf2_detail",
+      "type": "text",
+      "bbox_px": [
+        884.0,
+        670.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "leaf3_title",
+      "type": "text",
+      "bbox_px": [
+        1110.0,
+        642.0,
+        182.0,
+        24.0
+      ],
+      "semantic_role": "decision_node_title"
+    },
+    {
+      "id": "leaf3_detail",
+      "type": "text",
+      "bbox_px": [
+        1114.0,
+        670.0,
+        174.0,
+        64.0
+      ],
+      "semantic_role": "decision_node_detail"
+    },
+    {
+      "id": "rec1_title",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        298.0,
+        380.0,
+        28.0
+      ],
+      "semantic_role": "recommendation_title"
+    },
+    {
+      "id": "rec1_body",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        334.0,
+        388.0,
+        62.0
+      ],
+      "semantic_role": "recommendation_detail"
+    },
+    {
+      "id": "rec2_title",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        452.0,
+        380.0,
+        28.0
+      ],
+      "semantic_role": "recommendation_title"
+    },
+    {
+      "id": "rec2_body",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        488.0,
+        388.0,
+        62.0
+      ],
+      "semantic_role": "recommendation_detail"
+    },
+    {
+      "id": "rec3_title",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        606.0,
+        380.0,
+        28.0
+      ],
+      "semantic_role": "recommendation_title"
+    },
+    {
+      "id": "rec3_body",
+      "type": "text",
+      "bbox_px": [
+        1432.0,
+        642.0,
+        388.0,
+        62.0
+      ],
+      "semantic_role": "recommendation_detail"
+    },
+    {
+      "id": "bottom_title",
+      "type": "text",
+      "bbox_px": [
+        82.0,
+        874.0,
+        190.0,
+        28.0
+      ],
+      "semantic_role": "bottom_summary_title"
+    },
+    {
+      "id": "bottom_summary",
+      "type": "text",
+      "bbox_px": [
+        82.0,
+        904.0,
+        390.0,
+        64.0
+      ],
+      "semantic_role": "bottom_summary"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        614.0,
+        886.0,
+        156.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        638.0,
+        936.0,
+        108.0,
+        30.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        614.0,
+        1000.0,
+        156.0,
+        20.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        938.0,
+        858.0,
+        156.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        962.0,
+        908.0,
+        108.0,
+        30.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        938.0,
+        972.0,
+        156.0,
+        20.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi3_title",
+      "type": "text",
+      "bbox_px": [
+        1262.0,
+        830.0,
+        156.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi3_value",
+      "type": "text",
+      "bbox_px": [
+        1286.0,
+        880.0,
+        108.0,
+        30.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi3_note",
+      "type": "text",
+      "bbox_px": [
+        1262.0,
+        944.0,
+        156.0,
+        20.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi4_title",
+      "type": "text",
+      "bbox_px": [
+        1586.0,
+        802.0,
+        156.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi4_value",
+      "type": "text",
+      "bbox_px": [
+        1610.0,
+        852.0,
+        108.0,
+        30.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi4_note",
+      "type": "text",
+      "bbox_px": [
+        1586.0,
+        916.0,
+        156.0,
+        20.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "large body boxes must pass density QA before delivery",
+    "all text must pass PowerPoint BoundWidth/BoundHeight overflow QA",
+    "canary fill must be rendered and visually inspected"
+  ]
+}

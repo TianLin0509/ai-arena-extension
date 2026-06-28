@@ -1,0 +1,626 @@
+{
+  "source": "direct_layout_spec",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "capability_maturity_heatmap",
+  "major_blocks": [
+    {
+      "id": "header",
+      "type": "title_area",
+      "bbox_px": [
+        38,
+        34,
+        1844,
+        134
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "heatmap",
+      "type": "capability_maturity_heatmap",
+      "bbox_px": [
+        42,
+        206,
+        1188,
+        610
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "gap_actions",
+      "type": "gap_summary_action_panel",
+      "bbox_px": [
+        1264,
+        206,
+        614,
+        610
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_band",
+      "type": "heatmap_legend_metrics_footer",
+      "bbox_px": [
+        42,
+        846,
+        1836,
+        174
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shape"
+    },
+    {
+      "id": "section_headers",
+      "type": "fixed_panel_headers",
+      "route": "native_shapes"
+    },
+    {
+      "id": "panel_shells",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes"
+    },
+    {
+      "id": "connectors_and_dividers",
+      "type": "fixed_flow_grammar",
+      "route": "native_lines"
+    },
+    {
+      "id": "bottom_kpi_band",
+      "type": "fixed_kpi_strip",
+      "route": "native_shapes_text"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "header",
+      "bbox_px": [
+        38,
+        34,
+        1844,
+        134
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "heatmap",
+      "bbox_px": [
+        42,
+        206,
+        1188,
+        610
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "gap_actions",
+      "bbox_px": [
+        1264,
+        206,
+        614,
+        610
+      ],
+      "reason": "direct template block must remain stable"
+    },
+    {
+      "id": "bottom_band",
+      "bbox_px": [
+        42,
+        846,
+        1836,
+        174
+      ],
+      "reason": "direct template block must remain stable"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "chip",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "semantic_role": "page_category"
+    },
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "heat_1_1",
+      "type": "text",
+      "bbox_px": [
+        272.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_1_2",
+      "type": "text",
+      "bbox_px": [
+        486.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_1_3",
+      "type": "text",
+      "bbox_px": [
+        700.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_1_4",
+      "type": "text",
+      "bbox_px": [
+        914.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_2_1",
+      "type": "text",
+      "bbox_px": [
+        272.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_2_2",
+      "type": "text",
+      "bbox_px": [
+        486.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_2_3",
+      "type": "text",
+      "bbox_px": [
+        700.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_2_4",
+      "type": "text",
+      "bbox_px": [
+        914.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_3_1",
+      "type": "text",
+      "bbox_px": [
+        272.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_3_2",
+      "type": "text",
+      "bbox_px": [
+        486.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_3_3",
+      "type": "text",
+      "bbox_px": [
+        700.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_3_4",
+      "type": "text",
+      "bbox_px": [
+        914.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_4_1",
+      "type": "text",
+      "bbox_px": [
+        272.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_4_2",
+      "type": "text",
+      "bbox_px": [
+        486.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_4_3",
+      "type": "text",
+      "bbox_px": [
+        700.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_4_4",
+      "type": "text",
+      "bbox_px": [
+        914.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_5_1",
+      "type": "text",
+      "bbox_px": [
+        272.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_5_2",
+      "type": "text",
+      "bbox_px": [
+        486.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_5_3",
+      "type": "text",
+      "bbox_px": [
+        700.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "heat_5_4",
+      "type": "text",
+      "bbox_px": [
+        914.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "semantic_role": "heatmap_cell"
+    },
+    {
+      "id": "gap_title",
+      "type": "text",
+      "bbox_px": [
+        1300.0,
+        282.0,
+        180.0,
+        30.0
+      ],
+      "semantic_role": "gap_title"
+    },
+    {
+      "id": "gap_body",
+      "type": "text",
+      "bbox_px": [
+        1300.0,
+        322.0,
+        520.0,
+        76.0
+      ],
+      "semantic_role": "gap_summary"
+    },
+    {
+      "id": "a1_title",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        446.0,
+        160.0,
+        24.0
+      ],
+      "semantic_role": "action_title"
+    },
+    {
+      "id": "a1_body",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        476.0,
+        478.0,
+        34.0
+      ],
+      "semantic_role": "action_detail"
+    },
+    {
+      "id": "a2_title",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        554.0,
+        160.0,
+        24.0
+      ],
+      "semantic_role": "action_title"
+    },
+    {
+      "id": "a2_body",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        584.0,
+        478.0,
+        34.0
+      ],
+      "semantic_role": "action_detail"
+    },
+    {
+      "id": "a3_title",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        662.0,
+        160.0,
+        24.0
+      ],
+      "semantic_role": "action_title"
+    },
+    {
+      "id": "a3_body",
+      "type": "text",
+      "bbox_px": [
+        1320.0,
+        692.0,
+        478.0,
+        34.0
+      ],
+      "semantic_role": "action_detail"
+    },
+    {
+      "id": "bottom_title",
+      "type": "text",
+      "bbox_px": [
+        70.0,
+        866.0,
+        210.0,
+        26.0
+      ],
+      "semantic_role": "bottom_summary_title"
+    },
+    {
+      "id": "bottom_summary",
+      "type": "text",
+      "bbox_px": [
+        70.0,
+        900.0,
+        480.0,
+        58.0
+      ],
+      "semantic_role": "bottom_summary"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        938.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        938.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        938.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        1164.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        1164.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        1164.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi3_title",
+      "type": "text",
+      "bbox_px": [
+        1390.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi3_value",
+      "type": "text",
+      "bbox_px": [
+        1390.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi3_note",
+      "type": "text",
+      "bbox_px": [
+        1390.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi4_title",
+      "type": "text",
+      "bbox_px": [
+        1616.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi4_value",
+      "type": "text",
+      "bbox_px": [
+        1616.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi4_note",
+      "type": "text",
+      "bbox_px": [
+        1616.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "large body boxes must pass density QA before delivery",
+    "all text must pass PowerPoint BoundWidth/BoundHeight overflow QA",
+    "canary fill must be rendered and visually inspected"
+  ]
+}

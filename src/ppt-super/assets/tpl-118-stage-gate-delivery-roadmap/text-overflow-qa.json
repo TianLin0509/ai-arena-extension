@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-118-stage-gate-delivery-roadmap\\template.pptx",
+      "checked": 29,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-118-stage-gate-delivery-roadmap\\filled-demo.pptx",
+      "checked": 74,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-118-stage-gate-delivery-roadmap\\filled-check.pptx",
+      "checked": 74,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

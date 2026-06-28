@@ -1,0 +1,1539 @@
+{
+  "template_id": "tpl-125-capability-maturity-heatmap",
+  "version": 1,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "capability_maturity_heatmap",
+  "archetype": "maturity_gap_prioritization",
+  "slot_contract": {
+    "overflow_policy": "rewrite_before_shrink",
+    "font_required": "微软雅黑",
+    "text_density": "dense_filled_no_large_blank",
+    "density_rule": "large body boxes require two-line or high-character samples",
+    "image_slots": 0,
+    "icon_slots": 0,
+    "decorative_svg_assets": [
+      "svg/decor.svg"
+    ]
+  },
+  "slots": [
+    {
+      "key": "chip",
+      "type": "text",
+      "role": "label",
+      "zh": "左上角分类标签",
+      "bbox": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "页面类别标签，6-16字。",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_category",
+      "sample": "能力成熟度 / 热力图",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "font_pt": 22.0,
+      "chars": [
+        16,
+        34
+      ],
+      "single_line": true,
+      "hint": "一句话说明本页核心判断，16-34字。",
+      "style": {
+        "sz_pt": 22.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "sample": "能力成熟度热力图：用差距分布确定下一轮建设重点",
+      "llm_target_chars": 34,
+      "llm_hard_cap": 42,
+      "render_hard_cap": 38,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        26,
+        58
+      ],
+      "single_line": true,
+      "hint": "解释本页使用场景和判断口径，26-58字。",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context",
+      "sample": "横向比较能力域，纵向呈现成熟阶段，把薄弱环节、优先动作和验收指标集中到一页说明。",
+      "llm_target_chars": 58,
+      "llm_hard_cap": 66,
+      "render_hard_cap": 62,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "heat_1_1",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_1_1",
+      "bbox": [
+        272.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "源数据接入\n质量待补齐",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_1_2",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_1_2",
+      "bbox": [
+        486.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "规则校验稳定\n缺口可定位",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_1_3",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_1_3",
+      "bbox": [
+        700.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "口径统一\n跨域可对齐",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_1_4",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_1_4",
+      "bbox": [
+        914.0,
+        298.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "数据资产复用\n权限需细化",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_2_1",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_2_1",
+      "bbox": [
+        272.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "基线模型可用\n样本覆盖足",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_2_2",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_2_2",
+      "bbox": [
+        486.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "效果稳定提升\n边界清晰",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_2_3",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_2_3",
+      "bbox": [
+        700.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "策略模板沉淀\n调参可复现",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_2_4",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_2_4",
+      "bbox": [
+        914.0,
+        384.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "跨场景泛化\n需持续验证",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_3_1",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_3_1",
+      "bbox": [
+        272.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "主流程打通\n接口可用",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_3_2",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_3_2",
+      "bbox": [
+        486.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "异常回退稳定\nSLA可跟踪",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_3_3",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_3_3",
+      "bbox": [
+        700.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "编排规则统一\n审批可审计",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_3_4",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_3_4",
+      "bbox": [
+        914.0,
+        470.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "服务化复用\n版本需治理",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_4_1",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_4_1",
+      "bbox": [
+        272.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "基础告警可见\n人工处置多",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_4_2",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_4_2",
+      "bbox": [
+        486.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "核心链路监控\n阈值已固化",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_4_3",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_4_3",
+      "bbox": [
+        700.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "复盘机制稳定\n责任可追踪",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_4_4",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_4_4",
+      "bbox": [
+        914.0,
+        556.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "自动化运营\n仍需加强",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_5_1",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_5_1",
+      "bbox": [
+        272.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "局部组件可复用\n文档不完整",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_5_2",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_5_2",
+      "bbox": [
+        486.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "公共能力稳定\n依赖可识别",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_5_3",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_5_3",
+      "bbox": [
+        700.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "标准件初步形成\n推广需牵引",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "heat_5_4",
+      "type": "text",
+      "role": "caption",
+      "zh": "heat_5_4",
+      "bbox": [
+        914.0,
+        642.0,
+        198.0,
+        74.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": false,
+      "hint": "热力图单元格内容。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "heatmap_cell",
+      "sample": "平台级复用\n价值待放大",
+      "llm_target_chars": 22,
+      "llm_hard_cap": 30,
+      "render_hard_cap": 26,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "gap_title",
+      "type": "text",
+      "role": "header",
+      "zh": "差距标题",
+      "bbox": [
+        1300.0,
+        282.0,
+        180.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "差距模块标题。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "gap_title",
+      "sample": "关键差距",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "gap_body",
+      "type": "text",
+      "role": "body",
+      "zh": "关键差距说明",
+      "bbox": [
+        1300.0,
+        322.0,
+        520.0,
+        76.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        46,
+        46
+      ],
+      "single_line": false,
+      "hint": "三行说明热力图暴露出的关键差距。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "gap_summary",
+      "sample": "当前短板集中在自动化运营和跨域复用\n基础能力已经具备，但标准化、监控闭环和经验复用仍未完全打通",
+      "llm_target_chars": 46,
+      "llm_hard_cap": 54,
+      "render_hard_cap": 50,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 4,
+      "density_required": true,
+      "min_density_chars": 46,
+      "preferred_lines": 4
+    },
+    {
+      "key": "a1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动1标题",
+      "bbox": [
+        1320.0,
+        446.0,
+        160.0,
+        24.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "补齐标准件",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a1_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动1说明",
+      "bbox": [
+        1320.0,
+        476.0,
+        478.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        24,
+        48
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "把高频流程沉淀为模板、配置和验收清单，降低跨团队复制成本。",
+      "llm_target_chars": 48,
+      "llm_hard_cap": 56,
+      "render_hard_cap": 52,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "a2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动2标题",
+      "bbox": [
+        1320.0,
+        554.0,
+        160.0,
+        24.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "强化运营闭环",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a2_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动2说明",
+      "bbox": [
+        1320.0,
+        584.0,
+        478.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        24,
+        48
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "建立指标漂移、异常样本和收益回撤的周度复盘机制。",
+      "llm_target_chars": 48,
+      "llm_hard_cap": 56,
+      "render_hard_cap": 52,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "a3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动3标题",
+      "bbox": [
+        1320.0,
+        662.0,
+        160.0,
+        24.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "推进平台复用",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a3_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动3说明",
+      "bbox": [
+        1320.0,
+        692.0,
+        478.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        24,
+        48
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "将验证充分的能力抽象为服务接口，统一权限、监控和版本策略。",
+      "llm_target_chars": 48,
+      "llm_hard_cap": 56,
+      "render_hard_cap": 52,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "bottom_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部结论标题",
+      "bbox": [
+        70.0,
+        866.0,
+        210.0,
+        26.0
+      ],
+      "font_pt": 11.6,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注标题。",
+      "style": {
+        "sz_pt": 11.6,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary_title",
+      "sample": "建设结论",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "bottom_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "底部结论说明",
+      "bbox": [
+        70.0,
+        900.0,
+        480.0,
+        58.0
+      ],
+      "font_pt": 7.4,
+      "chars": [
+        38,
+        48
+      ],
+      "single_line": false,
+      "hint": "两到三行说明成熟度诊断。",
+      "style": {
+        "sz_pt": 7.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary",
+      "sample": "该模板用于成熟度诊断：热力图负责定位差距\n右侧动作面板转成可执行优先级，底部指标用于验收下一轮改进",
+      "llm_target_chars": 48,
+      "llm_hard_cap": 56,
+      "render_hard_cap": 52,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 38,
+      "preferred_lines": 3
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI1标题",
+      "bbox": [
+        938.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标名称。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "637084",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "高成熟能力",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI1数值",
+      "bbox": [
+        938.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "font_pt": 15.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标值。",
+      "style": {
+        "sz_pt": 15.2,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "6项",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI1说明",
+      "bbox": [
+        938.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "可进入复制",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI2标题",
+      "bbox": [
+        1164.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标名称。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "637084",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "重点短板",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI2数值",
+      "bbox": [
+        1164.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "font_pt": 15.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标值。",
+      "style": {
+        "sz_pt": 15.2,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "4项",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI2说明",
+      "bbox": [
+        1164.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "需专项推进",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI3标题",
+      "bbox": [
+        1390.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标名称。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "637084",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "目标周期",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI3数值",
+      "bbox": [
+        1390.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "font_pt": 15.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标值。",
+      "style": {
+        "sz_pt": 15.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "8周",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI3说明",
+      "bbox": [
+        1390.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "补齐闭环",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI4标题",
+      "bbox": [
+        1616.0,
+        862.0,
+        168.0,
+        22.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标名称。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "637084",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "复用门槛",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI4数值",
+      "bbox": [
+        1616.0,
+        888.0,
+        168.0,
+        38.0
+      ],
+      "font_pt": 15.2,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注指标值。",
+      "style": {
+        "sz_pt": 15.2,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "80%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI4说明",
+      "bbox": [
+        1616.0,
+        930.0,
+        168.0,
+        24.0
+      ],
+      "font_pt": 7.0,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "成熟度脚注口径说明。",
+      "style": {
+        "sz_pt": 7.0,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "验收通过率",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    }
+  ]
+}

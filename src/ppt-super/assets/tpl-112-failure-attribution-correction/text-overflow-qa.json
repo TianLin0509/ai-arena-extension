@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\template.pptx",
+      "checked": 16,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\filled-demo.pptx",
+      "checked": 39,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\filled-check.pptx",
+      "checked": 36,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

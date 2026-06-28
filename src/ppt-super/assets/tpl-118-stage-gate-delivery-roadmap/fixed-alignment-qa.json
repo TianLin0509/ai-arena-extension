@@ -1,0 +1,345 @@
+{
+  "ok": true,
+  "failures": [],
+  "fixed_crops": [
+    {
+      "id": "stage1_visual_default",
+      "bbox_px": [
+        82,
+        536,
+        258,
+        152
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "stage2_visual_default",
+      "bbox_px": [
+        482,
+        536,
+        248,
+        152
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "stage3_visual_default",
+      "bbox_px": [
+        862,
+        536,
+        248,
+        152
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "stage4_visual_default",
+      "bbox_px": [
+        1238,
+        536,
+        212,
+        152
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "resource_header_icon_default",
+      "bbox_px": [
+        1508,
+        211,
+        50,
+        35
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "risk_header_icon_default",
+      "bbox_px": [
+        1508,
+        526,
+        50,
+        44
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "bottom_goal_icon_default",
+      "bbox_px": [
+        64,
+        864,
+        114,
+        122
+      ],
+      "mae": 0.0,
+      "mae_limit": 1.0
+    },
+    {
+      "id": "bottom_metric1_icon_default",
+      "bbox_px": [
+        698,
+        884,
+        110,
+        102
+      ],
+      "mae": 0.5393,
+      "mae_limit": 10.0
+    },
+    {
+      "id": "bottom_metric2_icon_default",
+      "bbox_px": [
+        1082,
+        884,
+        110,
+        102
+      ],
+      "mae": 0.5098,
+      "mae_limit": 10.0
+    },
+    {
+      "id": "bottom_metric3_icon_default",
+      "bbox_px": [
+        1460,
+        884,
+        110,
+        102
+      ],
+      "mae": 0.4551,
+      "mae_limit": 10.0
+    }
+  ],
+  "crop_margins": [
+    {
+      "id": "stage1_visual_default",
+      "bbox_px": [
+        82,
+        536,
+        258,
+        152
+      ],
+      "min_margin_px": 8,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 59,
+        "top": 25,
+        "right": 69,
+        "bottom": 14
+      }
+    },
+    {
+      "id": "stage2_visual_default",
+      "bbox_px": [
+        482,
+        536,
+        248,
+        152
+      ],
+      "min_margin_px": 8,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 69,
+        "top": 14,
+        "right": 73,
+        "bottom": 18
+      }
+    },
+    {
+      "id": "stage3_visual_default",
+      "bbox_px": [
+        862,
+        536,
+        248,
+        152
+      ],
+      "min_margin_px": 8,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 63,
+        "top": 18,
+        "right": 61,
+        "bottom": 10
+      }
+    },
+    {
+      "id": "stage4_visual_default",
+      "bbox_px": [
+        1238,
+        536,
+        212,
+        152
+      ],
+      "min_margin_px": 8,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 35,
+        "top": 20,
+        "right": 59,
+        "bottom": 13
+      }
+    }
+  ],
+  "edge_transparency": [
+    {
+      "id": "bottom_metric1_icon_default",
+      "min_edge_transparent_ratio": 0.45,
+      "edge_transparent_ratio": 0.8538
+    },
+    {
+      "id": "bottom_metric3_icon_default",
+      "min_edge_transparent_ratio": 0.45,
+      "edge_transparent_ratio": 0.8538
+    },
+    {
+      "id": "bottom_metric2_icon_default",
+      "min_edge_transparent_ratio": 0.45,
+      "edge_transparent_ratio": 0.7288
+    }
+  ],
+  "owner_blocks": [
+    {
+      "id": "stage1_card",
+      "bbox_px": [
+        50,
+        270,
+        315,
+        500
+      ],
+      "avg_limit": 38.0,
+      "max_limit": 72.0,
+      "note": "bottom KPI chip style is native-rebuilt",
+      "ring_avg_mae": 25.2855,
+      "ring_max_mae": 66.415,
+      "ring_edge_mae": [
+        21.4229,
+        66.415,
+        5.413,
+        7.8911
+      ]
+    },
+    {
+      "id": "stage2_card",
+      "bbox_px": [
+        452,
+        270,
+        315,
+        500
+      ],
+      "avg_limit": 38.0,
+      "max_limit": 72.0,
+      "note": "source crop and owner card must share coordinates",
+      "ring_avg_mae": 31.1043,
+      "ring_max_mae": 66.058,
+      "ring_edge_mae": [
+        24.7997,
+        66.058,
+        13.3011,
+        20.2583
+      ]
+    },
+    {
+      "id": "stage3_card",
+      "bbox_px": [
+        832,
+        270,
+        315,
+        500
+      ],
+      "avg_limit": 38.0,
+      "max_limit": 72.0,
+      "note": "source crop and owner card must share coordinates",
+      "ring_avg_mae": 29.4426,
+      "ring_max_mae": 61.7981,
+      "ring_edge_mae": [
+        22.4493,
+        61.7981,
+        15.7923,
+        17.7307
+      ]
+    },
+    {
+      "id": "stage4_card",
+      "bbox_px": [
+        1214,
+        270,
+        250,
+        500
+      ],
+      "avg_limit": 38.0,
+      "max_limit": 72.0,
+      "note": "source crop and owner card must share coordinates",
+      "ring_avg_mae": 25.9625,
+      "ring_max_mae": 62.0536,
+      "ring_edge_mae": [
+        21.7613,
+        62.0536,
+        8.7262,
+        11.3089
+      ]
+    },
+    {
+      "id": "resource_panel",
+      "bbox_px": [
+        1490,
+        204,
+        384,
+        294
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 15.2667,
+      "ring_max_mae": 25.4666,
+      "ring_edge_mae": [
+        25.4666,
+        8.4232,
+        13.4601,
+        13.7169
+      ]
+    },
+    {
+      "id": "risk_panel",
+      "bbox_px": [
+        1490,
+        510,
+        384,
+        286
+      ],
+      "avg_limit": 70.0,
+      "max_limit": 165.0,
+      "note": "red header gradient is native-rebuilt",
+      "ring_avg_mae": 60.3703,
+      "ring_max_mae": 151.0911,
+      "ring_edge_mae": [
+        151.0911,
+        52.4089,
+        18.9472,
+        19.034
+      ]
+    },
+    {
+      "id": "bottom_goal_band",
+      "bbox_px": [
+        38,
+        842,
+        1844,
+        198
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 22.6438,
+      "ring_max_mae": 34.8561,
+      "ring_edge_mae": [
+        4.937,
+        25.7666,
+        25.0155,
+        34.8561
+      ]
+    }
+  ]
+}

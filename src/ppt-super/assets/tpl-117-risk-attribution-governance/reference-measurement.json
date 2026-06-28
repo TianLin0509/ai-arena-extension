@@ -1,0 +1,729 @@
+{
+  "source": "C:\\Users\\lintian\\.codex\\generated_images\\019ed5fe-9515-7780-b1ce-9a50e3c4b48e\\ig_02b9163f1eedc9d0016a33cf235ff88199a7a1d3790408179f.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "risk_matrix",
+      "type": "two_by_two_risk_matrix",
+      "bbox_px": [
+        44,
+        184,
+        1144,
+        626
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "governance_actions",
+      "type": "three_action_cards",
+      "bbox_px": [
+        1220,
+        184,
+        652,
+        626
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "kpi_strip",
+      "type": "four_metric_strip",
+      "bbox_px": [
+        44,
+        834,
+        1828,
+        154
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shapes",
+      "reason": "keeps report-page hierarchy consistent"
+    },
+    {
+      "id": "panel_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes",
+      "reason": "stable reusable visual grammar"
+    },
+    {
+      "id": "connectors_and_rules",
+      "type": "fixed_connectors",
+      "route": "native_lines",
+      "reason": "layout skeleton should not vary by topic"
+    },
+    {
+      "id": "fixed_reference_icons",
+      "type": "fixed_icon_vectors",
+      "route": "native_vector_fixed_graphic",
+      "reason": "source icons are part of the visual grammar and must not be replaced by generic text glyphs or low-fidelity SVG"
+    }
+  ],
+  "protected_regions": [
+    {
+      "id": "matrix_header_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        72,
+        184,
+        42,
+        42
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "header_target",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1254,
+        187,
+        36,
+        34
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act1_left",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1241,
+        257,
+        155,
+        166
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act2_left",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1242,
+        444,
+        154,
+        159
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act3_left",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1242,
+        623,
+        154,
+        158
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act1_chevron",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1802,
+        329,
+        28,
+        31
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act2_chevron",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1802,
+        509,
+        28,
+        31
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "act3_chevron",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1802,
+        683,
+        28,
+        35
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "kpi_label_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        68,
+        844,
+        56,
+        50
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi1_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        174,
+        876,
+        98,
+        89
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi2_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        610,
+        876,
+        96,
+        87
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi3_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        1028,
+        876,
+        90,
+        90
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi4_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        1454,
+        876,
+        82,
+        90
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "matrix_panel",
+      "bbox_px": [
+        44,
+        184,
+        1144,
+        626
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "governance_panel",
+      "bbox_px": [
+        1220,
+        184,
+        652,
+        626
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "action1_card",
+      "bbox_px": [
+        1241,
+        257,
+        606,
+        166
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "action2_card",
+      "bbox_px": [
+        1242,
+        444,
+        605,
+        159
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "action3_card",
+      "bbox_px": [
+        1242,
+        623,
+        605,
+        158
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi_strip",
+      "bbox_px": [
+        44,
+        826,
+        1828,
+        192
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi1_card",
+      "bbox_px": [
+        170,
+        852,
+        398,
+        144
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi2_card",
+      "bbox_px": [
+        588,
+        852,
+        410,
+        144
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi3_card",
+      "bbox_px": [
+        1018,
+        852,
+        405,
+        144
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi4_card",
+      "bbox_px": [
+        1442,
+        852,
+        400,
+        144
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        46.0,
+        1440.0,
+        68.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        120.0,
+        1500.0,
+        36.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "matrix_header_icon",
+      "type": "icon",
+      "bbox_px": [
+        72.0,
+        184.0,
+        42.0,
+        42.0
+      ],
+      "semantic_role": "section_header_icon"
+    },
+    {
+      "id": "q1_title",
+      "type": "text",
+      "bbox_px": [
+        396.0,
+        308.0,
+        242.0,
+        32.0
+      ],
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "id": "q1_body",
+      "type": "text",
+      "bbox_px": [
+        394.0,
+        352.0,
+        242.0,
+        58.0
+      ],
+      "semantic_role": "risk_driver_explanation"
+    },
+    {
+      "id": "q2_title",
+      "type": "text",
+      "bbox_px": [
+        846.0,
+        308.0,
+        242.0,
+        32.0
+      ],
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "id": "q2_body",
+      "type": "text",
+      "bbox_px": [
+        844.0,
+        352.0,
+        242.0,
+        58.0
+      ],
+      "semantic_role": "risk_driver_explanation"
+    },
+    {
+      "id": "q3_title",
+      "type": "text",
+      "bbox_px": [
+        396.0,
+        542.0,
+        242.0,
+        32.0
+      ],
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "id": "q3_body",
+      "type": "text",
+      "bbox_px": [
+        394.0,
+        586.0,
+        242.0,
+        58.0
+      ],
+      "semantic_role": "risk_driver_explanation"
+    },
+    {
+      "id": "q4_title",
+      "type": "text",
+      "bbox_px": [
+        846.0,
+        542.0,
+        242.0,
+        32.0
+      ],
+      "semantic_role": "risk_quadrant_label"
+    },
+    {
+      "id": "q4_body",
+      "type": "text",
+      "bbox_px": [
+        844.0,
+        586.0,
+        242.0,
+        58.0
+      ],
+      "semantic_role": "risk_driver_explanation"
+    },
+    {
+      "id": "act1_title",
+      "type": "text",
+      "bbox_px": [
+        1401.0,
+        273.0,
+        386.0,
+        36.0
+      ],
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "id": "act1_body",
+      "type": "text",
+      "bbox_px": [
+        1401.0,
+        316.0,
+        380.0,
+        92.0
+      ],
+      "semantic_role": "governance_action_bullets"
+    },
+    {
+      "id": "act2_title",
+      "type": "text",
+      "bbox_px": [
+        1402.0,
+        460.0,
+        385.0,
+        36.0
+      ],
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "id": "act2_body",
+      "type": "text",
+      "bbox_px": [
+        1402.0,
+        503.0,
+        379.0,
+        92.0
+      ],
+      "semantic_role": "governance_action_bullets"
+    },
+    {
+      "id": "act3_title",
+      "type": "text",
+      "bbox_px": [
+        1402.0,
+        639.0,
+        385.0,
+        36.0
+      ],
+      "semantic_role": "governance_action_heading"
+    },
+    {
+      "id": "act3_body",
+      "type": "text",
+      "bbox_px": [
+        1402.0,
+        682.0,
+        379.0,
+        92.0
+      ],
+      "semantic_role": "governance_action_bullets"
+    },
+    {
+      "id": "kpi1_icon",
+      "type": "icon",
+      "bbox_px": [
+        174.0,
+        876.0,
+        98.0,
+        89.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        296.0,
+        874.0,
+        248.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        296.0,
+        906.0,
+        248.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        296.0,
+        964.0,
+        248.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_icon",
+      "type": "icon",
+      "bbox_px": [
+        610.0,
+        876.0,
+        96.0,
+        87.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        724.0,
+        874.0,
+        250.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        724.0,
+        906.0,
+        250.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        724.0,
+        964.0,
+        250.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi3_icon",
+      "type": "icon",
+      "bbox_px": [
+        1028.0,
+        876.0,
+        90.0,
+        90.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi3_title",
+      "type": "text",
+      "bbox_px": [
+        1144.0,
+        874.0,
+        255.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi3_value",
+      "type": "text",
+      "bbox_px": [
+        1144.0,
+        906.0,
+        255.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi3_note",
+      "type": "text",
+      "bbox_px": [
+        1144.0,
+        964.0,
+        255.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi4_icon",
+      "type": "icon",
+      "bbox_px": [
+        1454.0,
+        876.0,
+        82.0,
+        90.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi4_title",
+      "type": "text",
+      "bbox_px": [
+        1568.0,
+        874.0,
+        250.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi4_value",
+      "type": "text",
+      "bbox_px": [
+        1568.0,
+        906.0,
+        250.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi4_note",
+      "type": "text",
+      "bbox_px": [
+        1568.0,
+        964.0,
+        250.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "text bbox is derived from visible container with safe inset",
+    "rendered preview must be inspected for overflow, excess blank space, and subtle overlap",
+    "protected source crops must pass same-bbox diff and owner-block ring QA"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-117-risk-attribution-governance\\template.pptx",
+      "checked": 20,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-117-risk-attribution-governance\\filled-demo.pptx",
+      "checked": 48,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-image2-templates-20260618\\assets\\tpl-117-risk-attribution-governance\\filled-check.pptx",
+      "checked": 48,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,814 @@
+{
+  "source": "direct_layout_spec",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "evidence_weight_decision_matrix",
+  "major_blocks": [
+    {
+      "id": "header",
+      "type": "title_area",
+      "bbox_px": [
+        38,
+        34,
+        1844,
+        134
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "evidence_matrix",
+      "type": "six_weighted_evidence_cards",
+      "bbox_px": [
+        38,
+        198,
+        1128,
+        606
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "decision_panel",
+      "type": "decision_threshold_risk_panel",
+      "bbox_px": [
+        1200,
+        198,
+        682,
+        626
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_decision_band",
+      "type": "decision_kpi_strip",
+      "bbox_px": [
+        38,
+        842,
+        1844,
+        176
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shape"
+    },
+    {
+      "id": "six_card_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes"
+    },
+    {
+      "id": "weight_bars",
+      "type": "fixed_evidence_bar_style",
+      "route": "native_shapes"
+    },
+    {
+      "id": "right_panel_rows",
+      "type": "fixed_decision_rows",
+      "route": "native_shapes"
+    },
+    {
+      "id": "bottom_kpi_dividers",
+      "type": "fixed_dividers",
+      "route": "native_lines"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "evidence_matrix",
+      "bbox_px": [
+        38,
+        198,
+        1128,
+        606
+      ],
+      "reason": "left evidence grid must remain stable"
+    },
+    {
+      "id": "decision_panel",
+      "bbox_px": [
+        1200,
+        198,
+        682,
+        626
+      ],
+      "reason": "right decision panel must remain stable"
+    },
+    {
+      "id": "bottom_decision_band",
+      "bbox_px": [
+        38,
+        842,
+        1844,
+        176
+      ],
+      "reason": "bottom KPI band must remain stable"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "chip",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        34.0,
+        320.0,
+        32.0
+      ],
+      "semantic_role": "page_category"
+    },
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        62.0,
+        1320.0,
+        56.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        124.0,
+        1460.0,
+        34.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "matrix_title",
+      "type": "text",
+      "bbox_px": [
+        72.0,
+        258.0,
+        340.0,
+        34.0
+      ],
+      "semantic_role": "evidence_matrix_title"
+    },
+    {
+      "id": "matrix_note",
+      "type": "text",
+      "bbox_px": [
+        420.0,
+        260.0,
+        700.0,
+        34.0
+      ],
+      "semantic_role": "evidence_matrix_note"
+    },
+    {
+      "id": "e1_title",
+      "type": "text",
+      "bbox_px": [
+        148.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e1_weight",
+      "type": "text",
+      "bbox_px": [
+        278.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e1_summary",
+      "type": "text",
+      "bbox_px": [
+        92.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e1_judgment",
+      "type": "text",
+      "bbox_px": [
+        294.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "e2_title",
+      "type": "text",
+      "bbox_px": [
+        506.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e2_weight",
+      "type": "text",
+      "bbox_px": [
+        636.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e2_summary",
+      "type": "text",
+      "bbox_px": [
+        450.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e2_judgment",
+      "type": "text",
+      "bbox_px": [
+        652.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "e3_title",
+      "type": "text",
+      "bbox_px": [
+        864.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e3_weight",
+      "type": "text",
+      "bbox_px": [
+        994.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e3_summary",
+      "type": "text",
+      "bbox_px": [
+        808.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e3_judgment",
+      "type": "text",
+      "bbox_px": [
+        1010.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "e4_title",
+      "type": "text",
+      "bbox_px": [
+        148.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e4_weight",
+      "type": "text",
+      "bbox_px": [
+        278.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e4_summary",
+      "type": "text",
+      "bbox_px": [
+        92.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e4_judgment",
+      "type": "text",
+      "bbox_px": [
+        294.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "e5_title",
+      "type": "text",
+      "bbox_px": [
+        506.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e5_weight",
+      "type": "text",
+      "bbox_px": [
+        636.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e5_summary",
+      "type": "text",
+      "bbox_px": [
+        450.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e5_judgment",
+      "type": "text",
+      "bbox_px": [
+        652.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "e6_title",
+      "type": "text",
+      "bbox_px": [
+        864.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "semantic_role": "evidence_dimension"
+    },
+    {
+      "id": "e6_weight",
+      "type": "text",
+      "bbox_px": [
+        994.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "semantic_role": "evidence_weight"
+    },
+    {
+      "id": "e6_summary",
+      "type": "text",
+      "bbox_px": [
+        808.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "semantic_role": "evidence_summary"
+    },
+    {
+      "id": "e6_judgment",
+      "type": "text",
+      "bbox_px": [
+        1010.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "semantic_role": "evidence_judgment"
+    },
+    {
+      "id": "decision_title",
+      "type": "text",
+      "bbox_px": [
+        1222.0,
+        270.0,
+        150.0,
+        32.0
+      ],
+      "semantic_role": "decision_title"
+    },
+    {
+      "id": "decision_level",
+      "type": "text",
+      "bbox_px": [
+        1222.0,
+        308.0,
+        430.0,
+        46.0
+      ],
+      "semantic_role": "decision_level"
+    },
+    {
+      "id": "decision_summary",
+      "type": "text",
+      "bbox_px": [
+        1222.0,
+        360.0,
+        442.0,
+        70.0
+      ],
+      "semantic_role": "decision_summary"
+    },
+    {
+      "id": "confidence_value",
+      "type": "text",
+      "bbox_px": [
+        1672.0,
+        314.0,
+        152.0,
+        48.0
+      ],
+      "semantic_role": "confidence_value"
+    },
+    {
+      "id": "confidence_note",
+      "type": "text",
+      "bbox_px": [
+        1688.0,
+        362.0,
+        120.0,
+        28.0
+      ],
+      "semantic_role": "confidence_note"
+    },
+    {
+      "id": "threshold_title",
+      "type": "text",
+      "bbox_px": [
+        1222.0,
+        446.0,
+        360.0,
+        30.0
+      ],
+      "semantic_role": "threshold_title"
+    },
+    {
+      "id": "th1_label",
+      "type": "text",
+      "bbox_px": [
+        1252.0,
+        491.0,
+        108.0,
+        34.0
+      ],
+      "semantic_role": "threshold_label"
+    },
+    {
+      "id": "th1_value",
+      "type": "text",
+      "bbox_px": [
+        1372.0,
+        491.0,
+        460.0,
+        34.0
+      ],
+      "semantic_role": "threshold_value"
+    },
+    {
+      "id": "th2_label",
+      "type": "text",
+      "bbox_px": [
+        1252.0,
+        541.0,
+        108.0,
+        34.0
+      ],
+      "semantic_role": "threshold_label"
+    },
+    {
+      "id": "th2_value",
+      "type": "text",
+      "bbox_px": [
+        1372.0,
+        541.0,
+        460.0,
+        34.0
+      ],
+      "semantic_role": "threshold_value"
+    },
+    {
+      "id": "th3_label",
+      "type": "text",
+      "bbox_px": [
+        1252.0,
+        591.0,
+        108.0,
+        34.0
+      ],
+      "semantic_role": "threshold_label"
+    },
+    {
+      "id": "th3_value",
+      "type": "text",
+      "bbox_px": [
+        1372.0,
+        591.0,
+        460.0,
+        34.0
+      ],
+      "semantic_role": "threshold_value"
+    },
+    {
+      "id": "risk_title",
+      "type": "text",
+      "bbox_px": [
+        1222.0,
+        646.0,
+        300.0,
+        28.0
+      ],
+      "semantic_role": "risk_title"
+    },
+    {
+      "id": "risk1_label",
+      "type": "text",
+      "bbox_px": [
+        1272.0,
+        685.0,
+        96.0,
+        34.0
+      ],
+      "semantic_role": "risk_label"
+    },
+    {
+      "id": "risk1_status",
+      "type": "text",
+      "bbox_px": [
+        1366.0,
+        685.0,
+        92.0,
+        34.0
+      ],
+      "semantic_role": "risk_status"
+    },
+    {
+      "id": "risk1_text",
+      "type": "text",
+      "bbox_px": [
+        1472.0,
+        685.0,
+        356.0,
+        34.0
+      ],
+      "semantic_role": "risk_control"
+    },
+    {
+      "id": "risk2_label",
+      "type": "text",
+      "bbox_px": [
+        1272.0,
+        733.0,
+        96.0,
+        34.0
+      ],
+      "semantic_role": "risk_label"
+    },
+    {
+      "id": "risk2_status",
+      "type": "text",
+      "bbox_px": [
+        1366.0,
+        733.0,
+        92.0,
+        34.0
+      ],
+      "semantic_role": "risk_status"
+    },
+    {
+      "id": "risk2_text",
+      "type": "text",
+      "bbox_px": [
+        1472.0,
+        733.0,
+        356.0,
+        34.0
+      ],
+      "semantic_role": "risk_control"
+    },
+    {
+      "id": "risk3_label",
+      "type": "text",
+      "bbox_px": [
+        1272.0,
+        781.0,
+        96.0,
+        34.0
+      ],
+      "semantic_role": "risk_label"
+    },
+    {
+      "id": "risk3_status",
+      "type": "text",
+      "bbox_px": [
+        1366.0,
+        781.0,
+        92.0,
+        34.0
+      ],
+      "semantic_role": "risk_status"
+    },
+    {
+      "id": "risk3_text",
+      "type": "text",
+      "bbox_px": [
+        1472.0,
+        781.0,
+        356.0,
+        34.0
+      ],
+      "semantic_role": "risk_control"
+    },
+    {
+      "id": "final_title",
+      "type": "text",
+      "bbox_px": [
+        76.0,
+        864.0,
+        210.0,
+        36.0
+      ],
+      "semantic_role": "final_title"
+    },
+    {
+      "id": "final_action",
+      "type": "text",
+      "bbox_px": [
+        76.0,
+        904.0,
+        470.0,
+        34.0
+      ],
+      "semantic_role": "final_action"
+    },
+    {
+      "id": "final_reason",
+      "type": "text",
+      "bbox_px": [
+        76.0,
+        942.0,
+        528.0,
+        46.0
+      ],
+      "semantic_role": "final_reason"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        718.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        718.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        718.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        1090.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        1090.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        1090.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi3_title",
+      "type": "text",
+      "bbox_px": [
+        1462.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi3_value",
+      "type": "text",
+      "bbox_px": [
+        1462.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi3_note",
+      "type": "text",
+      "bbox_px": [
+        1462.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "all text bboxes are derived from their visual containers",
+    "canary fill must pass PowerPoint BoundWidth/BoundHeight overflow QA",
+    "direct template preview is generated from native PPTX and manually inspected"
+  ]
+}

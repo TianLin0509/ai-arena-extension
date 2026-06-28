@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-113-insight-evolution-feedback\\template.pptx",
+      "checked": 6,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-113-insight-evolution-feedback\\filled-demo.pptx",
+      "checked": 37,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-113-insight-evolution-feedback\\filled-check.pptx",
+      "checked": 33,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

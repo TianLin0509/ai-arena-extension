@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl108-20260617\\assets\\tpl-108-conclusion-evidence-hypothesis\\template.pptx",
+      "checked": 5,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl108-20260617\\assets\\tpl-108-conclusion-evidence-hypothesis\\filled-demo.pptx",
+      "checked": 44,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl108-20260617\\assets\\tpl-108-conclusion-evidence-hypothesis\\filled-check.pptx",
+      "checked": 44,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

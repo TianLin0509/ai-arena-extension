@@ -1,0 +1,30 @@
+{
+  "required_font": "微软雅黑",
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\template.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 135
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\filled-demo.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 135
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\filled-check.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 135
+      },
+      "bad_fonts": []
+    }
+  ],
+  "ok": true
+}

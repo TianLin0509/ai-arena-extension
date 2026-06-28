@@ -1,0 +1,1721 @@
+{
+  "template_id": "tpl-122-risk-control-waterfall",
+  "version": 1,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "risk_control_waterfall",
+  "archetype": "risk_control_loop",
+  "slot_contract": {
+    "overflow_policy": "rewrite_before_shrink",
+    "font_required": "微软雅黑",
+    "text_density": "dense_filled_no_large_blank",
+    "density_rule": "large body boxes require two-line or high-character samples",
+    "image_slots": 0,
+    "icon_slots": 0,
+    "decorative_svg_assets": [
+      "svg/decor.svg"
+    ]
+  },
+  "slots": [
+    {
+      "key": "chip",
+      "type": "text",
+      "role": "label",
+      "zh": "左上角分类标签",
+      "bbox": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "页面类别标签，6-16字。",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_category",
+      "sample": "风险控制 / 瀑布归因",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "font_pt": 22.0,
+      "chars": [
+        16,
+        34
+      ],
+      "single_line": true,
+      "hint": "一句话说明本页核心判断，16-34字。",
+      "style": {
+        "sz_pt": 22.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "sample": "风险控制瀑布图：把风险暴露逐层压降到可交付区间",
+      "llm_target_chars": 34,
+      "llm_hard_cap": 42,
+      "render_hard_cap": 38,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        26,
+        58
+      ],
+      "single_line": true,
+      "hint": "解释本页使用场景和判断口径，26-58字。",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context",
+      "sample": "从基线风险开始，逐项展示控制动作、残余风险和责任闭环，适合方案评审、上线准入和治理复盘。",
+      "llm_target_chars": 58,
+      "llm_hard_cap": 66,
+      "render_hard_cap": 62,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w1风险值",
+      "bbox": [
+        88.0,
+        314.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "100",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w1阶段名称",
+      "bbox": [
+        88.0,
+        360.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "基线暴露",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w1_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w1阶段说明",
+      "bbox": [
+        84.0,
+        392.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        32
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "缺陷、容量和变更风险叠加\n高峰流量暴露最明显\n跨域调用链路需重点观察",
+      "llm_target_chars": 32,
+      "llm_hard_cap": 40,
+      "render_hard_cap": 36,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "w2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w2风险值",
+      "bbox": [
+        264.0,
+        342.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "-18",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w2阶段名称",
+      "bbox": [
+        264.0,
+        388.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "监控补齐",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w2_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w2阶段说明",
+      "bbox": [
+        260.0,
+        420.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        29
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "补齐核心链路指标\n覆盖边界条件和异常样本\n把不可见风险转为事件",
+      "llm_target_chars": 29,
+      "llm_hard_cap": 37,
+      "render_hard_cap": 33,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "w3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w3风险值",
+      "bbox": [
+        440.0,
+        370.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "-24",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w3阶段名称",
+      "bbox": [
+        440.0,
+        416.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "灰度隔离",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w3_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w3阶段说明",
+      "bbox": [
+        436.0,
+        448.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        33
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "按用户、区域和能力分层放量\n失败影响面限定到小范围\n回滚窗口保持可执行",
+      "llm_target_chars": 33,
+      "llm_hard_cap": 41,
+      "render_hard_cap": 37,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "w4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w4风险值",
+      "bbox": [
+        616.0,
+        398.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "-17",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w4阶段名称",
+      "bbox": [
+        616.0,
+        444.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "熔断兜底",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w4_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w4阶段说明",
+      "bbox": [
+        612.0,
+        476.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        27
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "配置旁路和降级策略\n覆盖长尾异常组合\n触发后记录证据并复盘",
+      "llm_target_chars": 27,
+      "llm_hard_cap": 35,
+      "render_hard_cap": 31,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "w5_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w5风险值",
+      "bbox": [
+        792.0,
+        426.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "-21",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w5_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w5阶段名称",
+      "bbox": [
+        792.0,
+        472.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "验收回归",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w5_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w5阶段说明",
+      "bbox": [
+        788.0,
+        504.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "用标准用例和影子流量校验\n叠加压测结果确认稳定\n避免用稳定性换收益",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "w6_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "w6风险值",
+      "bbox": [
+        968.0,
+        454.0,
+        142.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        8
+      ],
+      "single_line": true,
+      "hint": "瀑布图阶段值。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_value",
+      "sample": "20",
+      "llm_target_chars": 8,
+      "llm_hard_cap": 16,
+      "render_hard_cap": 12,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w6_title",
+      "type": "text",
+      "role": "label",
+      "zh": "w6阶段名称",
+      "bbox": [
+        968.0,
+        500.0,
+        142.0,
+        28.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "瀑布阶段名称。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_title",
+      "sample": "残余风险",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "w6_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "w6阶段说明",
+      "bbox": [
+        964.0,
+        532.0,
+        150.0,
+        112.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        22,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作和证据。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "waterfall_detail",
+      "sample": "剩余风险集中在极端场景\n进入上线观察期管理\n同步设置止损阈值",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "c1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "c1控制项",
+      "bbox": [
+        1242.0,
+        290.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "控制项名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_title",
+      "sample": "观测覆盖",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c1_owner",
+      "type": "text",
+      "role": "label",
+      "zh": "c1责任口径",
+      "bbox": [
+        1720.0,
+        288.0,
+        104.0,
+        28.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "责任或状态标签。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_owner",
+      "sample": "平台侧",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c1_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "c1控制说明",
+      "bbox": [
+        1242.0,
+        318.0,
+        582.0,
+        38.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        26,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作、频率和验收证据。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_detail",
+      "sample": "核心指标覆盖率需达到 95% 以上\n告警规则关联处置脚本和负责人",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 26,
+      "preferred_lines": 3
+    },
+    {
+      "key": "c2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "c2控制项",
+      "bbox": [
+        1242.0,
+        386.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "控制项名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_title",
+      "sample": "变更准入",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c2_owner",
+      "type": "text",
+      "role": "label",
+      "zh": "c2责任口径",
+      "bbox": [
+        1720.0,
+        384.0,
+        104.0,
+        28.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "责任或状态标签。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_owner",
+      "sample": "研发侧",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c2_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "c2控制说明",
+      "bbox": [
+        1242.0,
+        414.0,
+        582.0,
+        38.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        26,
+        26
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作、频率和验收证据。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_detail",
+      "sample": "每次发布绑定灰度批次和回滚条件\n禁止无证据扩大影响范围",
+      "llm_target_chars": 26,
+      "llm_hard_cap": 34,
+      "render_hard_cap": 30,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 26,
+      "preferred_lines": 3
+    },
+    {
+      "key": "c3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "c3控制项",
+      "bbox": [
+        1242.0,
+        482.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "控制项名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_title",
+      "sample": "容量护栏",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c3_owner",
+      "type": "text",
+      "role": "label",
+      "zh": "c3责任口径",
+      "bbox": [
+        1720.0,
+        480.0,
+        104.0,
+        28.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "责任或状态标签。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_owner",
+      "sample": "运维侧",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c3_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "c3控制说明",
+      "bbox": [
+        1242.0,
+        510.0,
+        582.0,
+        38.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        26,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作、频率和验收证据。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_detail",
+      "sample": "按 P95 与峰值倍率双阈值管控\n容量不足时降低非核心能力优先级",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 26,
+      "preferred_lines": 3
+    },
+    {
+      "key": "c4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "c4控制项",
+      "bbox": [
+        1242.0,
+        578.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "控制项名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_title",
+      "sample": "收益复核",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c4_owner",
+      "type": "text",
+      "role": "label",
+      "zh": "c4责任口径",
+      "bbox": [
+        1720.0,
+        576.0,
+        104.0,
+        28.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "责任或状态标签。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_owner",
+      "sample": "业务侧",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c4_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "c4控制说明",
+      "bbox": [
+        1242.0,
+        606.0,
+        582.0,
+        38.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        26,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作、频率和验收证据。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_detail",
+      "sample": "收益口径与稳定性口径共同验收\n连续两轮回撤即暂停扩面并复盘",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 26,
+      "preferred_lines": 3
+    },
+    {
+      "key": "c5_title",
+      "type": "text",
+      "role": "header",
+      "zh": "c5控制项",
+      "bbox": [
+        1242.0,
+        674.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "控制项名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_title",
+      "sample": "例外处理",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c5_owner",
+      "type": "text",
+      "role": "label",
+      "zh": "c5责任口径",
+      "bbox": [
+        1720.0,
+        672.0,
+        104.0,
+        28.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "责任或状态标签。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_owner",
+      "sample": "治理组",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "c5_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "c5控制说明",
+      "bbox": [
+        1242.0,
+        702.0,
+        582.0,
+        38.0
+      ],
+      "font_pt": 7.2,
+      "chars": [
+        26,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行说明控制动作、频率和验收证据。",
+      "style": {
+        "sz_pt": 7.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "control_detail",
+      "sample": "记录风险接受人、有效期和退出条件\n避免临时策略长期化并复盘",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 26,
+      "preferred_lines": 3
+    },
+    {
+      "key": "bottom_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部结论标题",
+      "bbox": [
+        76.0,
+        872.0,
+        180.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险闸门标题。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary_title",
+      "sample": "上线判断",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "bottom_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "底部结论说明",
+      "bbox": [
+        76.0,
+        904.0,
+        248.0,
+        80.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        34,
+        48
+      ],
+      "single_line": false,
+      "hint": "两到三行上线判断。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary",
+      "sample": "当前控制组合可将风险从高暴露压降到观察区间\n建议小流量上线，同时保留熔断、回滚和收益复核三条硬门槛",
+      "llm_target_chars": 48,
+      "llm_hard_cap": 56,
+      "render_hard_cap": 52,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 34,
+      "preferred_lines": 3
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI1说明",
+      "bbox": [
+        434.0,
+        832.0,
+        172.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "风险闸门口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "从100降至20",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI1数值",
+      "bbox": [
+        438.0,
+        928.0,
+        164.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标值。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "-80%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI1标题",
+      "bbox": [
+        424.0,
+        966.0,
+        192.0,
+        22.0
+      ],
+      "font_pt": 8.1,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标名称。",
+      "style": {
+        "sz_pt": 8.1,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "风险压降",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI2说明",
+      "bbox": [
+        734.0,
+        832.0,
+        172.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "风险闸门口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "上线准入线",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI2数值",
+      "bbox": [
+        738.0,
+        928.0,
+        164.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标值。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "95%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI2标题",
+      "bbox": [
+        724.0,
+        966.0,
+        192.0,
+        22.0
+      ],
+      "font_pt": 8.1,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标名称。",
+      "style": {
+        "sz_pt": 8.1,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "监控覆盖",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI3说明",
+      "bbox": [
+        1034.0,
+        832.0,
+        172.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "风险闸门口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "触发即执行",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI3数值",
+      "bbox": [
+        1038.0,
+        928.0,
+        164.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标值。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "30min",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI3标题",
+      "bbox": [
+        1024.0,
+        966.0,
+        192.0,
+        22.0
+      ],
+      "font_pt": 8.1,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标名称。",
+      "style": {
+        "sz_pt": 8.1,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "回滚窗口",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI4说明",
+      "bbox": [
+        1334.0,
+        832.0,
+        172.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "风险闸门口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "稳定后扩面",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI4数值",
+      "bbox": [
+        1338.0,
+        928.0,
+        164.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标值。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "14天",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI4标题",
+      "bbox": [
+        1324.0,
+        966.0,
+        192.0,
+        22.0
+      ],
+      "font_pt": 8.1,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险闸门指标名称。",
+      "style": {
+        "sz_pt": 8.1,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "观察周期",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    }
+  ]
+}

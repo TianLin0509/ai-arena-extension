@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\template.pptx",
+      "checked": 7,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\filled-demo.pptx",
+      "checked": 35,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-115-design-tradeoff-matrix\\filled-check.pptx",
+      "checked": 35,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

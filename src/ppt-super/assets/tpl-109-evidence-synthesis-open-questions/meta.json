@@ -1,0 +1,43 @@
+{
+  "template_id": "tpl-109-evidence-synthesis-open-questions",
+  "source_id": "tech-template-v2-18.png",
+  "name_cn": "证据合成与开放问题",
+  "layout_family": "evidence_synthesis_open_questions",
+  "archetype": "evidence_to_risk_argument",
+  "template_fit_score": 89,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "研究总结",
+    "实验复盘",
+    "证据汇总",
+    "开放问题",
+    "评审答辩"
+  ],
+  "avoid": [
+    "封面页",
+    "纯流程页",
+    "单一大图页",
+    "纯组织架构图"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留参考图的主要块结构、固定连接/箭头/卡片节奏；内部图表和步骤示意作为可替换 image slots。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 19.767
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 24.465
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 33,
+      "image_slots": 3,
+      "total_slots": 36
+    }
+  }
+}

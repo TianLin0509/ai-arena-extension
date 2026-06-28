@@ -1,0 +1,1483 @@
+{
+  "source": "C:\\Users\\lintian\\.codex\\generated_images\\019ed5fe-9515-7780-b1ce-9a50e3c4b48e\\ig_02b9163f1eedc9d0016a33cfeeac308199a270d488346203cf.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "input_panel",
+      "type": "input_conditions",
+      "bbox_px": [
+        28,
+        184,
+        302,
+        556
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "capability_domains",
+      "type": "four_capability_cards",
+      "bbox_px": [
+        338,
+        192,
+        1182,
+        538
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "central_loop",
+      "type": "four_node_loop",
+      "bbox_px": [
+        650,
+        190,
+        560,
+        520
+      ],
+      "route": "native_shapes_text_connectors"
+    },
+    {
+      "id": "validation_panel",
+      "type": "validation_checklist",
+      "bbox_px": [
+        1538,
+        184,
+        354,
+        556
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "kpi_strip",
+      "type": "four_metric_strip",
+      "bbox_px": [
+        38,
+        790,
+        1846,
+        160
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shapes",
+      "reason": "keeps report-page hierarchy consistent"
+    },
+    {
+      "id": "panel_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes",
+      "reason": "stable reusable visual grammar"
+    },
+    {
+      "id": "connectors_and_rules",
+      "type": "fixed_connectors",
+      "route": "native_lines",
+      "reason": "layout skeleton should not vary by topic"
+    },
+    {
+      "id": "fixed_reference_icons",
+      "type": "fixed_icon_vectors",
+      "route": "native_vector_fixed_graphic",
+      "reason": "source icons are part of the visual grammar and must not be replaced by generic text glyphs or low-fidelity SVG"
+    }
+  ],
+  "protected_regions": [
+    {
+      "id": "input_header_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        68,
+        208,
+        34,
+        36
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "input1_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        58,
+        306,
+        54,
+        50
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "input2_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        58,
+        470,
+        50,
+        50
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "input3_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        58,
+        620,
+        50,
+        56
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "cap1_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        366,
+        222,
+        64,
+        60
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "cap2_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        366,
+        548,
+        64,
+        58
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "cap3_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1288,
+        218,
+        48,
+        58
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "cap4_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1286,
+        546,
+        44,
+        58
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "node1_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        732,
+        222,
+        60,
+        42
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "node2_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1112,
+        218,
+        42,
+        44
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "node3_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1088,
+        518,
+        80,
+        78
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "node4_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        716,
+        532,
+        90,
+        62
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "validation_header_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1624,
+        204,
+        40,
+        40
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "check1_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1572,
+        292,
+        48,
+        42
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "check2_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1572,
+        382,
+        48,
+        42
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "check3_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1572,
+        470,
+        48,
+        44
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "check4_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1572,
+        558,
+        48,
+        46
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "check5_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1572,
+        646,
+        48,
+        44
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "kpi1_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        58,
+        832,
+        108,
+        118
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi2_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        534,
+        832,
+        108,
+        114
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi3_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        988,
+        832,
+        114,
+        116
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi4_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        1448,
+        832,
+        122,
+        118
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "footer_brand_logo_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1110,
+        1016,
+        168,
+        56
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "input_panel",
+      "bbox_px": [
+        28,
+        184,
+        302,
+        556
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "input1_card",
+      "bbox_px": [
+        50,
+        270,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "input2_card",
+      "bbox_px": [
+        50,
+        416,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "input3_card",
+      "bbox_px": [
+        50,
+        562,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "cap1_card",
+      "bbox_px": [
+        338,
+        192,
+        292,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "cap2_card",
+      "bbox_px": [
+        338,
+        500,
+        292,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "cap3_card",
+      "bbox_px": [
+        1256,
+        192,
+        264,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "cap4_card",
+      "bbox_px": [
+        1256,
+        500,
+        264,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "validation_panel",
+      "bbox_px": [
+        1538,
+        184,
+        354,
+        556
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "check1_row",
+      "bbox_px": [
+        1556,
+        270,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "check2_row",
+      "bbox_px": [
+        1556,
+        356,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "check3_row",
+      "bbox_px": [
+        1556,
+        442,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "check4_row",
+      "bbox_px": [
+        1556,
+        528,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "check5_row",
+      "bbox_px": [
+        1556,
+        614,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi1_card",
+      "bbox_px": [
+        38,
+        790,
+        450,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi2_card",
+      "bbox_px": [
+        512,
+        790,
+        436,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi3_card",
+      "bbox_px": [
+        970,
+        790,
+        433,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi4_card",
+      "bbox_px": [
+        1430,
+        790,
+        458,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "footer_area",
+      "bbox_px": [
+        610,
+        984,
+        700,
+        82
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    }
+  ],
+  "crop_margin_gates": [
+    {
+      "id": "kpi1_icon_default",
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "reason": "source crop must include safety padding so fixed logo/icon is not visually clipped"
+    },
+    {
+      "id": "kpi2_icon_default",
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "reason": "source crop must include safety padding so fixed logo/icon is not visually clipped"
+    },
+    {
+      "id": "kpi3_icon_default",
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "reason": "source crop must include safety padding so fixed logo/icon is not visually clipped"
+    },
+    {
+      "id": "kpi4_icon_default",
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "reason": "source crop must include safety padding so fixed logo/icon is not visually clipped"
+    },
+    {
+      "id": "footer_brand_logo_default",
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "reason": "source crop must include safety padding so fixed logo/icon is not visually clipped"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        46.0,
+        1440.0,
+        68.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        120.0,
+        1500.0,
+        36.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "input_header_icon",
+      "type": "icon",
+      "bbox_px": [
+        68.0,
+        208.0,
+        34.0,
+        36.0
+      ],
+      "semantic_role": "section_header_icon"
+    },
+    {
+      "id": "input1_icon",
+      "type": "icon",
+      "bbox_px": [
+        58.0,
+        306.0,
+        54.0,
+        50.0
+      ],
+      "semantic_role": "input_condition_icon"
+    },
+    {
+      "id": "input1_title",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        292.0,
+        164.0,
+        30.0
+      ],
+      "semantic_role": "input_condition_label"
+    },
+    {
+      "id": "input1_body",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        324.0,
+        164.0,
+        58.0
+      ],
+      "semantic_role": "input_condition_detail"
+    },
+    {
+      "id": "input2_icon",
+      "type": "icon",
+      "bbox_px": [
+        58.0,
+        470.0,
+        50.0,
+        50.0
+      ],
+      "semantic_role": "input_condition_icon"
+    },
+    {
+      "id": "input2_title",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        438.0,
+        164.0,
+        30.0
+      ],
+      "semantic_role": "input_condition_label"
+    },
+    {
+      "id": "input2_body",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        470.0,
+        164.0,
+        58.0
+      ],
+      "semantic_role": "input_condition_detail"
+    },
+    {
+      "id": "input3_icon",
+      "type": "icon",
+      "bbox_px": [
+        58.0,
+        620.0,
+        50.0,
+        56.0
+      ],
+      "semantic_role": "input_condition_icon"
+    },
+    {
+      "id": "input3_title",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        584.0,
+        164.0,
+        30.0
+      ],
+      "semantic_role": "input_condition_label"
+    },
+    {
+      "id": "input3_body",
+      "type": "text",
+      "bbox_px": [
+        126.0,
+        616.0,
+        164.0,
+        58.0
+      ],
+      "semantic_role": "input_condition_detail"
+    },
+    {
+      "id": "cap1_title",
+      "type": "text",
+      "bbox_px": [
+        442.0,
+        212.0,
+        170.0,
+        42.0
+      ],
+      "semantic_role": "capability_domain_heading"
+    },
+    {
+      "id": "cap1_body",
+      "type": "text",
+      "bbox_px": [
+        372.0,
+        282.0,
+        224.0,
+        58.0
+      ],
+      "semantic_role": "capability_domain_bullets"
+    },
+    {
+      "id": "cap1_tag",
+      "type": "text",
+      "bbox_px": [
+        382.0,
+        380.0,
+        204.0,
+        20.0
+      ],
+      "semantic_role": "capability_domain_tags"
+    },
+    {
+      "id": "cap1_icon",
+      "type": "icon",
+      "bbox_px": [
+        366.0,
+        222.0,
+        64.0,
+        60.0
+      ],
+      "semantic_role": "capability_icon"
+    },
+    {
+      "id": "cap2_title",
+      "type": "text",
+      "bbox_px": [
+        442.0,
+        520.0,
+        170.0,
+        42.0
+      ],
+      "semantic_role": "capability_domain_heading"
+    },
+    {
+      "id": "cap2_body",
+      "type": "text",
+      "bbox_px": [
+        372.0,
+        590.0,
+        224.0,
+        58.0
+      ],
+      "semantic_role": "capability_domain_bullets"
+    },
+    {
+      "id": "cap2_tag",
+      "type": "text",
+      "bbox_px": [
+        382.0,
+        688.0,
+        204.0,
+        20.0
+      ],
+      "semantic_role": "capability_domain_tags"
+    },
+    {
+      "id": "cap2_icon",
+      "type": "icon",
+      "bbox_px": [
+        366.0,
+        548.0,
+        64.0,
+        58.0
+      ],
+      "semantic_role": "capability_icon"
+    },
+    {
+      "id": "cap3_title",
+      "type": "text",
+      "bbox_px": [
+        1348.0,
+        212.0,
+        154.0,
+        42.0
+      ],
+      "semantic_role": "capability_domain_heading"
+    },
+    {
+      "id": "cap3_body",
+      "type": "text",
+      "bbox_px": [
+        1290.0,
+        282.0,
+        196.0,
+        58.0
+      ],
+      "semantic_role": "capability_domain_bullets"
+    },
+    {
+      "id": "cap3_tag",
+      "type": "text",
+      "bbox_px": [
+        1300.0,
+        380.0,
+        176.0,
+        20.0
+      ],
+      "semantic_role": "capability_domain_tags"
+    },
+    {
+      "id": "cap3_icon",
+      "type": "icon",
+      "bbox_px": [
+        1288.0,
+        218.0,
+        48.0,
+        58.0
+      ],
+      "semantic_role": "capability_icon"
+    },
+    {
+      "id": "cap4_title",
+      "type": "text",
+      "bbox_px": [
+        1348.0,
+        520.0,
+        154.0,
+        42.0
+      ],
+      "semantic_role": "capability_domain_heading"
+    },
+    {
+      "id": "cap4_body",
+      "type": "text",
+      "bbox_px": [
+        1290.0,
+        590.0,
+        196.0,
+        58.0
+      ],
+      "semantic_role": "capability_domain_bullets"
+    },
+    {
+      "id": "cap4_tag",
+      "type": "text",
+      "bbox_px": [
+        1300.0,
+        688.0,
+        176.0,
+        20.0
+      ],
+      "semantic_role": "capability_domain_tags"
+    },
+    {
+      "id": "cap4_icon",
+      "type": "icon",
+      "bbox_px": [
+        1286.0,
+        546.0,
+        44.0,
+        58.0
+      ],
+      "semantic_role": "capability_icon"
+    },
+    {
+      "id": "node1_icon",
+      "type": "icon",
+      "bbox_px": [
+        732.0,
+        222.0,
+        60.0,
+        42.0
+      ],
+      "semantic_role": "loop_node_icon"
+    },
+    {
+      "id": "node1_title",
+      "type": "text",
+      "bbox_px": [
+        694.0,
+        282.0,
+        132.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_label"
+    },
+    {
+      "id": "node1_body",
+      "type": "text",
+      "bbox_px": [
+        690.0,
+        320.0,
+        140.0,
+        42.0
+      ],
+      "semantic_role": "loop_node_detail"
+    },
+    {
+      "id": "node2_icon",
+      "type": "icon",
+      "bbox_px": [
+        1112.0,
+        218.0,
+        42.0,
+        44.0
+      ],
+      "semantic_role": "loop_node_icon"
+    },
+    {
+      "id": "node2_title",
+      "type": "text",
+      "bbox_px": [
+        1064.0,
+        282.0,
+        132.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_label"
+    },
+    {
+      "id": "node2_body",
+      "type": "text",
+      "bbox_px": [
+        1060.0,
+        320.0,
+        140.0,
+        42.0
+      ],
+      "semantic_role": "loop_node_detail"
+    },
+    {
+      "id": "node3_icon",
+      "type": "icon",
+      "bbox_px": [
+        1088.0,
+        518.0,
+        80.0,
+        78.0
+      ],
+      "semantic_role": "loop_node_icon"
+    },
+    {
+      "id": "node3_title",
+      "type": "text",
+      "bbox_px": [
+        1064.0,
+        598.0,
+        132.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_label"
+    },
+    {
+      "id": "node3_body",
+      "type": "text",
+      "bbox_px": [
+        1060.0,
+        636.0,
+        140.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_detail"
+    },
+    {
+      "id": "node4_icon",
+      "type": "icon",
+      "bbox_px": [
+        716.0,
+        532.0,
+        90.0,
+        62.0
+      ],
+      "semantic_role": "loop_node_icon"
+    },
+    {
+      "id": "node4_title",
+      "type": "text",
+      "bbox_px": [
+        694.0,
+        598.0,
+        132.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_label"
+    },
+    {
+      "id": "node4_body",
+      "type": "text",
+      "bbox_px": [
+        690.0,
+        636.0,
+        140.0,
+        38.0
+      ],
+      "semantic_role": "loop_node_detail"
+    },
+    {
+      "id": "center_title",
+      "type": "text",
+      "bbox_px": [
+        860.0,
+        372.0,
+        170.0,
+        50.0
+      ],
+      "semantic_role": "loop_center_heading"
+    },
+    {
+      "id": "center_body",
+      "type": "text",
+      "bbox_px": [
+        830.0,
+        430.0,
+        230.0,
+        30.0
+      ],
+      "semantic_role": "loop_center_value"
+    },
+    {
+      "id": "validation_header_icon",
+      "type": "icon",
+      "bbox_px": [
+        1624.0,
+        204.0,
+        40.0,
+        40.0
+      ],
+      "semantic_role": "section_header_icon"
+    },
+    {
+      "id": "check1_icon",
+      "type": "icon",
+      "bbox_px": [
+        1572.0,
+        292.0,
+        48.0,
+        42.0
+      ],
+      "semantic_role": "validation_check_icon"
+    },
+    {
+      "id": "check1_title",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        279.0,
+        164.0,
+        26.0
+      ],
+      "semantic_role": "validation_check_label"
+    },
+    {
+      "id": "check1_body",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        307.0,
+        164.0,
+        22.0
+      ],
+      "semantic_role": "validation_check_detail"
+    },
+    {
+      "id": "check2_icon",
+      "type": "icon",
+      "bbox_px": [
+        1572.0,
+        382.0,
+        48.0,
+        42.0
+      ],
+      "semantic_role": "validation_check_icon"
+    },
+    {
+      "id": "check2_title",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        365.0,
+        164.0,
+        26.0
+      ],
+      "semantic_role": "validation_check_label"
+    },
+    {
+      "id": "check2_body",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        393.0,
+        164.0,
+        22.0
+      ],
+      "semantic_role": "validation_check_detail"
+    },
+    {
+      "id": "check3_icon",
+      "type": "icon",
+      "bbox_px": [
+        1572.0,
+        470.0,
+        48.0,
+        44.0
+      ],
+      "semantic_role": "validation_check_icon"
+    },
+    {
+      "id": "check3_title",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        451.0,
+        164.0,
+        26.0
+      ],
+      "semantic_role": "validation_check_label"
+    },
+    {
+      "id": "check3_body",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        479.0,
+        164.0,
+        22.0
+      ],
+      "semantic_role": "validation_check_detail"
+    },
+    {
+      "id": "check4_icon",
+      "type": "icon",
+      "bbox_px": [
+        1572.0,
+        558.0,
+        48.0,
+        46.0
+      ],
+      "semantic_role": "validation_check_icon"
+    },
+    {
+      "id": "check4_title",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        537.0,
+        164.0,
+        26.0
+      ],
+      "semantic_role": "validation_check_label"
+    },
+    {
+      "id": "check4_body",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        565.0,
+        164.0,
+        22.0
+      ],
+      "semantic_role": "validation_check_detail"
+    },
+    {
+      "id": "check5_icon",
+      "type": "icon",
+      "bbox_px": [
+        1572.0,
+        646.0,
+        48.0,
+        44.0
+      ],
+      "semantic_role": "validation_check_icon"
+    },
+    {
+      "id": "check5_title",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        623.0,
+        164.0,
+        26.0
+      ],
+      "semantic_role": "validation_check_label"
+    },
+    {
+      "id": "check5_body",
+      "type": "text",
+      "bbox_px": [
+        1650.0,
+        651.0,
+        164.0,
+        22.0
+      ],
+      "semantic_role": "validation_check_detail"
+    },
+    {
+      "id": "kpi1_icon",
+      "type": "icon",
+      "bbox_px": [
+        58.0,
+        832.0,
+        108.0,
+        118.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        184.0,
+        812.0,
+        280.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        184.0,
+        844.0,
+        280.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        184.0,
+        902.0,
+        280.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_icon",
+      "type": "icon",
+      "bbox_px": [
+        534.0,
+        832.0,
+        108.0,
+        114.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        660.0,
+        812.0,
+        264.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        660.0,
+        844.0,
+        264.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        660.0,
+        902.0,
+        264.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi3_icon",
+      "type": "icon",
+      "bbox_px": [
+        988.0,
+        832.0,
+        114.0,
+        116.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi3_title",
+      "type": "text",
+      "bbox_px": [
+        1120.0,
+        812.0,
+        259.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi3_value",
+      "type": "text",
+      "bbox_px": [
+        1120.0,
+        844.0,
+        259.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi3_note",
+      "type": "text",
+      "bbox_px": [
+        1120.0,
+        902.0,
+        259.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi4_icon",
+      "type": "icon",
+      "bbox_px": [
+        1448.0,
+        832.0,
+        122.0,
+        118.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi4_title",
+      "type": "text",
+      "bbox_px": [
+        1588.0,
+        812.0,
+        276.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi4_value",
+      "type": "text",
+      "bbox_px": [
+        1588.0,
+        844.0,
+        276.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi4_note",
+      "type": "text",
+      "bbox_px": [
+        1588.0,
+        902.0,
+        276.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "footer_brand_logo",
+      "type": "icon",
+      "bbox_px": [
+        1110.0,
+        1016.0,
+        168.0,
+        56.0
+      ],
+      "semantic_role": "brand_logo"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "text bbox is derived from visible container with safe inset",
+    "rendered preview must be inspected for overflow, excess blank space, and subtle overlap",
+    "protected source crops must pass same-bbox diff and owner-block ring QA",
+    "protected source crops with crop-margin gates must keep visible subject away from crop edges"
+  ]
+}

@@ -1,0 +1,705 @@
+{
+  "ok": true,
+  "failures": [],
+  "fixed_crops": [
+    {
+      "id": "input_header_icon_default",
+      "bbox_px": [
+        68,
+        208,
+        34,
+        36
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "input1_icon_default",
+      "bbox_px": [
+        58,
+        306,
+        54,
+        50
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "input2_icon_default",
+      "bbox_px": [
+        58,
+        470,
+        50,
+        50
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "input3_icon_default",
+      "bbox_px": [
+        58,
+        620,
+        50,
+        56
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "cap1_icon_default",
+      "bbox_px": [
+        366,
+        222,
+        64,
+        60
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "cap2_icon_default",
+      "bbox_px": [
+        366,
+        548,
+        64,
+        58
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "cap3_icon_default",
+      "bbox_px": [
+        1288,
+        218,
+        48,
+        58
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "cap4_icon_default",
+      "bbox_px": [
+        1286,
+        546,
+        44,
+        58
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "node1_icon_default",
+      "bbox_px": [
+        732,
+        222,
+        60,
+        42
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "node2_icon_default",
+      "bbox_px": [
+        1112,
+        218,
+        42,
+        44
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "node3_icon_default",
+      "bbox_px": [
+        1088,
+        518,
+        80,
+        78
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "node4_icon_default",
+      "bbox_px": [
+        716,
+        532,
+        90,
+        62
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "validation_header_icon_default",
+      "bbox_px": [
+        1624,
+        204,
+        40,
+        40
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "check1_icon_default",
+      "bbox_px": [
+        1572,
+        292,
+        48,
+        42
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "check2_icon_default",
+      "bbox_px": [
+        1572,
+        382,
+        48,
+        42
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "check3_icon_default",
+      "bbox_px": [
+        1572,
+        470,
+        48,
+        44
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "check4_icon_default",
+      "bbox_px": [
+        1572,
+        558,
+        48,
+        46
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "check5_icon_default",
+      "bbox_px": [
+        1572,
+        646,
+        48,
+        44
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi1_icon_default",
+      "bbox_px": [
+        58,
+        832,
+        108,
+        118
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi2_icon_default",
+      "bbox_px": [
+        534,
+        832,
+        108,
+        114
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi3_icon_default",
+      "bbox_px": [
+        988,
+        832,
+        114,
+        116
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi4_icon_default",
+      "bbox_px": [
+        1448,
+        832,
+        122,
+        118
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "footer_brand_logo_default",
+      "bbox_px": [
+        1110,
+        1016,
+        168,
+        56
+      ],
+      "mae": 0.0
+    }
+  ],
+  "crop_margins": [
+    {
+      "id": "kpi1_icon_default",
+      "bbox_px": [
+        58,
+        832,
+        108,
+        118
+      ],
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 7,
+        "top": 5,
+        "right": 5,
+        "bottom": 15
+      }
+    },
+    {
+      "id": "kpi2_icon_default",
+      "bbox_px": [
+        534,
+        832,
+        108,
+        114
+      ],
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 6,
+        "top": 5,
+        "right": 5,
+        "bottom": 11
+      }
+    },
+    {
+      "id": "kpi3_icon_default",
+      "bbox_px": [
+        988,
+        832,
+        114,
+        116
+      ],
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 6,
+        "top": 5,
+        "right": 11,
+        "bottom": 13
+      }
+    },
+    {
+      "id": "kpi4_icon_default",
+      "bbox_px": [
+        1448,
+        832,
+        122,
+        118
+      ],
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 4,
+        "top": 5,
+        "right": 21,
+        "bottom": 15
+      }
+    },
+    {
+      "id": "footer_brand_logo_default",
+      "bbox_px": [
+        1110,
+        1016,
+        168,
+        56
+      ],
+      "min_margin_px": 4,
+      "subject": "saturated_or_dark",
+      "margins_px": {
+        "left": 5,
+        "top": 5,
+        "right": 28,
+        "bottom": 21
+      }
+    }
+  ],
+  "owner_blocks": [
+    {
+      "id": "input_panel",
+      "bbox_px": [
+        28,
+        184,
+        302,
+        556
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 6.7235,
+      "ring_max_mae": 9.4901,
+      "ring_edge_mae": [
+        6.7171,
+        9.4901,
+        5.9876,
+        4.6993
+      ]
+    },
+    {
+      "id": "input1_card",
+      "bbox_px": [
+        50,
+        270,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 18.7519,
+      "ring_max_mae": 49.7555,
+      "ring_edge_mae": [
+        8.2448,
+        49.7555,
+        4.273,
+        12.7345
+      ]
+    },
+    {
+      "id": "input2_card",
+      "bbox_px": [
+        50,
+        416,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 7.9479,
+      "ring_max_mae": 13.0391,
+      "ring_edge_mae": [
+        6.51,
+        4.3895,
+        7.8532,
+        13.0391
+      ]
+    },
+    {
+      "id": "input3_card",
+      "bbox_px": [
+        50,
+        562,
+        254,
+        116
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 15.5466,
+      "ring_max_mae": 35.8853,
+      "ring_edge_mae": [
+        6.9364,
+        35.8853,
+        6.6569,
+        12.7078
+      ]
+    },
+    {
+      "id": "cap1_card",
+      "bbox_px": [
+        338,
+        192,
+        292,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 7.0962,
+      "ring_max_mae": 7.8197,
+      "ring_edge_mae": [
+        7.4364,
+        7.8197,
+        7.2951,
+        5.8336
+      ]
+    },
+    {
+      "id": "cap2_card",
+      "bbox_px": [
+        338,
+        500,
+        292,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 8.4052,
+      "ring_max_mae": 14.8023,
+      "ring_edge_mae": [
+        5.2347,
+        14.8023,
+        7.7226,
+        5.8613
+      ]
+    },
+    {
+      "id": "cap3_card",
+      "bbox_px": [
+        1256,
+        192,
+        264,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 8.779,
+      "ring_max_mae": 14.5217,
+      "ring_edge_mae": [
+        7.7308,
+        7.7433,
+        14.5217,
+        5.1203
+      ]
+    },
+    {
+      "id": "cap4_card",
+      "bbox_px": [
+        1256,
+        500,
+        264,
+        230
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 9.3613,
+      "ring_max_mae": 13.7442,
+      "ring_edge_mae": [
+        5.2256,
+        13.3092,
+        13.7442,
+        5.1661
+      ]
+    },
+    {
+      "id": "validation_panel",
+      "bbox_px": [
+        1538,
+        184,
+        354,
+        556
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 10.0023,
+      "ring_max_mae": 14.3283,
+      "ring_edge_mae": [
+        6.8196,
+        14.3283,
+        5.8375,
+        13.0236
+      ]
+    },
+    {
+      "id": "check1_row",
+      "bbox_px": [
+        1556,
+        270,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 10.8054,
+      "ring_max_mae": 26.7412,
+      "ring_edge_mae": [
+        3.2042,
+        26.7412,
+        3.6803,
+        9.596
+      ]
+    },
+    {
+      "id": "check2_row",
+      "bbox_px": [
+        1556,
+        356,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 13.9407,
+      "ring_max_mae": 39.7004,
+      "ring_edge_mae": [
+        2.5478,
+        39.7004,
+        3.9025,
+        9.6121
+      ]
+    },
+    {
+      "id": "check3_row",
+      "bbox_px": [
+        1556,
+        442,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 16.1065,
+      "ring_max_mae": 43.6996,
+      "ring_edge_mae": [
+        6.3274,
+        43.6996,
+        4.3045,
+        10.0944
+      ]
+    },
+    {
+      "id": "check4_row",
+      "bbox_px": [
+        1556,
+        528,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 13.5722,
+      "ring_max_mae": 33.9661,
+      "ring_edge_mae": [
+        7.2116,
+        33.9661,
+        4.5379,
+        8.5732
+      ]
+    },
+    {
+      "id": "check5_row",
+      "bbox_px": [
+        1556,
+        614,
+        318,
+        66
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 11.1123,
+      "ring_max_mae": 27.5388,
+      "ring_edge_mae": [
+        3.1407,
+        27.5388,
+        4.6303,
+        9.1394
+      ]
+    },
+    {
+      "id": "kpi1_card",
+      "bbox_px": [
+        38,
+        790,
+        450,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 5.4087,
+      "ring_max_mae": 7.8387,
+      "ring_edge_mae": [
+        7.8387,
+        4.5827,
+        5.0781,
+        4.1352
+      ]
+    },
+    {
+      "id": "kpi2_card",
+      "bbox_px": [
+        512,
+        790,
+        436,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 6.7324,
+      "ring_max_mae": 7.7022,
+      "ring_edge_mae": [
+        7.7022,
+        5.439,
+        6.4046,
+        7.3838
+      ]
+    },
+    {
+      "id": "kpi3_card",
+      "bbox_px": [
+        970,
+        790,
+        433,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 7.3311,
+      "ring_max_mae": 10.1329,
+      "ring_edge_mae": [
+        7.842,
+        5.4339,
+        10.1329,
+        5.9156
+      ]
+    },
+    {
+      "id": "kpi4_card",
+      "bbox_px": [
+        1430,
+        790,
+        458,
+        160
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 6.6951,
+      "ring_max_mae": 10.2054,
+      "ring_edge_mae": [
+        7.6998,
+        4.4456,
+        4.4296,
+        10.2054
+      ]
+    },
+    {
+      "id": "footer_area",
+      "bbox_px": [
+        610,
+        984,
+        700,
+        82
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 6.219,
+      "ring_max_mae": 13.7678,
+      "ring_edge_mae": [
+        13.7678,
+        1.6413,
+        4.7817,
+        4.6854
+      ]
+    }
+  ]
+}

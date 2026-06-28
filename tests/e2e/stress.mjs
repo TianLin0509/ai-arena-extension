@@ -191,21 +191,21 @@ try {
   // 测试组 D：版本号 4 处同步
   // ─────────────────────────────────────────
   console.log("\n=== D. 版本号同步（feedback_ai_arena_version_bump 铁律） ===");
-  const expectedVersion = "4.4.2-beta";
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
+  const expectedVersion = manifest.version;
   const popupHtml = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
   const sidepanelHtml = fs.readFileSync(path.join(EXT_PATH, "sidepanel.html"), "utf8");
-  check("D1: manifest version_name", manifest.version_name === expectedVersion, manifest.version_name);
-  check("D2: popup.html chat-version", popupHtml.includes(`v${expectedVersion}</span>`));
+  check("D1: manifest version/version_name 同步", manifest.version_name === expectedVersion, `${manifest.version}/${manifest.version_name}`);
+  check("D2: popup.html chat-version 使用对外文案", popupHtml.includes(`<span class="chat-version">特别Beta版</span>`));
   const sidepanelMatches = sidepanelHtml.match(new RegExp(`v${expectedVersion.replace(/\./g,"\\.")}`, "g"));
   check("D3: sidepanel.html 至少 2 处 version 标记（badge + footer）",
     sidepanelMatches && sidepanelMatches.length >= 2, `actual: ${sidepanelMatches?.length}`);
 
   // ─────────────────────────────────────────
-  // 测试组 F：右栏 4 Tab + task-context 联动
+  // 测试组 F：右栏 6 Tab + task-context 联动
   // ─────────────────────────────────────────
-  console.log("\n=== F. 右栏 4 Tab + task-context 联动 ===");
-  // F1: 4 Tab DOM 存在 + API 暴露
+  console.log("\n=== F. 右栏 6 Tab + task-context 联动 ===");
+  // F1: 6 Tab DOM 存在 + API 暴露
   const rpInit = await popup.evaluate(() => {
     const tabs = Array.from(document.querySelectorAll(".rp-tab")).map(t => t.dataset.tab);
     const panels = Array.from(document.querySelectorAll(".rp-panel")).map(p => p.dataset.rpPanel);
@@ -218,8 +218,8 @@ try {
       hasSettings: typeof window.ChatSettings === "object",
     };
   });
-  check("F1: 4 Tab DOM", rpInit.tabs.join(",") === "members,tasks,stats,settings", JSON.stringify(rpInit.tabs));
-  check("F1b: 4 Panel DOM", rpInit.panels.join(",") === "members,tasks,stats,settings", JSON.stringify(rpInit.panels));
+  check("F1: 6 Tab DOM", rpInit.tabs.join(",") === "members,tasks,stats,templates,memos,settings", JSON.stringify(rpInit.tabs));
+  check("F1b: 6 Panel DOM", rpInit.panels.join(",") === "members,tasks,stats,templates,memos,settings", JSON.stringify(rpInit.panels));
   check("F2a: ChatRightPanel API", rpInit.hasRP === true);
   check("F2b: ChatMembers API", rpInit.hasMembers === true);
   check("F2c: ChatTasks API", rpInit.hasTasks === true);
@@ -486,8 +486,12 @@ try {
 
   // I3: buildSummaryPrompt 引导输出 JSON
   const bgSrc2 = fs.readFileSync(path.join(EXT_PATH, "debate-engine.js"), "utf8");
+  const builtinTemplatesSrc = fs.readFileSync(path.join(EXT_PATH, "templates-builtin.js"), "utf8");
   check("I3: buildSummaryPrompt 含 JSON schema 引导",
-    /直接输出一份 JSON/.test(bgSrc2) && /core_conclusion/.test(bgSrc2) && /key_arguments/.test(bgSrc2));
+    /store\.resolve\("summary",\s*"instruction_json"\)/.test(bgSrc2) &&
+    /直接输出一份 JSON/.test(builtinTemplatesSrc) &&
+    /core_conclusion/.test(builtinTemplatesSrc) &&
+    /key_arguments/.test(builtinTemplatesSrc));
 
   // I4: manifest 含 downloads 权限
   const manSrc = fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8");
@@ -501,7 +505,11 @@ try {
   const deSrc = fs.readFileSync(path.join(EXT_PATH, "debate-engine.js"), "utf8");
   check("I6a: debate-engine 含 buildSummaryPromptText", /buildSummaryPromptText/.test(deSrc));
   check("I6b: 文本版 prompt 保留老的 4 段结构（共识/分歧/裁定/建议）",
-    /共识结论/.test(deSrc) && /分歧焦点/.test(deSrc) && /最终裁定/.test(deSrc) && /实操建议/.test(deSrc));
+    /store\.resolve\("summary",\s*"instruction_text"\)/.test(deSrc) &&
+    /共识结论/.test(builtinTemplatesSrc) &&
+    /分歧焦点/.test(builtinTemplatesSrc) &&
+    /最终裁定/.test(builtinTemplatesSrc) &&
+    /实操建议/.test(builtinTemplatesSrc));
   const bgSrc3 = fs.readFileSync(path.join(EXT_PATH, "background.js"), "utf8");
   check("I6c: handleSummary 接受 format 参数", /handleSummary\([^)]*format/.test(bgSrc3));
   check("I6d: format=text 不设 pendingSummary（走老气泡路径）",

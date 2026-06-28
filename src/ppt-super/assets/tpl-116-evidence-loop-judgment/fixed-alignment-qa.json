@@ -1,0 +1,128 @@
+{
+  "ok": true,
+  "failures": [],
+  "fixed_crops": [
+    {
+      "id": "brand_logo_default",
+      "bbox_px": [
+        1688,
+        48,
+        212,
+        50
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "judgment_header_icon_default",
+      "bbox_px": [
+        1360,
+        184,
+        58,
+        44
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi1_icon_default",
+      "bbox_px": [
+        52,
+        850,
+        108,
+        136
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "kpi2_icon_default",
+      "bbox_px": [
+        568,
+        850,
+        122,
+        136
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "summary_badge_icon_default",
+      "bbox_px": [
+        1052,
+        874,
+        130,
+        112
+      ],
+      "mae": 0.0
+    },
+    {
+      "id": "summary_loop_icon_default",
+      "bbox_px": [
+        1716,
+        874,
+        132,
+        118
+      ],
+      "mae": 0.0
+    }
+  ],
+  "owner_blocks": [
+    {
+      "id": "kpi1_card",
+      "bbox_px": [
+        38,
+        826,
+        500,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 10.2738,
+      "ring_max_mae": 19.2616,
+      "ring_edge_mae": [
+        5.0574,
+        19.2616,
+        4.7977,
+        11.9784
+      ]
+    },
+    {
+      "id": "kpi2_card",
+      "bbox_px": [
+        552,
+        826,
+        480,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 8.3282,
+      "ring_max_mae": 19.5413,
+      "ring_edge_mae": [
+        5.0466,
+        19.5413,
+        3.8085,
+        4.9165
+      ]
+    },
+    {
+      "id": "summary_card",
+      "bbox_px": [
+        1044,
+        826,
+        828,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "ring_avg_mae": 21.888,
+      "ring_max_mae": 37.5629,
+      "ring_edge_mae": [
+        15.8052,
+        37.5629,
+        17.5208,
+        16.6633
+      ]
+    }
+  ]
+}

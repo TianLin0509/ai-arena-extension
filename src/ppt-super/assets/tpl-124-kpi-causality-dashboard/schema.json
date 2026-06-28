@@ -1,0 +1,1609 @@
+{
+  "template_id": "tpl-124-kpi-causality-dashboard",
+  "version": 1,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "kpi_causality_dashboard",
+  "archetype": "kpi_evidence_dashboard",
+  "slot_contract": {
+    "overflow_policy": "rewrite_before_shrink",
+    "font_required": "微软雅黑",
+    "text_density": "dense_filled_no_large_blank",
+    "density_rule": "large body boxes require two-line or high-character samples",
+    "image_slots": 0,
+    "icon_slots": 0,
+    "decorative_svg_assets": [
+      "svg/decor.svg"
+    ]
+  },
+  "slots": [
+    {
+      "key": "chip",
+      "type": "text",
+      "role": "label",
+      "zh": "左上角分类标签",
+      "bbox": [
+        68.0,
+        34.0,
+        340.0,
+        32.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "页面类别标签，6-16字。",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_category",
+      "sample": "指标解释 / 因果看板",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        62.0,
+        1360.0,
+        56.0
+      ],
+      "font_pt": 22.0,
+      "chars": [
+        16,
+        34
+      ],
+      "single_line": true,
+      "hint": "一句话说明本页核心判断，16-34字。",
+      "style": {
+        "sz_pt": 22.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "sample": "KPI因果指标看板：把结果指标拆成可干预的驱动链条",
+      "llm_target_chars": 34,
+      "llm_hard_cap": 42,
+      "render_hard_cap": 38,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        124.0,
+        1480.0,
+        34.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        26,
+        58
+      ],
+      "single_line": true,
+      "hint": "解释本页使用场景和判断口径，26-58字。",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context",
+      "sample": "在同一页中展示目标KPI、前置驱动、因果链路和行动建议，避免只看结果不看可控变量。",
+      "llm_target_chars": 58,
+      "llm_hard_cap": 66,
+      "render_hard_cap": 62,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "k1指标标题",
+      "bbox": [
+        64.0,
+        226.0,
+        384.0,
+        26.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "目标KPI",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "k1指标值",
+      "bbox": [
+        64.0,
+        256.0,
+        384.0,
+        42.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标数值。",
+      "style": {
+        "sz_pt": 18.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "+18.6%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "k1指标说明",
+      "bbox": [
+        64.0,
+        300.0,
+        384.0,
+        40.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        28
+      ],
+      "single_line": false,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "核心收益较基线提升，已剔除季节性波动",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "k2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "k2指标标题",
+      "bbox": [
+        534.0,
+        226.0,
+        384.0,
+        26.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "效率KPI",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "k2指标值",
+      "bbox": [
+        534.0,
+        256.0,
+        384.0,
+        42.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标数值。",
+      "style": {
+        "sz_pt": 18.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "-32%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "k2指标说明",
+      "bbox": [
+        534.0,
+        300.0,
+        384.0,
+        40.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        28
+      ],
+      "single_line": false,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "P95处理时延下降，峰值区间收益更明显",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "k3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "k3指标标题",
+      "bbox": [
+        1004.0,
+        226.0,
+        384.0,
+        26.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "质量KPI",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "k3指标值",
+      "bbox": [
+        1004.0,
+        256.0,
+        384.0,
+        42.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标数值。",
+      "style": {
+        "sz_pt": 18.0,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "96.4%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "k3指标说明",
+      "bbox": [
+        1004.0,
+        300.0,
+        384.0,
+        40.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        28
+      ],
+      "single_line": false,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "验收样本通过率，覆盖主流与长尾场景",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "k4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "k4指标标题",
+      "bbox": [
+        1474.0,
+        226.0,
+        384.0,
+        26.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "风险KPI",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "k4指标值",
+      "bbox": [
+        1474.0,
+        256.0,
+        384.0,
+        42.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标数值。",
+      "style": {
+        "sz_pt": 18.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "0.7%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "k4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "k4指标说明",
+      "bbox": [
+        1474.0,
+        300.0,
+        384.0,
+        40.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        28
+      ],
+      "single_line": false,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "异常回退比例，低于上线红线阈值",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "n1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "n1因果节点标题",
+      "bbox": [
+        98.0,
+        464.0,
+        144.0,
+        28.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "因果节点标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_title",
+      "sample": "输入质量",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "n1_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "n1因果节点说明",
+      "bbox": [
+        98.0,
+        500.0,
+        144.0,
+        88.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        22,
+        30
+      ],
+      "single_line": false,
+      "hint": "两行说明输入、机制或影响。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_detail",
+      "sample": "样本覆盖、标注一致性和数据新鲜度\n决定后续模型或规则的有效上限",
+      "llm_target_chars": 30,
+      "llm_hard_cap": 38,
+      "render_hard_cap": 34,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "n2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "n2因果节点标题",
+      "bbox": [
+        324.0,
+        464.0,
+        144.0,
+        28.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "因果节点标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_title",
+      "sample": "处理机制",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "n2_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "n2因果节点说明",
+      "bbox": [
+        324.0,
+        500.0,
+        144.0,
+        88.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        22,
+        26
+      ],
+      "single_line": false,
+      "hint": "两行说明输入、机制或影响。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_detail",
+      "sample": "清洗、聚合、路由和特征构造稳定\n降低噪声传导与链路抖动",
+      "llm_target_chars": 26,
+      "llm_hard_cap": 34,
+      "render_hard_cap": 30,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "n3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "n3因果节点标题",
+      "bbox": [
+        550.0,
+        464.0,
+        144.0,
+        28.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "因果节点标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_title",
+      "sample": "核心策略",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "n3_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "n3因果节点说明",
+      "bbox": [
+        550.0,
+        500.0,
+        144.0,
+        88.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        22,
+        29
+      ],
+      "single_line": false,
+      "hint": "两行说明输入、机制或影响。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_detail",
+      "sample": "模型、规则或调度策略产生主要增益\n需要持续监控漂移和边界条件",
+      "llm_target_chars": 29,
+      "llm_hard_cap": 37,
+      "render_hard_cap": 33,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "n4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "n4因果节点标题",
+      "bbox": [
+        776.0,
+        464.0,
+        144.0,
+        28.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "因果节点标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_title",
+      "sample": "业务触达",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "n4_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "n4因果节点说明",
+      "bbox": [
+        776.0,
+        500.0,
+        144.0,
+        88.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        22,
+        31
+      ],
+      "single_line": false,
+      "hint": "两行说明输入、机制或影响。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_detail",
+      "sample": "策略结果进入真实业务流程并被使用\n决定技术收益能否转化为业务收益",
+      "llm_target_chars": 31,
+      "llm_hard_cap": 39,
+      "render_hard_cap": 35,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "n5_title",
+      "type": "text",
+      "role": "label",
+      "zh": "n5因果节点标题",
+      "bbox": [
+        1002.0,
+        464.0,
+        144.0,
+        28.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "因果节点标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "6154A4",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_title",
+      "sample": "结果反馈",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "n5_detail",
+      "type": "text",
+      "role": "body",
+      "zh": "n5因果节点说明",
+      "bbox": [
+        1002.0,
+        500.0,
+        144.0,
+        88.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        22,
+        28
+      ],
+      "single_line": false,
+      "hint": "两行说明输入、机制或影响。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "causal_node_detail",
+      "sample": "用户行为、运营动作和异常样本回流\n形成下一轮优化和风险识别",
+      "llm_target_chars": 28,
+      "llm_hard_cap": 36,
+      "render_hard_cap": 32,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 22,
+      "preferred_lines": 3
+    },
+    {
+      "key": "impact_title",
+      "type": "text",
+      "role": "header",
+      "zh": "影响归因标题",
+      "bbox": [
+        1314.0,
+        454.0,
+        190.0,
+        30.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "归因模块标题。",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "impact_title",
+      "sample": "影响归因",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "impact_body",
+      "type": "text",
+      "role": "body",
+      "zh": "影响归因说明",
+      "bbox": [
+        1314.0,
+        494.0,
+        520.0,
+        82.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        46,
+        54
+      ],
+      "single_line": false,
+      "hint": "三行说明主要因果贡献和排查顺序。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "impact_summary",
+      "sample": "结果提升主要来自输入质量与核心策略两段，处理机制提供稳定性底座\n如果后续收益回撤，应优先检查业务触达和反馈闭环",
+      "llm_target_chars": 54,
+      "llm_hard_cap": 62,
+      "render_hard_cap": 58,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 4,
+      "density_required": true,
+      "min_density_chars": 46,
+      "preferred_lines": 4
+    },
+    {
+      "key": "a1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动1标题",
+      "bbox": [
+        1330.0,
+        612.0,
+        104.0,
+        34.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "优先动作",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a1_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动1说明",
+      "bbox": [
+        1440.0,
+        611.0,
+        376.0,
+        36.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        20,
+        44
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "把高贡献链路转成日常监控项，指标异常时直接定位到对应节点。",
+      "llm_target_chars": 44,
+      "llm_hard_cap": 52,
+      "render_hard_cap": 48,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "a2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动2标题",
+      "bbox": [
+        1330.0,
+        678.0,
+        104.0,
+        34.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "验证方式",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a2_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动2说明",
+      "bbox": [
+        1440.0,
+        677.0,
+        376.0,
+        36.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        20,
+        44
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "保留对照组和影子流量，避免把外部波动误判为策略收益。",
+      "llm_target_chars": 44,
+      "llm_hard_cap": 52,
+      "render_hard_cap": 48,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "a3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "行动3标题",
+      "bbox": [
+        1330.0,
+        744.0,
+        104.0,
+        34.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "行动标题。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_title",
+      "sample": "扩展边界",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "a3_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "行动3说明",
+      "bbox": [
+        1440.0,
+        743.0,
+        376.0,
+        36.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        20,
+        44
+      ],
+      "single_line": false,
+      "hint": "一到两行行动说明。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "action_detail",
+      "sample": "仅当输入质量和反馈闭环稳定后，再复制到更复杂的业务场景。",
+      "llm_target_chars": 44,
+      "llm_hard_cap": 52,
+      "render_hard_cap": 48,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 2
+    },
+    {
+      "key": "bottom_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部结论标题",
+      "bbox": [
+        76.0,
+        870.0,
+        190.0,
+        26.0
+      ],
+      "font_pt": 11.6,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "看板批注标题。",
+      "style": {
+        "sz_pt": 11.6,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary_title",
+      "sample": "看板结论",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "bottom_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "底部结论说明",
+      "bbox": [
+        76.0,
+        902.0,
+        356.0,
+        58.0
+      ],
+      "font_pt": 7.5,
+      "chars": [
+        36,
+        44
+      ],
+      "single_line": false,
+      "hint": "两到三行说明看板结论。",
+      "style": {
+        "sz_pt": 7.5,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "bottom_summary",
+      "sample": "这类模板用于解释指标变化背后的可控原因\n先给结果，再拆因果链，最后落到监控、验证和扩展动作",
+      "llm_target_chars": 44,
+      "llm_hard_cap": 52,
+      "render_hard_cap": 48,
+      "fit_policy": "rewrite_before_shrink",
+      "max_lines": 3,
+      "density_required": true,
+      "min_density_chars": 36,
+      "preferred_lines": 3
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI1数值",
+      "bbox": [
+        604.0,
+        862.0,
+        184.0,
+        42.0
+      ],
+      "font_pt": 14.4,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "小条形图指标值。",
+      "style": {
+        "sz_pt": 14.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "+18.6%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI1标题",
+      "bbox": [
+        604.0,
+        940.0,
+        190.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "小条形图指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "目标收益",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI1说明",
+      "bbox": [
+        604.0,
+        972.0,
+        190.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "小条形图口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "主指标提升",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI2数值",
+      "bbox": [
+        904.0,
+        862.0,
+        184.0,
+        42.0
+      ],
+      "font_pt": 14.4,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "小条形图指标值。",
+      "style": {
+        "sz_pt": 14.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "2段",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI2标题",
+      "bbox": [
+        904.0,
+        940.0,
+        190.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "小条形图指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "关键驱动",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI2说明",
+      "bbox": [
+        904.0,
+        972.0,
+        190.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "小条形图口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "输入+策略",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI3数值",
+      "bbox": [
+        1204.0,
+        862.0,
+        184.0,
+        42.0
+      ],
+      "font_pt": 14.4,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "小条形图指标值。",
+      "style": {
+        "sz_pt": 14.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "1%",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI3标题",
+      "bbox": [
+        1204.0,
+        940.0,
+        190.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "小条形图指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "风险阈值",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI3说明",
+      "bbox": [
+        1204.0,
+        972.0,
+        190.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "小条形图口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "回退红线",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI4数值",
+      "bbox": [
+        1504.0,
+        862.0,
+        184.0,
+        42.0
+      ],
+      "font_pt": 14.4,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "小条形图指标值。",
+      "style": {
+        "sz_pt": 14.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "周度",
+      "llm_target_chars": 10,
+      "llm_hard_cap": 18,
+      "render_hard_cap": 14,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI4标题",
+      "bbox": [
+        1504.0,
+        940.0,
+        190.0,
+        22.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "小条形图指标名称。",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "复盘节奏",
+      "llm_target_chars": 12,
+      "llm_hard_cap": 20,
+      "render_hard_cap": 16,
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "kpi4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI4说明",
+      "bbox": [
+        1504.0,
+        972.0,
+        190.0,
+        20.0
+      ],
+      "font_pt": 6.8,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "小条形图口径说明。",
+      "style": {
+        "sz_pt": 6.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "链路监控",
+      "llm_target_chars": 16,
+      "llm_hard_cap": 24,
+      "render_hard_cap": 20,
+      "fit_policy": "rewrite_before_shrink"
+    }
+  ]
+}

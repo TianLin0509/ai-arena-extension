@@ -83,7 +83,7 @@
     summary: "可选：给裁判的额外指令·留空用默认模板 · Ctrl+Enter",
     ppt:     "PPT 工坊请到右栏「任务」Tab 操作 prompt",
     baton:   "🪄 接棒简报会自动生成到这里 — 在右栏选浓缩官后点「生成」",
-    sequential: "🔗 顺序接力：在右栏排好 AI 顺序后点「开始」· 需先有一轮初始回答",
+    sequential: "🔗 顺序接力：先输入问题；在右栏排好 AI 顺序后点「开始」或直接发送",
   };
   function updatePlaceholder(taskState) {
     const $inp = document.getElementById("chat-input");

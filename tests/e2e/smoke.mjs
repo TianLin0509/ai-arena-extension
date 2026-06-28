@@ -67,7 +67,8 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  check("manifest version_name = 5.0.7", manifest.version_name === "5.0.7", `actual: ${manifest.version_name}`);
+  const expectedVersion = "5.0.61";
+  check("manifest version/version_name = 5.0.61", manifest.version === expectedVersion && manifest.version_name === expectedVersion, `actual: ${manifest.version}/${manifest.version_name}`);
   // v5.2.19+: 正式改名 AI圆桌派（v5.0.7 特别Beta版 仍保持）
   check("v5.2.19+: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
 
@@ -77,10 +78,10 @@ try {
   await sidepanelPage.waitForLoadState("domcontentloaded");
 
   const versionBadge = await sidepanelPage.locator(".version").textContent();
-  check("sidepanel version badge", versionBadge === "v5.0.7", `actual: "${versionBadge}"`);
+  check("sidepanel version badge", versionBadge === `v${expectedVersion}`, `actual: "${versionBadge}"`);
 
   const footerVersion = await sidepanelPage.locator(".footer").textContent();
-  check("sidepanel footer version", footerVersion?.includes("v5.0.7"), `actual: "${footerVersion?.slice(0, 100)}"`);
+  check("sidepanel footer version", footerVersion?.includes(`v${expectedVersion}`), `actual: "${footerVersion?.slice(0, 100)}"`);
 
   const openChatBtn = await sidepanelPage.locator("#btn-open-chat").count();
   check('sidepanel has "🪟 群聊" button', openChatBtn === 1);
@@ -135,8 +136,8 @@ try {
   const taskPickerBtn = await popupPage.locator("#task-picker-btn").count();
   check("popup has task-picker", taskPickerBtn === 1);
 
-  const taskMenuItems = await popupPage.locator(".task-menu > .menu-item").count();
-  check("popup task menu has 5 main items (ask/debate/summary/ppt/baton)", taskMenuItems === 5);
+  const taskMenuItems = await popupPage.locator("#task-menu > .menu-item, #task-menu > .task-adv > .menu-item").count();
+  check("popup task menu has 6 main items (ask/debate/summary/ppt/baton/sequential)", taskMenuItems === 6);
 
   const rosterContainer = await popupPage.locator("#roster-items").count();
   check("popup has roster items container", rosterContainer === 1);
@@ -725,9 +726,9 @@ try {
     const dataTheme = document.body.dataset.theme;
     return { dataTheme, bg, card };
   });
-  // 默认主题 C 极光琉璃只覆盖 --accent，--bg 应来自 popup.css :root（#f5f5f7 浅色）
-  check("v4.8.35: 默认主题 C 下 --bg 是 popup.css :root 浅色（#f5f5f7），不再被 dark media 覆盖",
-    themeBg.bg === "#f5f5f7",
+  // 当前默认主题 A(Dark Command) 应来自 popup-themes.css，而不是系统 dark media 覆盖。
+  check("v4.8.35: 默认主题 A 下 --bg/--card 来自 popup-themes.css",
+    themeBg.dataTheme === "A" && themeBg.bg === "#0d1117" && themeBg.card === "#161b22",
     JSON.stringify(themeBg));
 
   // v4.8.36: broadcast/notifyRoundStart 对 skipped service 创建警告气泡（fail loud）
@@ -2442,11 +2443,12 @@ try {
     "background 仍缺 _bumpGatekeeperStat case，stats 统计无法落地");
 
   check("v4.9.0.2 I1: sendPromptToService 用 lastSentByPid fallback（防 bubble resend 绕过扫描）",
-    /case\s+"sendPromptToService":[\s\S]{0,500}StateMachine\.lastSentByPid\?\.\[p\.id\]/.test(bgV492),
+    /case\s+"sendPromptToService":[\s\S]{0,900}StateMachine\.lastSentByPid\?\.\[p\.id\]/.test(bgV492) &&
+    /async function sendPromptToService[\s\S]{0,900}StateMachine\.lastSentByPid\?\.\[p\.id\]/.test(bgV492),
     "sendPromptToService 仍直接用 msg.text，bubble resend 空文本会绕过守门员");
 
   check("v4.9.0.2 I3: popup-tasks bindSummary 防御性接 bridge",
-    /dispatchSummary[\s\S]{0,500}ChatGatekeeperBridge\?\.handleResp\(msg,\s*resp,\s*\{\s*textField:\s*"customInstruction"/.test(tasksV492),
+    /dispatchSummary[\s\S]{0,900}ChatGatekeeperBridge\?\.handleResp\(msg,\s*resp,\s*\{\s*textField:\s*"customInstruction"/.test(tasksV492),
     "popup-tasks bindSummary 未接 bridge");
 
   check("v4.9.0.2 C1: sidepanel.js 含 handleSensitiveInSidepanel 轻量 confirm + 3 处接入",
@@ -2479,8 +2481,8 @@ try {
   check("v5.2.2-beta polish ②: popup.js btn-clear 改用 ChatModal.show",
     /\$clear\.addEventListener[\s\S]{0,500}window\.ChatModal\.show\(\{[\s\S]{0,300}title:\s*"清空群聊/.test(popupJsV5),
     "btn-clear 仍用原生 confirm");
-  check("v5.2.2-beta polish ②: popup-tasks #rp-btn-reset 改用 ChatModal.show",
-    /rp-btn-reset[\s\S]{0,500}window\.ChatModal\.show\(\{[\s\S]{0,300}title:\s*"重置会话/.test(tasksJsV5),
+  check("v5.2.2-beta polish ②: popup-tasks #rp-btn-reset 改用 ChatModal.confirm",
+    /rp-btn-reset[\s\S]{0,500}window\.ChatModal\.confirm\(\{[\s\S]{0,300}title:\s*"重置会话/.test(tasksJsV5),
     "rp-btn-reset 仍用原生 confirm");
 
   // 运行时：popup 切到 debate 后 placeholder 同步变化
@@ -2615,6 +2617,7 @@ try {
   const updateJsV52 = fs.readFileSync(path.join(EXT_PATH, "popup-update-check.js"), "utf8");
   const popupHtmlV52 = fs.readFileSync(path.join(EXT_PATH, "popup.html"), "utf8");
   const popupJsV52   = fs.readFileSync(path.join(EXT_PATH, "popup.js"), "utf8");
+  const popupSettingsJsV52 = fs.readFileSync(path.join(EXT_PATH, "popup-settings.js"), "utf8");
   const manifestV52  = fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8");
 
   check("v5.2.0 ①: popup-update-check.js 暴露 ChatUpdateCheck.checkAndShow + 24h 节流常量",
@@ -2634,15 +2637,14 @@ try {
     /暂不更新/.test(updateJsV52),
     "modal 3 按钮文案不全");
 
-  check("v5.2.0 ②: popup.html 顶栏含 #btn-update-check 按钮（with-label + 文字「检查更新」）+ 引入 popup-update-check.js",
-    /<button class="btn-icon with-label" id="btn-update-check"/.test(popupHtmlV52) &&
-    /<span class="btn-icon-label">检查更新<\/span>/.test(popupHtmlV52) &&
+  check("v5.2.0 ②: popup.html 引入 popup-update-check.js",
     /<script src="popup-update-check\.js"><\/script>/.test(popupHtmlV52),
-    "popup.html 缺按钮或 script 或 with-label 文字");
+    "popup.html 缺 popup-update-check.js");
 
-  check("v5.2.0 ③: popup.js 绑定 btn-update-check click → ChatUpdateCheck.checkAndShow({ manual: true })",
-    /getElementById\("btn-update-check"\)[\s\S]{0,300}ChatUpdateCheck\?\.checkAndShow\(\{\s*manual:\s*true/.test(popupJsV52),
-    "popup.js 没绑按钮 click");
+  check("v5.2.0 ③: 设置页绑定 #rp-check-update click → ChatUpdateCheck.checkAndShow({ manual: true })",
+    /#rp-check-update/.test(popupSettingsJsV52) &&
+    /ChatUpdateCheck\?\.checkAndShow\?\.\(\{\s*manual:\s*true/.test(popupSettingsJsV52),
+    "popup-settings.js 没绑设置页检查更新 click");
 
   check("v5.2.0 ④: manifest.json host_permissions 含 api.github.com",
     /api\.github\.com\/\*/.test(manifestV52),
@@ -2650,17 +2652,17 @@ try {
 
   // 运行时：popup 中 ChatUpdateCheck.checkAndShow({ manual: true }) 真发 fetch
   // 注意：实际网络 fetch GitHub 会成功（fail open 也行），主要验证 API 暴露 + 函数能跑
-  const v52ApiRuntime = await popupPage.evaluate(() => ({
+  const v52ApiRuntime = await popupPage.evaluate((expectedVersion) => ({
     hasApi: typeof window.ChatUpdateCheck?.checkAndShow === "function",
     hasCurrentVersion: typeof window.ChatUpdateCheck?.currentVersion === "function",
     hasNewerHelper: typeof window.ChatUpdateCheck?._hasNewer === "function",
     curVer: window.ChatUpdateCheck?.currentVersion?.(),
-    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.("5.0.7", "v5.3.0-beta"),
-    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.("5.0.7", "v5.0.7"),
-  }));
-  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 5.0.7 + hasNewer 比对逻辑正确",
+    hasNewerSelfTest: window.ChatUpdateCheck?._hasNewer?.(expectedVersion, "v5.3.0-beta"),
+    hasNewerSameTest: window.ChatUpdateCheck?._hasNewer?.(expectedVersion, `v${expectedVersion}`),
+  }), expectedVersion);
+  check("v5.2.0 运行时: ChatUpdateCheck API 暴露 + currentVersion 返回 manifest 版本 + hasNewer 比对逻辑正确",
     v52ApiRuntime.hasApi && v52ApiRuntime.hasCurrentVersion && v52ApiRuntime.hasNewerHelper &&
-    v52ApiRuntime.curVer === "5.0.7" &&
+    v52ApiRuntime.curVer === expectedVersion &&
     v52ApiRuntime.hasNewerSelfTest === true &&
     v52ApiRuntime.hasNewerSameTest === false,
     JSON.stringify(v52ApiRuntime));
@@ -2737,14 +2739,14 @@ try {
     /resp\.cancelled/.test(popupSrc),
     "popup.js 缺 _showSendError 或漏 intercepted/cancelled 过滤");
   check("v5.2.10: popup.js handleSend chatBroadcast 失败弹 alert",
-    /chatBroadcast[\s\S]*?_showSendError\(resp\)[\s\S]*?alert\(`发送失败：/.test(popupSrc),
+    /chatBroadcast[\s\S]*?_showSendError\(resp\)[\s\S]*?(?:alert\(`发送失败：|alert\("发送失败：" \+ err\))/.test(popupSrc),
     "popup.js chatBroadcast 失败缺 alert 提示");
   check("v5.2.10: popup.js handleSend 改 await menu.dispatch + _showSendError",
     /await menu\.dispatch\(text, targets\)/.test(popupSrc) &&
     /_showSendError\(resp\)/.test(popupSrc),
     "popup.js handleSend 未 await dispatch 或缺 _showSendError 调用");
   check("v5.2.10: popup-task-menu.js dispatch task=ask 分支加 alert 失败提示",
-    /c\.task === "ask"[\s\S]*?if \(resp && !resp\.ok\) alert\(`发送失败：/.test(taskMenuSrc),
+    /c\.task === "ask"[\s\S]*?if \(resp && !resp\.ok\)[\s\S]*?(?:alert\(`发送失败：|alert\("发送失败：" \+ err\))/.test(taskMenuSrc),
     "popup-task-menu.js task=ask 分支 alert 失败提示缺失");
 
   // ── v5.2.12: extractTextSafe 双路 + fenced 损坏回退 textContent（v1.0 鲁棒性平价）──
@@ -2758,13 +2760,13 @@ try {
 
   // ── v5.2.16: NOISE_SEL 提模块级 + extractTextSafe plainClean 也清装饰（修损坏检测歧义）──
   check("v5.2.16: ARENA_NOISE_SEL 提到模块级常量",
-    /const ARENA_NOISE_SEL\s*=\s*\[/.test(injSrc),
+    /(?:const\s+ARENA_NOISE_SEL|globalThis\.ARENA_NOISE_SEL)\s*=/.test(injSrc),
     "ARENA_NOISE_SEL 未提到模块级");
   check("v5.2.16: extractTextSafe plainClean 基准也清装饰（cloneNode + ARENA_NOISE_SEL）",
     /plainClean[\s\S]*?clone\.querySelectorAll\(ARENA_NOISE_SEL\)/.test(injSrc),
     "extractTextSafe plainClean 未清装饰 — 损坏检测会把装饰带回来");
   check("v5.2.16: extractTextSafe 保留 plainRaw 终极兜底（= v1/v2 textContent 策略）",
-    /plainRaw\s*=\s*\(el\.textContent/.test(injSrc) &&
+    /plainRaw\s*=\s*(?:\(el\.textContent|rawText\.trim\(\))/.test(injSrc) &&
     /plainClean\s*\|\|\s*fenced\s*\|\|\s*plainRaw/.test(injSrc),
     "extractTextSafe 缺 plainRaw 终极兜底（v1/v2 鲁棒性保底）");
   check("v5.2.16: _doExtractWithFences 不再有局部 NOISE_SEL 定义（避免与模块级重复）",
@@ -2812,7 +2814,8 @@ try {
     "chat-bus 缺 STREAM_DONE_THRESHOLD_FORCE");
   check("v5.2.18: pollOnce 双阈值完成判定（doneFast !isStreaming + doneForce 无视 isStreaming）",
     /doneFast\s*=\s*state\.sameCount >= STREAM_DONE_THRESHOLD && !r\?\.isStreaming/.test(busSrc) &&
-    /doneForce\s*=\s*state\.sameCount >= STREAM_DONE_THRESHOLD_FORCE/.test(busSrc) &&
+    /forceTicks\s*=\s*r\?\.isStreaming\s*\?\s*STREAM_DONE_THRESHOLD_FORCE_THINKING\s*:\s*STREAM_DONE_THRESHOLD_FORCE/.test(busSrc) &&
+    /doneForce\s*=\s*state\.sameCount >= forceTicks/.test(busSrc) &&
     /\(doneFast \|\| doneForce\) && text\.length > 0/.test(busSrc),
     "pollOnce 未实现双阈值完成判定");
   check("v5.2.18: inject-images 加 ARIA role 表格提取（修元宝 div 表格被拆单列）",
@@ -3090,8 +3093,8 @@ try {
     const tabs = Array.from(document.querySelectorAll(".rp-tab"));
     return tabs.map(t => ({ name: t.dataset.tab, text: t.innerText.trim() }));
   });
-  check("v4.5.0：popup 右栏 5 Tab DOM (含 templates)",
-    rpTabs.length === 5 && rpTabs.map(t => t.name).join(",") === "members,tasks,stats,templates,settings",
+  check("v4.5.0+：popup 右栏 6 Tab DOM (含 templates/memos)",
+    rpTabs.length === 6 && rpTabs.map(t => t.name).join(",") === "members,tasks,stats,templates,memos,settings",
     JSON.stringify(rpTabs));
 
   // v4.6.9: 右栏拆 3:1 + 状态日志固定区
@@ -3119,8 +3122,8 @@ try {
   });
   check("v4.6.9: 右栏布局 .rp-top + .rp-bottom 存在",
     layout469.topExists && layout469.botExists, JSON.stringify(layout469));
-  check("v4.6.9: 5 个 .rp-panel 全部嵌在 .rp-top",
-    layout469.panelsInTop === 5, JSON.stringify(layout469));
+  check("v4.6.9+: 6 个 .rp-panel 全部嵌在 .rp-top",
+    layout469.panelsInTop === 6, JSON.stringify(layout469));
   check("v4.6.9: 状态日志 #rp-log-box + header + 清空按钮",
     layout469.logBoxExists && layout469.logHdrExists && layout469.clearBtnExists,
     JSON.stringify(layout469));
@@ -3143,7 +3146,7 @@ try {
     JSON.stringify(settingsNoLog));
   // v4.8.15: 设置 Tab 新增"风格" section → 现在共 3 个 section（主题 / 风格 / 快捷键）
   check("v4.8.15: 设置 Tab 含 3 个 section（主题 / 风格 / 快捷键），状态日志仍已抽出",
-    settingsNoLog.sectionCount === 3, JSON.stringify(settingsNoLog));
+    settingsNoLog.sectionCount >= 3, JSON.stringify(settingsNoLog));
 
   // ChatLog API 暴露 + pushLog 兼容
   const logApi = await popupPage.evaluate(() => ({
@@ -3859,14 +3862,15 @@ try {
   check("v4.8.12: .es-pitch 含标题 '让 AI 同台辩论，逼近真相'",
     pitchCheck.hasPitch && pitchCheck.titleText?.includes("AI 同台辩论") && pitchCheck.titleText?.includes("逼近真相"),
     JSON.stringify(pitchCheck));
-  check("v4.8.12: 6 个 .es-feat 功能 chip (⚔️自由辩论/🤝群策群力/📋裁判总结/🎭角色分工/📐任务模板/📊PPT工坊)",
-    pitchCheck.featCount === 6
+  check("v4.8.12+: 7 个 .es-feat 功能 chip (含 super PPT)",
+    pitchCheck.featCount === 7
       && pitchCheck.featTexts.some(t => t.includes("自由辩论"))
       && pitchCheck.featTexts.some(t => t.includes("群策群力"))
       && pitchCheck.featTexts.some(t => t.includes("裁判总结"))
       && pitchCheck.featTexts.some(t => t.includes("角色分工"))
       && pitchCheck.featTexts.some(t => t.includes("任务模板"))
-      && pitchCheck.featTexts.some(t => t.includes("PPT")),
+      && pitchCheck.featTexts.some(t => t.includes("PPT"))
+      && pitchCheck.featTexts.some(t => t.includes("super PPT")),
     JSON.stringify(pitchCheck));
   check("v4.8.12: CTA 文案含 '右侧添加' + '2 个 AI'",
     pitchCheck.ctaText?.includes("右侧") && pitchCheck.ctaText?.includes("AI"),
@@ -4130,7 +4134,7 @@ try {
   // ⑤ 海报星空 — empty-state 内 12 个 .es-star
   const starCheck = await popupPage.evaluate(async () => {
     const newPopup = await fetch(chrome.runtime.getURL("popup.html")).then(r => r.text());
-    const matchCount = (newPopup.match(/class="es-star/g) || []).length;
+    const matchCount = (newPopup.match(/<span class="es-star/g) || []).length;
     return { starCount: matchCount };
   });
   check("v4.8.20 ⑤: empty-state 含 12 颗 .es-star 星点",

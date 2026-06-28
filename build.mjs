@@ -1,6 +1,6 @@
 // AI Arena 双构建脚本
 // 用法: node build.mjs [github|store|all]
-import { mkdir, cp, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdir, cp, copyFile, readFile, writeFile, rm } from "node:fs/promises";
 import { existsSync, createWriteStream } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +12,7 @@ const EXCLUDE_PATTERNS = [
   `${sep}.DS_Store`,           // macOS 元数据
   `${sep}Thumbs.db`,           // Windows 缩略图缓存
   `${sep}.git`,                // 防误进
+  `${sep}ppt-super${sep}tools`, // dev/e2e tooling; never needed at extension runtime
 ];
 
 // 整段目录排除（只对 store 版生效，github 版保留便于开源贡献者跑测试）
@@ -97,6 +98,15 @@ async function buildGithub(version) {
   const zipPath = resolve(DIST, `ai-arena-github-v${version}.zip`);
   await zipDir(target, zipPath);
   console.log(`[github] zip: ${zipPath}`);
+  return zipPath;
+}
+
+async function syncDocsRelease(version, sourceZipPath) {
+  const releaseDir = resolve(__dirname, "docs", "v5.0-beta", "release");
+  await mkdir(releaseDir, { recursive: true });
+  const docsZipPath = resolve(releaseDir, `ai-arena-extension-v${version}.zip`);
+  await copyFile(sourceZipPath, docsZipPath);
+  console.log(`[docs] release zip: ${docsZipPath}`);
 }
 
 async function buildStore(version) {
@@ -114,9 +124,16 @@ const [, , target = "all"] = process.argv;
 const version = await readVersion();
 console.log(`AI Arena build — version ${version}`);
 
-if (target === "github") await buildGithub(version);
+if (target === "github") {
+  const githubZip = await buildGithub(version);
+  await syncDocsRelease(version, githubZip);
+}
 else if (target === "store") await buildStore(version);
-else if (target === "all") { await buildGithub(version); await buildStore(version); }
+else if (target === "all") {
+  const githubZip = await buildGithub(version);
+  await syncDocsRelease(version, githubZip);
+  await buildStore(version);
+}
 else { console.error(`未知 target: ${target}`); process.exit(1); }
 
 console.log("done.");

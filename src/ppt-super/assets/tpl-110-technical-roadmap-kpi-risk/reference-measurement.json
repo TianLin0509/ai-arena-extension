@@ -1,0 +1,377 @@
+{
+  "source": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\07_路线规划-总结展望\\tech-template-v2-10.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "title_band",
+      "type": "title",
+      "bbox_px": [
+        26,
+        18,
+        1829,
+        112
+      ],
+      "route": "native_text"
+    },
+    {
+      "id": "roadmap_panel",
+      "type": "five_step_flow",
+      "bbox_px": [
+        28,
+        176,
+        1450,
+        555
+      ],
+      "route": "native_shapes_text_image_slots"
+    },
+    {
+      "id": "right_kpi_risk",
+      "type": "kpi_and_risk_cards",
+      "bbox_px": [
+        1510,
+        170,
+        360,
+        640
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "explanation_panel",
+      "type": "roadmap_explanation",
+      "bbox_px": [
+        28,
+        790,
+        1844,
+        238
+      ],
+      "route": "native_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "step_arrows",
+      "type": "block_arrows",
+      "route": "native_shapes",
+      "reason": "fixed roadmap flow"
+    },
+    {
+      "id": "step_numbers",
+      "type": "number_badges",
+      "route": "native_shapes",
+      "reason": "fixed sequence markers"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        195.0,
+        18.0,
+        1660.0,
+        66.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        32.0,
+        92.0,
+        1760.0,
+        38.0
+      ],
+      "semantic_role": "reading_guide"
+    },
+    {
+      "id": "roadmap_title",
+      "type": "text",
+      "bbox_px": [
+        28.0,
+        196.0,
+        1450.0,
+        42.0
+      ],
+      "semantic_role": "section_heading"
+    },
+    {
+      "id": "step1_title",
+      "type": "text",
+      "bbox_px": [
+        114.0,
+        288.0,
+        160.0,
+        46.0
+      ],
+      "semantic_role": "roadmap_step_title"
+    },
+    {
+      "id": "step1_visual",
+      "type": "image",
+      "bbox_px": [
+        112.0,
+        389.0,
+        106.0,
+        92.0
+      ],
+      "semantic_role": "step_visual"
+    },
+    {
+      "id": "step1_body",
+      "type": "text",
+      "bbox_px": [
+        58.0,
+        522.0,
+        214.0,
+        122.0
+      ],
+      "semantic_role": "roadmap_step_explanation"
+    },
+    {
+      "id": "step2_title",
+      "type": "text",
+      "bbox_px": [
+        402.0,
+        288.0,
+        160.0,
+        46.0
+      ],
+      "semantic_role": "roadmap_step_title"
+    },
+    {
+      "id": "step2_visual",
+      "type": "image",
+      "bbox_px": [
+        400.0,
+        389.0,
+        106.0,
+        92.0
+      ],
+      "semantic_role": "step_visual"
+    },
+    {
+      "id": "step2_body",
+      "type": "text",
+      "bbox_px": [
+        346.0,
+        522.0,
+        214.0,
+        122.0
+      ],
+      "semantic_role": "roadmap_step_explanation"
+    },
+    {
+      "id": "step3_title",
+      "type": "text",
+      "bbox_px": [
+        690.0,
+        288.0,
+        160.0,
+        46.0
+      ],
+      "semantic_role": "roadmap_step_title"
+    },
+    {
+      "id": "step3_visual",
+      "type": "image",
+      "bbox_px": [
+        688.0,
+        389.0,
+        106.0,
+        92.0
+      ],
+      "semantic_role": "step_visual"
+    },
+    {
+      "id": "step3_body",
+      "type": "text",
+      "bbox_px": [
+        634.0,
+        522.0,
+        214.0,
+        122.0
+      ],
+      "semantic_role": "roadmap_step_explanation"
+    },
+    {
+      "id": "step4_title",
+      "type": "text",
+      "bbox_px": [
+        978.0,
+        288.0,
+        160.0,
+        46.0
+      ],
+      "semantic_role": "roadmap_step_title"
+    },
+    {
+      "id": "step4_visual",
+      "type": "image",
+      "bbox_px": [
+        976.0,
+        389.0,
+        106.0,
+        92.0
+      ],
+      "semantic_role": "step_visual"
+    },
+    {
+      "id": "step4_body",
+      "type": "text",
+      "bbox_px": [
+        922.0,
+        522.0,
+        214.0,
+        122.0
+      ],
+      "semantic_role": "roadmap_step_explanation"
+    },
+    {
+      "id": "step5_title",
+      "type": "text",
+      "bbox_px": [
+        1266.0,
+        288.0,
+        160.0,
+        46.0
+      ],
+      "semantic_role": "roadmap_step_title"
+    },
+    {
+      "id": "step5_visual",
+      "type": "image",
+      "bbox_px": [
+        1264.0,
+        389.0,
+        106.0,
+        92.0
+      ],
+      "semantic_role": "step_visual"
+    },
+    {
+      "id": "step5_body",
+      "type": "text",
+      "bbox_px": [
+        1210.0,
+        522.0,
+        214.0,
+        122.0
+      ],
+      "semantic_role": "roadmap_step_explanation"
+    },
+    {
+      "id": "metric1_title",
+      "type": "text",
+      "bbox_px": [
+        1612.0,
+        194.0,
+        248.0,
+        58.0
+      ],
+      "semantic_role": "kpi_title"
+    },
+    {
+      "id": "metric1_value",
+      "type": "text",
+      "bbox_px": [
+        1554.0,
+        242.0,
+        272.0,
+        58.0
+      ],
+      "semantic_role": "kpi_value"
+    },
+    {
+      "id": "metric1_note",
+      "type": "text",
+      "bbox_px": [
+        1572.0,
+        302.0,
+        236.0,
+        34.0
+      ],
+      "semantic_role": "kpi_note"
+    },
+    {
+      "id": "metric2_title",
+      "type": "text",
+      "bbox_px": [
+        1612.0,
+        414.0,
+        248.0,
+        58.0
+      ],
+      "semantic_role": "kpi_title"
+    },
+    {
+      "id": "metric2_value",
+      "type": "text",
+      "bbox_px": [
+        1554.0,
+        462.0,
+        272.0,
+        58.0
+      ],
+      "semantic_role": "kpi_value"
+    },
+    {
+      "id": "metric2_note",
+      "type": "text",
+      "bbox_px": [
+        1572.0,
+        522.0,
+        236.0,
+        34.0
+      ],
+      "semantic_role": "kpi_note"
+    },
+    {
+      "id": "risk_title",
+      "type": "text",
+      "bbox_px": [
+        1608.0,
+        635.0,
+        230.0,
+        34.0
+      ],
+      "semantic_role": "risk_heading"
+    },
+    {
+      "id": "risk_bullets",
+      "type": "text",
+      "bbox_px": [
+        1608.0,
+        686.0,
+        238.0,
+        78.0
+      ],
+      "semantic_role": "risk_bullets"
+    },
+    {
+      "id": "explain_title",
+      "type": "text",
+      "bbox_px": [
+        88.0,
+        824.0,
+        420.0,
+        40.0
+      ],
+      "semantic_role": "explanation_heading"
+    },
+    {
+      "id": "explain_text",
+      "type": "text",
+      "bbox_px": [
+        62.0,
+        874.0,
+        1745.0,
+        118.0
+      ],
+      "semantic_role": "roadmap_explanation"
+    }
+  ]
+}

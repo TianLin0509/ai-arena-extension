@@ -1,0 +1,1544 @@
+{
+  "template_id": "tpl-118-stage-gate-delivery-roadmap",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        46.0,
+        1440.0,
+        68.0
+      ],
+      "font_pt": 24.5,
+      "chars": [
+        14,
+        34
+      ],
+      "single_line": true,
+      "hint": "单行结论式标题，必须压缩到 34 个中文字符以内。",
+      "style": {
+        "sz_pt": 24.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        120.0,
+        1500.0,
+        36.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        18,
+        62
+      ],
+      "single_line": true,
+      "hint": "一行说明本页判断逻辑或适用场景。",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context"
+    },
+    {
+      "key": "stage1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段1标题",
+      "bbox": [
+        158.0,
+        296.0,
+        187.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段名称，单行。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_title"
+    },
+    {
+      "key": "stage1_date",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段1时间",
+      "bbox": [
+        116.0,
+        392.0,
+        225.0,
+        34.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "阶段时间范围。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_date"
+    },
+    {
+      "key": "stage1_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段1任务",
+      "bbox": [
+        84.0,
+        442.0,
+        247.0,
+        58.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        10,
+        26
+      ],
+      "single_line": false,
+      "hint": "两条任务说明，每条不超过 26 字。",
+      "style": {
+        "sz_pt": 8.7,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_tasks",
+      "max_lines": 2
+    },
+    {
+      "key": "stage1_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段1插图",
+      "bbox": [
+        82.0,
+        536.0,
+        258.0,
+        152.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "roadmap_stage_visual",
+      "visual_task": "source roadmap stage visual, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/stage1_visual_default.png",
+      "default_source_crop": "stage1_visual_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "stage1_kpi",
+      "type": "text",
+      "role": "metric",
+      "zh": "阶段1KPI",
+      "bbox": [
+        162.0,
+        702.0,
+        191.0,
+        30.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": true,
+      "hint": "阶段 KPI，单行。",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_kpi"
+    },
+    {
+      "key": "stage2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段2标题",
+      "bbox": [
+        560.0,
+        296.0,
+        187.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段名称，单行。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_title"
+    },
+    {
+      "key": "stage2_date",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段2时间",
+      "bbox": [
+        518.0,
+        392.0,
+        225.0,
+        34.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "阶段时间范围。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_date"
+    },
+    {
+      "key": "stage2_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段2任务",
+      "bbox": [
+        486.0,
+        442.0,
+        247.0,
+        58.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        10,
+        26
+      ],
+      "single_line": false,
+      "hint": "两条任务说明，每条不超过 26 字。",
+      "style": {
+        "sz_pt": 8.7,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_tasks",
+      "max_lines": 2
+    },
+    {
+      "key": "stage2_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段2插图",
+      "bbox": [
+        482.0,
+        536.0,
+        248.0,
+        152.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "roadmap_stage_visual",
+      "visual_task": "source roadmap stage visual, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/stage2_visual_default.png",
+      "default_source_crop": "stage2_visual_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "stage2_kpi",
+      "type": "text",
+      "role": "metric",
+      "zh": "阶段2KPI",
+      "bbox": [
+        564.0,
+        702.0,
+        191.0,
+        30.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": true,
+      "hint": "阶段 KPI，单行。",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_kpi"
+    },
+    {
+      "key": "stage3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段3标题",
+      "bbox": [
+        940.0,
+        296.0,
+        187.0,
+        44.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段名称，单行。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_title"
+    },
+    {
+      "key": "stage3_date",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段3时间",
+      "bbox": [
+        898.0,
+        392.0,
+        225.0,
+        34.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "阶段时间范围。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_date"
+    },
+    {
+      "key": "stage3_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段3任务",
+      "bbox": [
+        866.0,
+        442.0,
+        247.0,
+        58.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        10,
+        26
+      ],
+      "single_line": false,
+      "hint": "两条任务说明，每条不超过 26 字。",
+      "style": {
+        "sz_pt": 8.7,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_tasks",
+      "max_lines": 2
+    },
+    {
+      "key": "stage3_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段3插图",
+      "bbox": [
+        862.0,
+        536.0,
+        248.0,
+        152.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "roadmap_stage_visual",
+      "visual_task": "source roadmap stage visual, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/stage3_visual_default.png",
+      "default_source_crop": "stage3_visual_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "stage3_kpi",
+      "type": "text",
+      "role": "metric",
+      "zh": "阶段3KPI",
+      "bbox": [
+        944.0,
+        702.0,
+        191.0,
+        30.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": true,
+      "hint": "阶段 KPI，单行。",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_kpi"
+    },
+    {
+      "key": "stage4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "阶段4标题",
+      "bbox": [
+        1310.0,
+        296.0,
+        134.0,
+        44.0
+      ],
+      "font_pt": 14.4,
+      "chars": [
+        3,
+        10
+      ],
+      "single_line": true,
+      "hint": "阶段名称，单行。",
+      "style": {
+        "sz_pt": 14.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_title"
+    },
+    {
+      "key": "stage4_date",
+      "type": "text",
+      "role": "label",
+      "zh": "阶段4时间",
+      "bbox": [
+        1280.0,
+        392.0,
+        160.0,
+        34.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        8,
+        20
+      ],
+      "single_line": true,
+      "hint": "阶段时间范围。",
+      "style": {
+        "sz_pt": 10.0,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_date"
+    },
+    {
+      "key": "stage4_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "阶段4任务",
+      "bbox": [
+        1248.0,
+        442.0,
+        182.0,
+        90.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        10,
+        26
+      ],
+      "single_line": false,
+      "hint": "两条任务说明，每条不超过 26 字。",
+      "style": {
+        "sz_pt": 8.7,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_tasks",
+      "max_lines": 2
+    },
+    {
+      "key": "stage4_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "阶段4插图",
+      "bbox": [
+        1238.0,
+        536.0,
+        212.0,
+        152.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "roadmap_stage_visual",
+      "visual_task": "source roadmap stage visual, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/stage4_visual_default.png",
+      "default_source_crop": "stage4_visual_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "stage4_kpi",
+      "type": "text",
+      "role": "metric",
+      "zh": "阶段4KPI",
+      "bbox": [
+        1318.0,
+        702.0,
+        134.0,
+        30.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        8,
+        24
+      ],
+      "single_line": true,
+      "hint": "阶段 KPI，单行。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_stage_kpi"
+    },
+    {
+      "key": "resource_header_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "资源约束栏头图标",
+      "bbox": [
+        1508.0,
+        211.0,
+        50.0,
+        35.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "section_header_icon",
+      "visual_task": "source resource header icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/resource_header_icon_default.png",
+      "default_source_crop": "resource_header_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "res1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "res1标题",
+      "bbox": [
+        1566.0,
+        274.0,
+        88.0,
+        36.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "res1_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "res1说明",
+      "bbox": [
+        1660.0,
+        274.0,
+        190.0,
+        36.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "res2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "res2标题",
+      "bbox": [
+        1566.0,
+        328.0,
+        88.0,
+        36.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "res2_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "res2说明",
+      "bbox": [
+        1660.0,
+        328.0,
+        190.0,
+        36.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "res3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "res3标题",
+      "bbox": [
+        1566.0,
+        382.0,
+        88.0,
+        36.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "res3_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "res3说明",
+      "bbox": [
+        1660.0,
+        382.0,
+        190.0,
+        36.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "res4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "res4标题",
+      "bbox": [
+        1566.0,
+        436.0,
+        88.0,
+        36.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "res4_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "res4说明",
+      "bbox": [
+        1660.0,
+        436.0,
+        190.0,
+        36.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "risk_header_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "关键风险栏头图标",
+      "bbox": [
+        1508.0,
+        526.0,
+        50.0,
+        44.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "section_header_icon",
+      "visual_task": "source risk header icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/risk_header_icon_default.png",
+      "default_source_crop": "risk_header_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "risk1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "risk1标题",
+      "bbox": [
+        1566.0,
+        580.0,
+        88.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "risk1_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "risk1说明",
+      "bbox": [
+        1660.0,
+        580.0,
+        190.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "risk2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "risk2标题",
+      "bbox": [
+        1566.0,
+        634.0,
+        88.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "risk2_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "risk2说明",
+      "bbox": [
+        1660.0,
+        634.0,
+        190.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "risk3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "risk3标题",
+      "bbox": [
+        1566.0,
+        688.0,
+        88.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "risk3_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "risk3说明",
+      "bbox": [
+        1660.0,
+        688.0,
+        190.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "risk4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "risk4标题",
+      "bbox": [
+        1566.0,
+        742.0,
+        88.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短行标题。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_label"
+    },
+    {
+      "key": "risk4_body",
+      "type": "text",
+      "role": "caption",
+      "zh": "risk4说明",
+      "bbox": [
+        1660.0,
+        742.0,
+        190.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        6,
+        24
+      ],
+      "single_line": true,
+      "hint": "单行说明。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "constraint_or_risk_detail"
+    },
+    {
+      "key": "bottom_goal_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "底部目标图标",
+      "bbox": [
+        64.0,
+        864.0,
+        114.0,
+        122.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "summary_icon",
+      "visual_task": "source bottom goal icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/bottom_goal_icon_default.png",
+      "default_source_crop": "bottom_goal_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "summary_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部总结标题",
+      "bbox": [
+        198.0,
+        864.0,
+        370.0,
+        46.0
+      ],
+      "font_pt": 15.0,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "总结标题。",
+      "style": {
+        "sz_pt": 15.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "summary_heading"
+    },
+    {
+      "key": "summary_body",
+      "type": "text",
+      "role": "body",
+      "zh": "底部总结说明",
+      "bbox": [
+        198.0,
+        918.0,
+        390.0,
+        68.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        18,
+        34
+      ],
+      "single_line": false,
+      "hint": "两行总结。",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "roadmap_summary",
+      "max_lines": 2
+    },
+    {
+      "key": "metric1_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "底部指标1图标",
+      "bbox": [
+        698.0,
+        884.0,
+        110.0,
+        102.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "source bottom KPI icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/bottom_metric1_icon_default.png",
+      "default_source_crop": "bottom_metric1_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "metric1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "目标指标1标题",
+      "bbox": [
+        826.0,
+        870.0,
+        230.0,
+        30.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        5,
+        18
+      ],
+      "single_line": true,
+      "hint": "底部指标标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "目标指标1数值",
+      "bbox": [
+        826.0,
+        912.0,
+        230.0,
+        52.0
+      ],
+      "font_pt": 16.8,
+      "chars": [
+        2,
+        12
+      ],
+      "single_line": true,
+      "hint": "底部指标数值。",
+      "style": {
+        "sz_pt": 16.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "目标指标1说明",
+      "bbox": [
+        826.0,
+        966.0,
+        230.0,
+        26.0
+      ],
+      "font_pt": 8.5,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "底部指标说明。",
+      "style": {
+        "sz_pt": 8.5,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note"
+    },
+    {
+      "key": "metric2_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "底部指标2图标",
+      "bbox": [
+        1082.0,
+        884.0,
+        110.0,
+        102.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "source bottom KPI icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/bottom_metric2_icon_default.png",
+      "default_source_crop": "bottom_metric2_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "metric2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "目标指标2标题",
+      "bbox": [
+        1210.0,
+        870.0,
+        230.0,
+        30.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        5,
+        18
+      ],
+      "single_line": true,
+      "hint": "底部指标标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "目标指标2数值",
+      "bbox": [
+        1210.0,
+        912.0,
+        230.0,
+        52.0
+      ],
+      "font_pt": 16.8,
+      "chars": [
+        2,
+        12
+      ],
+      "single_line": true,
+      "hint": "底部指标数值。",
+      "style": {
+        "sz_pt": 16.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "目标指标2说明",
+      "bbox": [
+        1210.0,
+        966.0,
+        230.0,
+        26.0
+      ],
+      "font_pt": 8.5,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "底部指标说明。",
+      "style": {
+        "sz_pt": 8.5,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note"
+    },
+    {
+      "key": "metric3_icon",
+      "type": "icon",
+      "role": "icon",
+      "zh": "底部指标3图标",
+      "bbox": [
+        1460.0,
+        884.0,
+        110.0,
+        102.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "SVG/PNG 图标槽；默认使用原效果图扣图，生成或上传同名图标时覆盖默认图。",
+      "semantic_role": "metric_icon",
+      "visual_task": "source bottom KPI icon, no text",
+      "no_text": true,
+      "image_type": "svg_icon",
+      "crop_mode": "contain",
+      "default_asset": "ppt-super/assets/tpl-118-stage-gate-delivery-roadmap/protected-crops/bottom_metric3_icon_default.png",
+      "default_source_crop": "bottom_metric3_icon_default",
+      "fallback_policy": "use_default_source_crop_if_no_generated_icon"
+    },
+    {
+      "key": "metric3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "目标指标3标题",
+      "bbox": [
+        1588.0,
+        870.0,
+        230.0,
+        30.0
+      ],
+      "font_pt": 10.2,
+      "chars": [
+        5,
+        18
+      ],
+      "single_line": true,
+      "hint": "底部指标标题。",
+      "style": {
+        "sz_pt": 10.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "目标指标3数值",
+      "bbox": [
+        1588.0,
+        912.0,
+        230.0,
+        52.0
+      ],
+      "font_pt": 16.8,
+      "chars": [
+        2,
+        12
+      ],
+      "single_line": true,
+      "hint": "底部指标数值。",
+      "style": {
+        "sz_pt": 16.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "目标指标3说明",
+      "bbox": [
+        1588.0,
+        966.0,
+        230.0,
+        26.0
+      ],
+      "font_pt": 8.5,
+      "chars": [
+        4,
+        16
+      ],
+      "single_line": true,
+      "hint": "底部指标说明。",
+      "style": {
+        "sz_pt": 8.5,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note"
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "source": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\07_路线规划-总结展望\\tech-template-v2-18.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "title_band",
+      "type": "title",
+      "bbox_px": [
+        26,
+        18,
+        1829,
+        112
+      ],
+      "route": "native_text"
+    },
+    {
+      "id": "evidence_panel",
+      "type": "three_evidence_cards",
+      "bbox_px": [
+        24,
+        162,
+        1040,
+        880
+      ],
+      "route": "native_shapes_text_image_slots"
+    },
+    {
+      "id": "open_questions_panel",
+      "type": "risk_list_and_metric_cards",
+      "bbox_px": [
+        1092,
+        166,
+        790,
+        876
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "evidence_connector",
+      "type": "connector_lines_arrow",
+      "route": "native_shapes",
+      "reason": "fixed synthesis grammar"
+    },
+    {
+      "id": "evidence_badges",
+      "type": "E1-E3 badges",
+      "route": "native_shapes",
+      "reason": "fixed evidence numbering"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        195.0,
+        18.0,
+        1660.0,
+        66.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        32.0,
+        92.0,
+        1760.0,
+        38.0
+      ],
+      "semantic_role": "reading_guide"
+    },
+    {
+      "id": "left_title",
+      "type": "text",
+      "bbox_px": [
+        24.0,
+        184.0,
+        1040.0,
+        40.0
+      ],
+      "semantic_role": "section_heading"
+    },
+    {
+      "id": "ev1_title",
+      "type": "text",
+      "bbox_px": [
+        122.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "id": "ev1_metric",
+      "type": "text",
+      "bbox_px": [
+        90.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "semantic_role": "metric_definition"
+    },
+    {
+      "id": "ev1_visual",
+      "type": "image",
+      "bbox_px": [
+        98.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "semantic_role": "evidence_chart_visual"
+    },
+    {
+      "id": "ev1_bullets",
+      "type": "text",
+      "bbox_px": [
+        62.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "semantic_role": "evidence_bullets"
+    },
+    {
+      "id": "ev2_title",
+      "type": "text",
+      "bbox_px": [
+        460.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "id": "ev2_metric",
+      "type": "text",
+      "bbox_px": [
+        428.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "semantic_role": "metric_definition"
+    },
+    {
+      "id": "ev2_visual",
+      "type": "image",
+      "bbox_px": [
+        436.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "semantic_role": "evidence_chart_visual"
+    },
+    {
+      "id": "ev2_bullets",
+      "type": "text",
+      "bbox_px": [
+        400.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "semantic_role": "evidence_bullets"
+    },
+    {
+      "id": "ev3_title",
+      "type": "text",
+      "bbox_px": [
+        798.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "id": "ev3_metric",
+      "type": "text",
+      "bbox_px": [
+        766.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "semantic_role": "metric_definition"
+    },
+    {
+      "id": "ev3_visual",
+      "type": "image",
+      "bbox_px": [
+        774.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "semantic_role": "evidence_chart_visual"
+    },
+    {
+      "id": "ev3_bullets",
+      "type": "text",
+      "bbox_px": [
+        738.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "semantic_role": "evidence_bullets"
+    },
+    {
+      "id": "conclusion_title",
+      "type": "text",
+      "bbox_px": [
+        330.0,
+        794.0,
+        500.0,
+        34.0
+      ],
+      "semantic_role": "conclusion_heading"
+    },
+    {
+      "id": "conclusion_text",
+      "type": "text",
+      "bbox_px": [
+        326.0,
+        832.0,
+        520.0,
+        86.0
+      ],
+      "semantic_role": "evidence_synthesis_conclusion"
+    },
+    {
+      "id": "right_title",
+      "type": "text",
+      "bbox_px": [
+        1092.0,
+        176.0,
+        790.0,
+        44.0
+      ],
+      "semantic_role": "panel_heading"
+    },
+    {
+      "id": "issue1_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        260.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue1_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        258.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "issue2_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        356.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue2_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        354.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "issue3_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        452.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue3_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        450.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "issue4_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        548.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue4_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        546.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "issue5_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        644.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue5_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        642.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "issue6_label",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        740.0,
+        236.0,
+        32.0
+      ],
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "id": "issue6_text",
+      "type": "text",
+      "bbox_px": [
+        1384.0,
+        738.0,
+        436.0,
+        58.0
+      ],
+      "semantic_role": "open_issue_explanation"
+    },
+    {
+      "id": "metric1_title",
+      "type": "text",
+      "bbox_px": [
+        1218.0,
+        854.0,
+        238.0,
+        48.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric1_value",
+      "type": "text",
+      "bbox_px": [
+        1150.0,
+        900.0,
+        282.0,
+        44.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric1_note",
+      "type": "text",
+      "bbox_px": [
+        1170.0,
+        944.0,
+        242.0,
+        54.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "metric2_title",
+      "type": "text",
+      "bbox_px": [
+        1594.0,
+        854.0,
+        238.0,
+        48.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "metric2_value",
+      "type": "text",
+      "bbox_px": [
+        1526.0,
+        900.0,
+        282.0,
+        44.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "metric2_note",
+      "type": "text",
+      "bbox_px": [
+        1546.0,
+        944.0,
+        242.0,
+        54.0
+      ],
+      "semantic_role": "metric_note"
+    }
+  ]
+}

@@ -1,0 +1,631 @@
+{
+  "source": "C:\\Users\\lintian\\.codex\\generated_images\\019ed5fe-9515-7780-b1ce-9a50e3c4b48e\\ig_02b9163f1eedc9d0016a33cedf9c548199974200a46a6255a8.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "evidence_stack",
+      "type": "three_evidence_cards",
+      "bbox_px": [
+        38,
+        188,
+        1060,
+        636
+      ],
+      "route": "native_shapes_text_image_slots"
+    },
+    {
+      "id": "judgment_panel",
+      "type": "six_row_hypothesis_panel",
+      "bbox_px": [
+        1126,
+        188,
+        746,
+        636
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_kpi_summary",
+      "type": "two_kpi_plus_summary",
+      "bbox_px": [
+        38,
+        826,
+        1834,
+        176
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_red_bar",
+      "type": "fixed_title_decoration",
+      "route": "native_shapes",
+      "reason": "keeps report-page hierarchy consistent"
+    },
+    {
+      "id": "panel_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes",
+      "reason": "stable reusable visual grammar"
+    },
+    {
+      "id": "connectors_and_rules",
+      "type": "fixed_connectors",
+      "route": "native_lines",
+      "reason": "layout skeleton should not vary by topic"
+    },
+    {
+      "id": "fixed_reference_icons",
+      "type": "fixed_icon_vectors",
+      "route": "native_vector_fixed_graphic",
+      "reason": "source icons are part of the visual grammar and must not be replaced by generic text glyphs or low-fidelity SVG"
+    }
+  ],
+  "protected_regions": [
+    {
+      "id": "brand_logo_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1688,
+        48,
+        212,
+        50
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "judgment_header_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1360,
+        184,
+        58,
+        44
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "kpi1_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        52,
+        850,
+        108,
+        136
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "kpi2_icon_default",
+      "type": "default_icon_source_crop",
+      "bbox_px": [
+        568,
+        850,
+        122,
+        136
+      ],
+      "route": "default_asset_for_svg_icon_slot",
+      "reason": "default source logo for an overridable SVG/PNG icon slot"
+    },
+    {
+      "id": "summary_badge_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1052,
+        874,
+        130,
+        112
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    },
+    {
+      "id": "summary_loop_icon_default",
+      "type": "fixed_source_crop",
+      "bbox_px": [
+        1716,
+        874,
+        132,
+        118
+      ],
+      "route": "protected_source_crop",
+      "reason": "fixed reference icon/background area; native/SVG reconstruction visibly drifted from the source"
+    }
+  ],
+  "owner_block_gates": [
+    {
+      "id": "kpi1_card",
+      "bbox_px": [
+        38,
+        826,
+        500,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "kpi2_card",
+      "bbox_px": [
+        552,
+        826,
+        480,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    },
+    {
+      "id": "summary_card",
+      "bbox_px": [
+        1044,
+        826,
+        828,
+        176
+      ],
+      "avg_limit": 35.0,
+      "max_limit": 55.0,
+      "note": "",
+      "reason": "fixed crop must remain visually anchored to this owner block"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        66.0,
+        46.0,
+        1440.0,
+        68.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        68.0,
+        120.0,
+        1500.0,
+        36.0
+      ],
+      "semantic_role": "page_context"
+    },
+    {
+      "id": "brand_logo",
+      "type": "icon",
+      "bbox_px": [
+        1688.0,
+        48.0,
+        212.0,
+        50.0
+      ],
+      "semantic_role": "brand_logo"
+    },
+    {
+      "id": "ev1_title",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        214.0,
+        460.0,
+        44.0
+      ],
+      "semantic_role": "evidence_heading"
+    },
+    {
+      "id": "ev1_body",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        264.0,
+        462.0,
+        74.0
+      ],
+      "semantic_role": "evidence_explanation"
+    },
+    {
+      "id": "ev1_chart_title",
+      "type": "text",
+      "bbox_px": [
+        698.0,
+        213.0,
+        340.0,
+        26.0
+      ],
+      "semantic_role": "evidence_visual_title"
+    },
+    {
+      "id": "ev1_visual",
+      "type": "image",
+      "bbox_px": [
+        680.0,
+        242.0,
+        380.0,
+        112.0
+      ],
+      "semantic_role": "evidence_visual"
+    },
+    {
+      "id": "ev2_title",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        436.0,
+        460.0,
+        44.0
+      ],
+      "semantic_role": "evidence_heading"
+    },
+    {
+      "id": "ev2_body",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        486.0,
+        462.0,
+        74.0
+      ],
+      "semantic_role": "evidence_explanation"
+    },
+    {
+      "id": "ev2_chart_title",
+      "type": "text",
+      "bbox_px": [
+        698.0,
+        435.0,
+        340.0,
+        26.0
+      ],
+      "semantic_role": "evidence_visual_title"
+    },
+    {
+      "id": "ev2_visual",
+      "type": "image",
+      "bbox_px": [
+        680.0,
+        464.0,
+        380.0,
+        112.0
+      ],
+      "semantic_role": "evidence_visual"
+    },
+    {
+      "id": "ev3_title",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        658.0,
+        460.0,
+        44.0
+      ],
+      "semantic_role": "evidence_heading"
+    },
+    {
+      "id": "ev3_body",
+      "type": "text",
+      "bbox_px": [
+        188.0,
+        708.0,
+        462.0,
+        74.0
+      ],
+      "semantic_role": "evidence_explanation"
+    },
+    {
+      "id": "ev3_chart_title",
+      "type": "text",
+      "bbox_px": [
+        698.0,
+        657.0,
+        340.0,
+        26.0
+      ],
+      "semantic_role": "evidence_visual_title"
+    },
+    {
+      "id": "ev3_visual",
+      "type": "image",
+      "bbox_px": [
+        680.0,
+        686.0,
+        380.0,
+        112.0
+      ],
+      "semantic_role": "evidence_visual"
+    },
+    {
+      "id": "judgment_header_icon",
+      "type": "icon",
+      "bbox_px": [
+        1360.0,
+        184.0,
+        58.0,
+        44.0
+      ],
+      "semantic_role": "section_header_icon"
+    },
+    {
+      "id": "hyp1_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        268.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp1_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        299.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "hyp2_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        354.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp2_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        385.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "hyp3_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        440.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp3_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        471.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "hyp4_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        526.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp4_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        557.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "hyp5_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        612.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp5_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        643.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "hyp6_title",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        698.0,
+        345.0,
+        28.0
+      ],
+      "semantic_role": "hypothesis_heading"
+    },
+    {
+      "id": "hyp6_body",
+      "type": "text",
+      "bbox_px": [
+        1226.0,
+        729.0,
+        410.0,
+        32.0
+      ],
+      "semantic_role": "hypothesis_reason"
+    },
+    {
+      "id": "kpi1_icon",
+      "type": "icon",
+      "bbox_px": [
+        52.0,
+        850.0,
+        108.0,
+        136.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi1_title",
+      "type": "text",
+      "bbox_px": [
+        178.0,
+        848.0,
+        336.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi1_value",
+      "type": "text",
+      "bbox_px": [
+        178.0,
+        880.0,
+        336.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi1_note",
+      "type": "text",
+      "bbox_px": [
+        178.0,
+        938.0,
+        336.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "kpi2_icon",
+      "type": "icon",
+      "bbox_px": [
+        568.0,
+        850.0,
+        122.0,
+        136.0
+      ],
+      "semantic_role": "metric_icon"
+    },
+    {
+      "id": "kpi2_title",
+      "type": "text",
+      "bbox_px": [
+        708.0,
+        848.0,
+        300.0,
+        28.0
+      ],
+      "semantic_role": "metric_title"
+    },
+    {
+      "id": "kpi2_value",
+      "type": "text",
+      "bbox_px": [
+        708.0,
+        880.0,
+        300.0,
+        54.0
+      ],
+      "semantic_role": "metric_value"
+    },
+    {
+      "id": "kpi2_note",
+      "type": "text",
+      "bbox_px": [
+        708.0,
+        938.0,
+        300.0,
+        38.0
+      ],
+      "semantic_role": "metric_note"
+    },
+    {
+      "id": "summary_badge_icon",
+      "type": "icon",
+      "bbox_px": [
+        1052.0,
+        874.0,
+        130.0,
+        112.0
+      ],
+      "semantic_role": "summary_icon"
+    },
+    {
+      "id": "summary_title",
+      "type": "text",
+      "bbox_px": [
+        1188.0,
+        846.0,
+        160.0,
+        44.0
+      ],
+      "semantic_role": "summary_heading"
+    },
+    {
+      "id": "summary_body",
+      "type": "text",
+      "bbox_px": [
+        1188.0,
+        898.0,
+        510.0,
+        66.0
+      ],
+      "semantic_role": "decision_summary"
+    },
+    {
+      "id": "summary_loop_icon",
+      "type": "icon",
+      "bbox_px": [
+        1716.0,
+        874.0,
+        132.0,
+        118.0
+      ],
+      "semantic_role": "summary_icon"
+    }
+  ],
+  "qa_rules": [
+    "font must be Microsoft YaHei / 微软雅黑",
+    "text bbox is derived from visible container with safe inset",
+    "rendered preview must be inspected for overflow, excess blank space, and subtle overlap",
+    "protected source crops must pass same-bbox diff and owner-block ring QA"
+  ]
+}

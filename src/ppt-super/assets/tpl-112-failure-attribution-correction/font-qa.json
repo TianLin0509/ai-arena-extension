@@ -1,0 +1,30 @@
+{
+  "required_font": "微软雅黑",
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\template.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 162
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\filled-demo.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 162
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-112-failure-attribution-correction\\filled-check.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 162
+      },
+      "bad_fonts": []
+    }
+  ],
+  "ok": true
+}

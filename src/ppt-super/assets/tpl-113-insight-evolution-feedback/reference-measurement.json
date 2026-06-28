@@ -1,0 +1,443 @@
+{
+  "source": "C:\\Users\\lintian\\ppt-assistant\\codex-library\\selected-templates-20260616\\02_技术洞察-先进技术解读\\insight-supp-01.png",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "major_blocks": [
+    {
+      "id": "timeline",
+      "type": "four_stage_timeline",
+      "bbox_px": [
+        58,
+        220,
+        1320,
+        560
+      ],
+      "route": "native_shapes_text_image_slots"
+    },
+    {
+      "id": "insight_panel",
+      "type": "insight_panel",
+      "bbox_px": [
+        1410,
+        168,
+        450,
+        622
+      ],
+      "route": "native_shapes_text"
+    },
+    {
+      "id": "bottom_conditions",
+      "type": "four_column_conditions",
+      "bbox_px": [
+        28,
+        820,
+        1854,
+        208
+      ],
+      "route": "native_shapes_text"
+    }
+  ],
+  "fixed_graphics": [
+    {
+      "id": "title_typography",
+      "type": "fixed_style",
+      "route": "native_text",
+      "reason": "Huawei-style red conclusion title and restrained report typography"
+    },
+    {
+      "id": "panel_grid",
+      "type": "fixed_layout_shell",
+      "route": "native_shapes",
+      "reason": "stable reusable visual grammar from reference"
+    }
+  ],
+  "topic_slots": [
+    {
+      "id": "title_main",
+      "type": "text",
+      "bbox_px": [
+        54.0,
+        72.0,
+        1480.0,
+        68.0
+      ],
+      "semantic_role": "thesis"
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "bbox_px": [
+        80.0,
+        165.0,
+        770.0,
+        36.0
+      ],
+      "semantic_role": "timeline_context"
+    },
+    {
+      "id": "stage1_num",
+      "type": "text",
+      "bbox_px": [
+        130.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "semantic_role": "stage_number"
+    },
+    {
+      "id": "stage1_title",
+      "type": "text",
+      "bbox_px": [
+        202.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "semantic_role": "stage_heading"
+    },
+    {
+      "id": "stage1_sub",
+      "type": "text",
+      "bbox_px": [
+        202.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "semantic_role": "stage_caption"
+    },
+    {
+      "id": "stage1_visual",
+      "type": "image",
+      "bbox_px": [
+        190.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "semantic_role": "stage_visual"
+    },
+    {
+      "id": "stage1_body",
+      "type": "text",
+      "bbox_px": [
+        128.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "semantic_role": "stage_observation"
+    },
+    {
+      "id": "stage2_num",
+      "type": "text",
+      "bbox_px": [
+        450.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "semantic_role": "stage_number"
+    },
+    {
+      "id": "stage2_title",
+      "type": "text",
+      "bbox_px": [
+        522.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "semantic_role": "stage_heading"
+    },
+    {
+      "id": "stage2_sub",
+      "type": "text",
+      "bbox_px": [
+        522.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "semantic_role": "stage_caption"
+    },
+    {
+      "id": "stage2_visual",
+      "type": "image",
+      "bbox_px": [
+        510.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "semantic_role": "stage_visual"
+    },
+    {
+      "id": "stage2_body",
+      "type": "text",
+      "bbox_px": [
+        448.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "semantic_role": "stage_observation"
+    },
+    {
+      "id": "stage3_num",
+      "type": "text",
+      "bbox_px": [
+        770.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "semantic_role": "stage_number"
+    },
+    {
+      "id": "stage3_title",
+      "type": "text",
+      "bbox_px": [
+        842.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "semantic_role": "stage_heading"
+    },
+    {
+      "id": "stage3_sub",
+      "type": "text",
+      "bbox_px": [
+        842.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "semantic_role": "stage_caption"
+    },
+    {
+      "id": "stage3_visual",
+      "type": "image",
+      "bbox_px": [
+        830.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "semantic_role": "stage_visual"
+    },
+    {
+      "id": "stage3_body",
+      "type": "text",
+      "bbox_px": [
+        768.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "semantic_role": "stage_observation"
+    },
+    {
+      "id": "stage4_num",
+      "type": "text",
+      "bbox_px": [
+        1090.0,
+        246.0,
+        76.0,
+        54.0
+      ],
+      "semantic_role": "stage_number"
+    },
+    {
+      "id": "stage4_title",
+      "type": "text",
+      "bbox_px": [
+        1162.0,
+        252.0,
+        210.0,
+        36.0
+      ],
+      "semantic_role": "stage_heading"
+    },
+    {
+      "id": "stage4_sub",
+      "type": "text",
+      "bbox_px": [
+        1162.0,
+        294.0,
+        220.0,
+        30.0
+      ],
+      "semantic_role": "stage_caption"
+    },
+    {
+      "id": "stage4_visual",
+      "type": "image",
+      "bbox_px": [
+        1150.0,
+        405.0,
+        165.0,
+        105.0
+      ],
+      "semantic_role": "stage_visual"
+    },
+    {
+      "id": "stage4_body",
+      "type": "text",
+      "bbox_px": [
+        1088.0,
+        530.0,
+        260.0,
+        150.0
+      ],
+      "semantic_role": "stage_observation"
+    },
+    {
+      "id": "insight_title",
+      "type": "text",
+      "bbox_px": [
+        1488.0,
+        204.0,
+        260.0,
+        34.0
+      ],
+      "semantic_role": "insight_heading"
+    },
+    {
+      "id": "insight1",
+      "type": "text",
+      "bbox_px": [
+        1518.0,
+        278.0,
+        284.0,
+        78.0
+      ],
+      "semantic_role": "key_insight"
+    },
+    {
+      "id": "insight2",
+      "type": "text",
+      "bbox_px": [
+        1518.0,
+        420.0,
+        284.0,
+        78.0
+      ],
+      "semantic_role": "key_insight"
+    },
+    {
+      "id": "insight3",
+      "type": "text",
+      "bbox_px": [
+        1518.0,
+        560.0,
+        284.0,
+        78.0
+      ],
+      "semantic_role": "key_insight"
+    },
+    {
+      "id": "insight4",
+      "type": "text",
+      "bbox_px": [
+        1518.0,
+        700.0,
+        284.0,
+        78.0
+      ],
+      "semantic_role": "key_insight"
+    },
+    {
+      "id": "cond_title",
+      "type": "text",
+      "bbox_px": [
+        138.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "id": "cond_body",
+      "type": "text",
+      "bbox_px": [
+        142.0,
+        884.0,
+        250.0,
+        108.0
+      ],
+      "semantic_role": "bottom_block_body"
+    },
+    {
+      "id": "cost_title",
+      "type": "text",
+      "bbox_px": [
+        538.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "id": "cost_body",
+      "type": "text",
+      "bbox_px": [
+        542.0,
+        884.0,
+        290.0,
+        108.0
+      ],
+      "semantic_role": "bottom_block_body"
+    },
+    {
+      "id": "budget_title",
+      "type": "text",
+      "bbox_px": [
+        988.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "id": "budget_body",
+      "type": "text",
+      "bbox_px": [
+        992.0,
+        884.0,
+        330.0,
+        108.0
+      ],
+      "semantic_role": "bottom_block_body"
+    },
+    {
+      "id": "quality_title",
+      "type": "text",
+      "bbox_px": [
+        1498.0,
+        838.0,
+        292.0,
+        34.0
+      ],
+      "semantic_role": "bottom_block_heading"
+    },
+    {
+      "id": "quality_body",
+      "type": "text",
+      "bbox_px": [
+        1502.0,
+        884.0,
+        300.0,
+        108.0
+      ],
+      "semantic_role": "bottom_block_body"
+    }
+  ]
+}

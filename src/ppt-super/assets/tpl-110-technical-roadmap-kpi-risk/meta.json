@@ -1,0 +1,43 @@
+{
+  "template_id": "tpl-110-technical-roadmap-kpi-risk",
+  "source_id": "tech-template-v2-10.png",
+  "name_cn": "技术路线与KPI风险",
+  "layout_family": "five_step_roadmap_kpi_risk",
+  "archetype": "technical_roadmap_with_validation",
+  "template_fit_score": 91,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "font_required": "微软雅黑",
+  "best_for": [
+    "路线规划",
+    "方案汇报",
+    "研究计划",
+    "工程推进",
+    "方法框架"
+  ],
+  "avoid": [
+    "封面页",
+    "纯证据总结",
+    "单一指标仪表盘",
+    "密集表格页"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留参考图的主要块结构、固定连接/箭头/卡片节奏；内部图表和步骤示意作为可替换 image slots。",
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 18.188
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 23.034
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 23,
+      "image_slots": 5,
+      "total_slots": 28
+    }
+  }
+}

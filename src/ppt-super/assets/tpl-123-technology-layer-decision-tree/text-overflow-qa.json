@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-123-technology-layer-decision-tree\\template.pptx",
+      "checked": 52,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-123-technology-layer-decision-tree\\filled-demo.pptx",
+      "checked": 52,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-123-technology-layer-decision-tree\\filled-check.pptx",
+      "checked": 52,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

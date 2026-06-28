@@ -1,0 +1,1038 @@
+{
+  "template_id": "tpl-109-evidence-synthesis-open-questions",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "结论主句",
+      "bbox": [
+        195.0,
+        18.0,
+        1660.0,
+        66.0
+      ],
+      "font_pt": 26,
+      "chars": [
+        18,
+        42
+      ],
+      "single_line": true,
+      "hint": "结论先行，不含固定前缀“结论：”",
+      "style": {
+        "sz_pt": 26,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "fit_policy": "rewrite_before_shrink"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "body",
+      "zh": "结论说明",
+      "bbox": [
+        32.0,
+        92.0,
+        1760.0,
+        38.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        30,
+        86
+      ],
+      "single_line": true,
+      "hint": "一行说明证据口径、研究范围或阅读方式",
+      "style": {
+        "sz_pt": 12,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "reading_guide"
+    },
+    {
+      "key": "left_title",
+      "type": "text",
+      "role": "header",
+      "zh": "左侧证据区标题",
+      "bbox": [
+        24.0,
+        184.0,
+        1040.0,
+        40.0
+      ],
+      "font_pt": 15.8,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "如 证据合成与结论归纳",
+      "style": {
+        "sz_pt": 15.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "section_heading"
+    },
+    {
+      "key": "ev1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据1标题",
+      "bbox": [
+        122.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        5,
+        14
+      ],
+      "single_line": true,
+      "hint": "证据卡标题，概括证据类型",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "key": "ev1_metric",
+      "type": "text",
+      "role": "label",
+      "zh": "证据1指标口径",
+      "bbox": [
+        90.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        5,
+        20
+      ],
+      "single_line": true,
+      "hint": "短指标口径或图表说明",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_definition"
+    },
+    {
+      "key": "ev1_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据1图表",
+      "bbox": [
+        98.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "该证据卡内部图表或机制示意，建议无内嵌长文本",
+      "semantic_role": "evidence_chart_visual",
+      "content_intent": "visualize the evidence metric for this card",
+      "visual_task": "compact chart visual, no long text, no logo",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "ev1_bullets",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据1要点",
+      "bbox": [
+        62.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        10,
+        28
+      ],
+      "single_line": false,
+      "hint": "两条证据要点，每条尽量带数字或条件",
+      "style": {
+        "sz_pt": 9.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_bullets",
+      "max_lines": 2
+    },
+    {
+      "key": "ev2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据2标题",
+      "bbox": [
+        460.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        5,
+        14
+      ],
+      "single_line": true,
+      "hint": "证据卡标题，概括证据类型",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "key": "ev2_metric",
+      "type": "text",
+      "role": "label",
+      "zh": "证据2指标口径",
+      "bbox": [
+        428.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        5,
+        20
+      ],
+      "single_line": true,
+      "hint": "短指标口径或图表说明",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_definition"
+    },
+    {
+      "key": "ev2_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据2图表",
+      "bbox": [
+        436.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "该证据卡内部图表或机制示意，建议无内嵌长文本",
+      "semantic_role": "evidence_chart_visual",
+      "content_intent": "visualize the evidence metric for this card",
+      "visual_task": "compact chart visual, no long text, no logo",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "ev2_bullets",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据2要点",
+      "bbox": [
+        400.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        10,
+        28
+      ],
+      "single_line": false,
+      "hint": "两条证据要点，每条尽量带数字或条件",
+      "style": {
+        "sz_pt": 9.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_bullets",
+      "max_lines": 2
+    },
+    {
+      "key": "ev3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据3标题",
+      "bbox": [
+        798.0,
+        256.0,
+        210.0,
+        32.0
+      ],
+      "font_pt": 12.2,
+      "chars": [
+        5,
+        14
+      ],
+      "single_line": true,
+      "hint": "证据卡标题，概括证据类型",
+      "style": {
+        "sz_pt": 12.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_card_title"
+    },
+    {
+      "key": "ev3_metric",
+      "type": "text",
+      "role": "label",
+      "zh": "证据3指标口径",
+      "bbox": [
+        766.0,
+        294.0,
+        268.0,
+        32.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        5,
+        20
+      ],
+      "single_line": true,
+      "hint": "短指标口径或图表说明",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_definition"
+    },
+    {
+      "key": "ev3_visual",
+      "type": "image",
+      "role": "image",
+      "zh": "证据3图表",
+      "bbox": [
+        774.0,
+        360.0,
+        210.0,
+        150.0
+      ],
+      "font_pt": 0,
+      "chars": [
+        0,
+        0
+      ],
+      "single_line": false,
+      "hint": "该证据卡内部图表或机制示意，建议无内嵌长文本",
+      "semantic_role": "evidence_chart_visual",
+      "content_intent": "visualize the evidence metric for this card",
+      "visual_task": "compact chart visual, no long text, no logo",
+      "no_text": true,
+      "crop_mode": "contain",
+      "safe_area": [
+        0.08,
+        0.08,
+        0.84,
+        0.84
+      ]
+    },
+    {
+      "key": "ev3_bullets",
+      "type": "text",
+      "role": "bullets",
+      "zh": "证据3要点",
+      "bbox": [
+        738.0,
+        536.0,
+        282.0,
+        96.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        10,
+        28
+      ],
+      "single_line": false,
+      "hint": "两条证据要点，每条尽量带数字或条件",
+      "style": {
+        "sz_pt": 9.6,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_bullets",
+      "max_lines": 2
+    },
+    {
+      "key": "conclusion_title",
+      "type": "text",
+      "role": "header",
+      "zh": "技术结论标题",
+      "bbox": [
+        330.0,
+        794.0,
+        500.0,
+        34.0
+      ],
+      "font_pt": 14.2,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "如 技术结论 / 归纳判断",
+      "style": {
+        "sz_pt": 14.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "conclusion_heading"
+    },
+    {
+      "key": "conclusion_text",
+      "type": "text",
+      "role": "conclusion",
+      "zh": "技术结论正文",
+      "bbox": [
+        326.0,
+        832.0,
+        520.0,
+        86.0
+      ],
+      "font_pt": 10.0,
+      "chars": [
+        38,
+        82
+      ],
+      "single_line": false,
+      "hint": "一段归纳：已验证收益 + 仍待突破的边界",
+      "style": {
+        "sz_pt": 10.6,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_synthesis_conclusion",
+      "max_lines": 3
+    },
+    {
+      "key": "right_title",
+      "type": "text",
+      "role": "header",
+      "zh": "右侧问题区标题",
+      "bbox": [
+        1092.0,
+        176.0,
+        790.0,
+        44.0
+      ],
+      "font_pt": 15.2,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "如 开放问题与下一步假设",
+      "style": {
+        "sz_pt": 15.2,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "panel_heading"
+    },
+    {
+      "key": "issue1_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题1标签",
+      "bbox": [
+        1150.0,
+        260.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue1_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题1正文",
+      "bbox": [
+        1384.0,
+        258.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "issue2_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题2标签",
+      "bbox": [
+        1150.0,
+        356.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue2_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题2正文",
+      "bbox": [
+        1384.0,
+        354.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "issue3_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题3标签",
+      "bbox": [
+        1150.0,
+        452.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue3_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题3正文",
+      "bbox": [
+        1384.0,
+        450.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "issue4_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题4标签",
+      "bbox": [
+        1150.0,
+        548.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue4_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题4正文",
+      "bbox": [
+        1384.0,
+        546.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "issue5_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题5标签",
+      "bbox": [
+        1150.0,
+        644.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue5_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题5正文",
+      "bbox": [
+        1384.0,
+        642.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "issue6_label",
+      "type": "text",
+      "role": "label",
+      "zh": "开放问题6标签",
+      "bbox": [
+        1150.0,
+        740.0,
+        236.0,
+        32.0
+      ],
+      "font_pt": 10.1,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "问题标签，含冒号",
+      "style": {
+        "sz_pt": 10.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_label"
+    },
+    {
+      "key": "issue6_text",
+      "type": "text",
+      "role": "body",
+      "zh": "开放问题6正文",
+      "bbox": [
+        1384.0,
+        738.0,
+        436.0,
+        58.0
+      ],
+      "font_pt": 8.9,
+      "chars": [
+        20,
+        46
+      ],
+      "single_line": false,
+      "hint": "一句说明开放问题、风险或下一步假设",
+      "style": {
+        "sz_pt": 9.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "open_issue_explanation",
+      "max_lines": 2
+    },
+    {
+      "key": "metric1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric1指标标题",
+      "bbox": [
+        1218.0,
+        854.0,
+        238.0,
+        48.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        6,
+        22
+      ],
+      "single_line": false,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 9.6,
+        "color": "0B98A4",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "max_lines": 2
+    },
+    {
+      "key": "metric1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric1指标数值",
+      "bbox": [
+        1150.0,
+        900.0,
+        282.0,
+        44.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        12
+      ],
+      "single_line": true,
+      "hint": "大号数值",
+      "style": {
+        "sz_pt": 18,
+        "color": "0B98A4",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric1指标说明",
+      "bbox": [
+        1170.0,
+        944.0,
+        242.0,
+        54.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        8,
+        28
+      ],
+      "single_line": false,
+      "hint": "一到两行指标口径",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "metric2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric2指标标题",
+      "bbox": [
+        1594.0,
+        854.0,
+        238.0,
+        48.0
+      ],
+      "font_pt": 9.1,
+      "chars": [
+        6,
+        22
+      ],
+      "single_line": false,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 9.6,
+        "color": "F16918",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "max_lines": 2
+    },
+    {
+      "key": "metric2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric2指标数值",
+      "bbox": [
+        1526.0,
+        900.0,
+        282.0,
+        44.0
+      ],
+      "font_pt": 18.0,
+      "chars": [
+        2,
+        12
+      ],
+      "single_line": true,
+      "hint": "大号数值",
+      "style": {
+        "sz_pt": 18,
+        "color": "F16918",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric2指标说明",
+      "bbox": [
+        1546.0,
+        944.0,
+        242.0,
+        54.0
+      ],
+      "font_pt": 8.7,
+      "chars": [
+        8,
+        28
+      ],
+      "single_line": false,
+      "hint": "一到两行指标口径",
+      "style": {
+        "sz_pt": 9.1,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    }
+  ]
+}

@@ -1,0 +1,1261 @@
+{
+  "template_id": "tpl-111-decision-tradeoff-quadrant",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "slots": [
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        32.0,
+        54.0,
+        1810.0,
+        64.0
+      ],
+      "font_pt": 22.8,
+      "chars": [
+        16,
+        38
+      ],
+      "single_line": true,
+      "hint": "结论式主标题，单行优先",
+      "style": {
+        "sz_pt": 22.8,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis"
+    },
+    {
+      "key": "left_title",
+      "type": "text",
+      "role": "header",
+      "zh": "左侧标题",
+      "bbox": [
+        54.0,
+        190.0,
+        300.0,
+        34.0
+      ],
+      "font_pt": 14,
+      "chars": [
+        5,
+        14
+      ],
+      "single_line": true,
+      "hint": "如 评估维度与定义",
+      "style": {
+        "sz_pt": 14,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "section_heading"
+    },
+    {
+      "key": "dim1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "维度1标题",
+      "bbox": [
+        128.0,
+        246.0,
+        240.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短维度名",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_name"
+    },
+    {
+      "key": "dim1_body",
+      "type": "text",
+      "role": "body",
+      "zh": "维度1解释",
+      "bbox": [
+        128.0,
+        278.0,
+        294.0,
+        48.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        12,
+        34
+      ],
+      "single_line": false,
+      "hint": "1-2 行定义",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_definition",
+      "max_lines": 2
+    },
+    {
+      "key": "dim2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "维度2标题",
+      "bbox": [
+        128.0,
+        358.0,
+        240.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短维度名",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_name"
+    },
+    {
+      "key": "dim2_body",
+      "type": "text",
+      "role": "body",
+      "zh": "维度2解释",
+      "bbox": [
+        128.0,
+        390.0,
+        294.0,
+        48.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        12,
+        34
+      ],
+      "single_line": false,
+      "hint": "1-2 行定义",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_definition",
+      "max_lines": 2
+    },
+    {
+      "key": "dim3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "维度3标题",
+      "bbox": [
+        128.0,
+        470.0,
+        240.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短维度名",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_name"
+    },
+    {
+      "key": "dim3_body",
+      "type": "text",
+      "role": "body",
+      "zh": "维度3解释",
+      "bbox": [
+        128.0,
+        502.0,
+        294.0,
+        48.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        12,
+        34
+      ],
+      "single_line": false,
+      "hint": "1-2 行定义",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_definition",
+      "max_lines": 2
+    },
+    {
+      "key": "dim4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "维度4标题",
+      "bbox": [
+        128.0,
+        582.0,
+        240.0,
+        28.0
+      ],
+      "font_pt": 12.0,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "短维度名",
+      "style": {
+        "sz_pt": 12.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_name"
+    },
+    {
+      "key": "dim4_body",
+      "type": "text",
+      "role": "body",
+      "zh": "维度4解释",
+      "bbox": [
+        128.0,
+        614.0,
+        294.0,
+        48.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        12,
+        34
+      ],
+      "single_line": false,
+      "hint": "1-2 行定义",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "criteria_definition",
+      "max_lines": 2
+    },
+    {
+      "key": "method_title",
+      "type": "text",
+      "role": "header",
+      "zh": "评分方法标题",
+      "bbox": [
+        54.0,
+        704.0,
+        260.0,
+        30.0
+      ],
+      "font_pt": 12,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "如 评分方法",
+      "style": {
+        "sz_pt": 12,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "method_heading"
+    },
+    {
+      "key": "method_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "评分方法",
+      "bbox": [
+        54.0,
+        742.0,
+        330.0,
+        76.0
+      ],
+      "font_pt": 8.4,
+      "chars": [
+        18,
+        54
+      ],
+      "single_line": false,
+      "hint": "3 条短规则",
+      "style": {
+        "sz_pt": 8.4,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "scoring_method",
+      "max_lines": 4
+    },
+    {
+      "key": "matrix_title",
+      "type": "text",
+      "role": "header",
+      "zh": "矩阵标题",
+      "bbox": [
+        620.0,
+        184.0,
+        650.0,
+        34.0
+      ],
+      "font_pt": 13.5,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "矩阵标题",
+      "style": {
+        "sz_pt": 13.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "matrix_heading"
+    },
+    {
+      "key": "x_axis",
+      "type": "text",
+      "role": "axis",
+      "zh": "X轴标题",
+      "bbox": [
+        820.0,
+        712.0,
+        360.0,
+        32.0
+      ],
+      "font_pt": 12,
+      "chars": [
+        6,
+        20
+      ],
+      "single_line": true,
+      "hint": "横轴标题",
+      "style": {
+        "sz_pt": 12,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "axis_title"
+    },
+    {
+      "key": "q1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q1标题",
+      "bbox": [
+        580.0,
+        254.0,
+        260.0,
+        28.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "象限标题",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "key": "q1_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q1说明",
+      "bbox": [
+        580.0,
+        290.0,
+        290.0,
+        72.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        18,
+        44
+      ],
+      "single_line": false,
+      "hint": "2-3 行象限说明",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_explanation",
+      "max_lines": 3
+    },
+    {
+      "key": "q2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q2标题",
+      "bbox": [
+        1212.0,
+        254.0,
+        130.0,
+        28.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "象限标题",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "key": "q2_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q2说明",
+      "bbox": [
+        1212.0,
+        290.0,
+        160.0,
+        72.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        18,
+        44
+      ],
+      "single_line": false,
+      "hint": "2-3 行象限说明",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_explanation",
+      "max_lines": 3
+    },
+    {
+      "key": "q3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q3标题",
+      "bbox": [
+        580.0,
+        496.0,
+        250.0,
+        28.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "象限标题",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "7E8794",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "key": "q3_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q3说明",
+      "bbox": [
+        580.0,
+        532.0,
+        280.0,
+        72.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        18,
+        44
+      ],
+      "single_line": false,
+      "hint": "2-3 行象限说明",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_explanation",
+      "max_lines": 3
+    },
+    {
+      "key": "q4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "q4标题",
+      "bbox": [
+        1216.0,
+        494.0,
+        132.0,
+        28.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "象限标题",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "F16918",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_label"
+    },
+    {
+      "key": "q4_body",
+      "type": "text",
+      "role": "body",
+      "zh": "q4说明",
+      "bbox": [
+        1216.0,
+        530.0,
+        162.0,
+        72.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        18,
+        44
+      ],
+      "single_line": false,
+      "hint": "2-3 行象限说明",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "quadrant_explanation",
+      "max_lines": 3
+    },
+    {
+      "key": "optA",
+      "type": "text",
+      "role": "label",
+      "zh": "optA标签",
+      "bbox": [
+        786.0,
+        308.0,
+        124.0,
+        70.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": false,
+      "hint": "方案名与状态",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "option_label",
+      "max_lines": 2
+    },
+    {
+      "key": "optB",
+      "type": "text",
+      "role": "label",
+      "zh": "optB标签",
+      "bbox": [
+        1013.0,
+        309.0,
+        124.0,
+        70.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": false,
+      "hint": "方案名与状态",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "option_label",
+      "max_lines": 2
+    },
+    {
+      "key": "optC",
+      "type": "text",
+      "role": "label",
+      "zh": "optC标签",
+      "bbox": [
+        786.0,
+        552.0,
+        124.0,
+        70.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": false,
+      "hint": "方案名与状态",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "7E8794",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "option_label",
+      "max_lines": 2
+    },
+    {
+      "key": "optD",
+      "type": "text",
+      "role": "label",
+      "zh": "optD标签",
+      "bbox": [
+        1013.0,
+        552.0,
+        124.0,
+        70.0
+      ],
+      "font_pt": 11.5,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": false,
+      "hint": "方案名与状态",
+      "style": {
+        "sz_pt": 11.5,
+        "color": "F16918",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "option_label",
+      "max_lines": 2
+    },
+    {
+      "key": "rec_title",
+      "type": "text",
+      "role": "header",
+      "zh": "rec_title",
+      "bbox": [
+        1536.0,
+        186.0,
+        294.0,
+        34.0
+      ],
+      "font_pt": 13,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "右侧卡标题",
+      "style": {
+        "sz_pt": 13,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_heading"
+    },
+    {
+      "key": "rec_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "rec_body",
+      "bbox": [
+        1468.0,
+        240.0,
+        390.0,
+        126.0
+      ],
+      "font_pt": 8.25,
+      "chars": [
+        24,
+        72
+      ],
+      "single_line": false,
+      "hint": "3-5 条短要点",
+      "style": {
+        "sz_pt": 8.25,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_rationale",
+      "max_lines": 6
+    },
+    {
+      "key": "decision_title",
+      "type": "text",
+      "role": "header",
+      "zh": "decision_title",
+      "bbox": [
+        1536.0,
+        468.0,
+        294.0,
+        34.0
+      ],
+      "font_pt": 13,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "右侧卡标题",
+      "style": {
+        "sz_pt": 13,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_heading"
+    },
+    {
+      "key": "decision_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "decision_body",
+      "bbox": [
+        1468.0,
+        522.0,
+        390.0,
+        126.0
+      ],
+      "font_pt": 8.25,
+      "chars": [
+        24,
+        72
+      ],
+      "single_line": false,
+      "hint": "3-5 条短要点",
+      "style": {
+        "sz_pt": 8.25,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_rationale",
+      "max_lines": 6
+    },
+    {
+      "key": "risk_title",
+      "type": "text",
+      "role": "header",
+      "zh": "risk_title",
+      "bbox": [
+        1536.0,
+        698.0,
+        294.0,
+        34.0
+      ],
+      "font_pt": 13,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "右侧卡标题",
+      "style": {
+        "sz_pt": 13,
+        "color": "F16918",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_heading"
+    },
+    {
+      "key": "risk_body",
+      "type": "text",
+      "role": "bullets",
+      "zh": "risk_body",
+      "bbox": [
+        1468.0,
+        752.0,
+        390.0,
+        76.0
+      ],
+      "font_pt": 8.25,
+      "chars": [
+        24,
+        72
+      ],
+      "single_line": false,
+      "hint": "3-5 条短要点",
+      "style": {
+        "sz_pt": 8.25,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_rationale",
+      "max_lines": 6
+    },
+    {
+      "key": "metric1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric1标题",
+      "bbox": [
+        386.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric1数值",
+      "bbox": [
+        378.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "font_pt": 15.0,
+      "chars": [
+        1,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标值",
+      "style": {
+        "sz_pt": 15.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric1说明",
+      "bbox": [
+        334.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "font_pt": 7.3,
+      "chars": [
+        6,
+        26
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径",
+      "style": {
+        "sz_pt": 7.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "metric2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric2标题",
+      "bbox": [
+        711.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric2数值",
+      "bbox": [
+        703.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        1,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标值",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric2说明",
+      "bbox": [
+        659.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "font_pt": 7.3,
+      "chars": [
+        6,
+        26
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径",
+      "style": {
+        "sz_pt": 7.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "metric3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric3标题",
+      "bbox": [
+        1036.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "F16918",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric3数值",
+      "bbox": [
+        1028.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "font_pt": 15.0,
+      "chars": [
+        1,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标值",
+      "style": {
+        "sz_pt": 15.0,
+        "color": "F16918",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric3说明",
+      "bbox": [
+        984.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "font_pt": 7.3,
+      "chars": [
+        6,
+        26
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径",
+      "style": {
+        "sz_pt": 7.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    },
+    {
+      "key": "metric4_title",
+      "type": "text",
+      "role": "label",
+      "zh": "metric4标题",
+      "bbox": [
+        1361.0,
+        908.0,
+        185.0,
+        28.0
+      ],
+      "font_pt": 8.6,
+      "chars": [
+        4,
+        18
+      ],
+      "single_line": true,
+      "hint": "指标标题",
+      "style": {
+        "sz_pt": 8.6,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title"
+    },
+    {
+      "key": "metric4_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "metric4数值",
+      "bbox": [
+        1353.0,
+        930.0,
+        193.0,
+        38.0
+      ],
+      "font_pt": 15.0,
+      "chars": [
+        1,
+        10
+      ],
+      "single_line": true,
+      "hint": "指标值",
+      "style": {
+        "sz_pt": 15.0,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value"
+    },
+    {
+      "key": "metric4_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "metric4说明",
+      "bbox": [
+        1309.0,
+        981.0,
+        217.0,
+        22.0
+      ],
+      "font_pt": 7.3,
+      "chars": [
+        6,
+        26
+      ],
+      "single_line": false,
+      "hint": "1-2 行指标口径",
+      "style": {
+        "sz_pt": 7.3,
+        "color": "142033",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "max_lines": 2
+    }
+  ]
+}

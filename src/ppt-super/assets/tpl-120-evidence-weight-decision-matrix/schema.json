@@ -1,0 +1,1853 @@
+{
+  "template_id": "tpl-120-evidence-weight-decision-matrix",
+  "version": 1,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "layout_family": "evidence_weight_decision_matrix",
+  "archetype": "decision_matrix_evidence",
+  "slot_contract": {
+    "overflow_policy": "rewrite_before_shrink",
+    "font_required": "微软雅黑",
+    "text_density": "dense_but_bounded",
+    "image_slots": 0
+  },
+  "slots": [
+    {
+      "key": "chip",
+      "type": "text",
+      "role": "label",
+      "zh": "左上角分类标签",
+      "bbox": [
+        68.0,
+        34.0,
+        320.0,
+        32.0
+      ],
+      "font_pt": 10.4,
+      "chars": [
+        6,
+        14
+      ],
+      "single_line": true,
+      "hint": "页面类别标签，6-14字。",
+      "style": {
+        "sz_pt": 10.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_category",
+      "sample": "证据权重 / 技术判断"
+    },
+    {
+      "key": "title_main",
+      "type": "text",
+      "role": "title",
+      "zh": "主标题",
+      "bbox": [
+        66.0,
+        62.0,
+        1320.0,
+        56.0
+      ],
+      "font_pt": 22.0,
+      "chars": [
+        16,
+        30
+      ],
+      "single_line": true,
+      "hint": "一句话说明本页核心判断，16-30字。",
+      "style": {
+        "sz_pt": 22.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "thesis",
+      "sample": "证据权重矩阵：用六类证据收敛技术路线选择"
+    },
+    {
+      "key": "subtitle",
+      "type": "text",
+      "role": "subtitle",
+      "zh": "副标题",
+      "bbox": [
+        68.0,
+        124.0,
+        1460.0,
+        34.0
+      ],
+      "font_pt": 11.2,
+      "chars": [
+        22,
+        48
+      ],
+      "single_line": true,
+      "hint": "解释判断口径与使用场景，22-48字。",
+      "style": {
+        "sz_pt": 11.2,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "page_context",
+      "sample": "把效果、成本、可交付、风险和复用价值放到同一张决策页，形成可复核的结论"
+    },
+    {
+      "key": "matrix_title",
+      "type": "text",
+      "role": "header",
+      "zh": "矩阵标题",
+      "bbox": [
+        72.0,
+        258.0,
+        340.0,
+        34.0
+      ],
+      "font_pt": 14.0,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "左侧证据矩阵标题。",
+      "style": {
+        "sz_pt": 14.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_matrix_title",
+      "sample": "核心证据权重"
+    },
+    {
+      "key": "matrix_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "矩阵说明",
+      "bbox": [
+        420.0,
+        260.0,
+        700.0,
+        34.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        24,
+        54
+      ],
+      "single_line": true,
+      "hint": "解释权重如何计算。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "637084",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_matrix_note",
+      "sample": "每项证据按可信度、业务相关性和可验证性综合计权，避免单一指标决定路线。"
+    },
+    {
+      "key": "e1_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据1标题",
+      "bbox": [
+        148.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "效果收益"
+    },
+    {
+      "key": "e1_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据1权重",
+      "bbox": [
+        278.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "28%"
+    },
+    {
+      "key": "e1_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据1说明",
+      "bbox": [
+        92.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "离线与线上样本均显示关键指标提升，且置信区间稳定。"
+    },
+    {
+      "key": "e1_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据1判断",
+      "bbox": [
+        294.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "强支撑"
+    },
+    {
+      "key": "e2_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据2标题",
+      "bbox": [
+        506.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "成本约束"
+    },
+    {
+      "key": "e2_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据2权重",
+      "bbox": [
+        636.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "18%"
+    },
+    {
+      "key": "e2_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据2说明",
+      "bbox": [
+        450.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "单位推理成本下降空间明确，但需要批量调度配合。"
+    },
+    {
+      "key": "e2_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据2判断",
+      "bbox": [
+        652.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "中支撑"
+    },
+    {
+      "key": "e3_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据3标题",
+      "bbox": [
+        864.0,
+        329.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "工程成熟度"
+    },
+    {
+      "key": "e3_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据3权重",
+      "bbox": [
+        994.0,
+        327.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "16%"
+    },
+    {
+      "key": "e3_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据3说明",
+      "bbox": [
+        808.0,
+        370.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "核心链路已完成灰度验证，异常回滚和观测体系可用。"
+    },
+    {
+      "key": "e3_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据3判断",
+      "bbox": [
+        1010.0,
+        466.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "可落地"
+    },
+    {
+      "key": "e4_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据4标题",
+      "bbox": [
+        148.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "交付窗口"
+    },
+    {
+      "key": "e4_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据4权重",
+      "bbox": [
+        278.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "078D98",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "14%"
+    },
+    {
+      "key": "e4_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据4说明",
+      "bbox": [
+        92.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "当前依赖项集中在两处接口适配，可压入下一轮版本。"
+    },
+    {
+      "key": "e4_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据4判断",
+      "bbox": [
+        294.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "078D98",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "需排期"
+    },
+    {
+      "key": "e5_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据5标题",
+      "bbox": [
+        506.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "风险暴露"
+    },
+    {
+      "key": "e5_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据5权重",
+      "bbox": [
+        636.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "D98200",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "12%"
+    },
+    {
+      "key": "e5_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据5说明",
+      "bbox": [
+        450.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "主要风险来自极端流量与长尾输入，需保留兜底路径。"
+    },
+    {
+      "key": "e5_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据5判断",
+      "bbox": [
+        652.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "可控制"
+    },
+    {
+      "key": "e6_title",
+      "type": "text",
+      "role": "header",
+      "zh": "证据6标题",
+      "bbox": [
+        864.0,
+        567.0,
+        126.0,
+        28.0
+      ],
+      "font_pt": 11.3,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "证据维度名称，4-12字。",
+      "style": {
+        "sz_pt": 11.3,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_dimension",
+      "sample": "复用价值"
+    },
+    {
+      "key": "e6_weight",
+      "type": "text",
+      "role": "label",
+      "zh": "证据6权重",
+      "bbox": [
+        994.0,
+        565.0,
+        104.0,
+        30.0
+      ],
+      "font_pt": 11.4,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "证据权重百分比，如 18%。",
+      "style": {
+        "sz_pt": 11.4,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "r",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_weight",
+      "sample": "12%"
+    },
+    {
+      "key": "e6_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "证据6说明",
+      "bbox": [
+        808.0,
+        608.0,
+        292.0,
+        66.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        20,
+        36
+      ],
+      "single_line": false,
+      "hint": "证据事实或验证结果，建议两行写满。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_summary",
+      "max_lines": 2,
+      "sample": "能力模块可沉淀为平台组件，后续场景复用比例较高。"
+    },
+    {
+      "key": "e6_judgment",
+      "type": "text",
+      "role": "label",
+      "zh": "证据6判断",
+      "bbox": [
+        1010.0,
+        704.0,
+        96.0,
+        32.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        3,
+        8
+      ],
+      "single_line": true,
+      "hint": "短判断，如 强支撑/可控制。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "evidence_judgment",
+      "sample": "高复用"
+    },
+    {
+      "key": "decision_title",
+      "type": "text",
+      "role": "header",
+      "zh": "决策结论标题",
+      "bbox": [
+        1222.0,
+        270.0,
+        150.0,
+        32.0
+      ],
+      "font_pt": 12.4,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "右侧结论模块标题。",
+      "style": {
+        "sz_pt": 12.4,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_title",
+      "sample": "决策结论"
+    },
+    {
+      "key": "decision_level",
+      "type": "text",
+      "role": "label",
+      "zh": "决策等级",
+      "bbox": [
+        1222.0,
+        308.0,
+        430.0,
+        46.0
+      ],
+      "font_pt": 16.2,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "本页最终建议等级。",
+      "style": {
+        "sz_pt": 16.2,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_level",
+      "sample": "建议进入小规模试点"
+    },
+    {
+      "key": "decision_summary",
+      "type": "text",
+      "role": "body",
+      "zh": "决策依据摘要",
+      "bbox": [
+        1222.0,
+        360.0,
+        442.0,
+        70.0
+      ],
+      "font_pt": 9.2,
+      "chars": [
+        32,
+        62
+      ],
+      "single_line": false,
+      "hint": "用一到两句解释为什么做出该决策。",
+      "style": {
+        "sz_pt": 9.2,
+        "color": "142033",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "decision_summary",
+      "max_lines": 2,
+      "sample": "在收益确定、风险可控且工程依赖清晰的前提下，优先推进试点交付，并设置明确退出阈值。"
+    },
+    {
+      "key": "confidence_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "综合置信度",
+      "bbox": [
+        1672.0,
+        314.0,
+        152.0,
+        48.0
+      ],
+      "font_pt": 16.0,
+      "chars": [
+        2,
+        6
+      ],
+      "single_line": true,
+      "hint": "综合置信度百分比。",
+      "style": {
+        "sz_pt": 16.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "confidence_value",
+      "sample": "82%"
+    },
+    {
+      "key": "confidence_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "置信度说明",
+      "bbox": [
+        1688.0,
+        362.0,
+        120.0,
+        28.0
+      ],
+      "font_pt": 7.6,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "置信度口径。",
+      "style": {
+        "sz_pt": 7.6,
+        "color": "637084",
+        "bold": 0,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "confidence_note",
+      "sample": "综合置信度"
+    },
+    {
+      "key": "threshold_title",
+      "type": "text",
+      "role": "header",
+      "zh": "门槛标题",
+      "bbox": [
+        1222.0,
+        446.0,
+        360.0,
+        30.0
+      ],
+      "font_pt": 11.0,
+      "chars": [
+        6,
+        16
+      ],
+      "single_line": true,
+      "hint": "下一阶段门槛标题。",
+      "style": {
+        "sz_pt": 11.0,
+        "color": "0B2F86",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_title",
+      "sample": "进入下一阶段的门槛"
+    },
+    {
+      "key": "th1_label",
+      "type": "text",
+      "role": "label",
+      "zh": "门槛1名称",
+      "bbox": [
+        1252.0,
+        491.0,
+        108.0,
+        34.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "门槛名称，4-8字。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_label",
+      "sample": "效果阈值"
+    },
+    {
+      "key": "th1_value",
+      "type": "text",
+      "role": "caption",
+      "zh": "门槛1数值",
+      "bbox": [
+        1372.0,
+        491.0,
+        460.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "一条可验证门槛。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_value",
+      "sample": "核心指标 ≥ +8%"
+    },
+    {
+      "key": "th2_label",
+      "type": "text",
+      "role": "label",
+      "zh": "门槛2名称",
+      "bbox": [
+        1252.0,
+        541.0,
+        108.0,
+        34.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "门槛名称，4-8字。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_label",
+      "sample": "成本阈值"
+    },
+    {
+      "key": "th2_value",
+      "type": "text",
+      "role": "caption",
+      "zh": "门槛2数值",
+      "bbox": [
+        1372.0,
+        541.0,
+        460.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "一条可验证门槛。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_value",
+      "sample": "单位成本 ≤ 基线 0.85x"
+    },
+    {
+      "key": "th3_label",
+      "type": "text",
+      "role": "label",
+      "zh": "门槛3名称",
+      "bbox": [
+        1252.0,
+        591.0,
+        108.0,
+        34.0
+      ],
+      "font_pt": 9.4,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "门槛名称，4-8字。",
+      "style": {
+        "sz_pt": 9.4,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_label",
+      "sample": "交付阈值"
+    },
+    {
+      "key": "th3_value",
+      "type": "text",
+      "role": "caption",
+      "zh": "门槛3数值",
+      "bbox": [
+        1372.0,
+        591.0,
+        460.0,
+        34.0
+      ],
+      "font_pt": 9.0,
+      "chars": [
+        8,
+        22
+      ],
+      "single_line": true,
+      "hint": "一条可验证门槛。",
+      "style": {
+        "sz_pt": 9.0,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "threshold_value",
+      "sample": "2 周内完成灰度闭环"
+    },
+    {
+      "key": "risk_title",
+      "type": "text",
+      "role": "header",
+      "zh": "风险校验标题",
+      "bbox": [
+        1222.0,
+        646.0,
+        300.0,
+        28.0
+      ],
+      "font_pt": 10.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "风险校验模块标题。",
+      "style": {
+        "sz_pt": 10.8,
+        "color": "B80606",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_title",
+      "sample": "风险校验"
+    },
+    {
+      "key": "risk1_label",
+      "type": "text",
+      "role": "label",
+      "zh": "风险1名称",
+      "bbox": [
+        1272.0,
+        685.0,
+        96.0,
+        34.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "风险名称，4-8字。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_label",
+      "sample": "数据偏差"
+    },
+    {
+      "key": "risk1_status",
+      "type": "text",
+      "role": "label",
+      "zh": "风险1状态",
+      "bbox": [
+        1366.0,
+        685.0,
+        92.0,
+        34.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        3,
+        6
+      ],
+      "single_line": true,
+      "hint": "短状态，如 可缓释。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_status",
+      "sample": "需监控"
+    },
+    {
+      "key": "risk1_text",
+      "type": "text",
+      "role": "caption",
+      "zh": "风险1说明",
+      "bbox": [
+        1472.0,
+        685.0,
+        356.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        24
+      ],
+      "single_line": true,
+      "hint": "风险说明或缓释动作，12-24字。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_control",
+      "sample": "样本覆盖仍需扩大到长尾场景。"
+    },
+    {
+      "key": "risk2_label",
+      "type": "text",
+      "role": "label",
+      "zh": "风险2名称",
+      "bbox": [
+        1272.0,
+        733.0,
+        96.0,
+        34.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "风险名称，4-8字。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_label",
+      "sample": "系统耦合"
+    },
+    {
+      "key": "risk2_status",
+      "type": "text",
+      "role": "label",
+      "zh": "风险2状态",
+      "bbox": [
+        1366.0,
+        733.0,
+        92.0,
+        34.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        3,
+        6
+      ],
+      "single_line": true,
+      "hint": "短状态，如 可缓释。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "159A6B",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_status",
+      "sample": "可缓释"
+    },
+    {
+      "key": "risk2_text",
+      "type": "text",
+      "role": "caption",
+      "zh": "风险2说明",
+      "bbox": [
+        1472.0,
+        733.0,
+        356.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        24
+      ],
+      "single_line": true,
+      "hint": "风险说明或缓释动作，12-24字。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_control",
+      "sample": "通过旁路接入降低主链路侵入。"
+    },
+    {
+      "key": "risk3_label",
+      "type": "text",
+      "role": "label",
+      "zh": "风险3名称",
+      "bbox": [
+        1272.0,
+        781.0,
+        96.0,
+        34.0
+      ],
+      "font_pt": 8.8,
+      "chars": [
+        4,
+        8
+      ],
+      "single_line": true,
+      "hint": "风险名称，4-8字。",
+      "style": {
+        "sz_pt": 8.8,
+        "color": "142033",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_label",
+      "sample": "收益回撤"
+    },
+    {
+      "key": "risk3_status",
+      "type": "text",
+      "role": "label",
+      "zh": "风险3状态",
+      "bbox": [
+        1366.0,
+        781.0,
+        92.0,
+        34.0
+      ],
+      "font_pt": 8.0,
+      "chars": [
+        3,
+        6
+      ],
+      "single_line": true,
+      "hint": "短状态，如 可缓释。",
+      "style": {
+        "sz_pt": 8.0,
+        "color": "B80606",
+        "bold": 1,
+        "align": "ctr",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_status",
+      "sample": "设止损"
+    },
+    {
+      "key": "risk3_text",
+      "type": "text",
+      "role": "caption",
+      "zh": "风险3说明",
+      "bbox": [
+        1472.0,
+        781.0,
+        356.0,
+        34.0
+      ],
+      "font_pt": 7.8,
+      "chars": [
+        12,
+        24
+      ],
+      "single_line": true,
+      "hint": "风险说明或缓释动作，12-24字。",
+      "style": {
+        "sz_pt": 7.8,
+        "color": "334056",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "risk_control",
+      "sample": "连续两周低于阈值则回滚。"
+    },
+    {
+      "key": "final_title",
+      "type": "text",
+      "role": "header",
+      "zh": "底部建议标题",
+      "bbox": [
+        76.0,
+        864.0,
+        210.0,
+        36.0
+      ],
+      "font_pt": 15.0,
+      "chars": [
+        4,
+        10
+      ],
+      "single_line": true,
+      "hint": "底部总结标题。",
+      "style": {
+        "sz_pt": 15.0,
+        "color": "FFFFFF",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "final_title",
+      "sample": "最终建议"
+    },
+    {
+      "key": "final_action",
+      "type": "text",
+      "role": "label",
+      "zh": "最终行动建议",
+      "bbox": [
+        76.0,
+        904.0,
+        470.0,
+        34.0
+      ],
+      "font_pt": 13.2,
+      "chars": [
+        10,
+        22
+      ],
+      "single_line": true,
+      "hint": "一个短行动建议。",
+      "style": {
+        "sz_pt": 13.2,
+        "color": "0B98A4",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "final_action",
+      "sample": "先试点、再扩面、保留回滚阈值"
+    },
+    {
+      "key": "final_reason",
+      "type": "text",
+      "role": "body",
+      "zh": "最终建议理由",
+      "bbox": [
+        76.0,
+        942.0,
+        528.0,
+        46.0
+      ],
+      "font_pt": 8.3,
+      "chars": [
+        24,
+        48
+      ],
+      "single_line": false,
+      "hint": "解释建议理由，两行内。",
+      "style": {
+        "sz_pt": 8.3,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "t",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "final_reason",
+      "max_lines": 2,
+      "sample": "证据权重集中在收益和成熟度两侧，风险集中但可被工程门槛约束。"
+    },
+    {
+      "key": "kpi1_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI1标题",
+      "bbox": [
+        718.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "综合评分"
+    },
+    {
+      "key": "kpi1_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI1数值",
+      "bbox": [
+        718.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "核心指标值。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "0B98A4",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "82/100"
+    },
+    {
+      "key": "kpi1_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI1说明",
+      "bbox": [
+        718.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "达到试点线"
+    },
+    {
+      "key": "kpi2_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI2标题",
+      "bbox": [
+        1090.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "预期收益"
+    },
+    {
+      "key": "kpi2_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI2数值",
+      "bbox": [
+        1090.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "核心指标值。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "D98200",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "+18%"
+    },
+    {
+      "key": "kpi2_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI2说明",
+      "bbox": [
+        1090.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "核心指标"
+    },
+    {
+      "key": "kpi3_title",
+      "type": "text",
+      "role": "label",
+      "zh": "KPI3标题",
+      "bbox": [
+        1462.0,
+        858.0,
+        220.0,
+        28.0
+      ],
+      "font_pt": 9.8,
+      "chars": [
+        4,
+        12
+      ],
+      "single_line": true,
+      "hint": "指标名称。",
+      "style": {
+        "sz_pt": 9.8,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_title",
+      "sample": "回滚阈值"
+    },
+    {
+      "key": "kpi3_value",
+      "type": "text",
+      "role": "metric",
+      "zh": "KPI3数值",
+      "bbox": [
+        1462.0,
+        894.0,
+        220.0,
+        54.0
+      ],
+      "font_pt": 19.0,
+      "chars": [
+        2,
+        10
+      ],
+      "single_line": true,
+      "hint": "核心指标值。",
+      "style": {
+        "sz_pt": 19.0,
+        "color": "0B98A4",
+        "bold": 1,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_value",
+      "sample": "2周"
+    },
+    {
+      "key": "kpi3_note",
+      "type": "text",
+      "role": "caption",
+      "zh": "KPI3说明",
+      "bbox": [
+        1462.0,
+        952.0,
+        220.0,
+        26.0
+      ],
+      "font_pt": 8.2,
+      "chars": [
+        4,
+        14
+      ],
+      "single_line": true,
+      "hint": "指标口径说明。",
+      "style": {
+        "sz_pt": 8.2,
+        "color": "FFFFFF",
+        "bold": 0,
+        "align": "l",
+        "anchor": "ctr",
+        "font": "微软雅黑"
+      },
+      "semantic_role": "metric_note",
+      "sample": "连续低于线"
+    }
+  ]
+}

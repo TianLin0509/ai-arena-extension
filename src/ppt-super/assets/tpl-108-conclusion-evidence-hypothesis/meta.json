@@ -1,0 +1,46 @@
+{
+  "template_id": "tpl-108-conclusion-evidence-hypothesis",
+  "source_id": "tech-template-v2-20",
+  "name_cn": "结论证据链与实验假设",
+  "layout_family": "evidence_ladder_experiment_hypothesis",
+  "archetype": "causal_argument",
+  "template_fit_score": 88,
+  "template_status": "candidate",
+  "visual_fidelity_route": "native_shell_semantic_slots",
+  "best_for": [
+    "研究总结",
+    "实验复盘",
+    "技术评审",
+    "结论与下一步",
+    "路线展望"
+  ],
+  "avoid": [
+    "封面页",
+    "纯时间线",
+    "纯架构图",
+    "单一大图页"
+  ],
+  "reflection": {
+    "status": "candidate",
+    "visual_judgment": "保留原图的三层证据链、右侧假设面板、底部总结与双 KPI 卡；文本槽语义化，三处小图变成 bbox-preserving image slots。",
+    "known_issues": [
+      "原图中局部文字加粗由多槽拆分近似，不是单文本框内富文本。",
+      "为提升通用性，三张小图默认是中性占位，填充时可由 AI/用户替换。"
+    ],
+    "metrics": {
+      "blank_vs_reference": {
+        "mae_rgb": 21.255
+      },
+      "filled_vs_reference": {
+        "mae_rgb": 26.561
+      },
+      "font_qa_ok": true,
+      "text_overflow_qa_ok": true
+    },
+    "counts": {
+      "text_slots": 39,
+      "image_slots": 3,
+      "total_slots": 42
+    }
+  }
+}

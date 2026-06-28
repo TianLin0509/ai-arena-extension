@@ -1,0 +1,24 @@
+{
+  "tolerance_pt": 0.75,
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-111-decision-tradeoff-quadrant\\template.pptx",
+      "checked": 11,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-111-decision-tradeoff-quadrant\\filled-demo.pptx",
+      "checked": 55,
+      "failures": [],
+      "ok": true
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-tpl111-115-20260618\\assets\\tpl-111-decision-tradeoff-quadrant\\filled-check.pptx",
+      "checked": 53,
+      "failures": [],
+      "ok": true
+    }
+  ],
+  "ok": true
+}

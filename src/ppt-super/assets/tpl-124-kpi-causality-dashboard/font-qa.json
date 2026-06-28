@@ -1,0 +1,30 @@
+{
+  "required_font": "微软雅黑",
+  "files": [
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\template.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 180
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\filled-demo.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 180
+      },
+      "bad_fonts": []
+    },
+    {
+      "pptx": "C:\\Users\\lintian\\AI_debate\\ai-arena-extension\\artifacts\\ai-arena-direct-templates-121-125-20260619\\assets\\tpl-124-kpi-causality-dashboard\\filled-check.pptx",
+      "ok": true,
+      "fonts": {
+        "微软雅黑": 180
+      },
+      "bad_fonts": []
+    }
+  ],
+  "ok": true
+}
