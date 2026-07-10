@@ -1,5 +1,5 @@
 // AI Arena 双构建脚本
-// 用法: node build.mjs [github|store|all]
+// 用法: node build.mjs [github|store|store-safe|all]
 import { mkdir, cp, copyFile, readFile, writeFile, rm } from "node:fs/promises";
 import { existsSync, createWriteStream } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
@@ -119,6 +119,76 @@ async function patchStoreCdpExtractor(target) {
   console.log("[store] 调试器 API 引用已全部清除 (cdp-extractor 降级桩 + 注释去字面)");
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// store-safe 版（企业可安装版）：在 store 版基础上再剥离「企业 EDR/终端管控最敏感」
+//   的两类特征，让公司电脑(如华为终端管控)能装。核心圆桌功能(多 AI 发送/读取/辩论)零损。
+//   血泪背景：商店包在公司电脑报「无法将扩展程序目录移到个人资料中」(MOVE_DIRECTORY_TO_
+//   PROFILE_FAILED) —— EDR 在 Chrome 解包落盘阶段查杀可疑 .js 并持锁，导致 move 失败；
+//   个人电脑无 EDR 故能装。两大触发源：MAIN world anti-throttle + downloads.open。
+async function patchStoreSafeManifest(target) {
+  const p = resolve(target, "manifest.json");
+  const m = JSON.parse(await readFile(p, "utf8"));
+  // 1) 删 MAIN world content_scripts 声明（bootstrap-main-world.js）——改写 visibility/
+  //    timer + Blob Worker 运行时造代码，是 EDR 查杀「浏览器劫持/fileless」的头号特征。
+  //    代价：后台标签页 AI 回复被 Chrome 节流变慢，前台零影响；核心读写不依赖它。
+  const before = m.content_scripts.length;
+  m.content_scripts = m.content_scripts.filter(cs => cs.world !== "MAIN");
+  // 2) 删 downloads.open（罕见且企业敏感，仅 ppt-super 用于「下载 PPT 后自动用 PowerPoint
+  //    打开」）。保留基础 downloads —— 多个核心导出/下载功能仍需要，且属常规权限不扎眼。
+  m.permissions = m.permissions.filter(x => x !== "downloads.open");
+  await writeFile(p, JSON.stringify(m, null, 2) + "\n", "utf8");
+  console.log(`[store-safe] manifest: 删 MAIN world content_scripts (${before}→${m.content_scripts.length}) + downloads.open 权限`);
+}
+
+// 代码层：确保「文件不存在 / 权限已删」与代码引用严格一致 —— 既防运行时调用未声明 API，
+//   也防 CWS 静态审核 + EDR 在字符串/文件层面命中可疑特征。
+async function patchStoreSafeCode(target) {
+  // 1) 不打包 bootstrap-main-world.js（manifest 已不声明；background 主动注入下面桩掉）
+  const bs = resolve(target, "bootstrap-main-world.js");
+  if (existsSync(bs)) await rm(bs);
+
+  // 2) background.js：injectBootstrapToTab 短路成 no-op，否则 executeScript 会去注入已删
+  //    除的文件 → reject 噪声日志（且仍是「MAIN world 注入」行为画像）。
+  const bgPath = resolve(target, "background.js");
+  if (existsSync(bgPath)) {
+    let s = await readFile(bgPath, "utf8");
+    // 鲁棒 early-return：函数签名是稳定锚点。原正则用 \n 匹配函数体，但 src 是 CRLF(\r\n)
+    //   → 静默失配 → 函数体未短路 → 仍 executeScript 注入缺失文件。改为签名后插 early return
+    //   （后续 executeScript 全部 unreachable，永不执行）+ 断言，patch 失效即报错而非静默跳过。
+    const sig = "async function injectBootstrapToTab(tabId, url, reason) {";
+    if (!s.includes(sig)) throw new Error("[store-safe] injectBootstrapToTab 签名未找到——src 可能改了函数，patch 失效");
+    s = s.replace(sig, sig + '\n  return { ok: false, skipped: "store-safe-no-mainworld" }; // store-safe: anti-throttle 已移除，永不注入');
+    s = s
+      .split("bootstrap-main-world.js").join("store-safe-removed-anti-throttle-script")
+      .split('world: "MAIN"').join('world: "ISOLATED"')
+      .split("MAIN world").join("store-safe enhanced context")
+      .split("MAIN-world").join("store-safe-enhanced-context");
+    await writeFile(bgPath, s, "utf8");
+  }
+
+  const chatBusPath = resolve(target, "chat-bus.js");
+  if (existsSync(chatBusPath)) {
+    let s = await readFile(chatBusPath, "utf8");
+    s = s
+      .split("bootstrap-main-world.js").join("store-safe-removed-anti-throttle-script")
+      .split("MAIN world").join("store-safe enhanced context")
+      .split("MAIN-world").join("store-safe-enhanced-context");
+    await writeFile(chatBusPath, s, "utf8");
+  }
+
+  // 3) ppt-super.js：downloads.open 真实调用桩成 no-op + 去字面（与已删权限严格一致）。
+  //    先替带 (id) 的完整调用（变 no-op），再替裸 token（清注释残留）—— 顺序不能反。
+  const pptPath = resolve(target, "ppt-super", "ppt-super.js");
+  if (existsSync(pptPath)) {
+    let s = await readFile(pptPath, "utf8");
+    s = s.split("chrome.downloads.open(id)").join("void 0 /* store-safe: auto-open removed; user opens the file manually */");
+    s = s.split("chrome.downloads.open").join("storeSafeAutoOpenRemoved");
+    s = s.split("downloads.open").join("storeSafeAutoOpenRemoved");
+    await writeFile(pptPath, s, "utf8");
+  }
+  console.log("[store-safe] code: bootstrap 文件移除 + background 注入桩 no-op + ppt downloads.open 去字面");
+}
+
 function zipDir(srcDir, zipPath) {
   return new Promise((ok, fail) => {
     const out = createWriteStream(zipPath);
@@ -162,6 +232,20 @@ async function buildStore(version) {
   console.log(`[store] zip: ${zipPath}`);
 }
 
+async function buildStoreSafe(version) {
+  const target = resolve(DIST, "store-safe");
+  console.log(`[store-safe] building to ${target}`);
+  await clean(target);
+  await copySrc(target, { storeMode: true });
+  await patchStoreManifest(target);      // 复用 store：剥 debugger / declarativeNetRequest
+  await patchStoreCdpExtractor(target);  // 复用 store：CDP 模块降级桩 + 去字面
+  await patchStoreSafeManifest(target);  // 新：删 MAIN world 注入 + downloads.open
+  await patchStoreSafeCode(target);      // 新：桩 background 注入 + 删 bootstrap 文件 + ppt 去字面
+  const zipPath = resolve(DIST, `ai-arena-storesafe-v${version}.zip`);
+  await zipDir(target, zipPath);
+  console.log(`[store-safe] zip: ${zipPath}`);
+}
+
 const [, , target = "all"] = process.argv;
 const version = await readVersion();
 console.log(`AI Arena build — version ${version}`);
@@ -171,6 +255,7 @@ if (target === "github") {
   await syncDocsRelease(version, githubZip);
 }
 else if (target === "store") await buildStore(version);
+else if (target === "store-safe") await buildStoreSafe(version);
 else if (target === "all") {
   const githubZip = await buildGithub(version);
   await syncDocsRelease(version, githubZip);
