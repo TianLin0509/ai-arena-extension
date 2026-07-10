@@ -152,6 +152,33 @@ async function runPlatform(page, platform, { spaRerender = false } = {}) {
   assert.equal(memoResult.msg.source?.type, "site");
 }
 
+// v5.0.65 回归：inject 幂等去重 — background 超时重试(同 injectToken)不得二次注入
+async function runDedupCase(page, platform) {
+  await installHarness(page, platform);
+  await page.evaluate(() => {
+    window.__clickCount = 0;
+    document.getElementById("arena-send").addEventListener("click", () => { window.__clickCount++; });
+  });
+
+  // ① 同 token 并发双发（模拟「超时→重试」）：只允许注入一次，后到者附着并标记 dedup
+  const [r1, r2] = await page.evaluate((text) => Promise.all([
+    window.__sendArenaMessage({ action: "inject", text, injectToken: "tok-retry-1" }),
+    window.__sendArenaMessage({ action: "inject", text, injectToken: "tok-retry-1" }),
+  ]), `dedup probe ${platform}`);
+  assert.equal(r1.status, "sent", `${platform} dedup: first result should be sent, got ${JSON.stringify(r1)}`);
+  assert.equal(r2.status, "sent", `${platform} dedup: second result should be sent, got ${JSON.stringify(r2)}`);
+  assert.ok((r1.dedup === true) !== (r2.dedup === true), `${platform} dedup: exactly one result should carry dedup:true, got ${JSON.stringify([r1, r2])}`);
+  const clicksAfterPair = await page.evaluate(() => window.__clickCount);
+  assert.equal(clicksAfterPair, 1, `${platform} dedup: same-token pair must inject exactly once, clicked ${clicksAfterPair}`);
+
+  // ② 新 token（用户手动重发）→ 正常再注入，不被过度去重
+  const r3 = await page.evaluate((text) => window.__sendArenaMessage({ action: "inject", text, injectToken: "tok-manual-2" }), `second send ${platform}`);
+  assert.equal(r3.status, "sent");
+  assert.ok(!r3.dedup, `${platform} dedup: new token must not be deduped`);
+  const clicksAfterNew = await page.evaluate(() => window.__clickCount);
+  assert.equal(clicksAfterNew, 2, `${platform} dedup: new token should inject again, clicked ${clicksAfterNew}`);
+}
+
 const browser = await chromium.launch({ headless: true });
 try {
   for (const platform of platforms) {
@@ -160,6 +187,15 @@ try {
       try {
         await runPlatform(page, platform, { spaRerender });
         console.log(`ok ${platform}: inject + readResponse${spaRerender ? " (SPA rerender)" : ""}`);
+      } finally {
+        await page.close();
+      }
+    }
+    {
+      const page = await browser.newPage();
+      try {
+        await runDedupCase(page, platform);
+        console.log(`ok ${platform}: inject dedup (same-token attaches, new token resends)`);
       } finally {
         await page.close();
       }

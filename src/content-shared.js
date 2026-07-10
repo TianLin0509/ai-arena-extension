@@ -193,6 +193,29 @@
     return false;
   }
 
+  // ── v5.0.65: inject 幂等去重 —— background「15s 超时→重试」时首次注入可能已在页面
+  //   完成发送（超时 ≠ 未发送），重试会把同一 prompt 发两遍。background 对同一逻辑发送
+  //   生成一次 injectToken 随消息下发；这里同 token 的重复请求直接附着在飞的首试 Promise，
+  //   绝不二次执行注入。结果对象补 dedup:true 便于日志排查。
+  //   - 首试 reject 时缓存的是同一个 rejection → 重试如实报错（用户手动重发 = 新 token）
+  //   - 容量上限防泄漏；无 token 调用走旧行为（兼容单发路径）
+  const _injectInFlight = new Map();  // token → Promise<result>
+  const INJECT_TOKEN_CAP = 24;
+  function dedupInject(token, run) {
+    if (!token) return Promise.resolve().then(run);
+    const existing = _injectInFlight.get(token);
+    if (existing) {
+      return existing.then(r => (r && typeof r === "object") ? { ...r, dedup: true } : r);
+    }
+    const p = Promise.resolve().then(run);
+    _injectInFlight.set(token, p);
+    if (_injectInFlight.size > INJECT_TOKEN_CAP) {
+      const oldest = _injectInFlight.keys().next().value;
+      _injectInFlight.delete(oldest);
+    }
+    return p;
+  }
+
   // ── v5.0.21: 划线收藏 — AI 原网页选中文本旁浮出"存入圆桌备忘录"按钮 ──
   //   用户场景：迭代过程中看到金句手动保留。设置 memoClipEnabled 可关（默认开）。
   //   纯 inline style + fixed 定位 + 顶级 z-index，不注入 CSS、不碰站点 DOM 结构。
@@ -290,5 +313,6 @@
     textHash,
     setEditableLines,
     detectStreaming,
+    dedupInject,
   };
 })();

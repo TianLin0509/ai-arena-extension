@@ -65,6 +65,15 @@ function getMergedSelectors(platform) {
   return SelectorsRemote.mergeSelectors(DEFAULT_SELECTORS, over, platform);
 }
 
+// v5.0.65: inject 幂等 token — 「超时重试」场景下 15s 超时 ≠ 未发送（content script
+//   可能稍后仍完成发送），重试会双发同一 prompt。同一逻辑发送在首试前生成一次 token，
+//   两次尝试共用；content 侧 dedupInject 见到重复 token 直接附着在飞的首试，绝不二次注入。
+//   用户手动重发走新 handler 调用 = 新 token，不受影响。
+function _newInjectToken() {
+  try { return crypto.randomUUID(); }
+  catch (_) { return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`; }
+}
+
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
   gemini:   { url: "https://gemini.google.com/app",      name: "Gemini" },
@@ -1540,12 +1549,13 @@ async function handleDebateRound(style = "free", guidance = "", concise = false,
     StateMachine.setLastSent(id, prompt);
     // v5.0.17 P0-3: 裸 sendMessage 改 15s 超时（对齐 retry 路径）— content script 收到消息
     //   但 promise 链异常永不 sendResponse（tab 冻结边缘态）时，旧版整轮 Promise.all 永挂。
+    const injectToken = _newInjectToken();  // v5.0.65: 重试共用，content 侧幂等去重防双发
     try {
-      sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+      sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt, injectToken }, 15000);
     } catch (e) {
       await new Promise(ok => setTimeout(ok, 2000));
       try {
-        sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+        sendResults[id] = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt, injectToken }, 15000);
       } catch (e2) {
         sendResults[id] = { site: p.service, status: "error", error: e2.message };
         notifyStatus(`注入 ${p.name} 失败: ${e2.message}`);
@@ -1755,16 +1765,17 @@ async function handleDebateRoundSequential(userInput = "", guidance = "", concis
 
     // inject（复用 handleDebateRound 的注入写法：waitForContentScript + sendMessageWithTimeout 15s + 1 次重试）
     let injectResult = null;
+    const injectToken = _newInjectToken();  // v5.0.65: 重试共用，content 侧幂等去重防双发
     try {
       const ready = await waitForContentScript(p.tabId);
       if (!ready) throw new Error("content script 未就绪");
-      injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+      injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt, injectToken }, 15000);
     } catch (e) {
       await new Promise(ok => setTimeout(ok, 2000));
       try {
         const ready2 = await waitForContentScript(p.tabId);
         if (!ready2) throw new Error("content script 未就绪");
-        injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt }, 15000);
+        injectResult = await sendMessageWithTimeout(p.tabId, { action: "inject", text: prompt, injectToken }, 15000);
       } catch (e2) {
         injectResult = { site: p.service, status: "error", error: e2.message };
         notifyStatus(`注入 ${p.name} 失败: ${e2.message}`);

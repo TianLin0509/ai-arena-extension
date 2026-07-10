@@ -75,7 +75,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (!result || result.status !== "sent") { try { globalThis.ArenaShared?.clearResponseCursorAnchor?.(SITE); } catch (_) {} }
         sendResponse(result);
       };
-      injectAndSend(msg.text).then(respondInject).catch(e => respondInject({ site: SITE, status: "error", error: e.message }));
+      // v5.0.65: injectToken 幂等去重 — 超时重试附着在飞首试，防同一 prompt 双发
+      const _run = () => injectAndSend(msg.text);
+      const _exec = globalThis.ArenaShared?.dedupInject ? globalThis.ArenaShared.dedupInject(msg.injectToken, _run) : _run();
+      _exec.then(respondInject).catch(e => respondInject({ site: SITE, status: "error", error: e.message }));
       return true;
     }
     if (msg.action === "readResponse") {
