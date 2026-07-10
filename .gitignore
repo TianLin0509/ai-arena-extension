@@ -31,3 +31,4 @@ tests/e2e/.ach-profile/
 # build workspace & backups (added 2026-06-19)
 artifacts/
 *.bak
+output/

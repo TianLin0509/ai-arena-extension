@@ -67,8 +67,9 @@ try {
   // 2) 读 manifest version_name 验证版本同步（直接读源文件）
   const manifest = JSON.parse(fs.readFileSync(path.join(EXT_PATH, "manifest.json"), "utf8"));
   console.log(`[smoke] manifest version: ${manifest.version}, version_name: ${manifest.version_name}`);
-  const expectedVersion = "5.0.61";
-  check("manifest version/version_name = 5.0.61", manifest.version === expectedVersion && manifest.version_name === expectedVersion, `actual: ${manifest.version}/${manifest.version_name}`);
+  // v5.0.66: expectedVersion 随 manifest 走 — 硬编码曾腐化到 5.0.61；5 处版本串一致性由 tools/preflight.mjs 把关
+  const expectedVersion = manifest.version;
+  check("manifest version/version_name 一致", manifest.version === manifest.version_name, `actual: ${manifest.version}/${manifest.version_name}`);
   // v5.2.19+: 正式改名 AI圆桌派（v5.0.7 特别Beta版 仍保持）
   check("v5.2.19+: manifest name = AI圆桌派（品牌改名）", manifest.name === "AI圆桌派", `actual: ${manifest.name}`);
 

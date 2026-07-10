@@ -4558,3 +4558,162 @@ body[data-mode="mini"] #arena-help-fab { display: none; }
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(-2px); }
 }
+
+/* v5.0.66: responsive header density. Keep the top toolbar on one row across compact popup widths. */
+.chat-main {
+  container-type: inline-size;
+}
+.chat-header {
+  --hdr-height: 30px;
+  --hdr-title-font: 16px;
+  --hdr-button-font: 12.5px;
+  --hdr-icon-size: 15px;
+  --hdr-button-pad-x: 12px;
+  --hdr-header-pad-x: 16px;
+  --hdr-header-pad-y: 10px;
+  --hdr-gap: 8px;
+  gap: var(--hdr-gap);
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--hdr-header-pad-y) var(--hdr-header-pad-x);
+}
+.chat-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  gap: var(--hdr-gap);
+}
+.chat-icon {
+  width: calc(var(--hdr-height) - 6px);
+  height: calc(var(--hdr-height) - 6px);
+}
+.chat-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--hdr-title-font);
+  letter-spacing: 0;
+}
+.chat-version {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: calc(var(--hdr-button-font) - 2.5px);
+  padding-inline: max(4px, calc(var(--hdr-button-pad-x) - 6px));
+  letter-spacing: 0;
+}
+.chat-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: var(--hdr-gap);
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+.chat-actions > * {
+  flex: 0 0 auto;
+}
+.btn-icon {
+  width: var(--hdr-height, 30px);
+  height: var(--hdr-height, 30px);
+}
+.btn-icon svg {
+  width: var(--hdr-icon-size, 15px);
+  height: var(--hdr-icon-size, 15px);
+}
+.btn-icon.with-label {
+  padding-inline: var(--hdr-button-pad-x, 10px);
+  gap: max(2px, calc(var(--hdr-gap, 8px) - 2px));
+  font-size: calc(var(--hdr-button-font, 12.5px) - 1px);
+  letter-spacing: 0;
+}
+.btn-mini-mode,
+.btn-compact-mode {
+  height: var(--hdr-height, 30px);
+  padding-inline: var(--hdr-button-pad-x, 12px);
+  font-size: var(--hdr-button-font, 12.5px);
+  margin-right: 0;
+}
+
+@container (max-width: 1180px) {
+  .chat-header {
+    --hdr-height: 28px;
+    --hdr-title-font: 15px;
+    --hdr-button-font: 11.5px;
+    --hdr-icon-size: 14px;
+    --hdr-button-pad-x: 9px;
+    --hdr-header-pad-x: 12px;
+    --hdr-header-pad-y: 9px;
+    --hdr-gap: 6px;
+  }
+}
+
+@container (max-width: 980px) {
+  .chat-header {
+    --hdr-height: 27px;
+    --hdr-title-font: 14px;
+    --hdr-button-font: 10.8px;
+    --hdr-icon-size: 13px;
+    --hdr-button-pad-x: 7px;
+    --hdr-header-pad-x: 10px;
+    --hdr-header-pad-y: 8px;
+    --hdr-gap: 5px;
+  }
+}
+
+@container (max-width: 860px) {
+  .chat-header {
+    --hdr-height: 26px;
+    --hdr-title-font: 13px;
+    --hdr-button-font: 10.5px;
+    --hdr-icon-size: 12px;
+    --hdr-button-pad-x: 6px;
+    --hdr-header-pad-x: 8px;
+    --hdr-header-pad-y: 7px;
+    --hdr-gap: 4px;
+  }
+}
+
+@container (max-width: 620px) {
+  .chat-header {
+    --hdr-height: 25px;
+    --hdr-title-font: 12px;
+    --hdr-button-font: 9.8px;
+    --hdr-icon-size: 11px;
+    --hdr-button-pad-x: 4px;
+    --hdr-header-pad-x: 6px;
+    --hdr-header-pad-y: 6px;
+    --hdr-gap: 3px;
+  }
+}
+
+@container (max-width: 480px) {
+  .chat-header {
+    --hdr-height: 24px;
+    --hdr-title-font: 11.5px;
+    --hdr-button-font: 9.3px;
+    --hdr-icon-size: 10.5px;
+    --hdr-button-pad-x: 3px;
+    --hdr-header-pad-x: 5px;
+    --hdr-header-pad-y: 6px;
+    --hdr-gap: 2px;
+  }
+}
+
+/* v5.0.66 极窄容器退化（sidebar/右栏全开挤压中列时）：字号阶梯到底仍塞不下 8+ 控件，
+   按优先级隐藏 —— 先文字后按钮，保 logo 与核心动作；再窄属不可用区，overflow:hidden 兜底。 */
+@container (max-width: 560px) {
+  .chat-header .btn-icon-label { display: none; }
+  .chat-header .btn-icon.with-label {
+    width: var(--hdr-height, 24px);
+    padding-inline: 0;
+  }
+  .chat-version { display: none; }
+}
+@container (max-width: 420px) {
+  .btn-mini-mode,
+  .btn-compact-mode,
+  .chat-name { display: none; }
+}
