@@ -56,7 +56,16 @@ async function readVersion() {
 }
 
 async function clean(dir) {
-  if (existsSync(dir)) await rm(dir, { recursive: true, force: true });
+  // Windows 下 Defender/索引器会短暂持有刚落盘文件的句柄，rm 偶发 EBUSY/EPERM —— 重试退避
+  for (let i = 0; ; i++) {
+    try {
+      if (existsSync(dir)) await rm(dir, { recursive: true, force: true });
+      break;
+    } catch (e) {
+      if (i >= 4 || !["EBUSY", "EPERM", "ENOTEMPTY"].includes(e.code)) throw e;
+      await new Promise(ok => setTimeout(ok, 300 * (i + 1)));
+    }
+  }
   await mkdir(dir, { recursive: true });
 }
 
