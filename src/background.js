@@ -7,7 +7,63 @@ let lastKnownScreen = { width: 1920, height: 1080, left: 0, top: 0 };
 // 并列模式走 MAIN world visibility patch（无黄条）— 两套并存按需启用
 // v4.9.0: 加入 gatekeeper 三个模块（rules → store → engine 顺序，store/engine 依赖 BUILTIN_RULES）
 // v5.2.4-storage-p1: arena-errors.js 最先 importScripts，让其余子模块都能用 makeArenaError/ArenaErrorCode/ArenaStage
-importScripts("arena-errors.js", "selectors-config.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "captain-mode.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js", "memo-store.js");
+importScripts("arena-errors.js", "selectors-config.js", "selectors-remote.js", "state-machine.js", "templates-builtin.js", "template-store.js", "debate-engine.js", "cdp-extractor.js", "captain-mode.js", "chat-bus.js", "ppt-prompts.js", "debate-summary-template.js", "gatekeeper-rules.js", "gatekeeper-store.js", "gatekeeper-engine.js", "memo-store.js");
+
+// ── v5.0.64: 远程选择器热更新 — 平台 DOM 变更后 push JSON 即自愈，零商店重审 ──
+// 内存缓存保持 getSelectors 同步应答（内容脚本加载路径零延迟）；SW 冷启动先读
+// storage，未就绪时回内置表（fail-safe = 今天的行为）。刷新由 getSelectors 触发
+// fire-and-forget，12h 节流，无需 alarms 权限。
+let _selectorsOverride = null;      // { fetchedAt, source, platforms }
+let _selectorsOverrideFetching = false;
+const _selectorsOverrideLoaded = new Promise(resolve => {
+  chrome.storage.local.get(["selectorsOverride", "selectorsOverrideDisabled"], (d) => {
+    void chrome.runtime.lastError;
+    if (d && !d.selectorsOverrideDisabled && d.selectorsOverride?.platforms) {
+      // storage 内容再过一遍校验（belt & suspenders：旧版本写入/手工篡改都兜住）
+      const v = SelectorsRemote.validateOverride(
+        { schema: SelectorsRemote.SCHEMA_VERSION, platforms: d.selectorsOverride.platforms },
+        chrome.runtime.getManifest().version
+      );
+      if (v.ok) _selectorsOverride = { fetchedAt: d.selectorsOverride.fetchedAt || 0, source: d.selectorsOverride.source || "", platforms: v.platforms };
+    }
+    resolve();
+  });
+});
+
+async function refreshSelectorsOverride() {
+  if (_selectorsOverrideFetching) return;
+  await _selectorsOverrideLoaded;
+  if (_selectorsOverride && !SelectorsRemote.isStale(_selectorsOverride.fetchedAt, Date.now())) return;
+  const disabled = await new Promise(ok => chrome.storage.local.get("selectorsOverrideDisabled", d => { void chrome.runtime.lastError; ok(!!d?.selectorsOverrideDisabled); }));
+  if (disabled) return;
+  _selectorsOverrideFetching = true;
+  try {
+    for (const src of SelectorsRemote.SOURCES) {
+      try {
+        const r = await fetch(src, { cache: "no-cache" });
+        if (!r.ok) continue;
+        const v = SelectorsRemote.validateOverride(await r.json(), chrome.runtime.getManifest().version);
+        if (!v.ok) continue;   // 校验不过 = 当作不存在，绝不半信半用
+        _selectorsOverride = { fetchedAt: Date.now(), source: src, platforms: v.platforms };
+        await chrome.storage.local.set({ selectorsOverride: _selectorsOverride });
+        console.log(`[selectors-remote] 覆盖表已更新（${Object.keys(v.platforms).length} 平台）← ${src}`);
+        return;
+      } catch (_) { /* 换下一个源 */ }
+    }
+    // 全部源失败：把 fetchedAt 推进到现在，避免每次 getSelectors 都重试打满网络
+    if (_selectorsOverride) {
+      _selectorsOverride.fetchedAt = Date.now();
+      await chrome.storage.local.set({ selectorsOverride: _selectorsOverride });
+    } else {
+      _selectorsOverride = { fetchedAt: Date.now(), source: "", platforms: {} };
+    }
+  } finally { _selectorsOverrideFetching = false; }
+}
+
+function getMergedSelectors(platform) {
+  const over = _selectorsOverride?.platforms;
+  return SelectorsRemote.mergeSelectors(DEFAULT_SELECTORS, over, platform);
+}
 
 const SERVICES = {
   claude:   { url: "https://claude.ai/new",              name: "Claude" },
@@ -502,7 +558,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
         case "exportSession":     sendResponse(exportSession()); break;
         case "getState":          sendResponse(StateMachine.getFullState()); break;
-        case "getSelectors":      sendResponse(DEFAULT_SELECTORS[msg.platform] || {}); break;
+        case "getSelectors":
+          // v5.0.64: override 优先 + 内置兜底；同步应答不变。顺手触发 12h 节流的后台刷新
+          sendResponse(getMergedSelectors(msg.platform) || {});
+          refreshSelectorsOverride().catch(() => {});
+          break;
         case "setWindowMode": {
           // v4.8.29 F37 混合模式: 切换 Tab/并列 时同步 attach/detach CDP
           // v4.8.30 F38-②: Promise chain 串行化防快速切换竞态（attach fire-and-forget

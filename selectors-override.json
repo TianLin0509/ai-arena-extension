@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "updated": "2026-07-11",
+  "note": "AI圆桌派远程选择器热更新通道。某平台改版导致发送/提取失效时，把新选择器写进 platforms 对应平台（action: input/response/streaming/sendButton/userMessage/conversation，数组按优先级），push 到 main 后全体用户 12h 内自愈，无需商店重审。格式校验失败整表作废（fail-safe 回退内置表），改完先跑 npm test。",
+  "platforms": {}
+}

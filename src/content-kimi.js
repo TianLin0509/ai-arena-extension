@@ -20,7 +20,10 @@ const _reportedFailures = new Set();
 function queryBySelectors(action, options = {}) {
   const sels = selectors?.[action] || [];
   for (const sel of sels) {
-    const el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel);
+    let el;
+    // v5.0.64: 非法选择器（远程下发笔误/老内核不支持新语法）跳过该条，不炸整个 action
+    try { el = options.all ? document.querySelectorAll(sel) : document.querySelector(sel); }
+    catch (_) { continue; }
     if (options.all ? el.length > 0 : el) return el;
   }
   const heuristic = getHeuristicElement(action, options);
