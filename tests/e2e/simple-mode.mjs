@@ -72,6 +72,22 @@ try {
   console.log(`  (精简模式可见按钮数: ${visibleButtons})`);
   await page.screenshot({ path: path.join(OUT, "01-simple.png") });
 
+  // ── v5.0.68: 一键开局 + 示例问题直通 ──
+  check("0 成员时 hero 一键开局可见", await vis("#es-quickstart"));
+  check("一键开局有 2 张搭配卡", await page.evaluate(() => document.querySelectorAll("#es-quickstart .es-qs-btn").length === 2));
+  check("海报高度收敛 ≤200px", await page.evaluate(() => {
+    const p = document.querySelector(".es-poster");
+    return p && p.getBoundingClientRect().height <= 200;
+  }));
+  await page.click(".es-starter");   // 点第一个示例问题
+  await page.waitForTimeout(300);
+  check("示例问题已填入输入框", await page.evaluate(() =>
+    (document.getElementById("chat-input")?.textContent || "").includes("多 AI Agent")));
+  check("0 成员点示例 → 一键开局脉冲指引", await page.evaluate(() =>
+    document.getElementById("es-quickstart")?.classList.contains("es-qs-pulse")));
+  await page.evaluate(() => { document.getElementById("chat-input").textContent = ""; });
+  await page.screenshot({ path: path.join(OUT, "01b-quickstart.png") });
+
   // ── ⋯更多菜单：精简模式列出全部进阶项 + 解锁入口，代理点击可用 ──
   await page.click("#btn-more");
   await page.waitForTimeout(200);

@@ -220,6 +220,7 @@
     const joined = state.participants || [];
     const joinedIds = new Set(joined.map(p => p.service));
     const remaining = ALL_SERVICES.filter(s => !joinedIds.has(s.id));
+    renderEsQuickstart(joined);   // v5.0.68: 空状态一键开局随成员状态同步显隐
 
     // v4.8.0: 王者风 3 卡槽 — 替代逐行卡片列表
     // v4.8.1: 只对"新出现的 pid"加 .just-added（含 bounce 进场 + 流光 2 圈）；已存在的不动
@@ -412,10 +413,38 @@
         await new Promise(res => setTimeout(res, 450));  // 错开开 tab，避免并发竞态
       }
       try { window.ChatToast?.show("推荐搭配已就位 — 在底部输入问题，Ctrl+Enter 同时问", { type: "ok" }); } catch (_) {}
+      // v5.0.68: 添加完成顺手聚焦输入框 — 新手下一步就是打字，省一次点击
+      try { document.getElementById("chat-input")?.focus(); } catch (_) {}
     } finally {
       if (btn) { btn.disabled = false; btn.classList.remove("loading"); }
     }
   }
+
+  // ── v5.0.68: 一键开局 — 0 成员时把推荐搭配上位到空状态正中（与右栏同一条添加链路） ──
+  function renderEsQuickstart(joined) {
+    const box = document.getElementById("es-quickstart");
+    if (!box) return;
+    if ((joined || []).length > 0) { box.innerHTML = ""; box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="es-qs-row">
+        ${RECO_COMBOS.map(c => {
+          const names = c.services.map(s => SERVICE_MAP[s]?.name || s).join(" + ");
+          return `<button class="es-qs-btn" data-reco="${c.services.join(",")}" title="一键添加 ${escapeHtml(names)}">
+            <span class="es-qs-label">${escapeHtml(c.label)}</span>
+            <span class="es-qs-names">${escapeHtml(names)}</span>
+            <span class="es-qs-desc">${escapeHtml(c.desc)} · 一键加入</span>
+          </button>`;
+        }).join("")}
+      </div>
+      <div class="es-qs-hint">国内直连 · 或在右侧「成员」自选 AI</div>`;
+  }
+  // 事件委托绑一次（innerHTML 重绘不丢 handler）；复用 applyRecommend 的 loading/上限/互斥逻辑
+  document.getElementById("es-quickstart")?.addEventListener("click", (e) => {
+    const b = e.target?.closest?.(".es-qs-btn");
+    if (!b) return;
+    applyRecommend((b.dataset.reco || "").split(",").filter(Boolean), b);
+  });
 
   function removeParticipant(pid) {
     chrome.runtime.sendMessage({ type: "removeParticipant", id: pid }, () => refresh());

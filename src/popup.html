@@ -28,7 +28,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.67</span>
+        <span class="chat-name">AI圆桌派-5.0.68</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <div class="chat-actions">
@@ -133,7 +133,9 @@
             <button class="es-feat" data-feat="ppt"><span class="es-feat-em">📊</span> PPT 工坊</button>
             <button class="es-feat es-feat-super" data-feat="super"><span class="es-feat-em">🚀</span> super PPT</button>
           </div>
-          <div class="es-pitch-cta">→ 在右侧添加至少 2 个 AI 选手开始</div>
+          <!-- v5.0.68: 一键开局 — 0 成员时推荐搭配上位到空状态正中（popup-members.js 渲染，
+               与右栏同一条添加链路），加完自动隐藏；新手首答路径从「读引导→找右栏」缩为就地一击 -->
+          <div class="es-quickstart" id="es-quickstart"></div>
           <!-- v5.0.23 E: 萌新示例问题 — 一键填入输入框；v5.0.45 改为华为技术风 AI Topic -->
           <div class="es-starters" id="es-starters">
             <div class="es-starters-lbl">不知道问什么？点一个试试：</div>

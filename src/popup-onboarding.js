@@ -308,6 +308,19 @@
     const chip = e.target?.closest?.(".es-starter");
     if (!chip?.dataset?.q) return;
     fillExample(chip.dataset.q);
+    // v5.0.68: 还没有 AI 时点示例 → 问题已填好，脉冲指引视线到「一键开局」补上最后一步
+    try {
+      if (!(window.ChatRoster?.getSelected() || []).length) {
+        const qs = document.getElementById("es-quickstart");
+        if (qs && !qs.hidden && qs.childElementCount) {
+          qs.classList.remove("es-qs-pulse");
+          void qs.offsetWidth;   // 重启动画
+          qs.classList.add("es-qs-pulse");
+          setTimeout(() => { try { qs.classList.remove("es-qs-pulse"); } catch (_) {} }, 2400);
+          window.ChatToast?.show("问题已填好 — 点上方「一键开局」加 2 个 AI 就能发送", { type: "info" });
+        }
+      }
+    } catch (_) {}
   });
 
   window.ChatOnboarding = { restart, getFacts: () => facts };
