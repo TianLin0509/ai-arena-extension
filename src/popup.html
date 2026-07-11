@@ -28,10 +28,18 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.70</span>
+        <span class="chat-name">AI圆桌派-5.0.71</span>
         <span class="chat-version">特别Beta版</span>
       </div>
+      <!-- v5.0.71: 精简模式成员头像条 — 点击开成员抽屉（popup-simple-mode.js 渲染），全量模式 CSS 隐藏 -->
+      <div class="simple-avatars" id="simple-avatars" title="成员 — 点击管理 / 添加 AI"></div>
       <div class="chat-actions">
+        <!-- v5.0.71: 精简/全量 双模式开关（两模式常驻锚点）+ ↺ 新对话（精简模式专属，代理 btn-clear） -->
+        <div class="ui-mode-seg" id="ui-mode-seg" role="group" title="精简：只留多 AI 提问与辩论；全量：完整功能">
+          <button type="button" data-uimode="simple">精简</button>
+          <button type="button" data-uimode="full">全量</button>
+        </div>
+        <button class="btn-icon" id="btn-simple-new" type="button" title="新对话 — 清空当前群聊（AI 网页原对话保留）">↺</button>
         <!-- v4.8.15 F30: 折叠到顶 — mini bar 模式触发器 -->
         <button class="btn-mini-mode" id="btn-mini-mode" type="button" title="折叠到顶部一行 / 展开恢复">⇲ 折叠到顶</button>
         <!-- v4.8.41: 简洁模式 — 长回答超 100 字自动折叠为一行（提取中即生效）-->
@@ -235,6 +243,10 @@
       </div>
       <textarea class="resp-editor-text" id="resp-editor-text" placeholder="等待 AI 回答…"></textarea>
     </div>
+    <!-- v5.0.71: 精简模式上下文操作条 — 辩论 pill 仅在 ≥2 家答完且无人输出中时浮现（popup-simple-mode.js 控制） -->
+    <div class="simple-ctxbar" id="simple-ctxbar" hidden>
+      <button class="simple-debate-pill" id="simple-debate-pill" type="button" title="自动发一轮互评：每个 AI 点评其他人的最新回答">🔥 让他们互相挑错 — 辩论一轮</button>
+    </div>
     <footer class="chat-input-bar">
       <div class="task-picker-wrap">
         <button class="task-picker" id="task-picker-btn" type="button" title="切换任务模式">
@@ -297,6 +309,8 @@
     </footer>
     </div>
     <aside class="chat-rightpanel" id="chat-rightpanel">
+      <!-- v5.0.71: 精简模式下右栏变成员抽屉，此按钮收起抽屉；全量模式 CSS 隐藏 -->
+      <button class="sm-drawer-close" id="sm-drawer-close" type="button" title="收起成员面板">✕ 收起</button>
       <div class="rp-top" id="rp-top">
       <div class="rp-tabs">
         <button class="rp-tab active" data-tab="members" aria-label="成员">
@@ -437,6 +451,8 @@
   <script src="popup-progressive.js"></script>
   <!-- v5.0.67: header ⋯更多菜单（重置收纳 + 新手模式进阶按钮可达性保底） -->
   <script src="popup-more-menu.js"></script>
+  <!-- v5.0.71: 精简/全量双模式（单栏布局 + 头像条 + 成员抽屉 + 上下文辩论 pill） -->
+  <script src="popup-simple-mode.js"></script>
   <script src="popup-help-fab.js"></script>
   <!-- v5.0.37: PPT-SUPER 一键生成（jszip → 填充引擎 → 弹窗工作流） -->
   <script src="ppt-super/jszip.min.js"></script>

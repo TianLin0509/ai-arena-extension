@@ -419,7 +419,9 @@
           </button>`;
         }).join("")}
       </div>
-      <div class="es-qs-hint">国内直连 · 或在右侧「成员」自选 AI</div>`;
+      <div class="es-qs-hint">${document.body.classList.contains("simple-mode")
+        ? "国内直连 · 想自己挑？点右上角 ＋"
+        : "国内直连 · 或在右侧「成员」自选 AI"}</div>`;
   }
   // 事件委托绑一次（innerHTML 重绘不丢 handler）；复用 applyRecommend 的 loading/上限/互斥逻辑
   document.getElementById("es-quickstart")?.addEventListener("click", (e) => {

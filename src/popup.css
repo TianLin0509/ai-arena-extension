@@ -4724,3 +4724,103 @@ body:not(.adv-locked) .roster-upload-hint { display: none; }
   font-size: 12px;
   text-align: center;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   v5.0.71: 精简/全量 双模式
+   精简 = 微信式单栏：常驻决策点 ≤6（头像条＋ / ↺新对话 / 精简·全量开关 / 输入 / 发送）
+   其余功能全部「上下文化」：套餐卡只在空状态、辩论 pill 只在 ≥2 家答完、
+   登录修复长在出错气泡里（bubble-login-btn 既有）。全量 = 原三栏完整界面。
+   ══════════════════════════════════════════════════════════════ */
+/* 开关（两模式常驻锚点） */
+.ui-mode-seg {
+  display: inline-flex; flex: none; align-items: center;
+  border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
+}
+.ui-mode-seg button {
+  border: 0; background: transparent; color: var(--ink-soft);
+  font-size: 11px; line-height: 1.5; padding: 3px 11px; cursor: pointer;
+}
+.ui-mode-seg button.on { background: var(--accent); color: #fff; font-weight: 600; }
+
+/* ── 精简模式布局：单栏 ── */
+body.simple-mode .chat-sidebar,
+body.simple-mode .chat-roster,
+body.simple-mode .resp-editor,
+body.simple-mode .task-picker-wrap { display: none !important; }
+/* header：进阶按钮 / ⋯ / Beta 徽章全部让位（chat-name 保留 = 版本号可见铁律） */
+body.simple-mode #btn-mini-mode,
+body.simple-mode #btn-compact-mode,
+body.simple-mode #btn-ppt-super,
+body.simple-mode #btn-compare,
+body.simple-mode #btn-focus-ai-tabs,
+body.simple-mode #btn-clear,
+body.simple-mode #btn-hard-reset,
+body.simple-mode #hdr-more-wrap,
+body.simple-mode .chat-version { display: none !important; }
+/* 新手之旅 / 下一步卡 / 帮助浮标在精简模式不出现 — 辩论 pill 与点菜开局是它们的替身 */
+body.simple-mode #arena-onboarding,
+body.simple-mode #arena-nextstep,
+body.simple-mode #arena-help-fab,
+body.simple-mode #arena-help-menu { display: none !important; }
+/* 空状态点菜化：藏海报 / 玩法词条 / 5 页教程，留 标题 + 套餐卡 + 示例问题 */
+body.simple-mode .es-poster,
+body.simple-mode #es-features,
+body.simple-mode #es-tutorial { display: none !important; }
+/* 精简专属件在全量模式隐藏 */
+body:not(.simple-mode) #btn-simple-new,
+body:not(.simple-mode) .simple-avatars,
+body:not(.simple-mode) .simple-ctxbar,
+body:not(.simple-mode) #sm-drawer-close { display: none !important; }
+/* 宽窗口下消息区收敛为居中舒适列宽 */
+body.simple-mode .chat-messages { max-width: 920px; width: 100%; margin-left: auto; margin-right: auto; }
+
+/* ── 成员头像条（header 内，点击开成员抽屉） ── */
+.simple-avatars { display: flex; align-items: center; margin-left: 12px; cursor: pointer; flex: none; }
+.simple-avatars .sa-ava {
+  width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
+  border: 2px solid var(--bg); background: var(--card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--ink-soft); margin-left: -8px;
+}
+.simple-avatars .sa-ava:first-child { margin-left: 0; }
+.simple-avatars .sa-ava img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.simple-avatars .sa-add {
+  border: 1.6px dashed var(--ink-soft); background: transparent;
+  font-size: 14px; line-height: 1; font-weight: 500;
+}
+.simple-avatars:hover .sa-add { border-color: var(--accent); color: var(--accent); }
+
+/* ── 成员抽屉：精简模式下右栏变 fixed 抽屉，只留成员面板 ── */
+body.simple-mode .chat-rightpanel {
+  position: fixed; top: 0; right: 0; bottom: 0; height: 100vh;
+  width: 300px; flex: none; z-index: 850;
+  transform: translateX(105%); transition: transform 0.22s ease;
+  box-shadow: -14px 0 36px rgba(0, 0, 0, 0.3);
+}
+body.simple-mode.sm-drawer-open .chat-rightpanel { transform: none; }
+body.simple-mode .rp-tabs,
+body.simple-mode .rp-hat-section,
+body.simple-mode #rp-bottom { display: none !important; }
+.sm-drawer-close {
+  flex: none; margin: 8px 10px 0 auto; padding: 4px 10px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--ink-soft); font-size: 11.5px; cursor: pointer;
+}
+.sm-drawer-close:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+/* ── 上下文操作条：辩论 pill ── */
+.simple-ctxbar { display: flex; justify-content: center; padding: 6px 12px 2px; }
+.simple-ctxbar[hidden] { display: none; }
+.simple-debate-pill {
+  border: 1px solid rgba(255, 140, 60, 0.55); border-radius: 999px;
+  background: rgba(255, 140, 60, 0.12); color: #d96a1e;
+  font-size: 12.5px; font-weight: 600; padding: 6px 16px; cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.simple-debate-pill:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255, 140, 60, 0.25); }
+/* 四路审查修复：mini 折叠条里不出现双模式控件 — 断掉「mini 态切精简」路径，
+   与 popup-simple-mode.js 的进精简先退 mini 互为双保险，防 simple 藏掉 mini 退出钮死锁 */
+body[data-mode="mini"] #ui-mode-seg,
+body[data-mode="mini"] .simple-avatars,
+body[data-mode="mini"] #btn-simple-new,
+body[data-mode="mini"] .simple-ctxbar { display: none !important; }

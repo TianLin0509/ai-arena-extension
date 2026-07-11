@@ -29,6 +29,9 @@
     unlocked = true;
     try { chrome.storage.local.set({ [ADV_KEY]: true }); } catch (_) {}
     applyLockClass();
+    // v5.0.71: 精简模式下静默解锁 — "顶栏/右侧多了入口"的说辞在单栏布局里不成立，
+    //   等用户切到全量时所见即全部即可，不在精简模式弹解锁话术
+    if (document.body.classList.contains("simple-mode")) return;
     if (reason === "manual") {
       try { window.ChatToast?.show("已解锁完整界面：辩论 / 裁判 / PPT / 对比，以及任务 / 统计 / 模板 / 备忘", { type: "ok" }); } catch (_) {}
     } else if (reason === "firstAnswer") {
@@ -99,6 +102,9 @@
 
   function maybeShowNextStep() {
     if (hintShown) return;
+    // v5.0.71: 精简模式有自己的上下文辩论 pill（popup-simple-mode.js），双卡打架且
+    //   卡内"选个裁判"指向被隐藏的任务菜单 — 不弹也不消耗 hintShown（留给全量模式首答）
+    if (document.body.classList.contains("simple-mode")) return;
     hintShown = true;
     try { chrome.storage.local.set({ [HINT_KEY]: true }); } catch (_) {}
     // 新手之旅进行中（卡片存在且未毕业）→ 不弹，避免双卡打架；新手之旅会自己引导下一步
