@@ -4717,3 +4717,37 @@ body[data-mode="mini"] #arena-help-fab { display: none; }
   .btn-compact-mode,
   .chat-name { display: none; }
 }
+
+/* ── v5.0.67 ② header「⋯更多」：彻底重置全等级收纳（危险低频不常驻一级面，菜单代理点击） ── */
+#btn-hard-reset { display: none !important; }
+.hdr-more-wrap { position: relative; flex: 0 0 auto; }
+.hdr-more-menu {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px; min-width: 172px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.28); z-index: 60;
+}
+.hdr-more-sep { height: 1px; background: var(--border); margin: 5px 4px; }
+.hdr-more-danger { color: #ff6b6b; }
+.hdr-more-danger:hover { background: rgba(255,107,107,0.12); }
+/* 完整界面下这些按钮已常驻 header，菜单里不重复列出 */
+body:not(.adv-locked) .hdr-more-adv,
+body:not(.adv-locked) .hdr-more-unlock { display: none; }
+
+/* ── v5.0.67 ① 渐进披露矩阵扩展：新手模式聚焦「加 AI → 同时提问」主流程 ──
+   原 adv-locked 只折叠任务菜单进阶项；现扩展到 header 进阶按钮 / 右栏进阶 tabs /
+   角色帽 / 状态日志 / 空状态 7 个玩法名词条。首答 · 新手之旅毕业 · ⋯菜单「解锁完整界面」
+   · 设置「老手模式」任一路径解锁后全部出现；老用户（已解锁标记）完全不受影响。 */
+body.adv-locked #btn-mini-mode,
+body.adv-locked #btn-compact-mode,
+body.adv-locked #btn-ppt-super,
+body.adv-locked #btn-compare,
+body.adv-locked .rp-tab[data-tab="tasks"],
+body.adv-locked .rp-tab[data-tab="stats"],
+body.adv-locked .rp-tab[data-tab="templates"],
+body.adv-locked .rp-tab[data-tab="memos"],
+body.adv-locked .rp-hat-section,
+body.adv-locked #rp-bottom,
+body.adv-locked #es-features { display: none !important; }
+/* 文件上传安全说明：新手教育一次即可，解锁后不再常驻占一行 */
+body:not(.adv-locked) .roster-upload-hint { display: none; }

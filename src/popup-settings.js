@@ -80,8 +80,8 @@
         </div>
         <div class="rp-app-row">
           <span class="rp-app-row-lbl">界面模式</span>
-          <button class="rp-app-btn ${advUnlocked ? 'active' : ''}" id="rp-mode-toggle" title="新手模式：底部任务菜单只露「同时提问」，辩论/裁判/PPT 等进阶玩法折叠；老手模式：一次展开全部">
-            ${advUnlocked ? '老手模式' : '新手模式'}
+          <button class="rp-app-btn ${advUnlocked ? 'active' : ''}" id="rp-mode-toggle" title="精简模式：聚焦「加 AI → 同时提问」，进阶按钮/任务菜单/统计/模板/备忘折叠进 ⋯与解锁后出现；完整模式：一次展开全部">
+            ${advUnlocked ? '完整模式' : '精简模式'}
           </button>
         </div>
         <div class="rp-app-row rp-app-row-btns">

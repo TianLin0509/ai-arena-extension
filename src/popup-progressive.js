@@ -15,6 +15,13 @@
 
   function applyLockClass() {
     document.body.classList.toggle("adv-locked", !unlocked);
+    // v5.0.67: 新手模式隐藏的右栏 tab（任务/统计/模板/备忘）若正处于激活态 → 回成员页，防空面板
+    if (!unlocked) {
+      const active = document.querySelector(".rp-tab.active");
+      if (active && ["tasks", "stats", "templates", "memos"].includes(active.dataset.tab)) {
+        try { window.ChatRightPanel?.activate("members"); } catch (_) {}
+      }
+    }
   }
 
   function unlock(reason) {
@@ -23,7 +30,10 @@
     try { chrome.storage.local.set({ [ADV_KEY]: true }); } catch (_) {}
     applyLockClass();
     if (reason === "manual") {
-      try { window.ChatToast?.show("已解锁全部玩法：辩论 / 裁判总结 / PPT / 接力棒", { type: "ok" }); } catch (_) {}
+      try { window.ChatToast?.show("已解锁完整界面：辩论 / 裁判 / PPT / 对比，以及任务 / 统计 / 模板 / 备忘", { type: "ok" }); } catch (_) {}
+    } else if (reason === "firstAnswer") {
+      // v5.0.67: 首答解锁瞬间 header/右栏会多出一批入口，给一句话说明防「界面突变」困惑
+      try { window.ChatToast?.show("🔓 首答完成，完整界面已解锁 — 顶栏与右侧多了进阶入口", { type: "ok" }); } catch (_) {}
     }
   }
 
