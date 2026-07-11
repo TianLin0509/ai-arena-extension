@@ -44,6 +44,19 @@ try {
     return !!(el && el.offsetParent !== null && getComputedStyle(el).display !== "none");
   }, sel);
 
+  // v5.0.70: 弹层「真实可见」断言 — 不依赖 offsetParent（fixed 为 null），逐条检查：
+  //   display / 尺寸 / 完整落在视口内 / elementFromPoint 中心命中自己（抓祖先 overflow 裁剪与 z-index 遮盖）
+  //   血泪：⋯菜单被 .chat-header overflow:hidden 整个裁掉，旧断言只查 display 全绿放行
+  const reallyVis = sel => page.evaluate(s => {
+    const el = document.querySelector(s);
+    if (!el || el.hidden || getComputedStyle(el).display === "none") return false;
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return false;
+    if (r.left < -1 || r.top < -1 || r.right > innerWidth + 1 || r.bottom > innerHeight + 1) return false;
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !!(hit && (hit === el || el.contains(hit)));
+  }, sel);
+
   // ── 首启 = 新手精简模式 ──
   check("首启进入精简模式（body.adv-locked）", await page.evaluate(() => document.body.classList.contains("adv-locked")));
   for (const [name, sel, expect] of [
@@ -105,7 +118,7 @@ try {
   // ── ⋯更多菜单：精简模式列出全部进阶项 + 解锁入口，代理点击可用 ──
   await page.click("#btn-more");
   await page.waitForTimeout(200);
-  check("⋯菜单展开", await vis("#hdr-more-menu"));
+  check("⋯菜单展开（真实可见·未被裁剪遮挡）", await reallyVis("#hdr-more-menu"));
   for (const [name, sel] of [
     ["菜单含 折叠到顶", '[data-more="btn-mini-mode"]'],
     ["菜单含 简洁", '[data-more="btn-compact-mode"]'],
@@ -113,10 +126,32 @@ try {
     ["菜单含 对比", '[data-more="btn-compare"]'],
     ["菜单含 解锁完整界面", '[data-more="unlock"]'],
     ["菜单含 彻底重置", '[data-more="btn-hard-reset"]'],
-  ]) check(`精简: ${name}`, await vis(sel));
+  ]) check(`精简: ${name}`, await reallyVis(sel));
   await page.screenshot({ path: path.join(OUT, "02-simple-more-menu.png") });
   await page.keyboard.press("Escape");
-  check("Escape 关闭菜单", !(await vis("#hdr-more-menu")));
+  check("Escape 关闭菜单", !(await reallyVis("#hdr-more-menu")));
+
+  // ── v5.0.70: 窄宽回归 — 血泪：header overflow:hidden 曾把 absolute 菜单整个裁掉 ──
+  await page.setViewportSize({ width: 900, height: 850 });
+  await page.waitForTimeout(150);
+  await page.click("#btn-more");
+  await page.waitForTimeout(250);
+  check("窄宽 900: ⋯菜单完整真实可见", await reallyVis("#hdr-more-menu"));
+  const align = await page.evaluate(() => {
+    const b = document.getElementById("btn-more").getBoundingClientRect();
+    const m = document.getElementById("hdr-more-menu").getBoundingClientRect();
+    return Math.round(Math.abs(m.right - b.right));
+  });
+  check("窄宽 900: 菜单右缘贴按钮 (±24px)", align <= 24, `offset=${align}px`);
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1280, height: 850 });
+  await page.waitForTimeout(150);
+
+  // ── v5.0.70: 直接精简项（用户点名 + 同类扫荡） ──
+  check("右栏推荐搭配块已删（重复入口）", await page.evaluate(() => !document.querySelector(".rp-reco-btn")));
+  check("manifesto 口号块已删", await page.evaluate(() => !document.querySelector(".rp-manifesto")));
+  check("空状态 12 颗装饰星点已删", await page.evaluate(() => document.querySelectorAll(".es-star").length === 0));
+  check("模型实力榜默认折叠", await page.evaluate(() => !!document.querySelector(".rp-leaderboard.collapsed")));
 
   // ── 菜单「解锁完整界面」→ 完整模式 ──
   await page.click("#btn-more");
@@ -137,8 +172,8 @@ try {
   // 完整模式下 ⋯菜单只剩彻底重置（不重复列常驻按钮）
   await page.click("#btn-more");
   await page.waitForTimeout(200);
-  check("完整: 菜单不再列 PPT", !(await vis('[data-more="btn-ppt-super"]')));
-  check("完整: 菜单保留 彻底重置", await vis('[data-more="btn-hard-reset"]'));
+  check("完整: 菜单不再列 PPT", !(await reallyVis('[data-more="btn-ppt-super"]')));
+  check("完整: 菜单保留 彻底重置", await reallyVis('[data-more="btn-hard-reset"]'));
   await page.screenshot({ path: path.join(OUT, "03-full-more-menu.png") });
   await page.keyboard.press("Escape");
   await page.screenshot({ path: path.join(OUT, "04-full.png") });

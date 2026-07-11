@@ -85,15 +85,7 @@
     `;
   }
 
-  function renderManifesto() {
-    return `
-      <div class="rp-manifesto">
-        <div class="rp-manifesto-line1">不要把时间浪费在低端 AI 上。</div>
-        <div class="rp-manifesto-line2">别为省几块订阅费，赔上你的认知差距 —— 这个时代，投资自己才是最好的投资。</div>
-      </div>
-    `;
-  }
-
+  // v5.0.70: renderManifesto（口号文案块）已删 — 纯说教零功能，精简批次用户点名同类清理
   // v4.5.3: layoutMode 已迁到顶栏（popup-window-mode.js）
   const state = { participants: [] };
   // v4.3.11: 成员状态直接跟主区气泡同步，不依赖 StateMachine 字段更新
@@ -103,7 +95,8 @@
   // 已经存在的 AI 不会再跑动画（解决"对话中卡槽持续跳动"喧宾夺主问题）
   let _lastPidSet = new Set();
   // v4.3.15: 排行榜折叠状态（持久化）
-  let lbCollapsed = false;
+  // v5.0.70: 默认折叠 — 静态快照数据（2026-05）非核心信息，展开留给感兴趣的用户；已有持久化偏好则尊重
+  let lbCollapsed = true;
 
   // v5.0.20 UX-1: 队长模式开关/队长变化 → 重绘卡槽徽章
   document.addEventListener("captain:changed", () => { try { render(); } catch (_) {} });
@@ -137,22 +130,13 @@
     return html;
   }
 
-  // v5.0.32: 新手推荐搭配 — 硬编码跨风格组合（避开千问互斥，默认国内可用），一键开多 AI 对比。
-  //   组合都用国内直连 AI，新手无国际网络也能立即用；2 个即可开辩论。
+  // v5.0.32: 新手推荐搭配组合（避开千问互斥，默认国内可用），2 个即可开辩论。
+  // v5.0.70: 右栏的推荐搭配渲染块已删（与空状态「一键开局」重复入口，用户点名精简）；
+  //   组合数据与 applyRecommend 链路保留，仅供 hero es-quickstart 使用。
   const RECO_COMBOS = [
     { label: "⚡ 双开对比", services: ["deepseek", "doubao"], desc: "最快开辩论" },
     { label: "🎯 三家会诊", services: ["deepseek", "doubao", "kimi"], desc: "多视角对比" },
   ];
-  function renderRecommend() {
-    return `
-      <div class="rp-add-group-lbl">🎯 新手推荐搭配 · 一键添加（自由组合也行）</div>
-      <div class="rp-reco-row">
-        ${RECO_COMBOS.map(c => {
-          const names = c.services.map(s => SERVICE_MAP[s]?.name || s).join(" + ");
-          return `<button class="rp-reco-btn" data-reco="${c.services.join(",")}" title="一键添加 ${escapeHtml(names)} · ${escapeHtml(c.desc)}">${escapeHtml(c.label)}<small>${escapeHtml(names)}</small></button>`;
-        }).join("")}
-      </div>`;
-  }
 
   function statusOf(p) {
     // v4.3.11: 优先使用 streamStatus（跟主区气泡同步）
@@ -293,19 +277,13 @@
       </div>
 
       <div class="rp-section-title" style="margin-top:14px">添加</div>
-      ${joined.length < MAX_SLOTS ? renderRecommend() : ""}
       ${renderAddGroups(remaining)}
 
       ${renderLeaderboard()}
-      ${renderManifesto()}
     `;
 
     root.querySelectorAll(".rp-add-btn").forEach(b => {
       b.addEventListener("click", () => addParticipant(b.dataset.service));
-    });
-    // v5.0.32: 新手推荐搭配一键添加
-    root.querySelectorAll(".rp-reco-btn").forEach(b => {
-      b.addEventListener("click", () => applyRecommend((b.dataset.reco || "").split(",").filter(Boolean), b));
     });
     // v5.0.22 B: 未登录角标 → 激活该 AI 的标签页去登录
     root.querySelectorAll(".hero-slot-login").forEach(el => {

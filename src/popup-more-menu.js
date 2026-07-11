@@ -9,15 +9,31 @@
   const menu = document.getElementById("hdr-more-menu");
   if (!wrap || !btn || !menu) return;
 
+  // v5.0.70: 菜单 portal 到 body + fixed 定位 — .chat-header 有 overflow:hidden（响应式
+  //   防溢出兜底），header 内 absolute 菜单会被整个裁掉（血泪：真机弹不出来，E2E 只查了
+  //   display 没查遮挡）。挂 body 层免疫一切祖先 overflow/containment 裁剪。
+  document.body.appendChild(menu);
+
   function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
-  function open() { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); }
+  function open() {
+    menu.hidden = false;
+    // 右缘对齐按钮右缘，顶=按钮下缘+6；夹进视口防溢出
+    const r = btn.getBoundingClientRect();
+    const mw = menu.offsetWidth || 172;
+    menu.style.left = `${Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8))}px`;
+    menu.style.top = `${Math.round(r.bottom + 6)}px`;
+    btn.setAttribute("aria-expanded", "true");
+  }
 
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (menu.hidden) open(); else close();
   });
-  document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) close(); });
+  document.addEventListener("click", (e) => { if (!wrap.contains(e.target) && !menu.contains(e.target)) close(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  // fixed 定位不随布局走 — 视口变化/滚动时直接收起，避免菜单悬空错位
+  window.addEventListener("resize", close);
+  window.addEventListener("scroll", close, true);
 
   menu.addEventListener("click", (e) => {
     const item = e.target.closest("[data-more]");
