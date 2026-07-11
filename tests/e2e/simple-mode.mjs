@@ -88,6 +88,20 @@ try {
   await page.evaluate(() => { document.getElementById("chat-input").textContent = ""; });
   await page.screenshot({ path: path.join(OUT, "01b-quickstart.png") });
 
+  // ── v5.0.69: 空槽收敛 + 新手之旅指路对齐 ──
+  check("0 成员时右栏无空槽灰卡", await page.evaluate(() => document.querySelectorAll(".hero-slot.empty").length === 0));
+  check("0 成员时显示一行紧凑提示", await vis(".hero-slots-zero"));
+  await page.evaluate(() => document.getElementById("es-quickstart")?.classList.remove("es-qs-pulse"));
+  const obBtn = page.locator(".ob-action");
+  if (await obBtn.count()) {
+    await obBtn.first().click();
+    await page.waitForTimeout(250);
+    check("新手之旅「带我去」→ 一键开局脉冲", await page.evaluate(() =>
+      document.getElementById("es-quickstart")?.classList.contains("es-qs-pulse")));
+  } else {
+    check("新手之旅「带我去」按钮存在", false, "未找到 .ob-action");
+  }
+
   // ── ⋯更多菜单：精简模式列出全部进阶项 + 解锁入口，代理点击可用 ──
   await page.click("#btn-more");
   await page.waitForTimeout(200);

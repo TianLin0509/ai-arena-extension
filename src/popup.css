@@ -4775,3 +4775,15 @@ body:not(.adv-locked) .roster-upload-hint { display: none; }
   40% { box-shadow: 0 0 0 7px rgba(10,132,255,0.28); }
 }
 .es-qs-pulse .es-qs-btn { animation: esQsPulse 0.9s ease 2; }
+
+/* v5.0.69: 成员面板 0 成员时空槽收敛为一行提示（替代 3 张灰卡纯占位） */
+.hero-slots-zero {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  text-align: center;
+}

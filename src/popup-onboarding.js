@@ -111,8 +111,9 @@
 
   function stepBody(step) {
     if (step === 1) {
+      // v5.0.69: 与空状态「一键开局」对齐 — 最短路径已在屏幕正中，不再把视线支去右栏
       return {
-        hint: "在右侧「成员」点「🎯 推荐搭配」一键添加两个 AI，或自己点 🟢 标记的 AI 加入",
+        hint: "点屏幕中间「⚡ 双开对比」一键加 2 个 AI，或在右侧「成员」自选 🟢 标记的 AI",
         btn: { label: "带我去 →", act: "goto-members" },
       };
     }
@@ -211,7 +212,17 @@
     } else if (act === "expand") {
       collapsed = false; render();
     } else if (act === "goto-members") {
-      gotoMembers();
+      // v5.0.69: 空状态「一键开局」可见时优先指它（脉冲高亮，路径最短）；否则回落右栏成员区
+      const qs = document.getElementById("es-quickstart");
+      if (qs && !qs.hidden && qs.childElementCount && qs.offsetParent !== null) {
+        try { qs.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
+        qs.classList.remove("es-qs-pulse");
+        void qs.offsetWidth;
+        qs.classList.add("es-qs-pulse");
+        setTimeout(() => { try { qs.classList.remove("es-qs-pulse"); } catch (_) {} }, 2400);
+      } else {
+        gotoMembers();
+      }
     } else if (act === "goto-login") {
       const need = firstLoginRequired();
       if (need) chrome.runtime.sendMessage({ type: "activateParticipantTab", id: need.id }, () => { void chrome.runtime.lastError; });

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI圆桌派",
-  "version": "5.0.68",
-  "version_name": "5.0.68",
+  "version": "5.0.69",
+  "version_name": "5.0.69",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https:;"
   },

@@ -229,7 +229,11 @@
     const newPids = [...currentPidSet].filter(pid => !_lastPidSet.has(pid));
     // v5.0.20 UX-1: 队长 = joined[0]（≥2 人才有队长语义，与 captain-mode isCaptain 一致）
     const captainSvc = (window.ArenaCaptainInfo?.enabled?.() !== false && joined.length >= 2) ? joined[0]?.service : null;
-    const slotsHtml = Array.from({ length: MAX_SLOTS }, (_, i) => {
+    // v5.0.69: 0 成员时 3 张空槽卡零信息纯占位（~110px 高）→ 收敛为一行提示，
+    //   下方推荐搭配/添加区上移进首屏；1-2 成员时空槽卡保留（暗示还能加），行为不变
+    const slotsHtml = joined.length === 0
+      ? `<div class="hero-slots-zero">还没有 AI — 点下方搭配一键加入，或任选 logo（最多 ${MAX_SLOTS} 个）</div>`
+      : Array.from({ length: MAX_SLOTS }, (_, i) => {
       const p = joined[i];
       if (p) {
         const meta = SERVICE_MAP[p.service] || { name: p.service, logo: null, heroLogo: null };
