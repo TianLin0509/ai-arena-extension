@@ -131,9 +131,14 @@
   }));
 
   // v4.8.65: 外部触发任务切换（modal "切到同时提问" 按钮用）
-  function setTask(task) {
+  // v5.0.72: 支持 summary + 指定裁判（精简模式「📋 裁判总结」一键用，自动选队长）；
+  //   单参调用行为不变，向后兼容
+  function setTask(task, opts) {
     if (task === "ask") current = { task: "ask" };
     else if (task === "debate") current = { task: "debate", style: current.style || "free" };
+    else if (task === "summary" && opts?.judgeId) {
+      current = { task: "summary", judgeId: opts.judgeId, judgeName: opts.judgeName || "" };
+    }
     else return;
     refreshPill();
     updatePlaceholder(current);

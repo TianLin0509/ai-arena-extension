@@ -28,11 +28,10 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.71</span>
+        <span class="chat-name">AI圆桌派-5.0.72</span>
         <span class="chat-version">特别Beta版</span>
       </div>
-      <!-- v5.0.71: 精简模式成员头像条 — 点击开成员抽屉（popup-simple-mode.js 渲染），全量模式 CSS 隐藏 -->
-      <div class="simple-avatars" id="simple-avatars" title="成员 — 点击管理 / 添加 AI"></div>
+      <!-- v5.0.72: 头像条+抽屉已删 — 用户反馈成员管理必须显式，精简模式右栏成员面板常驻 -->
       <div class="chat-actions">
         <!-- v5.0.71: 精简/全量 双模式开关（两模式常驻锚点）+ ↺ 新对话（精简模式专属，代理 btn-clear） -->
         <div class="ui-mode-seg" id="ui-mode-seg" role="group" title="精简：只留多 AI 提问与辩论；全量：完整功能">
@@ -118,6 +117,25 @@
         <img class="es-poster" src="icons/poster-ai-team.webp" alt="AI圆桌派 — 让 AI 同台辩论，逼近真相">
         <div class="es-pitch">
           <h2 class="es-pitch-title">让 <span class="es-pitch-em">AI 同台辩论</span>，逼近真相</h2>
+          <!-- v5.0.72: 精简模式三步指引条（用户反馈欢迎页缺指引）— 仅精简模式显示（CSS），
+               step1 由 popup-simple-mode.js 随成员数打勾 -->
+          <div class="es-simple-guide" id="es-simple-guide">
+            <div class="esg-step" id="esg-step-1">
+              <span class="esg-num">1</span>
+              <span class="esg-txt">右侧点 AI 加入<small>建议 2-3 个，能互相挑错</small></span>
+              <span class="esg-check">✓</span>
+            </div>
+            <span class="esg-arrow">→</span>
+            <div class="esg-step">
+              <span class="esg-num">2</span>
+              <span class="esg-txt">下面输入问题<small>回车同时发给所有 AI</small></span>
+            </div>
+            <span class="esg-arrow">→</span>
+            <div class="esg-step">
+              <span class="esg-num">3</span>
+              <span class="esg-txt">答完点底部按钮<small>⚔️ 辩论互挑错 · 📋 总结出结论</small></span>
+            </div>
+          </div>
           <!-- v5.0.45: 能力标签可点击 — 点一下高亮该功能在界面的位置（导览，不改当前状态）；新增 super PPT 直达弹窗 -->
           <div class="es-pitch-features" id="es-features">
             <button class="es-feat" data-feat="debate-free"><span class="es-feat-em">⚔️</span> 自由辩论</button>
@@ -243,9 +261,12 @@
       </div>
       <textarea class="resp-editor-text" id="resp-editor-text" placeholder="等待 AI 回答…"></textarea>
     </div>
-    <!-- v5.0.71: 精简模式上下文操作条 — 辩论 pill 仅在 ≥2 家答完且无人输出中时浮现（popup-simple-mode.js 控制） -->
-    <div class="simple-ctxbar" id="simple-ctxbar" hidden>
-      <button class="simple-debate-pill" id="simple-debate-pill" type="button" title="自动发一轮互评：每个 AI 点评其他人的最新回答">🔥 让他们互相挑错 — 辩论一轮</button>
+    <!-- v5.0.72: 精简模式常驻动作条 — 辩论/总结是主打功能必须看得见（用户反馈）；
+         未就绪置灰 + 提示文案，≥2 家答完点亮（popup-simple-mode.js 控制）；全量模式 CSS 隐藏 -->
+    <div class="simple-ctxbar" id="simple-ctxbar">
+      <button class="sm-act" id="sm-act-debate" type="button" disabled title="自动发一轮互评：每个 AI 点评其他人的最新回答">⚔️ 互相挑错（辩论）</button>
+      <button class="sm-act" id="sm-act-summary" type="button" disabled title="请队长当裁判，汇总全场观点出结论报告">📋 裁判总结</button>
+      <span class="sm-act-hint" id="sm-act-hint">加 ≥2 个 AI 后可用</span>
     </div>
     <footer class="chat-input-bar">
       <div class="task-picker-wrap">
@@ -309,8 +330,6 @@
     </footer>
     </div>
     <aside class="chat-rightpanel" id="chat-rightpanel">
-      <!-- v5.0.71: 精简模式下右栏变成员抽屉，此按钮收起抽屉；全量模式 CSS 隐藏 -->
-      <button class="sm-drawer-close" id="sm-drawer-close" type="button" title="收起成员面板">✕ 收起</button>
       <div class="rp-top" id="rp-top">
       <div class="rp-tabs">
         <button class="rp-tab active" data-tab="members" aria-label="成员">

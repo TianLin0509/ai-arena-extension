@@ -1,12 +1,12 @@
-// simple-mode.mjs — v5.0.71 精简/全量双模式 E2E（含 v5.0.67 渐进披露矩阵回归）
+// simple-mode.mjs — v5.0.72 精简/全量双模式 E2E（含 v5.0.67 渐进披露矩阵回归）
 // 真实加载扩展验证：
-//   A. 首启默认精简模式：单栏可见性矩阵 + 常驻按钮 ≤6 + 点菜开局真实加人 + 头像条
-//   B. 上下文辩论 pill：≥2 家答完浮现 / 点击捕获 debate 任务并归位 ask / 再辩文案
-//   C. 成员抽屉：elementFromPoint 真实命中（弹层铁律）+ 点外收起
-//   D. ↺ 新对话：确认 Modal 弹出
-//   E. seg 切全量：完整界面矩阵 + ⋯菜单 portal 回归 + 模式持久化（reload 往返）
-//   F. adv-locked 新手披露矩阵回归（全量模式内 lock/unlock 往返）
-//   G. 老用户画像（advancedUnlocked 预置）→ 首判默认全量
+//   A. 首启默认精简模式：单栏+右侧成员面板常驻 可见性矩阵 + 三步指引条 + 点菜真实加人
+//   B. 常驻动作条：⚔️辩论/📋总结 未就绪置灰 → ≥2 家答完点亮 → 点击捕获任务并归位 ask
+//      → pending 置灰 1.6s 自愈 → 总结自动选队长当裁判 → 失败口径（loginWarning 不计）
+//   C. ↺ 新对话确认 Modal
+//   D. seg 切全量：完整界面矩阵 + ⋯菜单 portal 回归 + 模式持久化（reload 往返）
+//   E. adv-locked 新手披露矩阵回归（全量模式内 lock/unlock 往返）
+//   F. 老用户画像（advancedUnlocked 预置）→ 首判默认全量
 // 运行：node tests/e2e/simple-mode.mjs
 import { chromium } from "playwright";
 import path from "node:path";
@@ -76,7 +76,7 @@ try {
     return false;
   };
 
-  // ── A. 首启 = 精简模式单栏 ──
+  // ── A. 首启 = 精简模式：单栏 + 右侧成员面板常驻 ──
   check("首启默认精简模式（body.simple-mode）", await page.evaluate(() => document.body.classList.contains("simple-mode")));
   check("seg 开关「精简」高亮", await page.evaluate(() =>
     document.querySelector('#ui-mode-seg button[data-uimode="simple"]')?.classList.contains("on")));
@@ -93,34 +93,39 @@ try {
     ["Beta 徽章 隐藏（版本号在 chat-name 保留）", ".chat-version", false],
     ["seg 开关 可见", "#ui-mode-seg", true],
     ["↺ 新对话 可见", "#btn-simple-new", true],
-    ["成员头像条 可见", ".simple-avatars", true],
     ["输入框 可见", "#chat-input", true],
     ["发送按钮 可见", "#btn-send", true],
+    ["右栏成员面板 常驻可见（用户反馈显式）", "#rp-panel-members", true],
+    ["右栏 6 tabs 隐藏（只留成员）", ".rp-tabs", false],
+    ["角色帽 隐藏（进阶留全量）", ".rp-hat-section", false],
+    ["状态日志 隐藏", "#rp-bottom", false],
     ["空状态海报 隐藏", ".es-poster", false],
     ["空状态玩法词条 隐藏", "#es-features", false],
     ["空状态套餐卡 可见", "#es-quickstart", true],
     ["空状态示例问题 可见", "#es-starters", true],
   ]) check(`精简: ${name}`, (await vis(sel)) === expect);
 
-  check("版本号可见（chat-name 含 5.0.71）", await page.evaluate(() =>
-    (document.querySelector(".chat-name")?.textContent || "").includes("5.0.71")));
+  check("版本号可见（chat-name 含 5.0.72）", await page.evaluate(() =>
+    (document.querySelector(".chat-name")?.textContent || "").includes("5.0.72")));
+  check("头像条/抽屉已删（DOM 无残留）", await page.evaluate(() =>
+    !document.querySelector(".simple-avatars") && !document.getElementById("sm-drawer-close")));
+  check("header 常驻按钮 ≤4", await page.evaluate(() =>
+    [...document.querySelectorAll(".chat-header button")].filter(el =>
+      el.offsetParent !== null && el.getBoundingClientRect().width > 0).length <= 4));
 
-  // 常驻决策点 ≤6：视口内可见按钮（排除空状态上下文区）应只剩 seg×2 + ↺ + 发送
-  const standingButtons = await page.evaluate(() => {
-    return [...document.querySelectorAll("button")].filter(el => {
-      if (el.closest("#empty-state")) return false;
-      if (el.offsetParent === null && getComputedStyle(el).position !== "fixed") return false;
-      if (getComputedStyle(el).display === "none") return false;
-      const r = el.getBoundingClientRect();
-      return r.width > 0 && r.height > 0 && r.left >= -1 && r.top >= -1
-        && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1;
-    }).map(el => el.id || el.className);
-  });
-  check(`精简: 常驻可点按钮 ≤6（实测 ${standingButtons.length}）`, standingButtons.length <= 6,
-    JSON.stringify(standingButtons));
-  check("头像条 0 成员时只有 ＋", await page.evaluate(() =>
-    document.querySelectorAll(".simple-avatars .sa-ava").length === 1
-    && !!document.querySelector(".simple-avatars .sa-add")));
+  // 三步指引条（用户反馈：欢迎页要有指引）
+  check("三步指引条 真实可见", await reallyVis("#es-simple-guide"));
+  check("指引条含 3 步", await page.evaluate(() => document.querySelectorAll(".esg-step").length === 3));
+  check("step1（加 AI）初始未打勾", await page.evaluate(() =>
+    !document.getElementById("esg-step-1")?.classList.contains("done")));
+
+  // 常驻动作条（用户反馈：辩论/总结主打功能要看得见）
+  check("动作条常驻可见（不再是答完才浮现的 pill）", await reallyVis("#sm-act-debate"));
+  check("辩论/总结按钮初始置灰", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").disabled && document.getElementById("sm-act-summary").disabled));
+  check("提示文案 = 加 ≥2 个 AI 后可用", await page.evaluate(() =>
+    (document.getElementById("sm-act-hint")?.textContent || "").includes("加 ≥2 个 AI")));
+
   check("示例问题点击填入输入框", await (async () => {
     await page.click(".es-starter");
     await page.waitForTimeout(250);
@@ -129,32 +134,43 @@ try {
   await page.evaluate(() => { document.getElementById("chat-input").textContent = ""; });
   await page.screenshot({ path: path.join(OUT, "01-simple-first-run.png") });
 
-  // ── A2. 点菜开局：套餐卡真实加人（applyRecommend 既有链路） ──
+  // ── A2. 点菜开局：套餐卡真实加人 → 指引 step1 打勾 ──
   await page.click('#es-quickstart .es-qs-btn');   // ⚡ 双开对比 = deepseek + doubao
-  const got2 = await waitUntil(() =>
-    document.querySelectorAll(".simple-avatars .sa-ava:not(.sa-add)").length === 2, 12000);
-  check("点菜后头像条出现 2 个成员", got2);
+  const got2 = await waitUntil(() => new Promise(res =>
+    chrome.runtime.sendMessage({ type: "getState" }, r => res((r?.participants || []).length === 2))), 12000);
+  check("点菜真实加入 2 个成员", got2);
+  await waitUntil(() => document.getElementById("esg-step-1")?.classList.contains("done"), 4000);
+  check("指引 step1 打勾（随成员数）", await page.evaluate(() =>
+    document.getElementById("esg-step-1")?.classList.contains("done")));
   check("加人后套餐卡自动隐藏", !(await vis("#es-quickstart")));
+  check("动作条仍置灰（还没回答）", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").disabled));
+  check("提示文案 = 等 2 个 AI 回答完解锁", await page.evaluate(() =>
+    (document.getElementById("sm-act-hint")?.textContent || "").includes("回答完解锁")));
   await page.screenshot({ path: path.join(OUT, "02-after-quickstart.png") });
   // 真实 tab 打开后 background 会异步广播 loginWarning 流消息（未登录环境的正确行为），
   // 它会从 roundDone 删掉同名 service — 先让这波真实噪音落地，再开始伪造轮次，防竞态
   await page.waitForTimeout(5000);
 
-  // ── B. 上下文辩论 pill（SW 广播模拟一轮完成 — 走真实 onMessage 收线） ──
-  check("辩论 pill 初始隐藏", !(await vis("#simple-ctxbar")));
+  // ── B. 动作条点亮 + 点击链路（SW 广播模拟一轮完成 — 走真实 onMessage 收线） ──
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1", role: "user", text: "E2E 测试问题" });
   await page.waitForTimeout(300);
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1", role: "ai", participantId: "deepseek", text: "回答 A", isDone: true });
   await page.waitForTimeout(200);
-  check("只 1 家答完 pill 不出现", !(await vis("#simple-ctxbar")));
+  check("只 1 家答完仍置灰", await page.evaluate(() => document.getElementById("sm-act-debate").disabled));
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1", role: "ai", participantId: "doubao", text: "回答 B", isDone: true });
-  await waitUntil(() => !document.getElementById("simple-ctxbar").hidden, 4000);
-  check("≥2 家答完 pill 浮现", await reallyVis("#simple-debate-pill"));
-  check("首次文案 = 让他们互相挑错", await page.evaluate(() =>
-    (document.getElementById("simple-debate-pill")?.textContent || "").includes("互相挑错")));
-  await page.screenshot({ path: path.join(OUT, "03-debate-pill.png") });
+  await waitUntil(() => !document.getElementById("sm-act-debate").disabled, 4000);
+  check("≥2 家答完动作条点亮", await page.evaluate(() =>
+    !document.getElementById("sm-act-debate").disabled && !document.getElementById("sm-act-summary").disabled));
+  check("点亮态有 ready 高亮样式", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").classList.contains("ready")));
+  check("提示文案 = 就绪", await page.evaluate(() =>
+    (document.getElementById("sm-act-hint")?.textContent || "").includes("就绪")));
+  check("首辩文案 = 互相挑错（辩论）", await page.evaluate(() =>
+    (document.getElementById("sm-act-debate").textContent || "").includes("互相挑错")));
+  await page.screenshot({ path: path.join(OUT, "03-acts-ready.png") });
 
-  // pill 点击：patch dispatch 捕获任务（不真发辩论 — 假流式状态下 background 会拒），
+  // 点击链路：patch dispatch 捕获任务（不真发辩论 — 假流式状态下 background 会拒），
   // 验证 setTask(debate) → 发送捕获 → 归位 ask 的完整接线
   await page.evaluate(() => {
     window.__origDispatch = window.ChatTaskMenu.dispatch;
@@ -164,66 +180,52 @@ try {
       return { ok: true };
     };
   });
-  // 防御：若沉降期后仍有迟到的真实登录噪音把 pill 收走，重注一轮伪造完成再点
-  if (!(await reallyVis("#simple-debate-pill"))) {
+  // 防御：若沉降期后仍有迟到的真实登录噪音把动作条收灰，重注一轮伪造完成再点
+  if (await page.evaluate(() => document.getElementById("sm-act-debate").disabled)) {
     await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1b", role: "user", text: "重注轮" });
     await page.waitForTimeout(250);
     await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1b", role: "ai", participantId: "deepseek", text: "回答 A2", isDone: true });
     await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1b", role: "ai", participantId: "doubao", text: "回答 B2", isDone: true });
-    await waitUntil(() => !document.getElementById("simple-ctxbar").hidden, 4000);
+    await waitUntil(() => !document.getElementById("sm-act-debate").disabled, 4000);
   }
-  await page.click("#simple-debate-pill");
+  await page.click("#sm-act-debate");
   await page.waitForTimeout(300);
   const dispatched = await page.evaluate(() => window.__dispatched);
-  check("pill 点击以 debate 任务发送", dispatched?.task === "debate", JSON.stringify(dispatched));
+  check("辩论按钮以 debate 任务发送", dispatched?.task === "debate", JSON.stringify(dispatched));
   check("发送后任务归位 ask（输入框保持同时提问语义）", await page.evaluate(() =>
     window.ChatTaskMenu.current().task === "ask"));
-  check("pill 点击后收起", !(await vis("#simple-ctxbar")));
-  // 四路审查修复回归：辩论未真正开启（无 user 流消息清 roundDone）→ 1.6s 自愈复现
+  check("发出后 pending 置灰（防连点）", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").disabled));
+  // 辩论未真开启（无 user 流消息清 roundDone）→ 1.6s 自愈复亮（四路审查修复回归）
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent("task:dispatched", { detail: { task: "debate" } })));
   await page.waitForTimeout(1900);
-  check("辩论未真开启时 pill 自愈复现（取消/失败不丢入口）", await reallyVis("#simple-debate-pill"));
+  check("未真开启时 1.6s 自愈复亮", await page.evaluate(() =>
+    !document.getElementById("sm-act-debate").disabled));
+  check("辩过一轮后文案 = 再辩一轮", await page.evaluate(() =>
+    (document.getElementById("sm-act-debate").textContent || "").includes("再辩一轮")));
+
+  // 总结：自动选队长（participants[0]）当裁判
+  const expectJudge = await page.evaluate(() => new Promise(res =>
+    chrome.runtime.sendMessage({ type: "getState" }, r => res(r?.participants?.[0]?.id || null))));
+  await page.click("#sm-act-summary");
+  await page.waitForTimeout(300);
+  const dispatched2 = await page.evaluate(() => window.__dispatched);
+  check("总结按钮以 summary 任务发送", dispatched2?.task === "summary", JSON.stringify(dispatched2));
+  check("裁判自动 = 队长（participants[0]）", !!expectJudge && dispatched2?.judgeId === expectJudge,
+    `expect=${expectJudge} got=${dispatched2?.judgeId}`);
+  check("总结后任务归位 ask", await page.evaluate(() => window.ChatTaskMenu.current().task === "ask"));
   await page.evaluate(() => { window.ChatTaskMenu.dispatch = window.__origDispatch; });
 
-  // 再辩文案：真实 dispatch 会发 task:dispatched（patch 版没发），此处补事件后再走一轮
-  await page.evaluate(() => document.dispatchEvent(new CustomEvent("task:dispatched", { detail: { task: "debate" } })));
-  await bcast({ type: "chatStreamUpdate", msgId: "e2e-r2", role: "user", text: "第 1 轮辩论" });
-  await page.waitForTimeout(250);
-  check("新一轮开始 pill 复隐", !(await vis("#simple-ctxbar")));
-  await bcast({ type: "chatStreamUpdate", msgId: "e2e-r2", role: "ai", participantId: "deepseek", text: "反驳 A", isDone: true });
-  await bcast({ type: "chatStreamUpdate", msgId: "e2e-r2", role: "ai", participantId: "doubao", text: "反驳 B", isDone: true });
-  await waitUntil(() => !document.getElementById("simple-ctxbar").hidden, 4000);
-  check("辩过一轮后文案 = 再辩一轮", await page.evaluate(() =>
-    (document.getElementById("simple-debate-pill")?.textContent || "").includes("再辩一轮")));
-
-  // 失败态不计入：doubao 假登录警告 → 只剩 1 家有效 → pill 不出现
+  // 失败态不计入：doubao 假登录警告 → 只剩 1 家有效 → 置灰
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r3", role: "user", text: "第三问" });
   await page.waitForTimeout(250);
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r3", role: "ai", participantId: "deepseek", text: "答", isDone: true });
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r3", role: "ai", participantId: "doubao", text: "未登录", isDone: true, loginWarning: true, loginPid: "doubao-1" });
-  await page.waitForTimeout(400);
-  check("登录警告不计入完成数 → pill 不出现", !(await vis("#simple-ctxbar")));
+  await page.waitForTimeout(2000);   // 越过 pending 自愈窗口再断言
+  check("登录警告不计入完成数 → 动作条置灰", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").disabled));
 
-  // ── C. 成员抽屉（弹层铁律：elementFromPoint 真实命中） ──
-  check("抽屉初始不可见（收在右侧屏外）", !(await reallyVis("#sm-drawer-close")));
-  check("收起态抽屉 inert（Tab/读屏不可达）", await page.evaluate(() =>
-    document.getElementById("chat-rightpanel").inert === true));
-  await page.click(".simple-avatars");
-  await page.waitForTimeout(450);
-  check("打开态抽屉解除 inert", await page.evaluate(() =>
-    document.getElementById("chat-rightpanel").inert === false));
-  check("点头像条 → 抽屉打开（body.sm-drawer-open）", await page.evaluate(() =>
-    document.body.classList.contains("sm-drawer-open")));
-  check("抽屉收起按钮真实可见", await reallyVis("#sm-drawer-close"));
-  check("抽屉成员面板真实可见", await reallyVis("#rp-panel-members"));
-  check("抽屉内 6 个 tab 隐藏（只留成员）", !(await vis(".rp-tabs")));
-  check("状态日志隐藏", !(await vis("#rp-bottom")));
-  check("角色帽隐藏（进阶功能留给全量）", !(await vis(".rp-hat-section")));
-  await page.screenshot({ path: path.join(OUT, "04-member-drawer.png") });
-  await page.mouse.click(400, 420);   // 点抽屉外
-  await page.waitForTimeout(400);
-  check("点外部 → 抽屉收起", !(await page.evaluate(() => document.body.classList.contains("sm-drawer-open"))));
-
-  // ── D. ↺ 新对话：确认 Modal ──
+  // ── C. ↺ 新对话：确认 Modal ──
   await page.click("#btn-simple-new");
   await page.waitForTimeout(350);
   check("↺ 弹清空确认 Modal", await reallyVis(".arena-modal"));
@@ -233,7 +235,7 @@ try {
   await page.waitForTimeout(300);
   check("Escape 取消 Modal", !(await reallyVis(".arena-modal")));
 
-  // ── E. seg 切全量：完整界面 + 持久化 ──
+  // ── D. seg 切全量：完整界面 + 持久化 ──
   await page.click('#ui-mode-seg button[data-uimode="full"]');
   await page.waitForTimeout(500);
   check("切全量后 body.simple-mode 移除", !(await page.evaluate(() => document.body.classList.contains("simple-mode"))));
@@ -248,13 +250,10 @@ try {
     ["header ⋯更多 出现", "#btn-more", true],
     ["状态日志 出现", "#rp-bottom", true],
     ["↺ 隐藏", "#btn-simple-new", false],
-    ["头像条 隐藏", ".simple-avatars", false],
-    ["辩论 pill 条 隐藏", ".simple-ctxbar", false],
+    ["动作条 隐藏", ".simple-ctxbar", false],
   ]) check(`全量: ${name}`, (await vis(sel)) === expect);
   check("切全量静默解锁渐进披露（advancedUnlocked）", await page.evaluate(() =>
     !document.body.classList.contains("adv-locked")));
-  check("全量态右栏无 inert（常驻可交互）", await page.evaluate(() =>
-    document.getElementById("chat-rightpanel").inert === false));
   // 四路审查修复回归：mini 折叠条隐藏双模式控件（断掉 mini→精简 死锁路径）
   check("mini 态下 seg 隐藏（CSS 防御）", await page.evaluate(() => {
     document.body.setAttribute("data-mode", "mini");
@@ -289,15 +288,17 @@ try {
   check("reload 后保持全量（uiMode 持久化）", !(await page.evaluate(() => document.body.classList.contains("simple-mode"))));
   await page.click('#ui-mode-seg button[data-uimode="simple"]');
   await page.waitForTimeout(400);
-  check("切回精简：单栏恢复", await page.evaluate(() => document.body.classList.contains("simple-mode")));
-  check("切回精简：成员头像条保留成员", await page.evaluate(() =>
-    document.querySelectorAll(".simple-avatars .sa-ava:not(.sa-add)").length === 2));
+  check("切回精简：单栏+成员栏恢复", await page.evaluate(() =>
+    document.body.classList.contains("simple-mode")));
+  check("切回精简：动作条常驻回归", await reallyVis("#sm-act-debate"));
+  // 四路审查修复回归：popup 会话内已有 2 家真实回答记录时，切回精简动作条应可用
+  //（此处 participants 有 response 由 getState 播种 — reload 后验证）
   await page.reload();
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(1300);
   check("reload 后保持精简", await page.evaluate(() => document.body.classList.contains("simple-mode")));
 
-  // ── F. adv-locked 渐进披露矩阵回归（全量模式内往返） ──
+  // ── E. adv-locked 渐进披露矩阵回归（全量模式内往返） ──
   await page.click('#ui-mode-seg button[data-uimode="full"]');
   await page.waitForTimeout(400);
   await page.evaluate(() => window.ChatProgressive?.lock());
@@ -317,7 +318,7 @@ try {
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
-// ══ G. 老用户画像：advancedUnlocked 预置 → 首判默认全量 ══
+// ══ F. 老用户画像：advancedUnlocked 预置 → 首判默认全量 ══
 {
   const { context: ctx2, sw: sw2, extId: id2, dir: dir2 } = await launch("legacy");
   try {
