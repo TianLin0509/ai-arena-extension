@@ -10,10 +10,11 @@
   const $newBtn = document.getElementById("btn-simple-new");
   const $ctxbar = document.getElementById("simple-ctxbar");
   const $actDebate = document.getElementById("sm-act-debate");
+  const $actCollab = document.getElementById("sm-act-collab");
   const $actSummary = document.getElementById("sm-act-summary");
   const $actHint = document.getElementById("sm-act-hint");
   const $guideStep1 = document.getElementById("esg-step-1");
-  if (!$seg || !$ctxbar || !$actDebate || !$actSummary) return;
+  if (!$seg || !$ctxbar || !$actDebate || !$actCollab || !$actSummary) return;
 
   let mode = null;            // 当前模式
   let participants = [];      // 最新参与者快照（stateUpdate 同步）
@@ -64,9 +65,9 @@
     applyMode(b.dataset.uimode, { announce: true });
   });
 
-  // ── ↺ 新对话：代理 btn-clear（其确认 Modal / 清空链路零复制） ──
+  // ── ↺ 彻底重置：代理 btn-hard-reset（其危险确认 Modal / 全清链路零复制；用户点名 v5.0.73） ──
   $newBtn?.addEventListener("click", () => {
-    document.getElementById("btn-clear")?.click();
+    document.getElementById("btn-hard-reset")?.click();
   });
 
   // ── 三步指引条：step1（加 AI）随成员数打勾 ──
@@ -87,14 +88,14 @@
   function refreshActs() {
     if (!isSimple()) return;
     const ready = actsReady() && !actsPending;
-    $actDebate.disabled = !ready;
-    $actSummary.disabled = !ready;
-    $actDebate.classList.toggle("ready", ready);
-    $actSummary.classList.toggle("ready", ready);
-    $actDebate.textContent = debateCount > 0 ? "⚔️ 再辩一轮" : "⚔️ 互相挑错（辩论）";
+    [$actDebate, $actCollab, $actSummary].forEach(b => {
+      b.disabled = !ready;
+      b.classList.toggle("ready", ready);
+    });
+    $actDebate.textContent = debateCount > 0 ? "⚔️ 再辩一轮" : "⚔️ 辩论·互挑错";
     if ($actHint) {
       $actHint.textContent = actsPending ? "已发出，等 AI 响应…"
-        : ready ? "就绪 — 让他们互相点评，或请队长出结论"
+        : ready ? "就绪 — 辩论 / 协作 / 总结任选"
         : participants.length < 2 ? "加 ≥2 个 AI 后可用"
         : "等 2 个 AI 回答完解锁";
     }
@@ -108,14 +109,20 @@
     pendingTimer = setTimeout(() => { actsPending = false; refreshActs(); }, 1600);
   }
 
-  $actDebate.addEventListener("click", () => {
-    if ($actDebate.disabled) return;
-    try { window.ChatTaskMenu?.setTask?.("debate"); } catch (_) {}
-    // handleSend → dispatch 在 click 事件内同步捕获 task=debate（见 popup-task-menu.js
-    // dispatch 入口 const c = current），click() 返回后立即归位 ask 是安全的
+  // 辩论=free / 协作=collab 共用一条发射链路
+  // handleSend → dispatch 在 click 事件内同步捕获 task=debate（见 popup-task-menu.js
+  // dispatch 入口 const c = current），click() 返回后立即归位 ask 是安全的
+  function fireDebate(style) {
+    try { window.ChatTaskMenu?.setTask?.("debate", { style }); } catch (_) {}
     document.getElementById("btn-send")?.click();
     try { window.ChatTaskMenu?.setTask?.("ask"); } catch (_) {}
     markPending();
+  }
+  $actDebate.addEventListener("click", () => {
+    if (!$actDebate.disabled) fireDebate("free");
+  });
+  $actCollab.addEventListener("click", () => {
+    if (!$actCollab.disabled) fireDebate("collab");
   });
 
   $actSummary.addEventListener("click", () => {
@@ -131,7 +138,8 @@
   });
 
   document.addEventListener("task:dispatched", (e) => {
-    if (e.detail?.task === "debate") debateCount++;
+    // 只有自由辩论累计「再辩」计数；协作（collab）不改辩论按钮文案
+    if (e.detail?.task === "debate" && e.detail?.style !== "collab") debateCount++;
   });
 
   // ── 消息流跟踪（失败口径对齐 popup-progressive.isMeaningfulAnswer：
@@ -200,9 +208,20 @@
     if (mode === null) applyMode(m);
   }
 
+  // 彻底重置的本轮状态清理（popup.js doHardReset 回调 — 同 popup 内 sendMessage 不回环，
+  // 靠 background 广播不可靠，直接钩子最稳）
+  function reset() {
+    roundDone.clear(); roundBusy.clear();
+    debateCount = 0; actsPending = false;
+    if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+    refreshGuide();
+    refreshActs();
+  }
+
   window.ChatSimpleMode = {
     isSimple,
     setMode: (m) => applyMode(m, { announce: false }),
+    reset,
   };
 
   if (document.readyState === "loading") {

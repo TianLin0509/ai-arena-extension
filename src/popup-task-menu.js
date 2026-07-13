@@ -135,7 +135,8 @@
   //   单参调用行为不变，向后兼容
   function setTask(task, opts) {
     if (task === "ask") current = { task: "ask" };
-    else if (task === "debate") current = { task: "debate", style: current.style || "free" };
+    // v5.0.73: debate 支持显式 style（精简模式 辩论=free / 协作=collab 两个按钮分流）
+    else if (task === "debate") current = { task: "debate", style: opts?.style || current.style || "free" };
     else if (task === "summary" && opts?.judgeId) {
       current = { task: "summary", judgeId: opts.judgeId, judgeName: opts.judgeName || "" };
     }

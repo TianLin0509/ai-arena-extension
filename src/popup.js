@@ -586,6 +586,11 @@
       window.ChatHistory?.clear();
       window.ChatMembers?.refresh?.();
       window.ChatStats?.refresh?.();
+      // v5.0.73: 精简模式动作条/指引的本轮状态同步清零（同 popup 内 sendMessage 不回环）
+      try { window.ChatSimpleMode?.reset?.(); } catch (_) {}
+      // v5.0.73 加固：任务归位不再单赖 hardReset 广播回环（v5.2.9 的监听对同 popup 发起
+      //   的重置可能收不到），直接归位幂等无害
+      try { window.ChatTaskMenu?.setTask?.("ask"); } catch (_) {}
     });
   }
   document.getElementById("btn-hard-reset")?.addEventListener("click", () => {

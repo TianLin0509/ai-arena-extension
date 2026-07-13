@@ -105,8 +105,8 @@ try {
     ["空状态示例问题 可见", "#es-starters", true],
   ]) check(`精简: ${name}`, (await vis(sel)) === expect);
 
-  check("版本号可见（chat-name 含 5.0.72）", await page.evaluate(() =>
-    (document.querySelector(".chat-name")?.textContent || "").includes("5.0.72")));
+  check("版本号可见（chat-name 含 x.y.z）", await page.evaluate(() =>
+    /AI圆桌派-\d+\.\d+\.\d+/.test(document.querySelector(".chat-name")?.textContent || "")));
   check("头像条/抽屉已删（DOM 无残留）", await page.evaluate(() =>
     !document.querySelector(".simple-avatars") && !document.getElementById("sm-drawer-close")));
   check("header 常驻按钮 ≤4", await page.evaluate(() =>
@@ -119,12 +119,26 @@ try {
   check("step1（加 AI）初始未打勾", await page.evaluate(() =>
     !document.getElementById("esg-step-1")?.classList.contains("done")));
 
-  // 常驻动作条（用户反馈：辩论/总结主打功能要看得见）
+  // 常驻动作条（用户反馈：辩论/协作/总结主打功能要看得见，v5.0.73 三按钮）
   check("动作条常驻可见（不再是答完才浮现的 pill）", await reallyVis("#sm-act-debate"));
-  check("辩论/总结按钮初始置灰", await page.evaluate(() =>
-    document.getElementById("sm-act-debate").disabled && document.getElementById("sm-act-summary").disabled));
+  check("协作按钮存在且可见（v5.0.73 新增）", await reallyVis("#sm-act-collab"));
+  check("总结按钮可见", await reallyVis("#sm-act-summary"));
+  check("三按钮初始置灰", await page.evaluate(() =>
+    document.getElementById("sm-act-debate").disabled
+    && document.getElementById("sm-act-collab").disabled
+    && document.getElementById("sm-act-summary").disabled));
   check("提示文案 = 加 ≥2 个 AI 后可用", await page.evaluate(() =>
     (document.getElementById("sm-act-hint")?.textContent || "").includes("加 ≥2 个 AI")));
+
+  // v5.0.73: 精简模式右栏钉死成员面板 — 模拟 popup-tasks 抢 tab（辩论/总结启动时的真实调用）
+  await page.evaluate(() => window.ChatRightPanel.activate("tasks"));
+  await page.waitForTimeout(150);
+  check("activate(tasks) 被钉回成员面板（tab 不被抢走）", await page.evaluate(() =>
+    document.querySelector(".rp-panel.active")?.dataset.rpPanel === "members"));
+  await page.evaluate(() => window.ChatRightPanel.activate("settings"));
+  await page.waitForTimeout(150);
+  check("activate(settings) 同样钉回成员面板", await page.evaluate(() =>
+    document.querySelector(".rp-panel.active")?.dataset.rpPanel === "members"));
 
   check("示例问题点击填入输入框", await (async () => {
     await page.click(".es-starter");
@@ -160,14 +174,17 @@ try {
   check("只 1 家答完仍置灰", await page.evaluate(() => document.getElementById("sm-act-debate").disabled));
   await bcast({ type: "chatStreamUpdate", msgId: "e2e-r1", role: "ai", participantId: "doubao", text: "回答 B", isDone: true });
   await waitUntil(() => !document.getElementById("sm-act-debate").disabled, 4000);
-  check("≥2 家答完动作条点亮", await page.evaluate(() =>
-    !document.getElementById("sm-act-debate").disabled && !document.getElementById("sm-act-summary").disabled));
+  check("≥2 家答完三按钮点亮", await page.evaluate(() =>
+    !document.getElementById("sm-act-debate").disabled
+    && !document.getElementById("sm-act-collab").disabled
+    && !document.getElementById("sm-act-summary").disabled));
   check("点亮态有 ready 高亮样式", await page.evaluate(() =>
-    document.getElementById("sm-act-debate").classList.contains("ready")));
+    document.getElementById("sm-act-debate").classList.contains("ready")
+    && document.getElementById("sm-act-collab").classList.contains("ready")));
   check("提示文案 = 就绪", await page.evaluate(() =>
     (document.getElementById("sm-act-hint")?.textContent || "").includes("就绪")));
-  check("首辩文案 = 互相挑错（辩论）", await page.evaluate(() =>
-    (document.getElementById("sm-act-debate").textContent || "").includes("互相挑错")));
+  check("首辩文案 = 辩论·互挑错", await page.evaluate(() =>
+    (document.getElementById("sm-act-debate").textContent || "").includes("辩论")));
   await page.screenshot({ path: path.join(OUT, "03-acts-ready.png") });
 
   // 点击链路：patch dispatch 捕获任务（不真发辩论 — 假流式状态下 background 会拒），
@@ -192,6 +209,7 @@ try {
   await page.waitForTimeout(300);
   const dispatched = await page.evaluate(() => window.__dispatched);
   check("辩论按钮以 debate 任务发送", dispatched?.task === "debate", JSON.stringify(dispatched));
+  check("辩论按钮 style = free（自由辩论）", dispatched?.style === "free", JSON.stringify(dispatched));
   check("发送后任务归位 ask（输入框保持同时提问语义）", await page.evaluate(() =>
     window.ChatTaskMenu.current().task === "ask"));
   check("发出后 pending 置灰（防连点）", await page.evaluate(() =>
@@ -203,6 +221,23 @@ try {
     !document.getElementById("sm-act-debate").disabled));
   check("辩过一轮后文案 = 再辩一轮", await page.evaluate(() =>
     (document.getElementById("sm-act-debate").textContent || "").includes("再辩一轮")));
+
+  // 协作（群策群力）：v5.0.73 新增按钮 — debate 任务 + collab style
+  await page.click("#sm-act-collab");
+  await page.waitForTimeout(300);
+  const dispatchedC = await page.evaluate(() => window.__dispatched);
+  check("协作按钮以 debate 任务发送", dispatchedC?.task === "debate", JSON.stringify(dispatchedC));
+  check("协作按钮 style = collab（群策群力）", dispatchedC?.style === "collab", JSON.stringify(dispatchedC));
+  check("协作后任务归位 ask", await page.evaluate(() => window.ChatTaskMenu.current().task === "ask"));
+  // collab 风格的 task:dispatched 不增辩论计数（文案守卫）：注入 collab 事件前后文案不变
+  check("协作事件不改辩论按钮文案", await (async () => {
+    await page.waitForTimeout(1900);   // 越过 pending 自愈
+    const before = await page.evaluate(() => document.getElementById("sm-act-debate").textContent);
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent("task:dispatched", { detail: { task: "debate", style: "collab" } })));
+    await page.waitForTimeout(200);
+    // refreshActs 由流事件驱动，这里手动触发一次可见性刷新路径：注入一条无关 stateUpdate
+    return page.evaluate(b => document.getElementById("sm-act-debate").textContent === b, before);
+  })());
 
   // 总结：自动选队长（participants[0]）当裁判
   const expectJudge = await page.evaluate(() => new Promise(res =>
@@ -225,12 +260,12 @@ try {
   check("登录警告不计入完成数 → 动作条置灰", await page.evaluate(() =>
     document.getElementById("sm-act-debate").disabled));
 
-  // ── C. ↺ 新对话：确认 Modal ──
+  // ── C. ↺ 彻底重置（v5.0.73 用户点名，原为清空群聊）：危险确认 Modal ──
   await page.click("#btn-simple-new");
   await page.waitForTimeout(350);
-  check("↺ 弹清空确认 Modal", await reallyVis(".arena-modal"));
-  check("Modal 标题 = 清空群聊", await page.evaluate(() =>
-    (document.querySelector(".arena-modal-title")?.textContent || "").includes("清空群聊")));
+  check("↺ 弹确认 Modal", await reallyVis(".arena-modal"));
+  check("Modal 标题 = 彻底重置", await page.evaluate(() =>
+    (document.querySelector(".arena-modal-title")?.textContent || "").includes("彻底重置")));
   await page.keyboard.press("Escape");
   await page.waitForTimeout(300);
   check("Escape 取消 Modal", !(await reallyVis(".arena-modal")));

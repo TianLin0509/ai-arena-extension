@@ -4816,6 +4816,8 @@ body.simple-mode .chat-messages { max-width: 920px; width: 100%; margin-left: au
 .sm-act:disabled { opacity: 0.55; cursor: not-allowed; }
 .sm-act.ready { border-color: rgba(255, 140, 60, 0.6); background: rgba(255, 140, 60, 0.12); color: #e07a2e; }
 .sm-act.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255, 140, 60, 0.22); }
+#sm-act-collab.ready { border-color: rgba(61, 220, 132, 0.5); background: rgba(61, 220, 132, 0.10); color: #2fbf71; }
+#sm-act-collab.ready:hover { box-shadow: 0 6px 18px rgba(61, 220, 132, 0.2); }
 #sm-act-summary.ready { border-color: rgba(76, 141, 255, 0.55); background: rgba(76, 141, 255, 0.12); color: var(--accent); }
 #sm-act-summary.ready:hover { box-shadow: 0 6px 18px rgba(76, 141, 255, 0.22); }
 .sm-act-hint { font-size: 11px; color: var(--ink-soft); }

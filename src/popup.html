@@ -28,7 +28,7 @@
     <header class="chat-header">
       <div class="chat-title">
         <img class="chat-icon" src="icons/icon48.png" alt="">
-        <span class="chat-name">AI圆桌派-5.0.72</span>
+        <span class="chat-name">AI圆桌派-5.0.73</span>
         <span class="chat-version">特别Beta版</span>
       </div>
       <!-- v5.0.72: 头像条+抽屉已删 — 用户反馈成员管理必须显式，精简模式右栏成员面板常驻 -->
@@ -38,7 +38,7 @@
           <button type="button" data-uimode="simple">精简</button>
           <button type="button" data-uimode="full">全量</button>
         </div>
-        <button class="btn-icon" id="btn-simple-new" type="button" title="新对话 — 清空当前群聊（AI 网页原对话保留）">↺</button>
+        <button class="btn-icon" id="btn-simple-new" type="button" title="彻底重置 — 移除所有 AI + 清空群聊 + 清辩论上下文，重新开始">↺</button>
         <!-- v4.8.15 F30: 折叠到顶 — mini bar 模式触发器 -->
         <button class="btn-mini-mode" id="btn-mini-mode" type="button" title="折叠到顶部一行 / 展开恢复">⇲ 折叠到顶</button>
         <!-- v4.8.41: 简洁模式 — 长回答超 100 字自动折叠为一行（提取中即生效）-->
@@ -133,7 +133,7 @@
             <span class="esg-arrow">→</span>
             <div class="esg-step">
               <span class="esg-num">3</span>
-              <span class="esg-txt">答完点底部按钮<small>⚔️ 辩论互挑错 · 📋 总结出结论</small></span>
+              <span class="esg-txt">答完点底部按钮<small>⚔️ 辩论互挑错 · 🤝 协作补充 · 📋 总结出结论</small></span>
             </div>
           </div>
           <!-- v5.0.45: 能力标签可点击 — 点一下高亮该功能在界面的位置（导览，不改当前状态）；新增 super PPT 直达弹窗 -->
@@ -264,7 +264,8 @@
     <!-- v5.0.72: 精简模式常驻动作条 — 辩论/总结是主打功能必须看得见（用户反馈）；
          未就绪置灰 + 提示文案，≥2 家答完点亮（popup-simple-mode.js 控制）；全量模式 CSS 隐藏 -->
     <div class="simple-ctxbar" id="simple-ctxbar">
-      <button class="sm-act" id="sm-act-debate" type="button" disabled title="自动发一轮互评：每个 AI 点评其他人的最新回答">⚔️ 互相挑错（辩论）</button>
+      <button class="sm-act" id="sm-act-debate" type="button" disabled title="辩论（自由辩论）：每个 AI 反驳、挑错其他人的最新回答">⚔️ 辩论·互挑错</button>
+      <button class="sm-act" id="sm-act-collab" type="button" disabled title="协作（群策群力）：每个 AI 补充、完善其他人的回答，往一处使劲">🤝 协作·群策</button>
       <button class="sm-act" id="sm-act-summary" type="button" disabled title="请队长当裁判，汇总全场观点出结论报告">📋 裁判总结</button>
       <span class="sm-act-hint" id="sm-act-hint">加 ≥2 个 AI 后可用</span>
     </div>

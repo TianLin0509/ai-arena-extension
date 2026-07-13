@@ -5,6 +5,9 @@
 
   function activate(name) {
     if (!TABS.includes(name)) return;
+    // v5.0.73: 精简模式右栏钉死成员面板 — 辩论/总结启动时 popup-tasks 会 activate("tasks")、
+    //   帮助浮标会 activate("settings")，而 tabs 被 CSS 藏着，面板被换走用户切不回来（用户反馈）
+    if (document.body.classList.contains("simple-mode")) name = "members";
     currentTab = name;
     document.querySelectorAll(".rp-tab").forEach(el => {
       el.classList.toggle("active", el.dataset.tab === name);
