@@ -10,15 +10,15 @@
 
 <br>
 
-[![version](https://img.shields.io/badge/version-v5.0.63-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![Gitee 镜像](https://img.shields.io/badge/Gitee%20%E9%95%9C%E5%83%8F-v5.0.63-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
+[![version](https://img.shields.io/badge/version-v5.0.73-0a84ff?style=for-the-badge)](https://github.com/TianLin0509/ai-arena-extension/releases) [![Gitee 镜像](https://img.shields.io/badge/Gitee%20%E9%95%9C%E5%83%8F-v5.0.73-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension) [![License](https://img.shields.io/badge/license-MIT-34c759?style=for-the-badge)](./LICENSE) [![AI 平台](https://img.shields.io/badge/AI%20%E5%B9%B3%E5%8F%B0-9-ff9f0a?style=for-the-badge)](#-9-%E5%A4%A7-ai-%E5%85%A8%E8%A6%86%E7%9B%96) [![Beta](https://img.shields.io/badge/状态-Beta%20公测-ff3b30?style=for-the-badge)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
 
 ### [🚀 在线推广页（强烈推荐先看）](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/)
 
-### ⬇️ 一键下载 v5.0.63 · 双源任选
+### ⬇️ 一键下载 v5.0.73 · 双源任选
 
-[🌐 GitHub 源](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.63.zip) &nbsp;·&nbsp; [🇨🇳 **Gitee 源**（国内推荐 · 无需翻墙）](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.63/ai-arena-github-v5.0.63.zip)
+[🌐 GitHub 源](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.73.zip) &nbsp;·&nbsp; [🇨🇳 **Gitee 源**（国内推荐 · 无需翻墙）](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.73/ai-arena-github-v5.0.73.zip)
 
-**v5.0.63 当前版**：PPT-SUPER —— 一键让 AI 把讨论结论生成专业 PPT，内置 46 套精选模板库（洞察推演 / 决策权衡 / 技术路线图 / 风险治理 等），自动填充排版、导出可编辑 PPTX。
+**v5.0.73 当前版**：精简 / 全量双模式 —— 新装默认「精简」：右侧点 AI 加入 → 输入问题 → 底部一键 ⚔️ 辩论 / 🤝 协作 / 📋 总结，电脑小白 1 分钟上手；右上角一键切「全量」，解锁 PPT-SUPER（46 套模板一键成片）、时光机、回答对比等完整功能。
 
 <br>
 
@@ -202,7 +202,7 @@ HTML / 文本双模式
 
 ### ⬇️ 一键下载（最快）
 
-[![GitHub 源](https://img.shields.io/badge/🌐%20GitHub%20源%20·%20v5.0.63%20·%2015MB-0a84ff?style=for-the-badge&logo=github)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.63.zip) [![Gitee 源](https://img.shields.io/badge/🇨🇳%20Gitee%20源%20·%20国内推荐%20·%20无需翻墙-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.63/ai-arena-github-v5.0.63.zip)
+[![GitHub 源](https://img.shields.io/badge/🌐%20GitHub%20源%20·%20v5.0.73%20·%207MB-0a84ff?style=for-the-badge&logo=github)](https://tianlin0509.github.io/ai-arena-extension/docs/v5.0-beta/release/ai-arena-extension-v5.0.73.zip) [![Gitee 源](https://img.shields.io/badge/🇨🇳%20Gitee%20源%20·%20国内推荐%20·%20无需翻墙-c71d23?style=for-the-badge&logo=gitee)](https://gitee.com/lt17210720082/ai-arena-extension/releases/download/v5.0.73/ai-arena-github-v5.0.73.zip)
 
 </div>
 
