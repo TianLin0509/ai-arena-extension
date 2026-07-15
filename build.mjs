@@ -133,7 +133,10 @@ async function patchStoreCdpExtractor(target) {
 //   的两类特征，让公司电脑(如华为终端管控)能装。核心圆桌功能(多 AI 发送/读取/辩论)零损。
 //   血泪背景：商店包在公司电脑报「无法将扩展程序目录移到个人资料中」(MOVE_DIRECTORY_TO_
 //   PROFILE_FAILED) —— EDR 在 Chrome 解包落盘阶段查杀可疑 .js 并持锁，导致 move 失败；
-//   个人电脑无 EDR 故能装。两大触发源：MAIN world anti-throttle + downloads.open。
+//   个人电脑无 EDR 故能装。三大触发源：MAIN world anti-throttle + downloads.open +
+//   远程选择器热更新（v5.0.73 CWS 上架复发定位：包内新增 raw.githubusercontent.com/
+//   cdn.jsdelivr.net/gitee.com 拉取远程 JSON 改行为 = EDR「可远程操控」灰件特征；
+//   与已知可装的 v5.0.63 基线 diff，manifest 全同、唯一行为级新增就是它）。
 async function patchStoreSafeManifest(target) {
   const p = resolve(target, "manifest.json");
   const m = JSON.parse(await readFile(p, "utf8"));
@@ -195,7 +198,27 @@ async function patchStoreSafeCode(target) {
     s = s.split("downloads.open").join("storeSafeAutoOpenRemoved");
     await writeFile(pptPath, s, "utf8");
   }
-  console.log("[store-safe] code: bootstrap 文件移除 + background 注入桩 no-op + ppt downloads.open 去字面");
+  // 4) selectors-remote.js：SOURCES 置空 —— 远程热更新整体休眠（fail-safe 设计下
+  //    background 的 for-of 零迭代、永不 fetch，getSelectors 永远走内置表兜底，API 面零破坏）。
+  //    三个远程域名字面量随数组一起清除。代价：企业版失去「平台改版 12h 自愈」，选择器
+  //    更新随版本走 —— 换公司电脑装得上，值。
+  const srPath = resolve(target, "selectors-remote.js");
+  if (existsSync(srPath)) {
+    let s = await readFile(srPath, "utf8");
+    const start = s.indexOf("const SOURCES = [");
+    if (start === -1) throw new Error("[store-safe] SOURCES 数组锚点未找到——selectors-remote.js 可能改了结构，patch 失效");
+    const end = s.indexOf("];", start);
+    if (end === -1) throw new Error("[store-safe] SOURCES 数组闭合未找到");
+    s = s.slice(0, start)
+      + "const SOURCES = []; // store-safe: 远程热更新已剥离（企业版走内置选择器，随版本更新）"
+      + s.slice(end + 2);
+    // 文件头注释里的源顺序说明一并去字面（EDR 按字符串扫，注释同样命中）
+    s = s.split("GitHub raw").join("内置表")
+      .split("jsDelivr").join("内置表")
+      .split("Gitee raw").join("内置表");
+    await writeFile(srPath, s, "utf8");
+  }
+  console.log("[store-safe] code: bootstrap 移除 + 注入桩 no-op + downloads.open 去字面 + 远程热更新休眠");
 }
 
 function zipDir(srcDir, zipPath) {

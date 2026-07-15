@@ -77,11 +77,14 @@ function runStep(name, cmd, cmdArgs) {
 // 违禁矩阵（CWS 静态审核按字面扫，注释残留同样触发退审）：
 //   store      : chrome.debugger / declarativeNetRequest / dnr-rules（保留 MAIN world）
 //   store-safe : 上述全部 + bootstrap-main-world / downloads.open / "world": "MAIN"
+//                + 远程热更新三域名（raw.githubusercontent/jsdelivr/gitee — EDR 拒装源）
 const FORBIDDEN = {
   store: ["chrome.debugger", "declarativeNetRequest", "dnr-rules"],
   "store-safe": [
     "chrome.debugger", "declarativeNetRequest", "dnr-rules",
     "bootstrap-main-world", "downloads.open", '"world": "MAIN"',
+    // v5.0.74: 远程热更新域名 — EDR「可远程操控」特征，v5.0.73 CWS 复发拒装的元凶
+    "raw.githubusercontent.com", "cdn.jsdelivr.net", "gitee.com",
   ],
 };
 const SCAN_EXT = new Set([".js", ".json", ".html", ".css"]);
