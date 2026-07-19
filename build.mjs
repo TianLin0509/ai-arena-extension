@@ -198,10 +198,16 @@ async function patchStoreSafeCode(target) {
     s = s.split("downloads.open").join("storeSafeAutoOpenRemoved");
     await writeFile(pptPath, s, "utf8");
   }
-  // 4) selectors-remote.js：SOURCES 置空 —— 远程热更新整体休眠（fail-safe 设计下
-  //    background 的 for-of 零迭代、永不 fetch，getSelectors 永远走内置表兜底，API 面零破坏）。
-  //    三个远程域名字面量随数组一起清除。代价：企业版失去「平台改版 12h 自愈」，选择器
-  //    更新随版本走 —— 换公司电脑装得上，值。
+  await neutralizeRemoteSelectors(target);
+  console.log("[store-safe] code: bootstrap 移除 + 注入桩 no-op + downloads.open 去字面 + 远程热更新休眠");
+}
+
+// selectors-remote.js：SOURCES 置空 —— 远程热更新整体休眠（fail-safe 设计下 background
+//   的 for-of 零迭代、永不 fetch，getSelectors 永远走内置表兜底，API 面零破坏）。
+//   三个远程域名字面量随数组一起清除。用于 store-safe 与 store-cws：
+//   商店包带第三方拉取域名（jsdelivr/raw.github/gitee）有被 CWS 判「远程代码嫌疑」
+//   → 商品「无法获取」→ 安装退化 crx 的风险（v5.0.62 状态异常模式），一并断掉。
+async function neutralizeRemoteSelectors(target) {
   const srPath = resolve(target, "selectors-remote.js");
   if (existsSync(srPath)) {
     let s = await readFile(srPath, "utf8");
@@ -218,7 +224,7 @@ async function patchStoreSafeCode(target) {
       .split("Gitee raw").join("内置表");
     await writeFile(srPath, s, "utf8");
   }
-  console.log("[store-safe] code: bootstrap 移除 + 注入桩 no-op + downloads.open 去字面 + 远程热更新休眠");
+  console.log("[remote-selectors] SOURCES 置空 · 三域名字面清零");
 }
 
 function zipDir(srcDir, zipPath) {
@@ -278,6 +284,25 @@ async function buildStoreSafe(version) {
   console.log(`[store-safe] zip: ${zipPath}`);
 }
 
+// v5.0.75: CWS 上架专用变体 — 复刻「已验证可装」的 live v5.0.63 形态：
+//   保留 MAIN world anti-throttle + downloads.open（63 就带着它们从 CWS 正常安装，
+//   证伪了 7-11「EDR 内容拒装」理论）；仅剥 debugger/DNR（CWS 合规硬线，62 血泪）
+//   + 远程选择器休眠（断「远程代码嫌疑」审核变数）。
+//   真相链（6c753a6 实测）：所谓「公司电脑无法直接添加」= CWS 商品状态异常时
+//   安装按钮退化为下载 crx、crx 被终端管控拦 —— 病根在商品状态，不在包内容。
+async function buildStoreCws(version) {
+  const target = resolve(DIST, "store-cws");
+  console.log(`[store-cws] building to ${target}`);
+  await clean(target);
+  await copySrc(target, { storeMode: true });
+  await patchStoreManifest(target);      // 剥 debugger / declarativeNetRequest（63 同款）
+  await patchStoreCdpExtractor(target);  // CDP 降级桩 + 去字面（63 同款）
+  await neutralizeRemoteSelectors(target);
+  const zipPath = resolve(DIST, `ai-arena-storecws-v${version}.zip`);
+  await zipDir(target, zipPath);
+  console.log(`[store-cws] zip: ${zipPath}`);
+}
+
 const [, , target = "all"] = process.argv;
 const version = await readVersion();
 console.log(`AI Arena build — version ${version}`);
@@ -288,6 +313,7 @@ if (target === "github") {
 }
 else if (target === "store") await buildStore(version);
 else if (target === "store-safe") await buildStoreSafe(version);
+else if (target === "store-cws") await buildStoreCws(version);
 else if (target === "all") {
   const githubZip = await buildGithub(version);
   await syncDocsRelease(version, githubZip);

@@ -86,7 +86,47 @@ const FORBIDDEN = {
     // v5.0.74: 远程热更新域名 — EDR「可远程操控」特征，v5.0.73 CWS 复发拒装的元凶
     "raw.githubusercontent.com", "cdn.jsdelivr.net", "gitee.com",
   ],
+  // v5.0.75: CWS 上架变体 — live 63 可装形态（保留 MAIN world + downloads.open），
+  //   仅禁 CWS 合规硬线（debugger/DNR，62 血泪）+ 远程拉取域名（远程代码嫌疑）
+  "store-cws": [
+    "chrome.debugger", "declarativeNetRequest", "dnr-rules",
+    "raw.githubusercontent.com", "cdn.jsdelivr.net", "gitee.com",
+  ],
 };
+
+// v5.0.75: chrome API ↔ manifest 权限一致性终检 — v5.0.62 死因模式的自动化：
+//   「代码调用了 chrome.X 但 manifest 未声明 X」→ CWS 判「使用未声明权限」→
+//   商品「目前无法获取」→ 安装按钮退化为下载 crx → 用户侧现象=「无法直接添加」。
+//   只检查确定需要权限的 API（白名单映射），避免 tabs/storage 等语义特殊项误报。
+const API_PERM_MAP = [
+  { re: /chrome\.debugger/, perm: "debugger" },
+  { re: /chrome\.declarativeNetRequest/, perm: "declarativeNetRequest" },
+  { re: /chrome\.downloads\.open\s*\(/, perm: "downloads.open" },
+  { re: /chrome\.downloads\.(?!open)\w+/, perm: "downloads" },
+  { re: /chrome\.scripting/, perm: "scripting" },
+  { re: /chrome\.contextMenus/, perm: "contextMenus" },
+  { re: /chrome\.sidePanel/, perm: "sidePanel" },
+  { re: /chrome\.system\.display/, perm: "system.display" },
+];
+
+async function scanApiPermConsistency(variant) {
+  const dir = resolve(ROOT, "dist", variant);
+  const m = JSON.parse(await readFile(join(dir, "manifest.json"), "utf8"));
+  const perms = new Set(m.permissions || []);
+  const missing = new Map();
+  for await (const file of walk(dir)) {
+    if (extname(file) !== ".js") continue;
+    const text = await readFile(file, "utf8");
+    for (const { re, perm } of API_PERM_MAP) {
+      if (re.test(text) && !perms.has(perm)) {
+        if (!missing.has(perm)) missing.set(perm, []);
+        missing.get(perm).push(file.slice(dir.length + 1));
+      }
+    }
+  }
+  if (missing.size === 0) pass(`${variant} API↔权限一致（未声明权限零调用）`);
+  else fail(`${variant} API↔权限`, [...missing].map(([p, fs]) => `调用 ${p} 但未声明 ← ${fs.slice(0, 3).join(", ")}`).join("; "));
+}
 const SCAN_EXT = new Set([".js", ".json", ".html", ".css"]);
 
 async function* walk(dir) {
@@ -142,9 +182,15 @@ if (args.has("--skip-build")) section("构建与违禁扫描 — 跳过 (--skip-
 else {
   runStep("构建 store 包", "node", ["build.mjs", "store"]);
   runStep("构建 store-safe 包", "node", ["build.mjs", "store-safe"]);
+  runStep("构建 store-cws 包（CWS 上架专用）", "node", ["build.mjs", "store-cws"]);
   section("违禁 token 扫描");
   await scanPackage("store");
   await scanPackage("store-safe");
+  await scanPackage("store-cws");
+  section("chrome API ↔ 权限一致性（62 死因终检）");
+  await scanApiPermConsistency("store");
+  await scanApiPermConsistency("store-safe");
+  await scanApiPermConsistency("store-cws");
 }
 
 console.log("\n────────────────────────────────────────");
