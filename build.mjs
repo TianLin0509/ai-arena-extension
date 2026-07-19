@@ -290,6 +290,26 @@ async function buildStoreSafe(version) {
 //   + 远程选择器休眠（断「远程代码嫌疑」审核变数）。
 //   真相链（6c753a6 实测）：所谓「公司电脑无法直接添加」= CWS 商品状态异常时
 //   安装按钮退化为下载 crx、crx 被终端管控拦 —— 病根在商品状态，不在包内容。
+// v5.0.75: 只砍 downloads.open（权限 + ppt 代码桩），保留 MAIN world —— store-cws 用。
+//   downloads.open 是 CWS 唯一强制索要「使用理由」的权限（PPT 下载后自动打开，非核心）；
+//   砍掉它 = 上架时零权限需要填理由 = 消除「显示权限问题」的拦截点。基础 downloads 保留
+//   （导出/下载核心功能需要，且属常规权限不触发理由要求）。
+async function stripDownloadsOpen(target) {
+  const mp = resolve(target, "manifest.json");
+  const m = JSON.parse(await readFile(mp, "utf8"));
+  m.permissions = (m.permissions || []).filter(x => x !== "downloads.open");
+  await writeFile(mp, JSON.stringify(m, null, 2) + "\n", "utf8");
+  const pptPath = resolve(target, "ppt-super", "ppt-super.js");
+  if (existsSync(pptPath)) {
+    let s = await readFile(pptPath, "utf8");
+    s = s.split("chrome.downloads.open(id)").join("void 0 /* store-cws: auto-open removed; user opens the file manually */");
+    s = s.split("chrome.downloads.open").join("storeCwsAutoOpenRemoved");
+    s = s.split("downloads.open").join("storeCwsAutoOpenRemoved");
+    await writeFile(pptPath, s, "utf8");
+  }
+  console.log("[store-cws] downloads.open 权限剥离 + ppt 代码桩（消除 CWS 权限理由拦截）");
+}
+
 async function buildStoreCws(version) {
   const target = resolve(DIST, "store-cws");
   console.log(`[store-cws] building to ${target}`);
@@ -297,6 +317,7 @@ async function buildStoreCws(version) {
   await copySrc(target, { storeMode: true });
   await patchStoreManifest(target);      // 剥 debugger / declarativeNetRequest（63 同款）
   await patchStoreCdpExtractor(target);  // CDP 降级桩 + 去字面（63 同款）
+  await stripDownloadsOpen(target);      // v5.0.75: 砍 downloads.open（CWS 唯一要理由的权限）
   await neutralizeRemoteSelectors(target);
   const zipPath = resolve(DIST, `ai-arena-storecws-v${version}.zip`);
   await zipDir(target, zipPath);

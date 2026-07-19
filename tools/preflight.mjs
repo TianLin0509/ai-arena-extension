@@ -91,6 +91,7 @@ const FORBIDDEN = {
   "store-cws": [
     "chrome.debugger", "declarativeNetRequest", "dnr-rules",
     "raw.githubusercontent.com", "cdn.jsdelivr.net", "gitee.com",
+    "downloads.open",
   ],
 };
 
@@ -159,7 +160,7 @@ async function scanPackage(variant) {
   const m = JSON.parse(await readFile(join(dir, "manifest.json"), "utf8"));
   const perms = m.permissions || [];
   const banned = ["debugger", "declarativeNetRequest"].filter(p => perms.includes(p));
-  if (variant === "store-safe" && perms.includes("downloads.open")) banned.push("downloads.open");
+  if ((variant === "store-safe" || variant === "store-cws") && perms.includes("downloads.open")) banned.push("downloads.open");
   if (banned.length === 0) pass(`${variant} manifest 权限干净`);
   else fail(`${variant} manifest 权限`, `残留 ${banned.join(", ")}`);
   if (variant === "store-safe") {
