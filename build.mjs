@@ -317,7 +317,6 @@ async function buildStoreCws(version) {
   await copySrc(target, { storeMode: true });
   await patchStoreManifest(target);      // 剥 debugger / declarativeNetRequest（63 同款）
   await patchStoreCdpExtractor(target);  // CDP 降级桩 + 去字面（63 同款）
-  await stripDownloadsOpen(target);      // v5.0.75: 砍 downloads.open（CWS 唯一要理由的权限）
   await neutralizeRemoteSelectors(target);
   const zipPath = resolve(DIST, `ai-arena-storecws-v${version}.zip`);
   await zipDir(target, zipPath);
